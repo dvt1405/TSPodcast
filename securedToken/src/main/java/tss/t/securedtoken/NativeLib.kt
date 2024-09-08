@@ -13,6 +13,7 @@ object NativeLib {
     external fun getApiKey(): String
     external fun getTime(): String
     external fun getAuthHeader(): String
+    external fun getUserAgent(): String
 
     private fun byteArrayToString(bytes: ByteArray): String {
         val buffer = StringBuilder()

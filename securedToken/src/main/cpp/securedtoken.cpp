@@ -16,8 +16,17 @@ Java_tss_t_securedtoken_NativeLib_getApiUrl(
         JNIEnv *env,
         jobject /* this */
 ) {
-    std::string apiUrl = "https://api.podcastindex.org/api/1.0";
+    std::string apiUrl = "https://api.podcastindex.org/api/1.0/";
     return env->NewStringUTF(apiUrl.c_str());
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_tss_t_securedtoken_NativeLib_getUserAgent(
+        JNIEnv *env,
+        jobject /* this */
+) {
+    std::string userAgent = "TSSPodcast/Android";
+    return env->NewStringUTF(userAgent.c_str());
 }
 
 extern "C" JNIEXPORT jstring JNICALL
