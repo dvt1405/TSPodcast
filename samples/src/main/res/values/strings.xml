@@ -1,0 +1,8 @@
+<resources>
+    <string name="title_activity_place_holder_sample">PlaceHolderSample</string>
+    <string name="title_activity_shadow_examples">ShadowExamples</string>
+    <string name="title_activity_button_samples">ButtonSamples</string>
+    <string name="title_activity_badge_samples">BadgeActivitySamples</string>
+    <string name="title_activity_popup_samples">PopupSamples</string>
+    <string name="title_activity_textfield_samples">TextfieldSamples</string>
+</resources>
