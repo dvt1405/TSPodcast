@@ -2,7 +2,7 @@ package tss.t.coreapi
 
 import retrofit2.http.GET
 import retrofit2.http.Query
-import tss.t.coreapi.models.Category
+import tss.t.coreapi.models.CategoryRes
 import tss.t.coreapi.models.LiveResponse
 import tss.t.coreapi.models.PodcastByFeedIdRes
 import tss.t.coreapi.models.SearchByPersonRes
@@ -586,18 +586,18 @@ interface API {
      *
      * Authentication
      * Required (None Applied)
-     * @return [Category]
+     * @return [CategoryRes]
      * */
     @GET("categories/list")
-    fun getCategory(@Query("pretty") pretty: Boolean): TSDataState<Category>
+    fun getCategory(@Query("pretty") pretty: Boolean?): TSDataState<CategoryRes>
 
     @GET("stats/current")
-    fun getCurrent(@Query("pretty") pretty: Boolean): TSDataState<StatCurrent>
+    fun getCurrent(@Query("pretty") pretty: Boolean?): TSDataState<StatCurrent>
 
     @GET("podcasts/byfeedid")
     fun getPodcastByFeedId(
         @Query("id") id: String,
-        @Query("pretty") pretty: Boolean
+        @Query("pretty") pretty: Boolean?
     ): TSDataState<PodcastByFeedIdRes>
 
     /**

@@ -174,4 +174,53 @@ object TextStyles {
         color = Colors.SubTitleColor,
         lineHeight = 14.sp
     )
+
+    val Title1 = TextStyle(
+        fontFamily = Fonts.openSans,
+        fontSize = 32.sp,
+        fontWeight = FontWeight.Bold,
+        color = Colors.TextTitleColor,
+        lineHeight = 40.sp
+    )
+
+    val Title2 = TextStyle(
+        fontFamily = Fonts.openSans,
+        fontSize = 28.sp,
+        fontWeight = FontWeight.Bold,
+        color = Colors.TextTitleColor,
+        lineHeight = 36.sp
+    )
+
+    val Title3 = TextStyle(
+        fontFamily = Fonts.openSans,
+        fontSize = 24.sp,
+        fontWeight = FontWeight.Bold,
+        color = Colors.TextTitleColor,
+        lineHeight = 32.sp
+    )
+
+    val Title4 = TextStyle(
+        fontFamily = Fonts.openSans,
+        fontSize = 20.sp,
+        fontWeight = FontWeight.Bold,
+        color = Colors.TextTitleColor,
+        lineHeight = 28.sp
+    )
+
+    val Title5 = TextStyle(
+        fontFamily = Fonts.openSans,
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Bold,
+        color = Colors.TextTitleColor,
+        lineHeight = 20.sp
+    )
+
+
+    val Title6 = TextStyle(
+        fontFamily = Fonts.openSans,
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Bold,
+        color = Colors.TextTitleColor,
+        lineHeight = 16.sp
+    )
 }

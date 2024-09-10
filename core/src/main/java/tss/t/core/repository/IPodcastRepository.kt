@@ -1,9 +1,10 @@
 package tss.t.core.repository
 
+import kotlinx.coroutines.flow.Flow
 import retrofit2.http.GET
 import retrofit2.http.Query
 import tss.t.coreapi.models.TSDataState
-import tss.t.coreapi.models.Category
+import tss.t.coreapi.models.CategoryRes
 import tss.t.coreapi.models.PodcastByFeedIdRes
 import tss.t.coreapi.models.SearchByPersonRes
 import tss.t.coreapi.models.SearchResponse
@@ -50,23 +51,21 @@ interface IPodcastRepository {
         pretty: Boolean = false
     ): TSDataState<SearchResponse>
 
-    fun getCategory(pretty: Boolean): TSDataState<Category>
+    suspend fun getCategory(pretty: Boolean? = null): Flow<TSDataState<CategoryRes>>
 
-    @GET("stats/current")
-    fun getCurrent(pretty: Boolean): TSDataState<StatCurrent>
+    fun getCurrent(pretty: Boolean? = null): TSDataState<StatCurrent>
 
-    @GET("podcasts/byfeedid")
     fun getPodcastByFeedId(
         id: String,
-        pretty: Boolean
+        pretty: Boolean? = null
     ): TSDataState<PodcastByFeedIdRes>
 
     fun getTrending(
         max: Int,
         since: Int,
         lang: String,
-        cat: String,
-        notcat: String,
+        cat: String? = null,
+        notcat: String? = null,
         pretty: Boolean? = null
     ): TSDataState<TrendingPodcastRes>
 }

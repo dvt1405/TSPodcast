@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_title1">Khám Phá Podcast Yêu Thích Của Bạn</string>
+    <string name="onboarding_title2">Nội Dung Dành Riêng Cho Bạn</string>
+    <string name="onboarding_title3">Nghe Mọi Lúc, Mọi Nơi</string>
+    <string name="onboarding_title4">Sắp Xếp Và Cập Nhật Liên Tục</string>
+    <string-array name="onboarding_title1_highlight">
+        <item>Podcast</item>
+        <item>Của Bạn</item>
+    </string-array>
+    <string-array name="onboarding_title2_highlight">
+        <item>Riêng Cho Bạn</item>
+    </string-array>
+    <string-array name="onboarding_title3_highlight">
+        <item>Mọi Lúc, Mọi Nơi</item>
+    </string-array>
+    <string-array name="onboarding_title4_highlight">
+        <item>Sắp Xếp Và Cập Nhật</item>
+    </string-array>
+</resources>

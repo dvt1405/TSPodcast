@@ -15,6 +15,7 @@ object Colors {
 
     val SubTitleColor = Color(0xFF999999)
     val TextColor = Color(0xFF1F1F1F)
+    val TextTitleColor = Color(0xFF39375B)
 
     val Blur = Color(0x4D000000)
     val Black20 = Color(0x33000000)
