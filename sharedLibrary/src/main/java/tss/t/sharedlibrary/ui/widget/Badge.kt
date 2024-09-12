@@ -1,5 +1,6 @@
 package tss.t.sharedlibrary.ui.widget
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -24,11 +25,12 @@ fun TSBadge(
     icon: @Composable () -> Unit = {},
     color: Color = Colors.Primary,
     contentColor: Color = Colors.White,
-    textStyle: TextStyle = TextStyles.Body5
+    textStyle: TextStyle = TextStyles.Body5,
+    modifier: Modifier = Modifier
 ) {
     Badge(
         containerColor = color,
-        contentColor = contentColor
+        contentColor = contentColor,
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(3.dp),
@@ -39,7 +41,7 @@ fun TSBadge(
                 text = badgeTitle,
                 style = textStyle,
                 color = contentColor,
-                modifier = Modifier.padding(1.dp)
+                modifier = modifier.padding(1.dp)
             )
         }
 
@@ -53,7 +55,9 @@ fun TSBadge(
     color: Color = Colors.Primary,
     contentColor: Color = Colors.White,
     iconSize: Dp = 8.dp,
-    textStyle: TextStyle = TextStyles.Body5
+    textStyle: TextStyle = TextStyles.Body5,
+    modifier: Modifier = Modifier,
+    iconClick: () -> Unit = {}
 ) {
     TSBadge(
         badgeTitle = badgeTitle,
@@ -62,12 +66,18 @@ fun TSBadge(
                 Icon(
                     imageVector = it,
                     contentDescription = null,
-                    modifier = Modifier.size(iconSize)
+                    modifier = Modifier
+                        .padding(start = iconSize / 2)
+                        .size(iconSize)
+                        .clickable {
+                            iconClick()
+                        }
                 )
             }
         },
         color = color,
         contentColor = contentColor,
-        textStyle = textStyle
+        textStyle = textStyle,
+        modifier = modifier
     )
 }

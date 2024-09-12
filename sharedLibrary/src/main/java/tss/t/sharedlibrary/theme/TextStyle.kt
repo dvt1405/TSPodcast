@@ -119,30 +119,6 @@ object TextStyles {
         lineHeight = 20.sp
     )
 
-    val BodySpan = SpanStyle(
-        fontFamily = Fonts.openSans,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Medium,
-        color = Colors.TextColor,
-    )
-
-
-    val OverlineTitle1 = TextStyle(
-        fontFamily = Fonts.openSans,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Bold,
-        color = Colors.Gray50,
-        lineHeight = 40.sp
-    )
-
-    val OverlineTitle2 = TextStyle(
-        fontFamily = Fonts.openSans,
-        fontSize = 10.sp,
-        fontWeight = FontWeight.Bold,
-        color = Colors.Gray50,
-        lineHeight = 40.sp
-    )
-
     val Caption1 = TextStyle(
         fontFamily = Fonts.openSans,
         fontSize = 16.sp,
@@ -185,7 +161,7 @@ object TextStyles {
 
     val Title2 = TextStyle(
         fontFamily = Fonts.openSans,
-        fontSize = 28.sp,
+        fontSize = 24.sp,
         fontWeight = FontWeight.Bold,
         color = Colors.TextTitleColor,
         lineHeight = 36.sp
@@ -193,7 +169,7 @@ object TextStyles {
 
     val Title3 = TextStyle(
         fontFamily = Fonts.openSans,
-        fontSize = 24.sp,
+        fontSize = 20.sp,
         fontWeight = FontWeight.Bold,
         color = Colors.TextTitleColor,
         lineHeight = 32.sp
@@ -201,10 +177,10 @@ object TextStyles {
 
     val Title4 = TextStyle(
         fontFamily = Fonts.openSans,
-        fontSize = 20.sp,
+        fontSize = 18.sp,
         fontWeight = FontWeight.Bold,
         color = Colors.TextTitleColor,
-        lineHeight = 28.sp
+        lineHeight = 24.sp
     )
 
     val Title5 = TextStyle(
@@ -218,9 +194,42 @@ object TextStyles {
 
     val Title6 = TextStyle(
         fontFamily = Fonts.openSans,
-        fontSize = 12.sp,
+        fontSize = 14.sp,
         fontWeight = FontWeight.Bold,
         color = Colors.TextTitleColor,
         lineHeight = 16.sp
     )
+
+    val SubTitle1 = TextStyle(
+        fontFamily = Fonts.openSans,
+        fontSize = 16.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = Colors.TextTitleColor,
+        lineHeight = 20.sp
+    )
+
+    val SubTitle2 = TextStyle(
+        fontFamily = Fonts.openSans,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = Colors.TextTitleColor,
+        lineHeight = 18.sp
+    )
+
+    val SubTitle3 = TextStyle(
+        fontFamily = Fonts.openSans,
+        fontSize = 12.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = Colors.TextTitleColor,
+        lineHeight = 16.sp
+    )
+
+    val SubTitle4 = TextStyle(
+        fontFamily = Fonts.openSans,
+        fontSize = 10.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = Colors.TextTitleColor,
+        lineHeight = 14.sp
+    )
+
 }

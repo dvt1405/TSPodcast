@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -49,13 +50,20 @@ object TSButtonDefaults {
 }
 
 @Composable
+fun buttonColors() = ButtonDefaults.buttonColors(
+    containerColor = Colors.White.copy(alpha = 0f),
+    disabledContainerColor = Colors.Gray20_BackgroundDisableColor,
+    disabledContentColor = Colors.Gray8_OnBackgroundDisableColor
+)
+
+@Composable
 fun TSButton(
     modifier: Modifier = Modifier,
     title: String,
     onClick: () -> Unit,
     cornerRadius: Dp = TSButtonDefaults._cornerRadius,
-    leftIcon: @Composable () -> Unit = {},
-    rightIcon: @Composable () -> Unit = {},
+    leftIcon: @Composable (ButtonColors) -> Unit = {},
+    rightIcon: @Composable (ButtonColors) -> Unit = {},
     subTitle: String? = null,
     titleTextStyle: TextStyle = TextStyles.Button3,
     enable: Boolean = true,
@@ -65,6 +73,7 @@ fun TSButton(
     val interactiveSource = remember {
         MutableInteractionSource()
     }
+    val buttonColors = buttonColors()
     Button(
         onClick = onClick,
         modifier = modifier
@@ -87,20 +96,29 @@ fun TSButton(
         interactionSource = interactiveSource,
         shape = RoundedCornerShape(cornerRadius),
         enabled = enable,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Colors.White.copy(alpha = 0f)
-        )
+        colors = buttonColors
     ) {
-        leftIcon()
+        leftIcon(buttonColors)
         Spacer(modifier = Modifier.size(4.dp))
         subTitle?.let {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = title, style = titleTextStyle)
-                Text(text = subTitle, style = TextStyles.Body4)
+                Text(
+                    text = title,
+                    style = titleTextStyle,
+                    color = if (enable) buttonColors.contentColor else buttonColors.disabledContentColor
+                )
+                Text(
+                    text = subTitle,
+                    style = TextStyles.Body4,
+                    color = if (enable) buttonColors.contentColor else buttonColors.disabledContentColor
+                )
             }
-        } ?: Text(text = title, style = titleTextStyle)
+        } ?: Text(
+            text = title, style = titleTextStyle,
+            color = if (enable) buttonColors.contentColor else buttonColors.disabledContentColor
+        )
         Spacer(modifier = Modifier.size(4.dp))
-        rightIcon()
+        rightIcon(buttonColors)
     }
 }
 
@@ -126,20 +144,20 @@ fun TSButton(
         cornerRadius = cornerRadius,
         onClick = onClick,
         subTitle = subTitle,
-        leftIcon = {
+        leftIcon = { colors ->
             leftIcon?.let {
                 Image(
                     imageVector = it, contentDescription = null,
-                    colorFilter = ColorFilter.tint(iconTintColor),
+                    colorFilter = ColorFilter.tint(if (enable) iconTintColor else colors.disabledContentColor),
                     modifier = Modifier.size(TSButtonDefaults._iconSize)
                 )
             }
         },
-        rightIcon = {
+        rightIcon = { colors ->
             rightIcon?.let {
                 Image(
                     imageVector = it, contentDescription = null,
-                    colorFilter = ColorFilter.tint(rightIconTintColor),
+                    colorFilter = ColorFilter.tint(if (enable) rightIconTintColor else colors.disabledContentColor),
                     modifier = Modifier.size(TSButtonDefaults._iconSize)
                 )
             }
@@ -198,8 +216,8 @@ fun TSRoundedButton(
     modifier: Modifier = Modifier,
     title: String,
     onClick: () -> Unit,
-    leftIcon: @Composable () -> Unit = {},
-    rightIcon: @Composable () -> Unit = {},
+    leftIcon: @Composable (ButtonColors) -> Unit = {},
+    rightIcon: @Composable (ButtonColors) -> Unit = {},
     subTitle: String? = null,
     titleTextStyle: TextStyle = TextStyles.Button3,
     enable: Boolean = true,

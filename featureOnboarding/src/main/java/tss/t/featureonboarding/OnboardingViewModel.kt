@@ -1,21 +1,32 @@
 package tss.t.featureonboarding
 
+import android.util.Log
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import tss.t.core.storage.SharedPref
+import tss.t.core.storage.hasSelectFavouriteCategory
 import tss.t.core.storage.isOnboardingFinished
+import tss.t.core.storage.saveFavouriteCategory
 import tss.t.core.storage.saveOnboardingFinished
+import tss.t.coreapi.models.CategoryRes
+import tss.t.coreapi.models.TSDataState
+import tss.t.podcasts.usecase.GetCategories
 import tss.t.sharedresources.R
 import javax.inject.Inject
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
-    private val sharedPref: SharedPref
+    private val sharedPref: SharedPref,
+    private val getCategories: GetCategories
 ) : ViewModel() {
     private val _uiState by lazy {
         MutableStateFlow(
@@ -26,25 +37,61 @@ class OnboardingViewModel @Inject constructor(
         )
     }
 
-    var isOnboardingFinished = MutableStateFlow(sharedPref.isOnboardingFinished())
+    private val _categoryState by lazy {
+        MutableStateFlow<TSDataState<CategoryRes>>(TSDataState.Loading())
+    }
+
+    private val _listFavouriteCategory by lazy {
+        mutableSetOf<CategoryRes.Category>()
+    }
+
+    val categoryState: StateFlow<TSDataState<CategoryRes>>
+        get() = _categoryState
+
+    var isOnboardingFinished = MutableStateFlow(
+        OnboardingStep(
+            isOnboardingDone = sharedPref.isOnboardingFinished(),
+            isSelectedFavourite = sharedPref.hasSelectFavouriteCategory()
+        )
+    )
+
+    private val _renderCount by lazy {
+        MutableStateFlow(0)
+    }
+
+    val renderCount: StateFlow<Int>
+        get() = _renderCount
 
     val uiState: StateFlow<OnboardingUIState>
         get() = _uiState
 
     init {
         checkOnBoardingFinish()
+        loadCategory()
+    }
+
+    private fun loadCategory() {
+        viewModelScope.launch {
+            _categoryState.update {
+                TSDataState.Loading()
+            }
+            getCategories().collectLatest {
+                Log.d("TuanDv", "loadCategory: $it")
+                _categoryState.value = it
+            }
+        }
     }
 
     private fun checkOnBoardingFinish() {
         isOnboardingFinished.update {
-            sharedPref.isOnboardingFinished()
+            it.copy(isOnboardingDone = sharedPref.isOnboardingFinished())
         }
     }
 
     fun onFinishOnboarding() {
         sharedPref.saveOnboardingFinished(true)
         isOnboardingFinished.update {
-            true
+            it.copy(isOnboardingDone = sharedPref.isOnboardingFinished())
         }
     }
 
@@ -61,6 +108,49 @@ class OnboardingViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
     }
+
+    fun putFavouriteItem(category: CategoryRes.Category, index: Int) {
+        category.isFavourite = true
+        synchronized(_listFavouriteCategory) {
+            _listFavouriteCategory.add(category)
+        }
+        updateSelectedState(index, category.copy())
+    }
+
+    var count = 0
+    private fun updateSelectedState(index: Int, category: CategoryRes.Category) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (_categoryState.value is TSDataState.Success) {
+                val data = (_categoryState.value as TSDataState.Success).data.copy()
+                val cached = data.feeds.toMutableList()
+                cached[index] = category.copy()
+                _categoryState.update {
+                    count++
+                    TSDataState.Success(CategoryRes(cached.size + count, cached))
+                }
+            }
+        }
+    }
+
+    fun removeFavouriteItem(category: CategoryRes.Category, index: Int) {
+        category.isFavourite = false
+        synchronized(_listFavouriteCategory) {
+            _listFavouriteCategory.remove(category)
+        }
+        updateSelectedState(index, category)
+    }
+
+    fun saveFavouriteItem() {
+        sharedPref.saveFavouriteCategory(_listFavouriteCategory)
+        isOnboardingFinished.update {
+            it.copy(isSelectedFavourite = true)
+        }
+    }
+
+    data class OnboardingStep(
+        val isOnboardingDone: Boolean = false,
+        val isSelectedFavourite: Boolean = false
+    )
 
     data class OnboardingUIState(
         val listItem: List<PageData>,

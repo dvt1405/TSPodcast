@@ -6,7 +6,5 @@ import javax.inject.Inject
 class GetCategories @Inject constructor(
     private val repository: IPodcastRepository
 ) {
-    operator suspend fun invoke() {
-        repository.getCategory()
-    }
+    suspend operator fun invoke() = repository.getCategory()
 }

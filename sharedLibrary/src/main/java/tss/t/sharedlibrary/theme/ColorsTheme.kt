@@ -17,6 +17,12 @@ object Colors {
     val TextColor = Color(0xFF1F1F1F)
     val TextTitleColor = Color(0xFF39375B)
 
+    val StrokeColor = Color(0x26007AFF)
+    val PlaceHolder: Color = Color(0x26007AFF)
+
+    val Gray20_BackgroundDisableColor = Color(0xffDDE1E6)
+    val Gray8_OnBackgroundDisableColor = Color(0xff343A3F)
+
     val Blur = Color(0x4D000000)
     val Black20 = Color(0x33000000)
     val Black65 = Color(0xA6000000)
@@ -32,12 +38,10 @@ object Colors {
     val Gray2 = Color(0xffF2F4F8)
     val Gray3 = Color(0xffDDE1E6)
     val Gray7 = Color(0xff4D5358)
-    val Gray8 = Color(0xff343A3F)
     val Gray90 = Color(0xff121619)
     val Gray30 = Color(0xffC1C7CD)
     val Gray10 = Color(0xffF2F4F8)
     val Gray15 = Color(0xffE6E9EC)
-    val Gray20 = Color(0xffDDE1E6)
     val Gray40 = Color(0xFFA2A9B0)
     val Gray50 = Color(0xff697077)
     val Gray60 = Color(0xff4D5358)
