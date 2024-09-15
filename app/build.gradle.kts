@@ -73,6 +73,9 @@ dependencies {
     kapt(libs.hilt.android.compiler)
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
+    implementation(libs.coil)
+    implementation(libs.coil.compose)
+    implementation(libs.androidx.navigation.compose)
     implementation(project(":samples"))
     implementation(project(":sharedLibrary"))
     implementation(project(":securedToken"))
@@ -80,4 +83,5 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":podcasts"))
     implementation(project(":featureOnboarding"))
+    implementation(project(":hazeAndroid"))
 }

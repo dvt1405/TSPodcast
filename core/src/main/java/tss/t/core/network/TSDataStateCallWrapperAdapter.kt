@@ -1,5 +1,6 @@
 package tss.t.core.network
 
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import retrofit2.Call
 import retrofit2.CallAdapter

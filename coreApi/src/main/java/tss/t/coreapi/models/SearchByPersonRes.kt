@@ -36,10 +36,6 @@ data class PodcastByPerson(
     val season: Int,
     val title: String,
     val transcriptUrl: String,
-    val transcripts: List<Transcript>
+    val transcripts: List<PodcastTranscript>
 ) {
-    data class Transcript(
-        val type: String,
-        val url: String
-    )
 }

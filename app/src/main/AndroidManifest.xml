@@ -19,6 +19,8 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
+            android:enableOnBackInvokedCallback="true"
+            android:configChanges="screenSize|smallestScreenSize|orientation|screenLayout"
             android:theme="@style/Theme.Podcast">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

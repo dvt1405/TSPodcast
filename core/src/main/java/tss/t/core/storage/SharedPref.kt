@@ -15,6 +15,7 @@ import java.lang.reflect.WildcardType
 import java.util.Objects
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.log
 
 @Singleton
 class SharedPref @Inject constructor(
@@ -95,37 +96,45 @@ class SharedPref @Inject constructor(
 
     inline fun <reified T> get(key: String): T? {
         if (!_sharedPref.contains(key)) return null
-        return when (T::class.java) {
-            Boolean::class.javaObjectType, Boolean::class.javaPrimitiveType, Boolean::class.java -> {
-                _sharedPref.getBoolean(key, false) as? T
-            }
+        return runCatching {
+            when (T::class.java) {
+                Boolean::class.javaObjectType,
+                Boolean::class.javaPrimitiveType,
+                Boolean::class.java -> {
+                    _sharedPref.getBoolean(key, false) as? T
+                }
 
-            Float::class.javaObjectType, Float::class.javaPrimitiveType -> {
-                _sharedPref.getFloat(key, -1f) as T
-            }
+                Float::class.javaObjectType, Float::class.javaPrimitiveType -> {
+                    _sharedPref.getFloat(key, -1f) as T
+                }
 
-            Int::class.javaObjectType, Int::class.javaPrimitiveType -> {
-                _sharedPref.getInt(key, Int.MIN_VALUE) as T
-            }
+                Int::class.javaObjectType, Int::class.javaPrimitiveType -> {
+                    _sharedPref.getInt(key, Int.MIN_VALUE) as T
+                }
 
-            Long::class.javaObjectType, Long::class.javaPrimitiveType -> {
-                _sharedPref.getLong(key, -1L) as T
-            }
+                Long::class.javaObjectType, Long::class.javaPrimitiveType -> {
+                    _sharedPref.getLong(key, -1L) as T
+                }
 
-            String::class.java, String::class.javaPrimitiveType -> {
-                _sharedPref.getString(key, null) as? T
-            }
+                String::class.java, String::class.javaPrimitiveType -> {
+                    _sharedPref.getString(key, null) as? T
+                }
 
-            Set::class.java, List::class.java, Map::class.java -> {
-                val jsStr = _sharedPref.getString(key, null) ?: return null
-                return gson.fromJson(jsStr, object : TypeToken<T>() {}.type)
-            }
+                Set::class.java, List::class.java, Map::class.java -> {
+                    val jsStr = _sharedPref.getString(key, null) ?: return null
+                    return gson.fromJson(jsStr, object : TypeToken<T>() {}.type)
+                }
 
-            else -> {
-                val jsStr = _sharedPref.getString(key, null) ?: return null
-                return gson.fromJson(jsStr, T::class.java)
+                else -> {
+                    val jsStr = _sharedPref.getString(key, null) ?: return null
+                    return gson.fromJson(jsStr, T::class.java)
+                }
             }
-        }
+        }.onFailure {
+            _sharedPref.edit()
+                .remove(key)
+                .apply()
+        }.getOrNull()
     }
 
     companion object {
@@ -134,7 +143,7 @@ class SharedPref @Inject constructor(
 }
 
 internal const val Key_OnboardingFinished = "OnboardingFinished"
-internal const val Key_CategoryRes = "OnboardingFinished"
+internal const val Key_CategoryRes = "CategoryRes"
 internal const val Key_HasSelectFavouriteCategory = "HasSelectFavouriteCategory"
 internal const val Key_ListFavouriteCategory = "ListFavouriteCategory"
 
@@ -159,6 +168,6 @@ fun SharedPref.saveFavouriteCategory(listFavouriteCategory: MutableSet<CategoryR
 }
 
 fun SharedPref.getFavouriteCategory() =
-    get<MutableSet<CategoryRes.Category>>(Key_ListFavouriteCategory)
+    get<Set<CategoryRes.Category>>(Key_ListFavouriteCategory)
 
 fun SharedPref.hasSelectFavouriteCategory() = get<Boolean>(Key_HasSelectFavouriteCategory) ?: false

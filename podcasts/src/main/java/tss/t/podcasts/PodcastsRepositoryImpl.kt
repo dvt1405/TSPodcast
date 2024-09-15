@@ -4,8 +4,12 @@ import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.retry
+import kotlinx.coroutines.flow.retryWhen
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import tss.t.core.repository.IPodcastRepository
 import tss.t.core.storage.SharedPref
@@ -13,12 +17,14 @@ import tss.t.core.storage.getListPodcastCategory
 import tss.t.core.storage.saveListPodcastCategory
 import tss.t.coreapi.API
 import tss.t.coreapi.models.CategoryRes
+import tss.t.coreapi.models.EpisodeResponse
 import tss.t.coreapi.models.PodcastByFeedIdRes
 import tss.t.coreapi.models.SearchByPersonRes
 import tss.t.coreapi.models.SearchResponse
 import tss.t.coreapi.models.StatCurrent
 import tss.t.coreapi.models.TSDataState
 import tss.t.coreapi.models.TrendingPodcastRes
+import java.lang.IllegalStateException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -40,16 +46,18 @@ class PodcastsRepositoryImpl @Inject constructor(
         fulltext: Boolean?,
         pretty: Boolean
     ): TSDataState<SearchResponse> {
-        return api.searchPodcasts(
-            query = query,
-            max = max,
-            type = type,
-            aponly = aponly,
-            clean = clean,
-            similar = similar,
-            fulltext = fulltext,
-            pretty = pretty
-        )
+        return withContext(Dispatchers.IO) {
+            api.searchPodcasts(
+                query = query,
+                max = max,
+                type = type,
+                aponly = aponly,
+                clean = clean,
+                similar = similar,
+                fulltext = fulltext,
+                pretty = pretty
+            )
+        }
     }
 
     override suspend fun searchPodcastsByTitle(
@@ -61,29 +69,33 @@ class PodcastsRepositoryImpl @Inject constructor(
         fulltext: Boolean?,
         pretty: Boolean
     ): TSDataState<SearchResponse> {
-        return api.searchPodcastsByTitle(
-            query = query,
-            type = type,
-            max = max,
-            clean = clean,
-            similar = similar,
-            fulltext = fulltext,
-            pretty = pretty
-        )
+        return withContext(Dispatchers.IO) {
+            api.searchPodcastsByTitle(
+                query = query,
+                type = type,
+                max = max,
+                clean = clean,
+                similar = similar,
+                fulltext = fulltext,
+                pretty = pretty
+            )
+        }
     }
 
-    override fun searchPodcastsByPerson(
+    override suspend fun searchPodcastsByPerson(
         query: String,
         max: Int,
         fulltext: Boolean?,
         pretty: Boolean
     ): TSDataState<SearchByPersonRes> {
-        return api.searchPodcastsByPerson(
-            query = query,
-            max = max,
-            fulltext = fulltext,
-            pretty = pretty
-        )
+        return withContext(Dispatchers.IO) {
+            api.searchPodcastsByPerson(
+                query = query,
+                max = max,
+                fulltext = fulltext,
+                pretty = pretty
+            )
+        }
     }
 
     override fun searchMusicPodcasts(
@@ -147,8 +159,23 @@ class PodcastsRepositoryImpl @Inject constructor(
         return api.getCurrent(pretty)
     }
 
-    override fun getPodcastByFeedId(id: String, pretty: Boolean?): TSDataState<PodcastByFeedIdRes> {
-        return api.getPodcastByFeedId(id, pretty)
+    override suspend fun getPodcastByFeedId(
+        id: String,
+        pretty: Boolean?
+    ): Flow<TSDataState<PodcastByFeedIdRes>> {
+        return flow {
+            val resul = api.getPodcastByFeedId(id, pretty)
+            if (resul is TSDataState.Success) {
+                emit(api.getPodcastByFeedId(id, pretty))
+            } else {
+                throw (resul as? TSDataState.Error)?.exception
+                    ?: IllegalStateException("Get podcast failed")
+            }
+        }.retryWhen { cause, attempt ->
+            cause !is IllegalStateException && attempt < 3
+        }.catch {
+            emit(TSDataState.Error(it))
+        }
     }
 
     override fun getTrending(
@@ -162,6 +189,36 @@ class PodcastsRepositoryImpl @Inject constructor(
         return api.getTrending(
             max = max, since = since, lang = lang, cat = cat, notcat = notcat, pretty = pretty
         )
+    }
+
+    override suspend fun getEpisodeByFeedId(
+        id: String,
+        max: Int,
+        since: Long?,
+        enclosure: String?,
+        fulltext: String?,
+        pretty: Boolean?
+    ): Flow<TSDataState<EpisodeResponse>> {
+        return flow {
+            val result = api.getEpisodeByFeedId(
+                id = id,
+                max = max,
+                since = since,
+                enclosure = enclosure,
+                fulltext = fulltext,
+                pretty = pretty
+            )
+            if (result.isSuccess()) {
+                emit(result)
+            } else {
+                throw result.exception()
+            }
+        }.retryWhen { cause, attempt ->
+            attempt < 3
+        }.catch {
+            emit(TSDataState.Error(it))
+        }
+
     }
 
 }

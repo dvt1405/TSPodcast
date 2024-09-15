@@ -1,6 +1,8 @@
 package tss.t.podcasts.usecase
 
 import tss.t.core.repository.IPodcastRepository
+import tss.t.coreapi.models.TSDataState
+import tss.t.coreapi.models.TrendingPodcastRes
 import javax.inject.Inject
 
 class GetTrendingPodcasts @Inject constructor(
@@ -13,7 +15,7 @@ class GetTrendingPodcasts @Inject constructor(
         cat: String? = null,
         notcat: String? = null,
         pretty: Boolean? = null
-    ) = repository.getTrending(
+    ): TSDataState<TrendingPodcastRes> = repository.getTrending(
         max = max,
         since = since,
         lang = lang,

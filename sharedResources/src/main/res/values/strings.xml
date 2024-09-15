@@ -17,4 +17,7 @@
     <string-array name="onboarding_title4_highlight">
         <item>Sắp Xếp Và Cập Nhật</item>
     </string-array>
+    <string name="error_load_podcast_popup_title">Có lỗi xảy ra</string>
+    <string name="popup_btn_reload_title">Tải lại</string>
+    <string name="popup_btn_cancel_title">Huỷ</string>
 </resources>

@@ -1,8 +1,10 @@
 package tss.t.coreapi
 
+import androidx.annotation.IntRange
 import retrofit2.http.GET
 import retrofit2.http.Query
 import tss.t.coreapi.models.CategoryRes
+import tss.t.coreapi.models.EpisodeResponse
 import tss.t.coreapi.models.LiveResponse
 import tss.t.coreapi.models.PodcastByFeedIdRes
 import tss.t.coreapi.models.SearchByPersonRes
@@ -862,4 +864,140 @@ interface API {
         @Query("max") max: Int,
         @Query("pretty") pretty: Boolean? = null
     ): TSDataState<LiveResponse>
+
+    /**
+     * This call returns a random batch of episodes, in no specific order.
+     * @param max Maximum number of results to return. [Min 1┃Max 1000](max://)
+     * ```
+     * Examples: 10
+     * ```
+     * @param lang Specifying a language code (like "en") will return only episodes having that specific language.
+     * You can specify multiple languages by separating them with commas.
+     * If you also want to return episodes that have no language given, use the token "unknown". (ex. en,es,ja,unknown).
+     * Values are not case sensitive.
+     * ```
+     * Examples:
+     * en
+     * Single ID
+     * en,es
+     * Multiple IDs.
+     * ```
+     *@param cat Use this argument to specify that you ONLY want episodes with these categories in the results.
+     *
+     * Separate multiple categories with commas.
+     *
+     * You may specify either the Category ID and/or the Category Name.
+     *
+     * Values are not case sensitive.
+     *
+     * The cat and notcat filters can be used together to fine tune a very specific result set.
+     *
+     * Category numbers and names can be found in the [Podcast Namespace documentation](https://github.com/Podcastindex-org/podcast-namespace/blob/main/categories.json)
+     *```
+     * Examples:
+     * News
+     ** -Single Category Name
+     *
+     ** -65
+     * Single Category ID
+     *
+     * News,Religion
+     * Multiple Category Names
+     *
+     * 55,65
+     * Multiple Category IDs
+     *
+     * News,65
+     * Multiple Categories Mixed Format.
+     * ```
+     * @param notcat Use this argument to specify categories of episodes to NOT show in the results.
+     *
+     * Separate multiple categories with commas.
+     *
+     * You may specify either the Category ID and/or the Category Name.
+     *
+     * Values are not case sensitive.
+     *
+     * The cat and notcat filters can be used together to fine tune a very specific result set.
+     *
+     * Category numbers and names can be found in the [Podcast Namespace documentation](https://github.com/Podcastindex-org/podcast-namespace/blob/main/categories.json)
+     *```
+     * Examples:
+     * News
+     * Single Category Name
+     *
+     * 65
+     * Single Category ID
+     *
+     * News,Religion
+     * Multiple Category Names
+     *
+     * 55,65
+     * Multiple Category IDs
+     *
+     * News,65
+     * Multiple Categories Mixed Format.
+     *```
+     * @param fulltext If present, return the full text value of any text fields (ex: description). If not provided, field value is truncated to 100 words.
+     * Parameter shall not have a value
+     * @param pretty If present, makes the output “pretty” to help with debugging.
+     * Parameter shall not have a value
+
+     * @see <a href="https://api.podcastindex.org/api/1.0/search/byterm?q=batman+university&pretty">Examples</a>
+     * */
+    @GET("episodes/random")
+    fun getRandomEpisodes(
+        @IntRange(from = 1, to = 1000)
+        @Query("max") max: Int = 100,
+        @Query("lang") lang: String = "vi,en",
+        @Query("cat") cat: String? = null,
+        @Query("notcat") notcat: String? = null,
+        @Query("pretty") pretty: Boolean? = null
+    )
+
+    /**
+     * This call returns all the episodes we know about for this feed from the PodcastIndex ID. Episodes are in reverse chronological order.
+     * When using the enclosure parameter, only the episode matching the URL is returned.
+     * ```
+     * Examples:
+     *
+     * https://api.podcastindex.org/api/1.0/episodes/byfeedid?id=75075&pretty
+     * https://api.podcastindex.org/api/1.0/episodes/byfeedid?id=41504,920666&pretty
+     * Includes persons: https://api.podcastindex.org/api/1.0/episodes/byfeedid?id=169991&pretty
+     * Includes value: https://api.podcastindex.org/api/1.0/episodes/byfeedid?id=4058673&pretty
+     * Using enclosure: https://api.podcastindex.org/api/1.0/episodes/byfeedid?id=41504&enclosure=https://op3.dev/e/mp3s.nashownotes.com/NA-1551-2023-04-30-Final.mp3&pretty
+     * ```
+     * @param id The PodcastIndex Feed ID or IDs to search for.
+     * ```
+     * Examples:
+     * 75075
+     * Single ID
+     *
+     * 41504,920666
+     * Multiple IDs
+     * ```
+     * @param since Return items since the specified epoch timestamp.
+     * ```
+     * Examples: 1612125785
+     * ```
+     * @param max Maximum number of results to return. Min 1┃Max 1000
+     * ```
+     * Examples: 10
+     * ```
+     * @param fulltext If present, return the full text value of any text fields (ex: description). If not provided, field value is truncated to 100 words.
+     * @param pretty If present, makes the output “pretty” to help with debugging.
+     *
+     * */
+    @GET("episodes/byfeedid")
+    fun getEpisodeByFeedId(
+        @Query("id") id: String,
+        @Query("max")
+        @IntRange(from = 1, to = 1000)
+        max: Int = 100,
+        @Query("since")
+        since: Long? = null,
+        @Query("enclosure") enclosure: String? = null,
+        @Query("fulltext") fulltext: String? = null,
+        @Query("pretty") pretty: Boolean? = null
+    ): TSDataState<EpisodeResponse>
 }

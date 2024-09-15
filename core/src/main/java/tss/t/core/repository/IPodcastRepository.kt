@@ -1,10 +1,11 @@
 package tss.t.core.repository
 
+import androidx.annotation.IntRange
 import kotlinx.coroutines.flow.Flow
-import retrofit2.http.GET
 import retrofit2.http.Query
 import tss.t.coreapi.models.TSDataState
 import tss.t.coreapi.models.CategoryRes
+import tss.t.coreapi.models.EpisodeResponse
 import tss.t.coreapi.models.PodcastByFeedIdRes
 import tss.t.coreapi.models.SearchByPersonRes
 import tss.t.coreapi.models.SearchResponse
@@ -32,14 +33,13 @@ interface IPodcastRepository {
         pretty: Boolean = false
     ): TSDataState<SearchResponse>
 
-    fun searchPodcastsByPerson(
-        @Query("q") query: String,
-        @Query("max") max: Int, //min 1 max 100
-        @Query("fulltext") fulltext: Boolean? = true,
-        @Query("pretty") pretty: Boolean = false
+    suspend fun searchPodcastsByPerson(
+        query: String,
+        max: Int, //min 1 max 100
+        fulltext: Boolean? = true,
+        pretty: Boolean = false
     ): TSDataState<SearchByPersonRes>
 
-    @GET("search/music/byterm")
     fun searchMusicPodcasts(
         query: String,
         type: String,
@@ -55,17 +55,27 @@ interface IPodcastRepository {
 
     fun getCurrent(pretty: Boolean? = null): TSDataState<StatCurrent>
 
-    fun getPodcastByFeedId(
+    suspend fun getPodcastByFeedId(
         id: String,
         pretty: Boolean? = null
-    ): TSDataState<PodcastByFeedIdRes>
+    ): Flow<TSDataState<PodcastByFeedIdRes>>
 
     fun getTrending(
         max: Int,
         since: Int,
         lang: String,
         cat: String? = null,
-        notcat: String? = null,
+        notcat: String? = "sexuality",
         pretty: Boolean? = null
     ): TSDataState<TrendingPodcastRes>
+
+    suspend fun getEpisodeByFeedId(
+        id: String,
+        @IntRange(from = 1, to = 1000)
+        max: Int = 100,
+        since: Long? = null,
+        enclosure: String? = null,
+        fulltext: String? = null,
+        pretty: Boolean? = null
+    ): Flow<TSDataState<EpisodeResponse>>
 }

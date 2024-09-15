@@ -13,7 +13,7 @@ data class Feed(
     val generator: String,
     val id: Int,
     val image: String,
-    val imageUrlHash: Int,
+    val imageUrlHash: Long,
     val itunesId: Int?,
     val language: String,
     val lastCrawlTime: Int,
@@ -38,23 +38,9 @@ data class Feed(
     val value: Value? = null
 )
 
-data class Value(
-    val destinations: List<Destination>,
-    val model: Model
-)
 
 data class Model(
     val method: String,
     val suggested: String? = null,
-    val type: String
-)
-
-data class Destination(
-    val address: String,
-    val customKey: String? = null,
-    val customValue: String? = null,
-    val fee: Boolean? = null,
-    val name: String,
-    val split: Int,
     val type: String
 )

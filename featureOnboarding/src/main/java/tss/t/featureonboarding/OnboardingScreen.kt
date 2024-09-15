@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,28 +59,28 @@ import tss.t.sharedlibrary.ui.widget.TSRoundedButton
 @Composable
 fun OnboardingScreen(
     modifier: Modifier = Modifier,
-    viewModel: OnboardingViewModel,
-    paddingValues: PaddingValues = PaddingValues()
+    viewModel: OnboardingViewModel
 ) {
     val listItem by viewModel.uiState.collectAsState()
-    LocalConfiguration.current
-    OnboardingScreen(
-        modifier,
-        items = listItem.listItem,
-        paddingValues,
-        onOnboardingDisposed = {
-            viewModel.onOnboardingDisposed()
-        },
-        onPageChanged = {
-            viewModel.onPageChanged()
-        },
-        onShowed = {
-            viewModel.onShowed()
-        },
-        onFinishOnBoarding = {
-            viewModel.onFinishOnboarding()
-        }
-    )
+    Scaffold { paddingValues: PaddingValues ->
+        OnboardingScreen(
+            modifier,
+            items = listItem.listItem,
+            paddingValues,
+            onOnboardingDisposed = {
+                viewModel.onOnboardingDisposed()
+            },
+            onPageChanged = {
+                viewModel.onPageChanged()
+            },
+            onShowed = {
+                viewModel.onShowed()
+            },
+            onFinishOnBoarding = {
+                viewModel.onFinishOnboarding()
+            }
+        )
+    }
 }
 
 @Composable

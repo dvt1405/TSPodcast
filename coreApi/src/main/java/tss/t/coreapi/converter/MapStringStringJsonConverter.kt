@@ -8,14 +8,16 @@ import tss.t.coreapi.models.Categories
 import java.lang.reflect.Type
 
 
-class MapStringStringJsonConverter : JsonDeserializer<Categories> {
+class MapStringStringJsonConverter : JsonDeserializer<Categories?> {
     private val key = "categories"
     override fun deserialize(
         json: JsonElement?,
         typeOfT: Type?,
         context: JsonDeserializationContext?
-    ): Categories {
+    ): Categories? {
         val jsObject = json!!.asJsonObject.getAsJsonObject(key)
-        return Gson().fromJson(jsObject, Categories::class.java)
+        return runCatching {
+            Gson().fromJson(jsObject, Categories::class.java)
+        }.getOrNull()
     }
 }
