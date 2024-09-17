@@ -1,24 +1,19 @@
 package tss.t.podcast.ui.screens
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import tss.t.core.storage.SharedPref
 import tss.t.core.storage.getFavouriteCategory
 import tss.t.coreapi.Constants
-import tss.t.coreapi.models.PodcastByFeedIdRes
 import tss.t.coreapi.models.TSDataState
 import tss.t.coreapi.models.TrendingPodcast
 import tss.t.podcasts.usecase.GetEpisodeByFeedId
@@ -58,6 +53,11 @@ class MainViewModel @Inject constructor(
     }
 
     fun reload() {
+        _uiState.update {
+            it.copy(
+                renderCount = 0
+            )
+        }
         getTrending()
     }
 
@@ -152,7 +152,6 @@ class MainViewModel @Inject constructor(
                     )
                 }
             } else if (result is TSDataState.Error) {
-                Log.e("TuanDv", "getFavorite: ${result.exception.message}", result.exception)
                 _uiState.update {
                     it.copy(error = result.exception, renderCount = ++renderCount)
                 }
@@ -160,57 +159,15 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun getPodcast(podcast: TrendingPodcast) {
-        getEpisodes("${podcast.id}")
+    fun getPodcast(
+        podcast: TrendingPodcast,
+        from: String? = null
+    ) {
         _uiState.update {
-            it.copy(currentPodcast = podcast)
-        }
-
-        viewModelScope.launch(Dispatchers.IO) {
-            interactors.getPodcastByFeedID("${podcast.id}")
-                .collect { result ->
-                    if (result is TSDataState.Success) {
-                        val data = result.data
-                        _uiState.update {
-                            it.copy(
-                                error = null,
-                                renderCount = ++renderCount,
-                            )
-                        }
-
-                    } else if (result is TSDataState.Error) {
-                        _uiState.update {
-                            it.copy(
-                                renderCount = ++renderCount,
-                                error = result.exception
-                            )
-                        }
-                    }
-                }
-        }
-    }
-
-    fun getEpisodes(podcastId: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            interactors.getEpisodeByFeedId(podcastId)
-                .collect { result ->
-                    if (result is TSDataState.Success) {
-                        _uiState.update {
-                            it.copy(
-                                error = null,
-                                renderCount = ++renderCount,
-                            )
-                        }
-
-                    } else if (result is TSDataState.Error) {
-                        _uiState.update {
-                            it.copy(
-                                renderCount = ++renderCount,
-                                error = result.exception
-                            )
-                        }
-                    }
-                }
+            it.copy(
+                currentPodcast = podcast,
+                from = from
+            )
         }
     }
 
@@ -232,6 +189,7 @@ class MainViewModel @Inject constructor(
         val listFav: List<TrendingPodcast> = listOf(),
         val isLoading: Boolean = false,
         val error: Throwable? = null,
-        val currentPodcast: TrendingPodcast? = null
+        val currentPodcast: TrendingPodcast? = null,
+        val from: String? = null
     )
 }

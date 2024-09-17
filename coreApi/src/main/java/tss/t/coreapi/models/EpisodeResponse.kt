@@ -1,14 +1,17 @@
 package tss.t.coreapi.models
 
+import androidx.annotation.VisibleForTesting
+import com.google.gson.annotations.SerializedName
+
 data class EpisodeResponse(
     val count: Int,
     val items: List<Episode>,
-    val liveItems: List<LiveEpisode>,
+    val liveItems: List<LiveEpisode>? = null,
     val query: String,
 ) : BaseResponse()
 
 data class Episode(
-    val chaptersUrl: String,
+    val chaptersUrl: String?,
     val dateCrawled: Int,
     val datePublished: Long,
     val datePublishedPretty: String,
@@ -16,12 +19,13 @@ data class Episode(
     val duration: Long,
     val enclosureLength: Long,
     val enclosureType: String,
+    @SerializedName("enclosureUrl")
     val enclosureUrl: String,
-    val episode: Int,
+    val episode: Int?,
     val episodeType: String,
     val explicit: Int,
     val feedDead: Int,
-    val feedDuplicateOf: Long,
+    val feedDuplicateOf: Long?,
     val feedId: Long,
     val feedImage: String,
     val feedItunesId: Long,
@@ -38,18 +42,21 @@ data class Episode(
     val soundbite: Soundbite,
     val soundbites: List<Soundbite>,
     val title: String,
-    val transcriptUrl: String,
-    val transcripts: List<PodcastTranscript>,
-    val value: Value
-)
+    val transcriptUrl: String?,
+    val transcripts: List<PodcastTranscript>?,
+    val value: Value?
+) {
+    companion object {
+    }
+}
 
 data class LiveEpisode(
-    val chaptersUrl: String,
+    val chaptersUrl: String?,
     val contentLink: String,
     val dateCrawled: Long,
     val datePublished: Long,
     val datePublishedPretty: String,
-    val description: String,
+    val description: String?,
     val duration: Long,
     val enclosureLength: Long,
     val enclosureType: String,

@@ -1,5 +1,6 @@
 package tss.t.core.di
 
+import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -26,6 +27,7 @@ class NetworkModule {
     @Provides
     fun provideGson(): Gson {
         return GsonBuilder()
+            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
             .registerTypeAdapter(
                 Categories::class.java,
                 MapStringStringJsonConverter()
@@ -57,7 +59,7 @@ class NetworkModule {
                 GsonConverterFactory
                     .create(gson)
             )
-            .addConverterFactory(TSDataStateJsonConverter.Factory())
+            .addConverterFactory(TSDataStateJsonConverter.Factory(gson))
             .addCallAdapterFactory(TSDataStateCallAdapterFactory())
             .client(client)
     }

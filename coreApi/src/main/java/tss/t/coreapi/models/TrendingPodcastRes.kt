@@ -27,10 +27,11 @@ data class TrendingPodcast(
     val feedLanguage: String?,
     val feedTitle: String?,
     val guid: String?,
-    val id: Int,
+    val id: Long,
     val image: String,
     val link: String?,
-    val title: String
+    val title: String,
+    val description: String?
 ) {
     @SuppressLint("SimpleDateFormat")
     companion object {
@@ -54,7 +55,8 @@ data class TrendingPodcast(
                 id = 100,
                 image = "",
                 link = "",
-                title = "Test"
+                title = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+                description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut tempus, sem vitae convallis imperdiet, lectus nunc pharetra diam, ac rhoncus quam eros eu risus. Nulla pulvinar condimentum erat, pulvinar tempus turpis blandit ut. Etiam sed ipsum sed lacus eleifend hendrerit eu quis quam. Etiam ligula eros, finibus vestibulum tortor ac, ultrices accumsan dolor. Vivamus vel nisl a libero lobortis posuere. Aenean facilisis nibh vel ultrices bibendum. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Suspendisse ac est vitae lacus commodo efficitur at ut massa. Etiam vestibulum sit amet sapien sed varius. Aliquam non ipsum imperdiet, pulvinar enim nec, mollis risus. Fusce id tincidunt nisl."
             )
         }
     }

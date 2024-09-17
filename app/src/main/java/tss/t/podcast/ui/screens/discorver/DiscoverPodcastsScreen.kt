@@ -1,23 +1,36 @@
 package tss.t.podcast.ui.screens.discorver
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -26,13 +39,16 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.PositionalThreshold
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.pullToRefreshIndicator
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.center
@@ -47,12 +63,15 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import tss.t.coreapi.models.TrendingPodcast
 import tss.t.hazeandroid.HazeDefaults
 import tss.t.hazeandroid.HazeState
 import tss.t.hazeandroid.haze
+import tss.t.podcast.LocalNavAnimatedVisibilityScope
+import tss.t.podcast.LocalSharedTransitionScope
 import tss.t.podcast.ui.screens.discorver.widgets.FavouriteWidget
 import tss.t.podcast.ui.screens.discorver.widgets.TrendingWidget
 import tss.t.sharedlibrary.theme.Colors
@@ -63,7 +82,7 @@ import kotlin.math.min
 import kotlin.math.pow
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun DiscoverPodcastsScreen(
     isRefreshing: Boolean,
@@ -75,15 +94,43 @@ fun DiscoverPodcastsScreen(
     listFav: List<TrendingPodcast>,
     onTrendingClick: TrendingPodcast.() -> Unit = {},
     onFavClick: TrendingPodcast.() -> Unit = {},
-    listState: LazyListState = rememberLazyListState()
+    listState: LazyListState = rememberLazyListState(),
+    trendingRowState: LazyListState = rememberLazyListState(),
+    renderCount: Int = 0
 ) {
+    val sharedTransitionScope = LocalSharedTransitionScope.current!!
+    val animatedContentScope = LocalNavAnimatedVisibilityScope.current!!
     val scaleFraction = {
         if (isRefreshing) 1f
         else LinearOutSlowInEasing.transform(pullRefreshState.distanceFraction).coerceIn(0f, 1f)
     }
+    val infiniteTransition = rememberInfiniteTransition(label = "InfiniteTransition")
+    val animationSpec = infiniteRepeatable<Float>(
+        animation = tween(durationMillis = 1700, delayMillis = 200),
+        repeatMode = RepeatMode.Restart
+    )
+    val highlightProgress = infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = animationSpec, label = "FloatAnimation",
+    ).value
+
+    val placeHolderColor by infiniteTransition.animateColor(
+        initialValue = Colors.Primary10.copy(alpha = 0.3f),
+        targetValue = Colors.Secondary.copy(alpha = 0.3f),
+        animationSpec = infiniteRepeatable(
+            tween(
+                1700,
+                delayMillis = 200
+            ),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "Color"
+    )
+
     val pullToRefreshThreshHold = 50.dp + innerPadding.calculateTopPadding()
     PullToRefreshBox(
-        isRefreshing = isRefreshing,
+        isRefreshing = if (renderCount == 0) false else isRefreshing,
         onRefresh = onRefresh,
         state = pullRefreshState,
         modifier = Modifier
@@ -128,13 +175,30 @@ fun DiscoverPodcastsScreen(
             }
             item(key = "TrendingRow") {
                 LazyRow(
+                    state = trendingRowState,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     item { Spacer(modifier = Modifier.size(4.dp)) }
-                    items(listTrending.size) {
-                        val item = listTrending[it]
-                        TrendingWidget(podcast = item) {
-                            onTrendingClick(item)
+                    if (isRefreshing) {
+                        items(20, key = { it }) {
+                            Box(
+                                modifier = Modifier
+                                    .width(180.dp)
+                                    .aspectRatio(10f / 16)
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(placeHolderColor, RoundedCornerShape(20.dp))
+                            )
+                        }
+                    } else {
+                        items(listTrending.size) {
+                            val item = listTrending[it]
+                            TrendingWidget(
+                                podcast = item,
+                                sharedTransitionScope = sharedTransitionScope,
+                                animatedContentScope = animatedContentScope
+                            ) {
+                                onTrendingClick(item)
+                            }
                         }
                     }
                 }
@@ -151,12 +215,13 @@ fun DiscoverPodcastsScreen(
                 )
             }
 
-            items(listFav.size) {
+            items(if (isRefreshing) 50 else listFav.size) {
                 FavouriteWidget(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
                         .padding(top = 16.dp),
-                    podcast = listFav[it]
+                    podcast = if (!isRefreshing) listFav[it] else TrendingPodcast.default,
+                    isLoading = isRefreshing
                 ) {
                     onFavClick(this)
                 }
@@ -164,6 +229,46 @@ fun DiscoverPodcastsScreen(
 
             item(key = "SpaceBottom") {
                 Spacer(modifier = Modifier.size(innerPadding.calculateBottomPadding()))
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
+@Composable
+@Preview(backgroundColor = 0xFFE1D5D5)
+fun DiscoverPodcastsScreenPreview() {
+    Box(modifier = Modifier.background(Colors.White)) {
+        SharedTransitionScope {
+            AnimatedContent(true, label = "") {
+                CompositionLocalProvider(
+                    LocalSharedTransitionScope provides this@SharedTransitionScope,
+                    LocalNavAnimatedVisibilityScope provides this
+                ) {
+                    if (it) {
+                        DiscoverPodcastsScreen(
+                            isRefreshing = true,
+                            onRefresh = {
+
+                            },
+                            hazeState = remember { HazeState() },
+                            pullRefreshState = rememberPullToRefreshState(),
+                            innerPadding = PaddingValues(),
+                            listTrending = listOf(),
+                            listFav = listOf(),
+                            onTrendingClick = {
+
+                            },
+                            onFavClick = {
+
+                            },
+                            listState = rememberLazyListState()
+                        )
+                    } else {
+                        Box { }
+                    }
+                }
+
             }
         }
     }

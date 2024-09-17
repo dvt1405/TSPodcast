@@ -78,6 +78,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(project(":samples"))
     implementation(project(":sharedLibrary"))
+    implementation(project(":sharedResources"))
     implementation(project(":securedToken"))
     implementation(project(":coreApi"))
     implementation(project(":core"))

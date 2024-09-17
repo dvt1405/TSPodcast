@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package tss.t.podcast
 
 import android.os.Bundle
@@ -6,17 +8,22 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
 import dagger.hilt.android.AndroidEntryPoint
 import tss.t.featureonboarding.OnboardingScreen
@@ -45,6 +52,7 @@ class MainActivity : ComponentActivity() {
         }
         onBackPressedDispatcher.addCallback(onBackPressedCallback)
         setContent {
+
             PodcastTheme {
                 val listState = remember {
                     mutableStateMapOf<BottomBarTab, LazyListState>()
@@ -72,19 +80,24 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        else -> HomeNavigationScreen(
-                            this,
-                            mainViewModel = mainViewModel,
-                            screenTitle = tabDefaults[tabIndexSelected].title,
-                            selectedTabIndex = tabIndexSelected,
-                            bottomTabs = tabDefaults,
-                            listState = listState,
-                            pullRefreshState = pullRefreshState,
-                            hazeState = remember { HazeState() },
-                            onTabSelected = { tab, index ->
-                                tabIndexSelected = index
+                        else -> {
+                            CompositionLocalProvider(
+                                LocalSharedTransitionScope provides this,
+                                LocalListStateScope provides listState,
+                                LocalPullToRefreshState provides pullRefreshState
+                            ) {
+                                HomeNavigationScreen(
+                                    mainViewModel = mainViewModel,
+                                    screenTitle = tabDefaults[tabIndexSelected].title,
+                                    selectedTabIndex = tabIndexSelected,
+                                    bottomTabs = tabDefaults,
+                                    hazeState = remember { HazeState() },
+                                    onTabSelected = { tab, index ->
+                                        tabIndexSelected = index
+                                    }
+                                )
                             }
-                        )
+                        }
                     }
                 }
             }
@@ -92,3 +105,16 @@ class MainActivity : ComponentActivity() {
     }
 
 }
+
+val LocalNavAnimatedVisibilityScope = compositionLocalOf<AnimatedVisibilityScope?> { null }
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+val LocalSharedTransitionScope = compositionLocalOf<SharedTransitionScope?> { null }
+
+val LocalListStateScope = compositionLocalOf<SnapshotStateMap<BottomBarTab, LazyListState>> {
+    mutableStateMapOf()
+}
+
+val LocalPullToRefreshState = compositionLocalOf<SnapshotStateMap<BottomBarTab, PullToRefreshState>> {
+        mutableStateMapOf()
+    }
