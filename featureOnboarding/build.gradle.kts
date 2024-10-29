@@ -69,5 +69,6 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":podcasts"))
     implementation(project(":sharedResources"))
+    implementation(project(":sharedFirebase"))
     implementation(libs.tbuonomo.dotsindicator)
 }

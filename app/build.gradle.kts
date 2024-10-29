@@ -5,6 +5,8 @@ plugins {
     id("kotlinx-serialization")
     id("kotlin-parcelize")
     id("com.google.dagger.hilt.android")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -91,6 +93,8 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.fragment.ktx)
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+    implementation("com.google.firebase:firebase-analytics")
     implementation(project(":samples"))
     implementation(project(":sharedLibrary"))
     implementation(project(":sharedPlayer"))
@@ -101,4 +105,5 @@ dependencies {
     implementation(project(":podcasts"))
     implementation(project(":featureOnboarding"))
     implementation(project(":hazeAndroid"))
+    implementation(project(":sharedFirebase"))
 }

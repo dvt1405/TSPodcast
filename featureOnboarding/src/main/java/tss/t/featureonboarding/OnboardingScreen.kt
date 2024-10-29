@@ -62,6 +62,10 @@ fun OnboardingScreen(
     viewModel: OnboardingViewModel
 ) {
     val listItem by viewModel.uiState.collectAsState()
+    DisposableEffect(Unit) {
+        onDispose {
+        }
+    }
     Scaffold { paddingValues: PaddingValues ->
         OnboardingScreen(
             modifier,
@@ -71,7 +75,7 @@ fun OnboardingScreen(
                 viewModel.onOnboardingDisposed()
             },
             onPageChanged = {
-                viewModel.onPageChanged()
+                viewModel.onPageChanged(it)
             },
             onShowed = {
                 viewModel.onShowed()
@@ -108,7 +112,7 @@ fun OnboardingScreen(
 
     val alpha by animateFloatAsState(if (continuaBtn) 1f else 0f, label = "") {
     }
-    LaunchedEffect(pager.currentPage) {
+    LaunchedEffect(pager) {
         snapshotFlow {
             pager.currentPage
         }.collect {
