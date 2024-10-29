@@ -1,7 +1,8 @@
 package tss.t.core.storage
 
 import android.content.Context
-import android.util.Log
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKeys
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -15,7 +16,6 @@ import java.lang.reflect.WildcardType
 import java.util.Objects
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.log
 
 @Singleton
 class SharedPref @Inject constructor(
@@ -23,7 +23,13 @@ class SharedPref @Inject constructor(
     context: Context
 ) {
     val _sharedPref by lazy {
-        context.getSharedPreferences(TAG, Context.MODE_PRIVATE)
+        EncryptedSharedPreferences.create(
+            TAG,
+            MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
+            context,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
     }
 
     val gson by lazy { Gson() }

@@ -1,6 +1,5 @@
 package tss.t.core.di
 
-import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -17,7 +16,6 @@ import tss.t.coreapi.API
 import tss.t.coreapi.converter.MapStringStringJsonConverter
 import tss.t.coreapi.converter.TSDataStateJsonConverter
 import tss.t.coreapi.models.Categories
-import tss.t.coreapi.models.TSDataState
 import tss.t.securedtoken.NativeLib
 
 @Module

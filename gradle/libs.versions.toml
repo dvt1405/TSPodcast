@@ -22,6 +22,8 @@ okhttp = "4.12.0"
 retrofit = "2.11.0"
 hilt = "2.51.1"
 junitJupiter = "5.8.1"
+uiTooling = "1.7.4"
+securityCryptoKtx = "1.0.0"
 
 [libraries]
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityCompose" }
@@ -69,6 +71,8 @@ junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.r
 
 coil = { module = "io.coil-kt:coil", version.ref = "coil" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
+ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
+androidx-security-crypto-ktx = { group = "androidx.security", name = "security-crypto", version.ref = "securityCryptoKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

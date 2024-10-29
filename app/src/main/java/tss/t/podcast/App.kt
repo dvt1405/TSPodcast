@@ -1,5 +1,6 @@
 package tss.t.podcast
 
+import com.google.firebase.FirebaseApp
 import dagger.hilt.android.HiltAndroidApp
 import tss.t.core.CoreApp
 import tss.t.sharedplayer.controller.TSMediaController
@@ -13,6 +14,7 @@ class App : CoreApp() {
 
     override fun onCreate() {
         super.onCreate()
+        FirebaseApp.initializeApp(this)
         registerActivityLifecycleCallbacks(mediaController)
     }
 }

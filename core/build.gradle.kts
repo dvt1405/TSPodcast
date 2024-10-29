@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging.interceptor)
+    implementation(libs.androidx.security.crypto.ktx)
     implementation(project(":sharedLibrary"))
     implementation(project(":securedToken"))
     implementation(project(":coreApi"))

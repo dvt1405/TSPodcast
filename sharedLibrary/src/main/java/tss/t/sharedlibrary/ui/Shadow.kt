@@ -20,15 +20,18 @@ fun Modifier.shadow(
     drawIntoCanvas { canvas ->
         val paint = Paint()
         val frameworkPaint = paint.asFrameworkPaint()
+        val blurRadiusPx = blurRadius.toPx()
         if (blurRadius != 0.dp) {
-            frameworkPaint.maskFilter =
-                (BlurMaskFilter(blurRadius.toPx(), BlurMaskFilter.Blur.NORMAL))
+            frameworkPaint.maskFilter = BlurMaskFilter(
+                blurRadiusPx,
+                BlurMaskFilter.Blur.NORMAL
+            )
         }
         frameworkPaint.color = color.toArgb()
-        val leftPixel = offsetX.toPx()
+        val leftPixel = offsetX.toPx() - blurRadiusPx / 2
         val topPixel = offsetY.toPx()
-        val rightPixel = size.width + topPixel
-        val bottomPixel = size.height + leftPixel
+        val rightPixel = size.width + blurRadiusPx
+        val bottomPixel = size.height + topPixel
 
         canvas.drawRect(
             left = leftPixel,

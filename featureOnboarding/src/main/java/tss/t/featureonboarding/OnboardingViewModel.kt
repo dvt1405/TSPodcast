@@ -20,13 +20,15 @@ import tss.t.core.storage.saveOnboardingFinished
 import tss.t.coreapi.models.CategoryRes
 import tss.t.coreapi.models.TSDataState
 import tss.t.podcasts.usecase.GetCategories
+import tss.t.sharedfirebase.TSAnalytics
 import tss.t.sharedresources.R
 import javax.inject.Inject
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
     private val sharedPref: SharedPref,
-    private val getCategories: GetCategories
+    private val getCategories: GetCategories,
+    val analytic: TSAnalytics
 ) : ViewModel() {
     private val _uiState by lazy {
         MutableStateFlow(
@@ -90,6 +92,10 @@ class OnboardingViewModel @Inject constructor(
 
     fun onFinishOnboarding() {
         sharedPref.saveOnboardingFinished(true)
+        analytic.trackEvent(
+            "OnboardingFinished",
+            "Onboarding"
+        )
         isOnboardingFinished.update {
             it.copy(isOnboardingDone = sharedPref.isOnboardingFinished())
         }
@@ -99,7 +105,11 @@ class OnboardingViewModel @Inject constructor(
 
     }
 
-    fun onPageChanged() {
+    fun onPageChanged(page: Int) {
+        analytic.trackScreen(
+            "Onboarding",
+            "CurrentPage" to (page + 1)
+        )
     }
 
     fun onShowed() {
