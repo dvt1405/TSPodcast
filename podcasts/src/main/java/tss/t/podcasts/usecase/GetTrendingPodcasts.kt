@@ -1,16 +1,16 @@
 package tss.t.podcasts.usecase
 
 import tss.t.core.repository.IPodcastRepository
+import tss.t.core.storage.SharedPref
 import tss.t.coreapi.models.TSDataState
 import tss.t.coreapi.models.TrendingPodcastRes
 import javax.inject.Inject
 
 class GetTrendingPodcasts @Inject constructor(
-    private val repository: IPodcastRepository
+    private val repository: IPodcastRepository,
+    private val sharedPref: SharedPref
 ) {
-    var lastUpdate = 0L
-    var cachedData: TrendingPodcastRes? = null
-    val lock = Any()
+
     suspend operator fun invoke(
         max: Int,
         since: Int,
@@ -19,9 +19,26 @@ class GetTrendingPodcasts @Inject constructor(
         notcat: String? = null,
         pretty: Boolean? = null
     ): TSDataState<TrendingPodcastRes> {
-
-        if (cachedData != null && System.currentTimeMillis() - lastUpdate < 15 * A_MINUTES) {
-            return TSDataState.Success(cachedData!!)
+        if (cachedData == null) {
+            runCatching {
+                cachedData = sharedPref.get("cachedTrending")
+                lastUpdate = sharedPref.get("lastUpdateTrending") ?: 0L
+            }
+        }
+        if (cachedDataFav == null) {
+            runCatching {
+                cachedDataFav = sharedPref.get("cachedTrending_$cat")
+                lastUpdateFav = sharedPref.get("lastUpdateTrending_$cat") ?: 0L
+            }
+        }
+        if (cat.isNullOrEmpty()) {
+            if (cachedData != null && System.currentTimeMillis() - lastUpdate < 15 * A_MINUTES) {
+                return TSDataState.Success(cachedData!!)
+            }
+        } else {
+            if (cachedDataFav != null && System.currentTimeMillis() - lastUpdateFav < 15 * A_MINUTES) {
+                return TSDataState.Success(cachedDataFav!!)
+            }
         }
 
         return repository.getTrending(
@@ -34,8 +51,17 @@ class GetTrendingPodcasts @Inject constructor(
         ).also {
             synchronized(lock) {
                 if (it is TSDataState.Success) {
-                    cachedData = it.data
-                    lastUpdate = System.currentTimeMillis()
+                    if (cat.isNullOrEmpty()) {
+                        cachedData = it.data
+                        lastUpdate = System.currentTimeMillis()
+                        sharedPref.save("lastUpdateTrending", lastUpdate)
+                        sharedPref.save("cachedTrending", cachedData)
+                    } else {
+                        cachedDataFav = it.data
+                        lastUpdateFav = System.currentTimeMillis()
+                        sharedPref.save("lastUpdateTrending_$cat", cachedDataFav)
+                        sharedPref.save("cachedTrending_$cat", lastUpdateFav)
+                    }
                 }
             }
         }
@@ -43,6 +69,12 @@ class GetTrendingPodcasts @Inject constructor(
 
     companion object {
         private const val A_MINUTES = 60 * 1000
+        var lastUpdate = 0L
+        var cachedData: TrendingPodcastRes? = null
+
+        var lastUpdateFav = 0L
+        var cachedDataFav: TrendingPodcastRes? = null
+        val lock = Any()
     }
 
 }

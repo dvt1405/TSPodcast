@@ -27,7 +27,6 @@ class NetworkModule {
     @Provides
     fun provideGson(): Gson {
         return GsonBuilder()
-            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
             .registerTypeAdapter(
                 Categories::class.java,
                 MapStringStringJsonConverter()

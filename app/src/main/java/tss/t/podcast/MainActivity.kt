@@ -34,12 +34,14 @@ import tss.t.podcast.ui.screens.MainViewModel
 import tss.t.podcast.ui.screens.main.BottomBarTab
 import tss.t.podcast.ui.screens.main.HomeNavigationScreen
 import tss.t.podcast.ui.screens.main.tabDefaults
+import tss.t.podcast.ui.screens.player.PlayerViewModel
 import tss.t.podcast.ui.theme.PodcastTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val onboardingViewModel: OnboardingViewModel by viewModels<OnboardingViewModel>()
     private val mainViewModel: MainViewModel by viewModels<MainViewModel>()
+    private val playerViewModel: PlayerViewModel by viewModels<PlayerViewModel>()
 
     @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -104,6 +106,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+    }
+
 }
 
 val LocalNavAnimatedVisibilityScope = compositionLocalOf<AnimatedVisibilityScope?> { null }
@@ -115,6 +121,8 @@ val LocalListStateScope = compositionLocalOf<SnapshotStateMap<BottomBarTab, Lazy
     mutableStateMapOf()
 }
 
-val LocalPullToRefreshState = compositionLocalOf<SnapshotStateMap<BottomBarTab, PullToRefreshState>> {
+@OptIn(ExperimentalMaterial3Api::class)
+val LocalPullToRefreshState =
+    compositionLocalOf<SnapshotStateMap<BottomBarTab, PullToRefreshState>> {
         mutableStateMapOf()
     }

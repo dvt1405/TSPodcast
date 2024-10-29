@@ -1,9 +1,9 @@
 package tss.t.podcast
 
-import tss.t.coreapi.models.TrendingPodcast
+import tss.t.coreapi.models.Podcast
 
 data class SharedElementKey(
-    val podcast: TrendingPodcast,
+    val podcast: Podcast,
     val type: Type,
     val id: Any
 ) {

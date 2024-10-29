@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.text.HtmlCompat
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import tss.t.coreapi.models.TrendingPodcast
+import tss.t.coreapi.models.Podcast
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.ui.animations.skeleton.placeholder
@@ -43,10 +43,10 @@ internal const val FavBoundKey = "FavBound"
 @Preview(backgroundColor = 0x0FD5C0C0)
 fun FavouriteWidget(
     modifier: Modifier = Modifier,
-    podcast: TrendingPodcast = TrendingPodcast.default,
+    podcast: Podcast = Podcast.default,
     isLoading: Boolean = false,
     placeHolderColor: Color = Colors.Secondary.copy(0.3f),
-    onClick: TrendingPodcast.() -> Unit = {}
+    onClick: Podcast.() -> Unit = {}
 ) {
     val interactiveSource = remember {
         MutableInteractionSource()
@@ -68,7 +68,7 @@ fun FavouriteWidget(
         if (podcast.image.isEmpty()) {
             Image(
                 modifier = Modifier
-                    .size(60.dp)
+                    .size(98.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .placeholder(
                         isLoading, placeHolderColor,
@@ -115,7 +115,8 @@ fun FavouriteWidget(
                         } else {
                             Modifier
                         }
-                    )
+                    ),
+                maxLines = 1
             )
             Spacer(
                 Modifier.size(

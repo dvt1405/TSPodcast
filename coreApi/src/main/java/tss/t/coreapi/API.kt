@@ -953,7 +953,7 @@ interface API {
         @Query("cat") cat: String? = null,
         @Query("notcat") notcat: String? = null,
         @Query("pretty") pretty: Boolean? = null
-    )
+    ): TSDataState<EpisodeResponse>
 
     /**
      * This call returns all the episodes we know about for this feed from the PodcastIndex ID. Episodes are in reverse chronological order.
@@ -1000,4 +1000,160 @@ interface API {
         @Query("fulltext") fulltext: String? = null,
         @Query("pretty") pretty: Boolean? = null
     ): TSDataState<EpisodeResponse>
+
+    /**
+     * This call returns the most recent max number of episodes globally across the whole index, in reverse chronological order.
+     * ```
+     * Example: https://api.podcastindex.org/api/1.0/recent/episodes?max=7&pretty
+     * ```
+     * @param max Maximum number of results to return. Min 1┃Max 1000
+     * ```
+     * Examples: 10
+     * ```
+     * @param excludeString Any item containing this string will be discarded from the result set.
+     *
+     * This may, in certain cases, reduce your set size below your max value.
+     *
+     * Matches against the title and URL properties.
+     * ```
+     * Examples: religion
+     * ```
+     * @param since Return items since the specified epoch timestamp.
+     * ```
+     * Examples: 1612125785
+     * ```
+     * @param fulltext If present, return the full text value of any text fields (ex: description). If not provided, field value is truncated to 100 words.
+     * @param pretty If present, makes the output “pretty” to help with debugging.
+     * */
+    @GET("recent/episodes")
+    fun getRecentEpisodes(
+        @Query("max")
+        @IntRange(from = 1, to = 1000)
+        max: Int = 100,
+        @Query("excludeString")
+        excludeString: String? = null,
+        @Query("before")
+        since: Long? = null,
+        @Query("fulltext")
+        fulltext: String? = null,
+        @Query("pretty")
+        pretty: Boolean? = null
+    ): TSDataState<EpisodeResponse>
+
+    /**
+     * This call returns every new feed added to the index over the past 24 hours in reverse chronological order.
+     * ```
+     * Examples:
+     *
+     * https://api.podcastindex.org/api/1.0/recent/newfeeds?pretty
+     * https://api.podcastindex.org/api/1.0/recent/newfeeds?pretty&since=1613805000
+     * https://api.podcastindex.org/api/1.0/recent/newfeeds?feedid=2653471&pretty
+     * https://api.podcastindex.org/api/1.0/recent/newfeeds?feedid=2653471&desc&pretty
+     * ```
+     * @param max Maximum number of results to return. Min 1┃Max 1000
+     * ```
+     * Examples: 10
+     * ```
+     * @param excludeString Any item containing this string will be discarded from the result set.
+     *
+     * This may, in certain cases, reduce your set size below your max value.
+     *
+     * Matches against the title and URL properties.
+     * ```
+     * Examples: religion
+     * ```
+     * @param since Return items since the specified epoch timestamp.
+     * ```
+     * Examples: 1612125785
+     * ```
+     * @param feedid The PodcastIndex Feed ID to start from (or go to if desc specified).
+     *
+     * If since parameter also specified, value of since is ignored.
+     * ```
+     * Examples: 2653471
+     * ```
+     * @param desc If present, display feeds in descending order.
+     *
+     * Only applicable when using feedid parameter.
+     *
+     * Parameter shall not have a value
+     * @param pretty If present, makes the output “pretty” to help with debugging.
+     * */
+    @GET("recent/newfeeds")
+    fun getRecentNewFeed(
+        @Query("max")
+        @IntRange(from = 1, to = 1000)
+        max: Int = 100,
+        @Query("since")
+        since: Long? = null,
+        @Query("feedid")
+        feedId: String? = null,
+        @Query("desc")
+        desc: String? = null,
+        @Query("pretty")
+        pretty: Boolean? = null
+    ) : TSDataState<TrendingPodcastRes>
+
+    /**
+     * This call returns every new feed added to the index over the past 24 hours in reverse chronological order.
+     * ```
+     * Examples:
+     *
+     * - https://api.podcastindex.org/api/1.0/recent/feeds?pretty
+     * - https://api.podcastindex.org/api/1.0/recent/feeds?max=20&cat=102,health&lang=de,ja&pretty
+     * ```
+     * @param max Maximum number of results to return. Min 1┃Max 1000
+     * ```
+     * Examples: 10
+     * ```
+     * @param excludeString Any item containing this string will be discarded from the result set.
+     *
+     * This may, in certain cases, reduce your set size below your max value.
+     *
+     * Matches against the title and URL properties.
+     * ```
+     * Examples: religion
+     * ```
+     * @param since Return items since the specified epoch timestamp.
+     * ```
+     * Examples: 1612125785
+     * ```
+     * @param lang Specifying a language code (like "en") will return only episodes having that specific language.
+     *
+     * You can specify multiple languages by separating them with commas.
+     *
+     * If you also want to return episodes that have no language given, use the token "unknown". (ex. en,es,ja,unknown).
+     *
+     * Values are not case sensitive.
+     * ```
+     * Examples:
+     * en
+     * Single ID
+     *
+     * en,es
+     * Multiple IDs
+     * ```
+     * @param cat If present, display feeds in descending order.
+     *
+     * Only applicable when using feedid parameter.
+     *
+     * Parameter shall not have a value
+     * @param pretty If present, makes the output “pretty” to help with debugging.
+     * */
+    @GET("recent/feeds")
+    fun getRecentFeeds(
+        @Query("max")
+        @IntRange(from = 1, to = 1000)
+        max: Int = 100,
+        @Query("since")
+        since: Long? = null,
+        @Query("lang")
+        lang: String? = "vi",
+        @Query("cat")
+        cat: String? = null,
+        @Query("notcat")
+        notcat: String? = null,
+        @Query("pretty")
+        pretty: Boolean? = null
+    ) : TSDataState<TrendingPodcastRes>
 }

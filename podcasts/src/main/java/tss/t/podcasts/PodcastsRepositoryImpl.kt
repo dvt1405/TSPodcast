@@ -6,8 +6,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -18,6 +18,7 @@ import tss.t.core.storage.saveListPodcastCategory
 import tss.t.coreapi.API
 import tss.t.coreapi.models.CategoryRes
 import tss.t.coreapi.models.EpisodeResponse
+import tss.t.coreapi.models.LiveResponse
 import tss.t.coreapi.models.PodcastByFeedIdRes
 import tss.t.coreapi.models.SearchByPersonRes
 import tss.t.coreapi.models.SearchResponse
@@ -220,5 +221,108 @@ class PodcastsRepositoryImpl @Inject constructor(
         }
 
     }
+
+    override suspend fun getRandomEpisodes(
+        max: Int,
+        lang: String,
+        cat: String?,
+        notcat: String?,
+        pretty: Boolean?
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getLiveEpisodes(
+        max: Int,
+        pretty: Boolean?
+    ): Flow<TSDataState<LiveResponse>> {
+        return withContext(Dispatchers.IO) {
+            flowOf(
+                api.getLiveEpisodes(
+                    max = max,
+                    pretty = pretty
+                )
+            )
+        }.retryWhen { cause, attempt ->
+            cause !is IllegalStateException && attempt < 3
+        }.catch {
+            emit(TSDataState.Error(it))
+        }
+    }
+
+    override suspend fun getRecentEpisodes(
+        max: Int,
+        excludeString: String?,
+        since: Long?,
+        fulltext: String?,
+        pretty: Boolean?
+    ): Flow<TSDataState<EpisodeResponse>> {
+        return withContext(Dispatchers.IO) {
+            flowOf(
+                api.getRecentEpisodes(
+                    max = max,
+                    excludeString = excludeString,
+                    since = since,
+                    fulltext = fulltext,
+                    pretty = pretty
+                )
+            ).retryWhen { cause, attempt ->
+                cause !is IllegalStateException && attempt < 3
+            }.catch {
+                emit(TSDataState.Error(it))
+            }
+        }
+    }
+
+    override suspend fun getRecentNewFeed(
+        max: Int,
+        since: Long?,
+        feedId: String?,
+        desc: String?,
+        pretty: Boolean?
+    ): Flow<TSDataState<TrendingPodcastRes>> {
+        return withContext(Dispatchers.IO) {
+            flowOf(
+                api.getRecentNewFeed(
+                    max = max,
+                    since = since,
+                    feedId = feedId,
+                    desc = desc,
+                    pretty = pretty
+                )
+            ).retryWhen { cause, attempt ->
+                cause !is IllegalStateException && attempt < 3
+            }.catch {
+                emit(TSDataState.Error(it))
+            }
+        }
+    }
+
+    override suspend fun getRecentFeeds(
+        max: Int,
+        since: Long?,
+        lang: String,
+        cat: String?,
+        notcat: String?,
+        pretty: Boolean?
+    ): Flow<TSDataState<TrendingPodcastRes>> {
+        return withContext(Dispatchers.IO) {
+            flowOf(
+                api.getRecentFeeds(
+                    max = max,
+                    since = since,
+                    lang = lang,
+                    cat = cat,
+                    notcat = notcat,
+                    pretty = pretty
+                )
+            ).retryWhen { cause, attempt ->
+                cause !is IllegalStateException && attempt < 3
+            }.catch {
+                emit(TSDataState.Error(it))
+            }
+        }
+    }
+
 
 }

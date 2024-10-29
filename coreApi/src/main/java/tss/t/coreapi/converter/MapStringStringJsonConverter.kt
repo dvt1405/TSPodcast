@@ -15,8 +15,8 @@ class MapStringStringJsonConverter : JsonDeserializer<Categories?> {
         typeOfT: Type?,
         context: JsonDeserializationContext?
     ): Categories? {
-        val jsObject = json!!.asJsonObject.getAsJsonObject(key)
         return runCatching {
+            val jsObject = json!!.asJsonObject.getAsJsonObject(key)
             Gson().fromJson(jsObject, Categories::class.java)
         }.getOrNull()
     }

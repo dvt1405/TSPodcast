@@ -1,5 +1,8 @@
 package tss.t.coreapi.models
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
 data class Feed(
     val artwork: String,
     val author: String,
@@ -38,9 +41,9 @@ data class Feed(
     val value: Value? = null
 )
 
-
+@Parcelize
 data class Model(
     val method: String,
     val suggested: String? = null,
     val type: String
-)
+) : Parcelable

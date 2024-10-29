@@ -1,29 +1,46 @@
 package tss.t.coreapi.models
 
 import android.annotation.SuppressLint
+import android.os.Parcelable
+import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
+import kotlinx.parcelize.IgnoredOnParcel
+import kotlinx.parcelize.Parcelize
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
+@Parcelize
 data class TrendingPodcastRes(
     val count: Int,
     @SerializedName("feeds")
-    val items: List<TrendingPodcast>,
+    val items: List<Podcast>,
     val max: Int?
-) : BaseResponse()
+) : BaseResponse(), Parcelable {
 
-data class TrendingPodcast(
+    @IgnoredOnParcel
+    @Expose(deserialize = false, serialize = false)
+    var type: Type? = Type.Trending
+
+    enum class Type {
+        Trending,
+        RecentFeed,
+        RecentNewFeed
+    }
+}
+
+@Parcelize
+data class Podcast(
     val categories: Categories? = Categories(),
-    val dateCrawled: Int,
-    val datePublished: Int,
+    val dateCrawled: Long,
+    val datePublished: Long,
     val datePublishedPretty: String?,
-    val enclosureLength: Int,
+    val enclosureLength: Long,
     val enclosureType: String?,
     val enclosureUrl: String?,
     val explicit: Int,
-    val feedId: Int,
+    val feedId: Long,
     val feedImage: String?,
-    val feedItunesId: Int?,
+    val feedItunesId: Long?,
     val feedLanguage: String?,
     val feedTitle: String?,
     val guid: String?,
@@ -32,14 +49,14 @@ data class TrendingPodcast(
     val link: String?,
     val title: String,
     val description: String?
-) {
+) : Parcelable {
     @SuppressLint("SimpleDateFormat")
     companion object {
         val default by lazy {
-            TrendingPodcast(
+            Podcast(
                 categories = Categories(),
-                dateCrawled = System.currentTimeMillis().toInt(),
-                datePublished = System.currentTimeMillis().toInt(),
+                dateCrawled = System.currentTimeMillis(),
+                datePublished = System.currentTimeMillis(),
                 datePublishedPretty = SimpleDateFormat("yyyy, mm, dd - hh:mm")
                     .format(Calendar.getInstance().time),
                 enclosureLength = 100,

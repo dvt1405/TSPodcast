@@ -10,36 +10,42 @@ import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.text.HtmlCompat
-import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import tss.t.coreapi.models.TrendingPodcast
+import tss.t.coreapi.models.Podcast
 import tss.t.podcast.SharedElementKey
 import tss.t.podcast.ui.screens.main.podcastDetailBoundsTransform
 import tss.t.sharedlibrary.theme.Colors
@@ -54,11 +60,11 @@ internal const val TrendingBoundKey = "TrendingBound"
 @Composable
 fun TrendingWidget(
     modifier: Modifier = Modifier,
-    podcast: TrendingPodcast = TrendingPodcast.default,
+    podcast: Podcast = Podcast.default,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedVisibilityScope,
     shareBoundKey: String = TrendingBoundKey,
-    onClick: TrendingPodcast.() -> Unit = {},
+    onClick: Podcast.() -> Unit = {},
 ) {
     val backgroundColor by animatedContentScope.transition
         .animateColor(label = "") { state: EnterExitState ->
@@ -80,9 +86,9 @@ fun TrendingWidget(
     val roundedCorner by animatedContentScope.transition
         .animateDp(label = "rounded corner") { enterExit: EnterExitState ->
             when (enterExit) {
-                EnterExitState.PreEnter -> 20.dp
-                EnterExitState.Visible -> 20.dp
-                EnterExitState.PostExit -> 20.dp
+                EnterExitState.PreEnter -> 10.dp
+                EnterExitState.Visible -> 10.dp
+                EnterExitState.PostExit -> 10.dp
             }
         }
 
@@ -91,13 +97,7 @@ fun TrendingWidget(
             modifier = modifier
                 .scale(scale)
                 .clip(RoundedCornerShape(roundedCorner))
-                .shadow(
-                    Color(0xAA000000),
-                    4.dp,
-                    8.dp,
-                    32.dp
-                )
-                .width(180.dp)
+                .width(280.dp)
                 .sharedBounds(
                     sharedContentState = rememberSharedContentState(
                         key = SharedElementKey(
@@ -111,7 +111,6 @@ fun TrendingWidget(
                         RoundedCornerShape(roundedCorner)
                     )
                 )
-                .background(backgroundColor, RoundedCornerShape(roundedCorner))
                 .clickable(
                     interactionSource = interactiveSource,
                     indication = null
@@ -145,17 +144,28 @@ fun TrendingWidget(
                                 type = SharedElementKey.Type.Image
                             )
                         ),
-                        animatedVisibilityScope = animatedContentScope
+                        animatedVisibilityScope = animatedContentScope,
+                        clipInOverlayDuringTransition = OverlayClip(
+                            RoundedCornerShape(
+                                topStart = roundedCorner,
+                                topEnd = roundedCorner
+                            )
+                        )
                     )
-                    .width(180.dp)
-                    .aspectRatio(13f / 16),
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = roundedCorner,
+                            topEnd = roundedCorner
+                        )
+                    )
+                    .width(280.dp)
+                    .aspectRatio(56f / 33),
             )
 
             Text(
                 podcast.title, style = TextStyles.Title6,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp)
                     .sharedBounds(
                         rememberSharedContentState(
                             key = SharedElementKey(
@@ -182,7 +192,6 @@ fun TrendingWidget(
                 }, style = TextStyles.Body4,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp)
                     .sharedBounds(
                         rememberSharedContentState(
                             key = SharedElementKey(
@@ -195,8 +204,8 @@ fun TrendingWidget(
                         boundsTransform = podcastDetailBoundsTransform
                     )
                     .padding(top = 2.dp),
-                minLines = 3,
-                maxLines = 3,
+                minLines = 2,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
         }
@@ -209,12 +218,24 @@ fun TrendingWidget(
 @Preview
 fun TrendingWidgetPreview() {
     SharedTransitionLayout {
-        AnimatedContent(true, label = "") {
+        AnimatedContent(
+            true, label = "",
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Colors.White)
+        ) {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(10) { index ->
+                    TrendingWidget(
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedContentScope = this@AnimatedContent,
+                        podcast = Podcast.default.copy(id = index.toLong()),
+                    )
+                }
+            }
             if (it) {
-                TrendingWidget(
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedContentScope = this@AnimatedContent
-                )
             }
         }
     }

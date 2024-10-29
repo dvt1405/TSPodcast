@@ -2,6 +2,7 @@
 
 package tss.t.podcast.ui.screens.main
 
+import androidx.activity.ComponentActivity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.BoundsTransform
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -14,11 +15,15 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -31,20 +36,18 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,9 +55,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.launch
-import tss.t.coreapi.models.TrendingPodcast
+import tss.t.coreapi.models.Categories
+import tss.t.coreapi.models.Episode
+import tss.t.coreapi.models.LiveEpisode
+import tss.t.coreapi.models.Podcast
 import tss.t.hazeandroid.HazeDefaults
 import tss.t.hazeandroid.HazeState
 import tss.t.hazeandroid.HazeStyle
@@ -64,16 +68,22 @@ import tss.t.podcast.LocalListStateScope
 import tss.t.podcast.LocalNavAnimatedVisibilityScope
 import tss.t.podcast.LocalPullToRefreshState
 import tss.t.podcast.LocalSharedTransitionScope
+import tss.t.podcast.ui.navigations.TSNavigators
 import tss.t.podcast.ui.screens.MainViewModel
 import tss.t.podcast.ui.screens.discorver.DiscoverPodcastsScreen
-import tss.t.podcast.ui.screens.discorver.widgets.FavBoundKey
+import tss.t.podcast.ui.screens.player.PlayerScreen
+import tss.t.podcast.ui.screens.player.PlayerViewModel
+import tss.t.podcast.ui.screens.player.widgets.PlayerWidgetMain
 import tss.t.podcast.ui.screens.playlist.PlaylistScreen
 import tss.t.podcast.ui.screens.podcastsdetail.PodcastDetailScreen
+import tss.t.podcast.ui.screens.podcastsdetail.PodcastViewModel
 import tss.t.podcast.ui.screens.profile.ProfileScreen
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.ui.widget.TSPopup
 import tss.t.sharedresources.R
+import java.text.SimpleDateFormat
+import java.util.Calendar
 
 
 fun <T> spatialExpressiveSpring() = spring<T>(
@@ -92,7 +102,6 @@ val podcastDetailBoundsTransform = BoundsTransform { _, _ ->
     spatialExpressiveSpring()
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun HomeNavigationScreen(
     mainViewModel: MainViewModel,
@@ -104,9 +113,14 @@ fun HomeNavigationScreen(
 ) {
     val listState = LocalListStateScope.current
     val pullRefreshState = LocalPullToRefreshState.current
+    val podcastViewModel = viewModel<PodcastViewModel>(
+        viewModelStoreOwner = LocalContext.current as ComponentActivity
+    )
+    val playerViewModel: PlayerViewModel =
+        viewModel(viewModelStoreOwner = LocalContext.current as ComponentActivity)
+    val playerState by playerViewModel.playerControlState.collectAsState()
 
     val uiState by mainViewModel.uiState.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
     if (uiState.error != null) {
         Dialog(onDismissRequest = { mainViewModel.onErrorDialogDismiss() }) {
             TSPopup(
@@ -123,75 +137,177 @@ fun HomeNavigationScreen(
             )
         }
     }
-    var isRefreshing by remember {
-        mutableStateOf(uiState.isLoading)
-    }
+
     val trendingRowState = rememberLazyListState()
-    LaunchedEffect(uiState) {
-        coroutineScope.launch {
-            snapshotFlow { uiState.isLoading }
-                .distinctUntilChanged()
-                .collect {
-                    isRefreshing = it
-                }
-        }
+    val liveState = rememberPagerState(0) {
+        uiState.liveEpisode.size
     }
+    val recentFeedState = rememberLazyListState()
     AnimatedContent(
-        uiState.currentPodcast,
+        uiState.route,
         label = "PodcastDetail",
-    ) { podcast ->
+    ) { route ->
         CompositionLocalProvider(
             LocalNavAnimatedVisibilityScope provides this,
         ) {
-            if (podcast != null) {
-                PodcastDetailScreen(
-                    podcast = podcast,
-                    mainViewModel = mainViewModel,
-                    sharedElementKey = uiState.from,
-                    podcastViewModel = viewModel()
-                )
-            } else {
-                HomeNavigationScreen(
-                    listTrending = uiState.listTrending,
-                    listFav = uiState.listTrending,
-                    isRefreshing = isRefreshing,
-                    onRefresh = {
-                        isRefreshing = true
-                        mainViewModel.reload()
-                    },
-                    selectedTabIndex = selectedTabIndex,
-                    bottomTabs = bottomTabs,
-                    listState = listState,
-                    pullRefreshState = pullRefreshState,
-                    onTabSelected = onTabSelected,
-                    hazeState = hazeState,
-                    screenTitle = screenTitle,
-                    onTrendingClick = {
-                        //Navigate to Detail Screen
-                        mainViewModel.getPodcast(this)
-                    },
-                    onFavClick = {
-                        //Navigate to Detail Screen
-                        mainViewModel.getPodcast(
-                            this,
-                            FavBoundKey
-                        )
-                    },
-                    trendingRowState = trendingRowState,
-                    renderCount = uiState.renderCount
-                )
+            when (route) {
+                is TSNavigators.PodcastDetail -> {
+                    PodcastDetailScreen(
+                        podcast = route.podcast,
+                        mainViewModel = mainViewModel,
+                        sharedElementKey = uiState.from,
+                        podcastViewModel = podcastViewModel
+                    )
+                }
+
+                is TSNavigators.Player -> {
+                    PlayerScreen(
+                        playList = route.playList,
+                        episode = route.item,
+                        podcast = route.podcast!!,
+                    )
+                }
+
+                is TSNavigators.PlayerFromMini -> {
+                    PlayerScreen(route.item)
+                }
+
+                else -> {
+                    HomeNavigationScreen(
+                        listTrending = uiState.listTrending,
+                        showLoadingView = uiState.showLoadingView,
+                        listFav = uiState.listFav,
+                        liveEpisode = uiState.liveEpisode,
+                        recentNewFeeds = uiState.recentNewFeeds,
+                        recentFeeds = uiState.recentFeeds,
+                        screenTitle = screenTitle,
+                        selectedTabIndex = selectedTabIndex,
+                        bottomTabs = bottomTabs,
+                        listState = listState,
+                        trendingRowState = trendingRowState,
+                        pullRefreshState = pullRefreshState,
+                        onRefresh = {
+                            mainViewModel.reload()
+                        },
+                        isRefreshing = uiState.isDataPartLoading,
+                        hazeState = hazeState,
+                        onTabSelected = onTabSelected,
+                        onTrendingClick = {
+                            //Navigate to Detail Screen
+                            TSNavigators.navigateTo(
+                                TSNavigators.PodcastDetail(this)
+                            )
+                            mainViewModel.getPodcast(this)
+                        },
+                        onFavClick = {
+                            //Navigate to Detail Screen
+                            TSNavigators.navigateTo(
+                                TSNavigators.PodcastDetail(this)
+                            )
+                        },
+                        onLiveItemClick = {
+                            TSNavigators.navigateTo(
+                                TSNavigators.Player(
+                                    item = Episode.fromLive(this),
+                                    playList = uiState.liveEpisode.flatMap {
+                                        it.map {
+                                            Episode.fromLive(it)
+                                        }
+                                    },
+                                    podcast = Podcast(
+                                        categories = this.categories,
+                                        dateCrawled = this.dateCrawled,
+                                        datePublished = this.datePublished,
+                                        datePublishedPretty = this.datePublishedPretty,
+                                        enclosureLength = this.enclosureLength,
+                                        enclosureType = this.enclosureType,
+                                        enclosureUrl = this.enclosureUrl,
+                                        explicit = this.explicit,
+                                        feedId =  this.feedId,
+                                        feedImage = this.feedImage,
+                                        feedItunesId = this.feedItunesId,
+                                        feedLanguage = this.feedLanguage,
+                                        feedTitle = this.title,
+                                        guid = this.guid,
+                                        id = this.feedId,
+                                        image = this.image,
+                                        link = this.link,
+                                        title = this.title,
+                                        description = this.description
+                                    )
+                                )
+                            )
+                        },
+                        renderCount = uiState.renderCount,
+                        recentFeedState = recentFeedState,
+                        pagerState = liveState
+                    )
+                }
             }
         }
     }
 
+    AnimatedContent(
+        playerState.currentMediaItem to uiState.route,
+        label = "Player"
+    ) { currentMediaItemAndRoute ->
+        val currentMediaItem = currentMediaItemAndRoute.first
+        val route = currentMediaItemAndRoute.second
+        if (currentMediaItem != null && route !is TSNavigators.Player && route !is TSNavigators.PlayerFromMini) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                PlayerWidgetMain(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .then(
+                            if (route is TSNavigators.PodcastDetail) {
+                                Modifier.navigationBarsPadding()
+                            } else {
+                                Modifier
+                                    .navigationBarsPadding()
+                                    .padding(bottom = 72.dp)
+                            }
+                        )
+                        .animateEnterExit(
+                            enter = fadeIn() + slideInVertically {
+                                it
+                            },
+                            exit = fadeOut() + slideOutVertically {
+                                it
+                            }
+                        )
+                        .shadow(4.dp),
+                    title = currentMediaItem.mediaMetadata.title.toString(),
+                    image = currentMediaItem.mediaMetadata.artworkUri.toString(),
+                    description = currentMediaItem.mediaMetadata.description.toString(),
+                    id = currentMediaItem.mediaId,
+                    playing = playerState.isPlaying,
+                    playPauseClick = {
+                        playerViewModel.onPlayPause()
+                    },
+                    onClick = {
+                        TSNavigators.navigateTo(
+                            TSNavigators.PlayerFromMini(
+                                item = currentMediaItem
+                            )
+                        )
+                    }
+                )
+            }
+        }
+    }
 }
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun HomeNavigationScreen(
-    listTrending: List<TrendingPodcast> = listOf(),
-    listFav: List<TrendingPodcast> = listOf(),
+    showLoadingView: Boolean = false,
+    listTrending: List<Podcast> = listOf(),
+    listFav: List<Podcast> = listOf(),
+    liveEpisode: List<List<LiveEpisode>> = emptyList(),
+    pagerState: PagerState = rememberPagerState() { liveEpisode.size },
+    recentFeeds: List<Podcast> = emptyList(),
+    recentNewFeeds: List<Podcast> = emptyList(),
     screenTitle: String = "TSPodcast",
     selectedTabIndex: Int = 1,
     bottomTabs: List<BottomBarTab> = tabDefaults,
@@ -199,12 +315,14 @@ private fun HomeNavigationScreen(
     trendingRowState: LazyListState = rememberLazyListState(),
     pullRefreshState: SnapshotStateMap<BottomBarTab, PullToRefreshState> = mutableStateMapOf(),
     onRefresh: () -> Unit = {},
-    isRefreshing: Boolean = false,
+    isRefreshing: Map<Int, Boolean> = emptyMap(),
     hazeState: HazeState = remember { HazeState() },
     onTabSelected: (BottomBarTab, Int) -> Unit = { _, _ -> },
-    onTrendingClick: TrendingPodcast.() -> Unit = {},
-    onFavClick: TrendingPodcast.() -> Unit = {},
-    renderCount: Int = 0
+    onTrendingClick: Podcast.() -> Unit = {},
+    onFavClick: Podcast.() -> Unit = {},
+    onLiveItemClick: LiveEpisode.() -> Unit = {},
+    renderCount: Int = 0,
+    recentFeedState: LazyListState = rememberLazyListState(),
 ) {
     val sharedTransitionScope = LocalSharedTransitionScope.current!!
     val animatedContentScope = LocalNavAnimatedVisibilityScope.current!!
@@ -273,19 +391,24 @@ private fun HomeNavigationScreen(
             1 -> {
                 DiscoverPodcastsScreen(
                     isRefreshing = isRefreshing,
-                    onRefresh = {
-                        onRefresh()
-                    },
+                    showLoading = showLoadingView,
+                    onRefresh = onRefresh,
                     hazeState = hazeState,
                     pullRefreshState = pullToRefreshState,
                     innerPadding = innerPadding,
                     listTrending = listTrending,
                     listFav = listFav,
+                    liveEpisode = liveEpisode,
+                    pagerState = pagerState,
+                    recentFeeds = recentFeeds,
+                    recentNewFeeds = recentNewFeeds,
                     onTrendingClick = onTrendingClick,
                     onFavClick = onFavClick,
                     listState = childListState,
                     trendingRowState = trendingRowState,
-                    renderCount = renderCount
+                    renderCount = renderCount,
+                    recentFeedState = recentFeedState,
+                    onLiveItemClick = onLiveItemClick
                 )
             }
 
@@ -306,7 +429,8 @@ private fun TSBottomNavigation(
 ) {
     Box(
         modifier = modifier
-            .padding(vertical = 48.dp, horizontal = 64.dp)
+            .navigationBarsPadding()
+            .padding(horizontal = 64.dp)
             .fillMaxWidth()
             .height(64.dp)
             .clip(RoundedCornerShape(100.dp))
@@ -317,6 +441,7 @@ private fun TSBottomNavigation(
                     backgroundColor = Colors.White,
                     tint = Colors.White.copy(.6f),
                     blurRadius = 32.dp,
+                    noiseFactor = 0.5f
                 )
             )
             .border(
@@ -397,19 +522,34 @@ fun MainScreenPreview() {
             ) {
                 HomeNavigationScreen(
                     listTrending = listOf(
-                        TrendingPodcast.default,
-                        TrendingPodcast.default,
-                        TrendingPodcast.default,
-                        TrendingPodcast.default,
-                        TrendingPodcast.default,
+                        Podcast.default,
+                        Podcast.default,
+                        Podcast.default,
+                        Podcast.default,
+                        Podcast.default,
                     ),
                     listFav = listOf(
-                        TrendingPodcast.default,
-                        TrendingPodcast.default,
-                        TrendingPodcast.default,
-                        TrendingPodcast.default,
-                        TrendingPodcast.default,
-                    )
+                        Podcast.default,
+                        Podcast.default,
+                        Podcast.default,
+                        Podcast.default,
+                        Podcast.default,
+                    ),
+                    recentFeeds = listOf(
+                        Podcast.default,
+                        Podcast.default,
+                        Podcast.default,
+                        Podcast.default,
+                        Podcast.default,
+                    ),
+                    recentNewFeeds = listOf(
+                        Podcast.default,
+                        Podcast.default,
+                        Podcast.default,
+                        Podcast.default,
+                        Podcast.default,
+                    ),
+                    liveEpisode = emptyList()
                 )
             }
         }

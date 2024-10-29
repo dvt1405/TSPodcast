@@ -1,8 +1,11 @@
 package tss.t.coreapi.models
 
 
+import android.os.Parcelable
 import com.google.gson.annotations.Expose
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 data class Person(
     @Expose
     val group: String,
@@ -16,4 +19,4 @@ data class Person(
     val name: String,
     @Expose
     val role: String
-)
+) : Parcelable

@@ -9,6 +9,7 @@ import tss.t.core.storage.SharedPref
 import tss.t.coreapi.API
 import tss.t.coreapi.models.CategoryRes
 import tss.t.coreapi.models.EpisodeResponse
+import tss.t.coreapi.models.LiveResponse
 import tss.t.coreapi.models.PodcastByFeedIdRes
 import tss.t.coreapi.models.SearchByPersonRes
 import tss.t.coreapi.models.SearchResponse
@@ -112,6 +113,51 @@ class LocalPodcastRepositoryImpl @Inject constructor(
         fulltext: String?,
         pretty: Boolean?
     ): Flow<TSDataState<EpisodeResponse>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getRandomEpisodes(
+        max: Int,
+        lang: String,
+        cat: String?,
+        notcat: String?,
+        pretty: Boolean?
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getLiveEpisodes(max: Int, pretty: Boolean?): Flow<TSDataState<LiveResponse>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getRecentEpisodes(
+        max: Int,
+        excludeString: String?,
+        since: Long?,
+        fulltext: String?,
+        pretty: Boolean?
+    ): Flow<TSDataState<EpisodeResponse>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getRecentNewFeed(
+        max: Int,
+        since: Long?,
+        feedId: String?,
+        desc: String?,
+        pretty: Boolean?
+    ): Flow<TSDataState<TrendingPodcastRes>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getRecentFeeds(
+        max: Int,
+        since: Long?,
+        lang: String,
+        cat: String?,
+        notcat: String?,
+        pretty: Boolean?
+    ): Flow<TSDataState<TrendingPodcastRes>> {
         TODO("Not yet implemented")
     }
 

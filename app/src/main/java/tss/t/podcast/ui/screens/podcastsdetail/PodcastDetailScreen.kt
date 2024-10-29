@@ -4,9 +4,11 @@ package tss.t.podcast.ui.screens.podcastsdetail
 
 import android.content.res.Resources
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateDp
@@ -34,18 +36,20 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -68,6 +72,7 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -79,19 +84,22 @@ import androidx.compose.ui.util.fastRoundToInt
 import androidx.compose.ui.util.lerp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
+import androidx.core.text.HtmlCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import tss.t.coreapi.models.Episode
-import tss.t.coreapi.models.TrendingPodcast
+import tss.t.coreapi.models.Podcast
 import tss.t.hazeandroid.HazeState
 import tss.t.hazeandroid.haze
 import tss.t.podcast.LocalNavAnimatedVisibilityScope
 import tss.t.podcast.LocalSharedTransitionScope
 import tss.t.podcast.SharedElementKey
+import tss.t.podcast.ui.navigations.TSNavigators
 import tss.t.podcast.ui.screens.MainViewModel
 import tss.t.podcast.ui.screens.main.nonSpatialExpressiveSpring
 import tss.t.podcast.ui.screens.main.podcastDetailBoundsTransform
+import tss.t.podcast.ui.screens.player.PlayerViewModel
 import tss.t.podcast.ui.screens.podcastsdetail.widgets.EpisodeWidget
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
@@ -103,13 +111,21 @@ import kotlin.math.min
 
 @Composable
 fun PodcastDetailScreen(
-    podcast: TrendingPodcast = TrendingPodcast.default,
+    podcast: Podcast = Podcast.default,
     sharedElementKey: String? = null,
     mainViewModel: MainViewModel = viewModel<MainViewModel>(),
-    podcastViewModel: PodcastViewModel = viewModel<PodcastViewModel>()
+    podcastViewModel: PodcastViewModel = viewModel<PodcastViewModel>(),
+    playerViewmodel: PlayerViewModel = viewModel<PlayerViewModel>()
 ) {
     LaunchedEffect(podcast) {
         podcastViewModel.getEpisodes("${podcast.id}")
+    }
+
+    DisposableEffect(Unit) {
+        podcastViewModel.onRestoreState()
+        onDispose {
+            podcastViewModel.onSavedState()
+        }
     }
 
     val uiState by podcastViewModel.uiState.collectAsState()
@@ -142,16 +158,26 @@ fun PodcastDetailScreen(
 
         },
         onItemClick = {
-
+            TSNavigators.navigateTo(
+                TSNavigators.Player(
+                    item = this,
+                    podcast = podcast,
+                    playList = (uiState as PodcastViewModel.PodcastUIState.Success).data
+                )
+            )
+        },
+        scrollState = uiState.lazyListState ?: rememberLazyListState().also {
+            podcastViewModel.initListState(it)
         }
     )
 }
 
 @Composable
 private fun PodcastDetailScreen(
-    podcast: TrendingPodcast = TrendingPodcast.default,
+    podcast: Podcast = Podcast.default,
     sharedElementKey: String? = null,
     listItems: List<Episode> = emptyList(),
+    scrollState: LazyListState = rememberLazyListState(),
     onBackPress: () -> Unit = {},
     onItemClick: Episode.() -> Unit = {}
 ) {
@@ -178,7 +204,7 @@ private fun PodcastDetailScreen(
 
 
     val hazeState = remember { HazeState() }
-    val scrollState = rememberLazyListState()
+
     val shareElementId = if (sharedElementKey.isNullOrEmpty()) {
         "${podcast.id}"
     } else {
@@ -218,7 +244,7 @@ private fun PodcastDetailScreen(
                     exit = fadeOut(nonSpatialExpressiveSpring()),
                     enter = fadeIn(nonSpatialExpressiveSpring()),
                 )
-                .fillMaxSize()
+                .fillMaxSize(),
         ) {
             PodcastDetailTopAppBar(podcast) {
                 onBackPress()
@@ -243,151 +269,188 @@ private fun PodcastDetailScreen(
                     textAlign = TextAlign.Center
                 )
             }
-            LazyColumn(
+            PodcastDetailBody(
+                hazeState,
+                scrollState,
+                podcast,
+                shareElementId,
+                animatedContentScope,
+                coverRoundedCornerAnim,
+                listItems,
+                onItemClick
+            )
+        }
+    }
+}
+
+@Composable
+private fun SharedTransitionScope.PodcastDetailBody(
+    hazeState: HazeState,
+    scrollState: LazyListState,
+    podcast: Podcast,
+    shareElementId: String,
+    animatedContentScope: AnimatedVisibilityScope,
+    coverRoundedCornerAnim: Dp,
+    listItems: List<Episode>,
+    onItemClick: Episode.() -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 100.dp)
+            .haze(hazeState),
+        state = scrollState,
+    ) {
+        item(key = "PaddingTop") {
+            Spacer(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 100.dp)
-                    .haze(hazeState),
-                state = scrollState,
-            ) {
-                item(key = "PaddingTop") {
-                    Spacer(
-                        modifier = Modifier
-                            .size(
-                                GradientScroll - 100.dp - 75.dp
-                            )
+                    .size(
+                        GradientScroll - 100.dp - 75.dp
                     )
-                }
+            )
+        }
 
-                item(key = "Cover") {
-                    Box {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(podcast.image)
-                                .addHeader(
-                                    SharedConstants.USER_AGENT_KEY,
-                                    SharedConstants.USER_AGENT_WEB_VALUE
-                                )
-                                .placeholder(R.drawable.image_loader_place_holder)
-                                .error(R.drawable.image_loader_place_holder)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = podcast.title,
-                            modifier = Modifier
-                                .padding(start = 16.dp)
-                                .size(ExpandedImageSize)
-                                .zIndex(2f)
-                                .clip(RoundedCornerShape(20.dp))
-                                .sharedBounds(
-                                    rememberSharedContentState(
-                                        SharedElementKey(
-                                            id = shareElementId,
-                                            podcast = podcast,
-                                            type = SharedElementKey.Type.Image
-                                        )
-                                    ),
-                                    animatedContentScope,
-                                    clipInOverlayDuringTransition = OverlayClip(
-                                        RoundedCornerShape(coverRoundedCornerAnim)
-                                    ),
-                                ),
-                            contentScale = ContentScale.Crop,
+        item(key = "Cover") {
+            Box {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(podcast.image)
+                        .addHeader(
+                            SharedConstants.USER_AGENT_KEY,
+                            SharedConstants.USER_AGENT_WEB_VALUE
                         )
-                        Spacer(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(ExpandedImageSize / 2)
-                                .background(Color.White)
-                                .align(Alignment.BottomStart)
-                        )
-                    }
-
-                }
-
-                item(key = "Title") {
-                    Column(modifier = Modifier.background(Color.White)) {
-                        Spacer(Modifier.size(8.dp))
-                        Text(
-                            text = podcast.title,
-                            style = TextStyles.Title6,
-                            modifier = HzPadding
-                                .sharedBounds(
-                                    rememberSharedContentState(
-                                        key = SharedElementKey(
-                                            id = shareElementId,
-                                            podcast = podcast,
-                                            type = SharedElementKey.Type.Title
-                                        )
-                                    ),
-                                    animatedVisibilityScope = animatedContentScope,
-                                    boundsTransform = podcastDetailBoundsTransform
-                                )
-                                .skipToLookaheadSize()
-                        )
-                        Spacer(Modifier.size(4.dp))
-                        Text(
-                            text = podcast.description ?: "",
-                            style = TextStyles.Body4,
-                            color = Colors.TextDescriptionColor,
-                            modifier = HzPadding
-                                .sharedBounds(
-                                    rememberSharedContentState(
-                                        key = SharedElementKey(
-                                            id = shareElementId,
-                                            podcast = podcast,
-                                            type = SharedElementKey.Type.Description
-                                        )
-                                    ),
-                                    animatedVisibilityScope = animatedContentScope,
-                                    boundsTransform = podcastDetailBoundsTransform
-                                )
-                                .skipToLookaheadSize()
-                                .fillMaxWidth()
-                        )
-                    }
-                }
-
-                items(count = if (listItems.isEmpty()) {
-                    20
-                } else {
-                    listItems.size
-                }, key = {
-                    if (listItems.isEmpty()) it else listItems[it].id
-                }) {
-                    val item = if (listItems.isEmpty()) {
-                        null
-                    } else {
-                        listItems[it]
-                    }
-                    EpisodeWidget(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.White)
-                            .padding(16.dp),
-                        episode = item,
-                        onClick = onItemClick,
-                        isLoading = listItems.isEmpty()
-                    )
-                    Canvas(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                    ) {
-                        drawLine(
-                            Brush.linearGradient(
-                                listOf(
-                                    Colors.Primary10,
-                                    Colors.Secondary,
-                                    Colors.Primary10
+                        .placeholder(R.drawable.image_loader_place_holder)
+                        .error(R.drawable.image_loader_place_holder)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = podcast.title,
+                    modifier = Modifier
+                        .padding(start = 16.dp)
+                        .size(ExpandedImageSize)
+                        .zIndex(2f)
+                        .clip(RoundedCornerShape(20.dp))
+                        .sharedBounds(
+                            rememberSharedContentState(
+                                SharedElementKey(
+                                    id = shareElementId,
+                                    podcast = podcast,
+                                    type = SharedElementKey.Type.Image
                                 )
                             ),
-                            strokeWidth = 1.dp.toPx(),
-                            start = Offset(0f, 1.dp.toPx()),
-                            end = Offset(size.width, 1.dp.toPx())
-                        )
-                    }
-                }
+                            animatedContentScope,
+                            clipInOverlayDuringTransition = OverlayClip(
+                                RoundedCornerShape(coverRoundedCornerAnim)
+                            ),
+                        ),
+                    contentScale = ContentScale.Crop,
+                )
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(ExpandedImageSize / 2)
+                        .background(Color.White)
+                        .align(Alignment.BottomStart)
+                )
             }
+
+        }
+
+        item(key = "Title") {
+            Column(modifier = Modifier.background(Color.White)) {
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    text = podcast.title,
+                    style = TextStyles.Title6,
+                    modifier = HzPadding
+                        .sharedBounds(
+                            rememberSharedContentState(
+                                key = SharedElementKey(
+                                    id = shareElementId,
+                                    podcast = podcast,
+                                    type = SharedElementKey.Type.Title
+                                )
+                            ),
+                            animatedVisibilityScope = animatedContentScope,
+                            boundsTransform = podcastDetailBoundsTransform
+                        )
+                        .skipToLookaheadSize()
+                )
+                Spacer(Modifier.size(4.dp))
+                Text(
+                    text = buildAnnotatedString {
+                        append(
+                            HtmlCompat.fromHtml(
+                                podcast.description ?: "",
+                                HtmlCompat.FROM_HTML_MODE_COMPACT
+                            )
+                        )
+                    },
+                    style = TextStyles.Body4,
+                    color = Colors.TextDescriptionColor,
+                    modifier = HzPadding
+                        .sharedBounds(
+                            rememberSharedContentState(
+                                key = SharedElementKey(
+                                    id = shareElementId,
+                                    podcast = podcast,
+                                    type = SharedElementKey.Type.Description
+                                )
+                            ),
+                            animatedVisibilityScope = animatedContentScope,
+                            boundsTransform = podcastDetailBoundsTransform
+                        )
+                        .skipToLookaheadSize()
+                        .fillMaxWidth()
+                )
+            }
+        }
+
+        items(count = if (listItems.isEmpty()) {
+            20
+        } else {
+            listItems.size
+        }, key = {
+            if (listItems.isEmpty()) it else listItems[it].id
+        }) {
+            val item = if (listItems.isEmpty()) {
+                null
+            } else {
+                listItems[it]
+            }
+            EpisodeWidget(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+                    .padding(16.dp),
+                episode = item,
+                onClick = onItemClick,
+                isLoading = listItems.isEmpty()
+            )
+            Canvas(
+                Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+            ) {
+                drawLine(
+                    Brush.linearGradient(
+                        listOf(
+                            Colors.Primary10,
+                            Colors.Secondary,
+                            Colors.Primary10
+                        )
+                    ),
+                    strokeWidth = 1.dp.toPx(),
+                    start = Offset(0f, 1.dp.toPx()),
+                    end = Offset(size.width, 1.dp.toPx())
+                )
+            }
+        }
+        item(key = "BottomNavigation") {
+            Spacer(
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .size(20.dp)
+            )
         }
     }
 }
@@ -415,7 +478,7 @@ private fun PodcastDetailScreenPreview() {
 
 @Composable
 fun PodcastDetailTopAppBar(
-    podcast: TrendingPodcast,
+    podcast: Podcast,
     onBackPress: () -> Unit = {}
 ) {
     val animatedContentScope = LocalNavAnimatedVisibilityScope.current!!
