@@ -89,4 +89,5 @@ object Colors {
     val AsahiRed = Color(0xFFFF3B30)
     val LightYellow = Color(0xFFFEF1D9)
     val LightOrange = Color(0xFFFFE5D5)
+    val Gray20 = Color(0xffDDE1E6)
 }
