@@ -2,6 +2,7 @@
 agp = "8.5.1"
 coil = "2.7.0"
 dotsindicatorVersion = "5.0"
+firebaseBom = "33.5.1"
 fragmentKtx = "1.8.3"
 gson = "2.11.0"
 kotlin = "1.9.0"
@@ -39,6 +40,10 @@ androidx-media3-exoplayer-smoothstreaming = { module = "androidx.media3:media3-e
 androidx-media3-session = { module = "androidx.media3:media3-session", version.ref = "media3Exoplayer" }
 androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Exoplayer" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+firebase-analytics-ktx = { module = "com.google.firebase:firebase-analytics-ktx" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-crashlytics-ktx = { module = "com.google.firebase:firebase-crashlytics-ktx" }
+firebase-messaging-ktx = { module = "com.google.firebase:firebase-messaging" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

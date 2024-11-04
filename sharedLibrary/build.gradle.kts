@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.coil)
+    implementation(libs.material)
     implementation(libs.coil.compose)
     implementation(project(":sharedResources"))
     testImplementation(libs.junit)

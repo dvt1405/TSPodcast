@@ -1,8 +1,12 @@
 package tss.t.sharedfirebase
 
+import android.app.Activity
+import android.app.Application
+import android.app.Application.ActivityLifecycleCallbacks
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Bundle
 import androidx.core.os.bundleOf
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
@@ -46,11 +50,41 @@ class TSAnalytics @Inject constructor(
         set(value) {
             _firebaseSharedPref.edit()
                 .putString("DeviceId", field)
+                .apply()
             field = value
         }
 
+    var currentScreenName: String? = null
+
     init {
         initDefaultAttrs()
+        (context as? Application)?.registerActivityLifecycleCallbacks(
+            object : ActivityLifecycleCallbacks {
+                override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+                }
+
+                override fun onActivityStarted(activity: Activity) {
+                }
+
+                override fun onActivityResumed(activity: Activity) {
+                    currentScreenName = activity::class.java.name
+                }
+
+                override fun onActivityPaused(activity: Activity) {
+                }
+
+                override fun onActivityStopped(activity: Activity) {
+                    if (currentScreenName == activity::class.java.name) {
+                        currentScreenName = null
+                    }
+                }
+
+                override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
+                }
+
+                override fun onActivityDestroyed(activity: Activity) {
+                }
+            })
     }
 
     private fun initDefaultAttrs() {
@@ -91,7 +125,7 @@ class TSAnalytics @Inject constructor(
 
     fun trackEvent(
         eventName: String,
-        screenName: String,
+        screenName: String?,
         vararg prop: Pair<String, Any>
     ) {
         _analyticScope.launch {

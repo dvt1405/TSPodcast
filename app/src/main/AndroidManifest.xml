@@ -22,8 +22,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Podcast"
-        android:usesCleartextTraffic="true"
-        tools:node="merge">
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:configChanges="screenSize|smallestScreenSize|orientation|screenLayout"
