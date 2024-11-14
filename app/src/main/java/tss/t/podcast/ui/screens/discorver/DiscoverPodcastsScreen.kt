@@ -16,7 +16,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -29,8 +28,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,7 +46,9 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,7 +63,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
@@ -79,8 +77,12 @@ import tss.t.hazeandroid.haze
 import tss.t.podcast.LocalNavAnimatedVisibilityScope
 import tss.t.podcast.LocalSharedTransitionScope
 import tss.t.podcast.ui.screens.MainViewModel
+import tss.t.podcast.ui.screens.discorver.widgets.AsyncTrendingWidget
 import tss.t.podcast.ui.screens.discorver.widgets.FavouriteWidget
-import tss.t.podcast.ui.screens.discorver.widgets.LiveEpisodeWidgets
+import tss.t.podcast.ui.screens.discorver.components.LiveRow
+import tss.t.podcast.ui.screens.discorver.components.RecentRow
+import tss.t.podcast.ui.screens.discorver.components.TrendingRow
+import tss.t.podcast.ui.screens.discorver.widgets.Indicator
 import tss.t.podcast.ui.screens.discorver.widgets.TrendingWidget
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
@@ -137,21 +139,25 @@ fun DiscoverPodcastsScreen(
         }
 
     val pullToRefreshThreshHold = 50.dp + innerPadding.calculateTopPadding()
+    var isLoading by remember(showLoading) {
+        mutableStateOf(showLoading)
+    }
     LaunchedEffect(showLoading, renderCount) {
-        if (!showLoading) {
-            pullRefreshState.animateToHidden()
-        }
+        isLoading = showLoading
     }
     PullToRefreshBox(
-        isRefreshing = showLoading,
-        onRefresh = onRefresh,
+        isRefreshing = isLoading,
+        onRefresh = {
+            isLoading = true
+            onRefresh()
+        },
         state = pullRefreshState,
         modifier = Modifier
             .fillMaxSize(),
         indicator = {
             Indicator(
                 modifier = Modifier.align(Alignment.TopCenter),
-                isRefreshing = showLoading,
+                isRefreshing = isLoading,
                 state = pullRefreshState,
                 threshold = pullToRefreshThreshHold
             )
@@ -210,7 +216,8 @@ fun DiscoverPodcastsScreen(
             }
             item(key = "LiveRow") {
                 LiveRow(
-                    isRefreshing = isRefreshing[MainViewModel.HomepageDataPart.LiveEpisode.value] ?: true,
+                    isRefreshing = isRefreshing[MainViewModel.HomepageDataPart.LiveEpisode.value]
+                        ?: true,
                     liveEpisode = liveEpisode,
                     pagerState = pagerState,
                     onClick = onLiveItemClick
@@ -229,7 +236,8 @@ fun DiscoverPodcastsScreen(
             }
             item(key = "RecentRow") {
                 RecentRow(
-                    isRefreshing = isRefreshing[MainViewModel.HomepageDataPart.RecentFeed.value] ?: true,
+                    isRefreshing = isRefreshing[MainViewModel.HomepageDataPart.RecentFeed.value]
+                        ?: true,
                     placeHolderColor,
                     recentFeeds,
                     sharedTransitionScope,
@@ -267,157 +275,6 @@ fun DiscoverPodcastsScreen(
             }
         }
     }
-}
-
-@OptIn(ExperimentalSharedTransitionApi::class)
-@Composable
-private fun RecentRow(
-    isRefreshing: Boolean,
-    placeHolderColor: Color,
-    recentFeeds: List<Podcast>,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedVisibilityScope,
-    listState: LazyListState = rememberLazyListState(),
-    onTrendingClick: Podcast.() -> Unit
-) {
-    LazyRow(
-        state = listState,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        item { Spacer(modifier = Modifier.size(4.dp)) }
-        if (isRefreshing) {
-            items(20, key = { it }) {
-                Box(
-                    modifier = Modifier
-                        .width(280.dp)
-                        .aspectRatio(16f / 13)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(placeHolderColor, RoundedCornerShape(8.dp))
-                )
-            }
-        } else {
-            items(recentFeeds.size) {
-                val item = recentFeeds[it]
-                TrendingWidget(
-                    podcast = item,
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedContentScope = animatedContentScope
-                ) {
-                    onTrendingClick(item)
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalSharedTransitionApi::class)
-@Composable
-private fun TrendingRow(
-    trendingRowState: LazyListState,
-    isRefreshing: Boolean,
-    placeHolderColor: Color,
-    listTrending: List<Podcast>,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedVisibilityScope,
-    onTrendingClick: Podcast.() -> Unit
-) {
-    LazyRow(
-        state = trendingRowState,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        item { Spacer(modifier = Modifier.size(4.dp)) }
-        if (listTrending.isEmpty()) {
-            items(20, key = { it }) {
-                Box(
-                    modifier = Modifier
-                        .width(280.dp)
-                        .aspectRatio(16f / 13)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(placeHolderColor, RoundedCornerShape(8.dp))
-                )
-            }
-        } else {
-            items(listTrending.size) {
-                val item = listTrending[it]
-                TrendingWidget(
-                    podcast = item,
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedContentScope = animatedContentScope
-                ) {
-                    onTrendingClick(item)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun LiveRow(
-    isRefreshing: Boolean = false,
-    liveEpisode: List<List<LiveEpisode>> = emptyList(),
-    pagerState: PagerState = rememberPagerState() { liveEpisode.size },
-    onClick: LiveEpisode.() -> Unit = {}
-) {
-    HorizontalPager(
-        modifier = Modifier.fillMaxWidth(),
-        state = pagerState,
-        pageSize = PageSize.Fixed(
-            (LocalConfiguration.current.screenWidthDp * 0.9f).dp
-        ),
-        contentPadding = PaddingValues(horizontal = 16.dp)
-    ) { index ->
-        val childList = liveEpisode[index]
-        Column(verticalArrangement = Arrangement.Top) {
-            repeat(childList.size) {
-                LiveEpisodeWidgets(
-                    episode = if (isRefreshing) null else childList[it],
-                    modifier = Modifier.fillMaxWidth(),
-                    isLoading = isRefreshing,
-                    onClick = onClick
-                )
-                if (it < 2) {
-                    Spacer(Modifier.size(16.dp))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-@Preview
-fun LiveRowPreview() {
-    LiveRow(
-        isRefreshing = false,
-        liveEpisode = listOf(
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-        ).chunked(3)
-    )
-}
-
-
-@Composable
-@Preview
-fun LiveRowPreviewLoading() {
-    LiveRow(
-        isRefreshing = true,
-        liveEpisode = listOf(
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-        ).chunked(3)
-    )
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
@@ -459,160 +316,4 @@ fun DiscoverPodcastsScreenPreview() {
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun Indicator(
-    state: PullToRefreshState,
-    isRefreshing: Boolean,
-    modifier: Modifier = Modifier,
-    containerColor: Color = PullToRefreshDefaults.containerColor,
-    color: Color = PullToRefreshDefaults.indicatorColor,
-    threshold: Dp = PositionalThreshold,
-) {
-    Box(
-        modifier = modifier.pullToRefreshIndicator(
-            state = state,
-            isRefreshing = isRefreshing,
-            containerColor = containerColor,
-            threshold = threshold,
-        ),
-        contentAlignment = Alignment.Center
-    ) {
-        Crossfade(
-            targetState = isRefreshing,
-            animationSpec = tween(durationMillis = CrossfadeDurationMs),
-            label = ""
-        ) { refreshing ->
-            if (refreshing) {
-                CircularProgressIndicator(
-                    strokeWidth = StrokeWidth,
-                    color = color,
-                    modifier = Modifier.size(SpinnerSize),
-                )
-            } else {
-                CircularArrowProgressIndicator(
-                    progress = { state.distanceFraction },
-                    color = color,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun CircularArrowProgressIndicator(
-    progress: () -> Float,
-    color: Color,
-) {
-    val path = remember { Path().apply { fillType = PathFillType.EvenOdd } }
-    // TODO: Consider refactoring this sub-component utilizing Modifier.Node
-    val targetAlpha by remember { derivedStateOf { if (progress() >= 1f) MaxAlpha else MinAlpha } }
-    val alphaState = animateFloatAsState(targetValue = targetAlpha, animationSpec = AlphaTween)
-    Canvas(
-        Modifier
-            .semantics(mergeDescendants = true) {
-                progressBarRangeInfo = ProgressBarRangeInfo(progress(), 0f..1f, 0)
-            }
-            .size(16.dp)
-    ) {
-        val values = ArrowValues(progress())
-        val alpha = alphaState.value
-        rotate(degrees = values.rotation) {
-            val arcRadius = 5.5.dp.toPx() + 2.5.dp.toPx() / 2f
-            val arcBounds = Rect(center = size.center, radius = arcRadius)
-            drawCircularIndicator(color, alpha, values, arcBounds, 2.5.dp)
-            drawArrow(path, arcBounds, color, alpha, values, StrokeWidth)
-        }
-    }
-}
-
-private fun DrawScope.drawCircularIndicator(
-    color: Color,
-    alpha: Float,
-    values: ArrowValues,
-    arcBounds: Rect,
-    strokeWidth: Dp
-) {
-    drawArc(
-        color = color,
-        alpha = alpha,
-        startAngle = values.startAngle,
-        sweepAngle = values.endAngle - values.startAngle,
-        useCenter = false,
-        topLeft = arcBounds.topLeft,
-        size = arcBounds.size,
-        style = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Butt)
-    )
-}
-
-
-private const val MaxProgressArc = 0.8f
-private const val CrossfadeDurationMs = 100
-
-/** The default stroke width for [Indicator] */
-private val StrokeWidth = 2.5.dp
-private val ArcRadius = 5.5.dp
-internal val SpinnerSize = 16.dp // (ArcRadius + PullRefreshIndicatorDefaults.StrokeWidth).times(2)
-internal val SpinnerContainerSize = 40.dp
-private val ArrowWidth = 10.dp
-private val ArrowHeight = 5.dp
-
-// Values taken from SwipeRefreshLayout
-private const val MinAlpha = 0.3f
-private const val MaxAlpha = 1f
-private val AlphaTween = tween<Float>(300, easing = LinearEasing)
-
-private fun DrawScope.drawArrow(
-    arrow: Path,
-    bounds: Rect,
-    color: Color,
-    alpha: Float,
-    values: ArrowValues,
-    strokeWidth: Dp,
-) {
-    arrow.reset()
-    arrow.moveTo(0f, 0f) // Move to left corner
-    // Line to tip of arrow
-    arrow.lineTo(x = ArrowWidth.toPx() * values.scale / 2, y = ArrowHeight.toPx() * values.scale)
-    arrow.lineTo(x = ArrowWidth.toPx() * values.scale, y = 0f) // Line to right corner
-
-    val radius = min(bounds.width, bounds.height) / 2f
-    val inset = ArrowWidth.toPx() * values.scale / 2f
-    arrow.translate(
-        Offset(x = radius + bounds.center.x - inset, y = bounds.center.y - strokeWidth.toPx())
-    )
-    rotate(degrees = values.endAngle - strokeWidth.toPx()) {
-        drawPath(path = arrow, color = color, alpha = alpha, style = Stroke(strokeWidth.toPx()))
-    }
-}
-
-
-@Immutable
-private class ArrowValues(
-    val rotation: Float,
-    val startAngle: Float,
-    val endAngle: Float,
-    val scale: Float
-)
-
-private fun ArrowValues(progress: Float): ArrowValues {
-    // Discard first 40% of progress. Scale remaining progress to full range between 0 and 100%.
-    val adjustedPercent = max(min(1f, progress) - 0.4f, 0f) * 5 / 3
-    // How far beyond the threshold pull has gone, as a percentage of the threshold.
-    val overshootPercent = abs(progress) - 1.0f
-    // Limit the overshoot to 200%. Linear between 0 and 200.
-    val linearTension = overshootPercent.coerceIn(0f, 2f)
-    // Non-linear tension. Increases with linearTension, but at a decreasing rate.
-    val tensionPercent = linearTension - linearTension.pow(2) / 4
-
-    // Calculations based on SwipeRefreshLayout specification.
-    val endTrim = adjustedPercent * 0.8f
-    val rotation = (-0.25f + 0.4f * adjustedPercent + tensionPercent) * 0.5f
-    val startAngle = rotation * 360
-    val endAngle = (rotation + endTrim) * 360
-    val scale = min(1f, adjustedPercent)
-
-    return ArrowValues(rotation, startAngle, endAngle, scale)
 }

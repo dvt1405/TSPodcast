@@ -16,12 +16,16 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,10 +43,13 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.core.text.HtmlCompat
 import coil.request.ImageRequest
 import tss.t.coreapi.models.Podcast
@@ -51,6 +58,7 @@ import tss.t.podcast.ui.screens.main.podcastDetailBoundsTransform
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.ui.animations.skeleton.ShimmerAsyncImage
+import tss.t.sharedlibrary.ui.animations.skeleton.shimmer
 import tss.t.sharedlibrary.ui.shadow
 import tss.t.sharedresources.R
 
@@ -66,15 +74,6 @@ fun TrendingWidget(
     shareBoundKey: String = TrendingBoundKey,
     onClick: Podcast.() -> Unit = {},
 ) {
-    val backgroundColor by animatedContentScope.transition
-        .animateColor(label = "") { state: EnterExitState ->
-            when (state) {
-                EnterExitState.PreEnter -> Color.Transparent
-                EnterExitState.Visible -> Colors.White
-                EnterExitState.PostExit -> Colors.White
-            }
-        }
-
     val interactiveSource = remember { MutableInteractionSource() }
     val pressed by interactiveSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -97,7 +96,7 @@ fun TrendingWidget(
             modifier = modifier
                 .scale(scale)
                 .clip(RoundedCornerShape(roundedCorner))
-                .width(280.dp)
+                .width(250.dp)
                 .sharedBounds(
                     sharedContentState = rememberSharedContentState(
                         key = SharedElementKey(
@@ -146,24 +145,17 @@ fun TrendingWidget(
                         ),
                         animatedVisibilityScope = animatedContentScope,
                         clipInOverlayDuringTransition = OverlayClip(
-                            RoundedCornerShape(
-                                topStart = roundedCorner,
-                                topEnd = roundedCorner
-                            )
+                            RoundedCornerShape(roundedCorner)
                         )
                     )
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = roundedCorner,
-                            topEnd = roundedCorner
-                        )
-                    )
-                    .width(280.dp)
-                    .aspectRatio(56f / 33),
+                    .clip(RoundedCornerShape(roundedCorner))
+                    .width(250.dp)
+                    .aspectRatio(1f),
             )
 
             Text(
-                podcast.title, style = TextStyles.Title6,
+                text = podcast.title,
+                style = TextStyles.Title6,
                 modifier = Modifier
                     .fillMaxWidth()
                     .sharedBounds(
@@ -177,8 +169,10 @@ fun TrendingWidget(
                         animatedVisibilityScope = animatedContentScope,
                     )
                     .padding(top = 12.dp),
+                minLines = 1,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Justify
             )
 
             Text(
@@ -204,13 +198,52 @@ fun TrendingWidget(
                         boundsTransform = podcastDetailBoundsTransform
                     )
                     .padding(top = 2.dp),
-                minLines = 2,
-                maxLines = 2,
+                minLines = 3,
+                maxLines = 3,
                 overflow = TextOverflow.Ellipsis
             )
         }
     }
+}
 
+@Composable
+fun AsyncTrendingWidget(
+    placeholderColor: Color
+) {
+    Column(
+        modifier = Modifier.width(250.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(8.dp))
+                .background(placeholderColor)
+        )
+        Spacer(modifier = Modifier.size(12.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(15.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(placeholderColor)
+        )
+        Spacer(modifier = Modifier.size(2.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(35.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(placeholderColor)
+        )
+
+    }
+}
+
+@Composable
+@Preview
+fun AsyncTrendingWidgetPreview() {
+    AsyncTrendingWidget(Colors.Secondary50)
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class)

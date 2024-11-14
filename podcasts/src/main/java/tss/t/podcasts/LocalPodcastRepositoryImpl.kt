@@ -29,7 +29,7 @@ class LocalPodcastRepositoryImpl @Inject constructor(
 ) : IPodcastRepository {
     override suspend fun searchPodcasts(
         query: String,
-        type: String,
+        type: String?,
         max: Int,
         aponly: Boolean,
         clean: Boolean?,

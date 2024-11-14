@@ -3,6 +3,7 @@ package tss.t.featureonboarding
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,18 +14,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Clear
-import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,8 +40,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.google.gson.Gson
+import org.json.JSONObject
 import tss.t.coreapi.models.CategoryRes
 import tss.t.coreapi.models.TSDataState
 import tss.t.sharedlibrary.theme.Colors
@@ -53,40 +58,42 @@ import tss.t.sharedlibrary.ui.widget.TSButton
 @Composable
 fun SelectFavouriteCategoryScreen(viewmodel: OnboardingViewModel) {
     val listCategory by viewmodel.categoryState.collectAsState()
-    var isLoading by remember {
+    val listSelected by viewmodel.listFavouriteCategory.collectAsState()
+    val isLoading by remember(listCategory) {
         mutableStateOf(listCategory is TSDataState.Loading)
     }
-    var listItems by remember {
-        mutableStateOf(listOf<CategoryRes.Category>())
-    }
-    if (listCategory is TSDataState.Success) {
-        listItems = (listCategory as TSDataState.Success<CategoryRes>).data.feeds
-        isLoading = false
-    }
-    Log.d("TuanDv", "${listItems.filter { it.isFavourite }}}: ")
-    Box {
-        SelectFavouriteCategoryScreen(
-            listCategory = listItems,
-            isLoading = isLoading,
-            onItemSelected = { index, selected ->
-                if (selected) {
-                    viewmodel.putFavouriteItem(this, index)
-                } else {
-                    viewmodel.removeFavouriteItem(this, index)
+    val listItems by remember(listCategory, listSelected) {
+        mutableStateOf(
+            if (listCategory is TSDataState.Success) {
+                (listCategory as TSDataState.Success<CategoryRes>).data.feeds.map { curr ->
+                    curr.isFavourite = listSelected.any { curr.id == it.id }
+                    curr
                 }
-            },
-            onSaveAndContinue = {
-                viewmodel.saveFavouriteItem()
+            } else {
+                emptyList()
             }
         )
     }
+    SelectFavouriteCategoryScreen(
+        listCategory = listItems,
+        isLoading = isLoading,
+        onItemSelected = { index, selected ->
+            if (selected) {
+                viewmodel.putFavouriteItem(this, index)
+            } else {
+                viewmodel.removeFavouriteItem(this, index)
+            }
+        },
+        onSaveAndContinue = {
+            viewmodel.saveFavouriteItem()
+        }
+    )
 }
 
 @ExperimentalLayoutApi
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-@Preview
 fun SelectFavouriteCategoryScreen(
     listCategory: List<CategoryRes.Category> = listOf(),
     isLoading: Boolean = false,
@@ -97,7 +104,6 @@ fun SelectFavouriteCategoryScreen(
     val rowCount = (screenSize / 150)
     val rowWidth = (screenSize.dp - ((rowCount - 1) * 16).dp - 32.dp) / rowCount
     Scaffold(
-        containerColor = Color.Transparent,
         topBar = {
             CenterAlignedTopAppBar(title = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -127,7 +133,8 @@ fun SelectFavouriteCategoryScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
-                        .padding(bottom = 16.dp),
+                        .padding(bottom = 16.dp)
+                        .animateContentSize(),
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -143,6 +150,7 @@ fun SelectFavouriteCategoryScreen(
                             textStyle = TextStyles.Body3,
                             icon = Icons.Rounded.Clear,
                             iconClick = {
+                                Log.d("TuanDv", "SelectFavouriteCategoryScreen: ${it.isFavourite}")
                                 onItemSelected(it, listCategory.indexOf(it), !it.isFavourite)
                             },
                             iconSize = 20.dp,
@@ -184,15 +192,12 @@ fun SelectFavouriteCategoryScreen(
                     )
                 }
             } else {
-                items(listCategory.size, key = {
-                    listCategory[it].id
-                }) { index ->
-                    val item = listCategory[index]
+                items(listCategory) { item ->
                     CategoryItem(
-                        listCategory[index], modifier =
-                        Modifier.size(rowWidth),
+                        category = item,
+                        modifier = Modifier.size(rowWidth),
                         onClick = {
-                            onItemSelected.invoke(item, index, it)
+                            onItemSelected.invoke(item, listCategory.indexOf(item), it)
                         }
                     )
                 }
@@ -234,25 +239,95 @@ private fun CategoryItem(
                 onClick(category, selected)
             }
     ) {
-        Column(
+        Image(
+            painter = painterResource(_mapIcon[category.id] ?: R.drawable.ic_anonymous),
+            contentDescription = category.name,
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Image(
-                Icons.Rounded.ShoppingCart,
-                contentDescription = category.name,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                category.name, style = TextStyles.Title6,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 16.dp, top = 10.dp)
-            )
+                .align(Alignment.Center)
+                .padding(bottom = 20.dp)
+                .size(48.dp)
+        )
+        Text(
+            text = category.name,
+            style = TextStyles.Title6,
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp, top = 10.dp)
+                .align(Alignment.BottomCenter)
+        )
+    }
+}
+
+private val _mapIcon by lazy {
+    mapOf(
+        1 to R.drawable.ic_art,
+        2 to R.drawable.ic_book,
+        3 to R.drawable.ic_design,
+        4 to R.drawable.ic_skirt,
+        5 to R.drawable.ic_beauty,
+        6 to R.drawable.ic_food,
+        7 to R.drawable.ic_performing,
+        8 to R.drawable.ic_visual,
+        9 to R.drawable.ic_business,
+        10 to R.drawable.ic_linkedin,
+        12 to R.drawable.ic_statistics_100,
+        13 to R.drawable.ic_management,
+        14 to R.drawable.ic_marketing,
+        15 to R.drawable.ic_non_profit,
+        16 to R.drawable.ic_comedy,
+        17 to R.drawable.ic_interviews,
+        18 to R.drawable.ic_idea,
+        19 to R.drawable.ic_move_up,
+        20 to R.drawable.ic_education,
+        21 to R.drawable.ic_my_space,
+        22 to R.drawable.ic_signpost,
+        23 to R.drawable.ic_english_100,
+        24 to R.drawable.ic_learning_100,
+        25 to R.drawable.ic_positive_dynamic,
+        26 to R.drawable.ic_sci_fi_100,
+        27 to R.drawable.ic_theatre_mask_100,
+        28 to R.drawable.ic_history,
+        29 to R.drawable.ic_heart_with_pulse,
+        30 to R.drawable.ic_fitness_100,
+        31 to R.drawable.ic_change_100,
+        32 to R.drawable.ic_medicine_100,
+        33 to R.drawable.ic_psychic_100,
+        34 to R.drawable.ic_beet_100,
+        36 to R.drawable.ic_baby_100,
+        37 to R.drawable.ic_family_100,
+        38 to R.drawable.ic_parenting_100,
+
+
+        76 to R.drawable.ic_social,
+
+        )
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+@Preview
+fun SelectFavouriteCategoryScreenPreview() {
+    val list = mutableListOf<CategoryRes.Category>()
+    val jsArr = LocalContext.current.assets.open("categories.json")
+        .bufferedReader()
+        .readText()
+        .let {
+            JSONObject(it).getJSONArray("Categories")
         }
+    val gson = Gson()
+    for (i in 0 until jsArr.length()) {
+        list.add(
+            gson.fromJson(jsArr[i].toString(), CategoryRes.Category::class.java)
+        )
+    }
+    MaterialTheme(
+        colorScheme = MaterialTheme.colorScheme.copy(
+            background = Color.White,
+            surface = Color.White
+        )
+    ) {
+        SelectFavouriteCategoryScreen(
+            listCategory = list
+        )
     }
 }

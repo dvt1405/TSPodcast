@@ -8,6 +8,7 @@ sealed class TSNavigators(
     val id: String
 ) {
     data object MainNavigator : TSNavigators("MainNavigator")
+    data object SearchNavigator : TSNavigators("Search")
     data class PodcastDetail(
         val podcast: Podcast
     ) : TSNavigators("PodcastDetail")

@@ -168,7 +168,7 @@ fun SharedPref.getListPodcastCategory(): CategoryRes? {
     }.getOrNull()
 }
 
-fun SharedPref.saveFavouriteCategory(listFavouriteCategory: MutableSet<CategoryRes.Category>) {
+fun SharedPref.saveFavouriteCategory(listFavouriteCategory: Set<CategoryRes.Category>) {
     save<Boolean>(Key_HasSelectFavouriteCategory, true)
     save(Key_ListFavouriteCategory, listFavouriteCategory)
 }
