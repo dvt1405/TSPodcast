@@ -54,6 +54,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import tss.t.coreapi.models.Categories
 import tss.t.coreapi.models.Episode
@@ -78,6 +79,8 @@ import tss.t.podcast.ui.screens.playlist.PlaylistScreen
 import tss.t.podcast.ui.screens.podcastsdetail.PodcastDetailScreen
 import tss.t.podcast.ui.screens.podcastsdetail.PodcastViewModel
 import tss.t.podcast.ui.screens.profile.ProfileScreen
+import tss.t.podcast.ui.screens.search.SearchScreen
+import tss.t.podcast.ui.screens.search.SearchViewModel
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.ui.widget.TSPopup
@@ -223,7 +226,7 @@ fun HomeNavigationScreen(
                                         enclosureType = this.enclosureType,
                                         enclosureUrl = this.enclosureUrl,
                                         explicit = this.explicit,
-                                        feedId =  this.feedId,
+                                        feedId = this.feedId,
                                         feedImage = this.feedImage,
                                         feedItunesId = this.feedItunesId,
                                         feedLanguage = this.feedLanguage,
@@ -413,7 +416,24 @@ private fun HomeNavigationScreen(
             }
 
             else -> {
-                ProfileScreen()
+                val searchViewModel = viewModel<SearchViewModel>(LocalViewModelStoreOwner.current!!)
+                val listCategory by searchViewModel.listCategory.collectAsState()
+                val listSearch by searchViewModel.listSearch.collectAsState()
+                val searchText by remember {
+                    searchViewModel.currentSearchText
+                }
+                SearchScreen(
+                    initSearchText = searchText,
+                    onSearch = {
+                        searchViewModel.performSearch(it)
+                    },
+                    categories = listCategory,
+                    searchResult = listSearch,
+                    innerPadding = innerPadding,
+                    onSearchSelected = { feed ->
+                        TSNavigators.navigateTo(TSNavigators.PodcastDetail(Podcast.fromFeed(feed)))
+                    }
+                )
             }
         }
     }

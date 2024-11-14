@@ -10,7 +10,8 @@ class SearchPodcasts @Inject constructor(
 ) {
     suspend operator fun invoke(
         query: String,
-        type: String, max: Int,
+        type: String? = null,
+        max: Int = 100,
         aponly: Boolean = false,
         clean: Boolean? = null,
         similar: Boolean? = true,

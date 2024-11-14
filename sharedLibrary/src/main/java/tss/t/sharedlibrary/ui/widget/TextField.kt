@@ -31,11 +31,14 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -45,16 +48,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.lerp
 import androidx.compose.ui.text.withStyle
@@ -107,12 +116,11 @@ fun TSTextField(
         color = Colors.Gray90,
         platformStyle = PlatformTextStyle(includeFontPadding = false)
     )
-    val modifier =
-        if (singleLine)
-            Modifier.height(TextFieldDefaults.MinHeight)
-        else if (height != TextFieldDefaults.MinHeight)
-            Modifier.height(height)
-        else Modifier
+    val modifier = when {
+        singleLine -> Modifier.height(TextFieldDefaults.MinHeight)
+        height != TextFieldDefaults.MinHeight -> Modifier.height(height)
+        else -> Modifier
+    }
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
@@ -443,14 +451,13 @@ fun Float.toDp(): Dp {
 fun TSMaterialTextField(
     value: String,
     onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
     enabled: Boolean = true,
     isError: Boolean = false,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     supportingText: String? = null,
-    label: String?
-) {
-    val bgColor = if (enabled) if (isError) Colors.Red10 else Colors.White else Colors.Gray15
-    val colors = TextFieldDefaults.colors(
+    bgColor: Color = if (enabled) if (isError) Colors.Red10 else Colors.White else Colors.Gray15,
+    colors: TextFieldColors = TextFieldDefaults.colors(
         disabledIndicatorColor = Colors.Gray15,
         focusedIndicatorColor = Colors.Primary,
         unfocusedIndicatorColor = Colors.Gray30,
@@ -461,13 +468,16 @@ fun TSMaterialTextField(
         cursorColor = Colors.Primary,
         errorIndicatorColor = Colors.Red50,
         errorCursorColor = Colors.Red50,
-    )
+    ),
+    label: String?
+) {
     val mergedTextStyle = TextStyles.Body2.copy(
         fontWeight = FontWeight.W500,
         color = Colors.Gray90,
         platformStyle = PlatformTextStyle(includeFontPadding = false)
     )
     TextField(
+        modifier = modifier,
         value = value,
         onValueChange = onValueChange,
         colors = colors,
@@ -485,5 +495,78 @@ fun TSMaterialTextField(
                 Text(text = it)
             }
         },
+    )
+}
+
+
+@Composable
+fun TSOutlinedTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    isError: Boolean = false,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    supportingText: String? = null,
+    bgColor: Color = if (enabled) if (isError) Colors.Red10 else Colors.White else Colors.Gray15,
+    colors: TextFieldColors = TextFieldDefaults.colors(
+        disabledIndicatorColor = Colors.Gray15,
+        focusedIndicatorColor = Colors.Primary,
+        unfocusedIndicatorColor = Colors.Gray30,
+        unfocusedContainerColor = bgColor,
+        unfocusedLabelColor = Colors.Gray50,
+        focusedLabelColor = Colors.Gray50,
+        disabledLabelColor = Colors.Gray50,
+        cursorColor = Colors.Primary,
+        errorIndicatorColor = Colors.Red50,
+        errorCursorColor = Colors.Red50,
+    ),
+    shape: Shape = OutlinedTextFieldDefaults.shape,
+    textStyle: TextStyle = TextStyles.Title6.copy(
+        fontWeight = FontWeight.W600,
+        color = Colors.Gray90,
+        platformStyle = PlatformTextStyle(includeFontPadding = false)
+    ),
+    label: String?,
+    placeholder: String? = null,
+    keyboardType: KeyboardType = KeyboardType.Unspecified,
+    imeAction: ImeAction = ImeAction.Unspecified,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
+) {
+
+    OutlinedTextField(
+        modifier = modifier,
+        value = value,
+        onValueChange = onValueChange,
+        colors = colors,
+        textStyle = textStyle,
+        interactionSource = interactionSource,
+        supportingText = supportingText?.let {
+            @Composable {
+                Text(text = it)
+            }
+        },
+        isError = isError,
+        enabled = enabled,
+        label = label?.let {
+            @Composable {
+                Text(text = it)
+            }
+        },
+        placeholder = placeholder?.let {
+            @Composable {
+                Text(text = it)
+            }
+        },
+        shape = shape,
+        leadingIcon = leadingIcon,
+        trailingIcon = trailingIcon,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType,
+            imeAction = imeAction
+        ),
+        keyboardActions = keyboardActions
     )
 }

@@ -52,6 +52,30 @@ data class Podcast(
 ) : Parcelable {
     @SuppressLint("SimpleDateFormat")
     companion object {
+        fun fromFeed(feed: Feed): Podcast {
+            return Podcast(
+                categories = feed.categories,
+                dateCrawled = feed.lastCrawlTime,
+                datePublished = feed.newestItemPubdate,
+                datePublishedPretty = "",
+                enclosureLength = 100,
+                enclosureType = null,
+                enclosureUrl = null,
+                explicit = if (feed.explicit) 1 else 0,
+                feedId = feed.id,
+                feedImage = feed.image,
+                feedItunesId = feed.itunesId,
+                feedLanguage = feed.language,
+                feedTitle = feed.title,
+                guid = feed.podcastGuid,
+                id = feed.id,
+                image = feed.artwork,
+                link = feed.link,
+                title = feed.title,
+                description = feed.description
+            )
+        }
+
         val default by lazy {
             Podcast(
                 categories = Categories(),

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Podcast</string>
+    <string name="search_hint_title">Tìm podcast, nghệ sĩ</string>
 </resources>

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -184,6 +186,7 @@ fun TabGroupV24(
     tabSize: TSTabSize = TSTabSize.Big,
     tabStyle: TSTabStyles = TSTabStyles.Normal,
     tsTabMode: TSTabMode = TSTabMode.Fixed,
+    defaultSelectedTab: Int = 0,
     onTabSelected: (tabSelected: Int) -> Unit = {}
 ) {
     val tabHeight = remember(tabSize) {
@@ -199,7 +202,7 @@ fun TabGroupV24(
     }
 
     var selectedTab by remember {
-        mutableIntStateOf(0)
+        mutableIntStateOf(defaultSelectedTab)
     }
 
     var selectedOffset by remember {
@@ -233,15 +236,16 @@ fun TabGroupV24(
             .drawBehind {
                 when (tabStyle) {
                     TSTabStyles.Normal -> {
-                        drawRoundRect(
-                            TSTabs.tabColors.backgroundSelectedColor,
-                            size = Size(
-                                width = animateSelectedTabWidth,
-                                height = size.height
-                            ),
-                            topLeft = Offset(selectedTopLeft, 0f),
-                            cornerRadius = cornerRadius
-                        )
+                        if (selectedTab != -1)
+                            drawRoundRect(
+                                TSTabs.tabColors.backgroundSelectedColor,
+                                size = Size(
+                                    width = animateSelectedTabWidth,
+                                    height = size.height
+                                ),
+                                topLeft = Offset(selectedTopLeft, 0f),
+                                cornerRadius = cornerRadius
+                            )
                     }
 
                     TSTabStyles.Underline -> {
@@ -301,9 +305,14 @@ fun TabGroupV24(
                 text = tab.text,
                 modifier = (if (tsTabMode == TSTabMode.Scrollable) Modifier else
                     Modifier.weight(1f / tabCount))
+                    .clip(RoundedCornerShape(cornerRadius.x))
                     .clickable {
-                        selectedTab = tabIndex
-                        onTabSelected(tabIndex)
+                        selectedTab = if (selectedTab == tabIndex) {
+                            -1
+                        } else {
+                            tabIndex
+                        }
+                        onTabSelected(selectedTab)
                     },
                 iconRes = tab.iconRes,
                 tabSize = tabSize,

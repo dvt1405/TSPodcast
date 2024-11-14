@@ -1,6 +1,8 @@
 package tss.t.featureonboarding
 
+import android.os.StatFs
 import android.util.Log
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -9,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -44,8 +47,11 @@ class OnboardingViewModel @Inject constructor(
     }
 
     private val _listFavouriteCategory by lazy {
-        mutableSetOf<CategoryRes.Category>()
+        MutableStateFlow<MutableList<CategoryRes.Category>>(mutableListOf())
     }
+
+    val listFavouriteCategory: StateFlow<List<CategoryRes.Category>>
+        get() = _listFavouriteCategory.asStateFlow()
 
     val categoryState: StateFlow<TSDataState<CategoryRes>>
         get() = _categoryState
@@ -121,19 +127,27 @@ class OnboardingViewModel @Inject constructor(
 
     fun putFavouriteItem(category: CategoryRes.Category, index: Int) {
         category.isFavourite = true
-        synchronized(_listFavouriteCategory) {
-            _listFavouriteCategory.add(category)
+        _listFavouriteCategory.update {
+            val newList = it
+            if (newList.contains(category)) {
+                val crrIndex = newList.indexOfFirst { it.id == category.id }
+                newList[crrIndex] = category
+            } else {
+                newList.add(category)
+            }
+            newList
         }
-        updateSelectedState(index, category.copy())
+        updateSelectedState(index, category)
     }
 
     var count = 0
     private fun updateSelectedState(index: Int, category: CategoryRes.Category) {
         viewModelScope.launch(Dispatchers.IO) {
             if (_categoryState.value is TSDataState.Success) {
-                val data = (_categoryState.value as TSDataState.Success).data.copy()
+                val data = (_categoryState.value as TSDataState.Success).data
                 val cached = data.feeds.toMutableList()
-                cached[index] = category.copy()
+                cached[index] = category
+
                 _categoryState.update {
                     count++
                     TSDataState.Success(CategoryRes(cached.size + count, cached))
@@ -144,14 +158,21 @@ class OnboardingViewModel @Inject constructor(
 
     fun removeFavouriteItem(category: CategoryRes.Category, index: Int) {
         category.isFavourite = false
-        synchronized(_listFavouriteCategory) {
-            _listFavouriteCategory.remove(category)
+        _listFavouriteCategory.update {
+            val newList = it
+            if (newList.contains(category)) {
+                val crrIndex = newList.indexOfFirst { it.id == category.id }
+                newList[crrIndex] = category
+            } else {
+                newList.add(category)
+            }
+            newList
         }
         updateSelectedState(index, category)
     }
 
     fun saveFavouriteItem() {
-        sharedPref.saveFavouriteCategory(_listFavouriteCategory)
+        sharedPref.saveFavouriteCategory(_listFavouriteCategory.value.toSet())
         isOnboardingFinished.update {
             it.copy(isSelectedFavourite = true)
         }

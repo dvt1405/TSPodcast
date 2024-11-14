@@ -15,7 +15,8 @@ import tss.t.coreapi.models.TrendingPodcastRes
 interface IPodcastRepository {
     suspend fun searchPodcasts(
         query: String,
-        type: String, max: Int,
+        type: String? = null,
+        max: Int,
         aponly: Boolean = false,
         clean: Boolean? = null,
         similar: Boolean? = true,
