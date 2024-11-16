@@ -62,9 +62,7 @@ class MainActivity : ComponentActivity() {
                 val pullRefreshState = remember {
                     mutableStateMapOf<BottomBarTab, PullToRefreshState>()
                 }
-                var tabIndexSelected by remember {
-                    mutableIntStateOf(1)
-                }
+                val tabIndexSelected by mainViewModel.tabSelected.collectAsState()
 
                 val isOnboardingFinished by onboardingViewModel.isOnboardingFinished.collectAsState()
                 SharedTransitionLayout {
@@ -95,7 +93,7 @@ class MainActivity : ComponentActivity() {
                                     bottomTabs = tabDefaults,
                                     hazeState = remember { HazeState() },
                                     onTabSelected = { tab, index ->
-                                        tabIndexSelected = index
+                                        mainViewModel.onTabSelected(index)
                                     }
                                 )
                             }

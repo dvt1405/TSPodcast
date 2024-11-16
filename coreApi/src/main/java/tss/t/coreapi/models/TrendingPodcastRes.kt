@@ -2,6 +2,8 @@ package tss.t.coreapi.models
 
 import android.annotation.SuppressLint
 import android.os.Parcelable
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.IgnoredOnParcel
@@ -29,6 +31,7 @@ data class TrendingPodcastRes(
 }
 
 @Parcelize
+@Entity
 data class Podcast(
     val categories: Categories? = Categories(),
     val dateCrawled: Long,
@@ -44,6 +47,7 @@ data class Podcast(
     val feedLanguage: String?,
     val feedTitle: String?,
     val guid: String?,
+    @PrimaryKey
     val id: Long,
     val image: String,
     val link: String?,

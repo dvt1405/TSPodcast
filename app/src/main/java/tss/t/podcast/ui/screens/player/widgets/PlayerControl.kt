@@ -44,7 +44,7 @@ fun PlayerControl(
     onSkipToNext: () -> Unit = {},
     onPlayListClick: () -> Unit = {}
 ) {
-    var fav by remember {
+    var fav by remember(isFav) {
         mutableStateOf(isFav)
     }
     Row(

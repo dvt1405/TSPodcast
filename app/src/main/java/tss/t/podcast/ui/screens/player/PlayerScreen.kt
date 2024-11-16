@@ -68,7 +68,7 @@ fun PlayerScreen(
             playerControlUIState.currentProgress
         },
         onFavourite = {
-            viewmodel.onFavourite(it)
+            viewmodel.onFavouriteChanged(it)
         },
         onSkipToNext = {
             viewmodel.onSkipToNext()
@@ -81,7 +81,6 @@ fun PlayerScreen(
         },
         onPlayListClick = {
             slideState = SlideAreaState.Expanded
-            Log.d("TuanDv", "PlayerScreen: $slideState")
         },
         onLoop = {},
         onSelected = {
@@ -96,7 +95,8 @@ fun PlayerScreen(
         slideState = slideState,
         onSlideStateChanged = {
             slideState = it
-        }
+        },
+        isEpisodeFavourite = playerControlUIState.isFavourite
     )
 }
 
@@ -130,7 +130,7 @@ fun PlayerScreen(
             playerControlUIState.currentProgress
         },
         onFavourite = {
-            viewmodel.onFavourite(it)
+            viewmodel.onFavouriteChanged(it)
         },
         onSkipToNext = {
             viewmodel.onSkipToNext()
@@ -143,7 +143,6 @@ fun PlayerScreen(
         },
         onPlayListClick = {
             slideState = SlideAreaState.Expanded
-            Log.d("TuanDv", "PlayerScreen: $slideState")
         },
         onLoop = {},
         onSelected = {
@@ -158,7 +157,8 @@ fun PlayerScreen(
         onSlideStateChanged = {
             slideState = it
         },
-        slideState = slideState
+        slideState = slideState,
+        isEpisodeFavourite = playerControlUIState.isFavourite
     )
 }
 
@@ -181,6 +181,7 @@ internal fun PlayerScreen(
     onSeek: (Float) -> Unit = {},
     onSelected: Episode.() -> Unit = {},
     onClosePlayer: () -> Unit = {},
+    isEpisodeFavourite: Boolean = false,
     onSlideStateChanged: (SlideAreaState) -> Unit = {},
 ) {
     var dragDelta by remember {
@@ -234,7 +235,8 @@ internal fun PlayerScreen(
             onPlayPause = onPlayPause,
             onPlayListClick = onPlayListClick,
             onLoop = onLoop,
-            onSeek = onSeek
+            onSeek = onSeek,
+            isEpisodeFavourite = isEpisodeFavourite
         )
         SlideArea(
             playList = playList,

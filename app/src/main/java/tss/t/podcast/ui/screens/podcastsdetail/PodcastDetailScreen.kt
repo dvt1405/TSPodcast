@@ -112,13 +112,19 @@ import kotlin.math.min
 @Composable
 fun PodcastDetailScreen(
     podcast: Podcast = Podcast.default,
+    playList: List<Episode> = emptyList(),
     sharedElementKey: String? = null,
     mainViewModel: MainViewModel = viewModel<MainViewModel>(),
     podcastViewModel: PodcastViewModel = viewModel<PodcastViewModel>(),
     playerViewmodel: PlayerViewModel = viewModel<PlayerViewModel>()
 ) {
-    LaunchedEffect(podcast) {
-        podcastViewModel.getEpisodes("${podcast.id}")
+    LaunchedEffect(podcast, playList) {
+        if (playList.isNotEmpty()) {
+            mainViewModel.setCurrentPodcast(podcast)
+            podcastViewModel.setPodcastAndEpisodes(podcast, playList)
+        } else {
+            podcastViewModel.getEpisodes("${podcast.id}")
+        }
     }
 
     DisposableEffect(Unit) {

@@ -195,7 +195,7 @@ fun SearchScreen(
                     val item = searchResult[index]
                     if (index == 0) {
                         Text(
-                            "Kết qủa hàng đầu",
+                            "Kết qủa hàng đầu cho: $searchText",
                             style = TextStyles.Title5,
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)

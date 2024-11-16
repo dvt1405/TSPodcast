@@ -4,9 +4,11 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import dagger.multibindings.IntoMap
-import dagger.multibindings.IntoSet
+import tss.t.core.repository.IFavouriteRepository
+import tss.t.core.repository.IHistoryRepository
 import tss.t.core.repository.IPodcastRepository
+import tss.t.podcasts.FavouriteRepository
+import tss.t.podcasts.HistoryRepository
 import tss.t.podcasts.LocalPodcastRepositoryImpl
 import tss.t.podcasts.PodcastsRepositoryImpl
 import javax.inject.Named
@@ -16,6 +18,12 @@ import javax.inject.Named
 abstract class PodcastsModule {
     @Binds
     abstract fun podcastsRepository(impl: PodcastsRepositoryImpl): IPodcastRepository
+
+    @Binds
+    abstract fun favouriteRepository(impl: FavouriteRepository): IFavouriteRepository
+
+    @Binds
+    abstract fun historyRepository(impl: HistoryRepository): IHistoryRepository
 
     @Binds
     @Named(FOR_TEST)

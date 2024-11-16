@@ -1,6 +1,8 @@
 package tss.t.coreapi.models
 
 import android.os.Parcelable
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
@@ -23,6 +25,7 @@ data class EpisodeResponse(
 }
 
 @Parcelize
+@Entity
 data class Episode(
     val chaptersUrl: String?,
     val dateCrawled: Long,
@@ -45,13 +48,14 @@ data class Episode(
     val feedLanguage: String?,
     val feedUrl: String,
     val guid: String,
+    @PrimaryKey
     val id: Long,
     val image: String,
     val link: String,
     val persons: List<Person>? = null,
     val podcastGuid: String,
     val season: Int,
-    val socialInteract: List<SocialInteract>,
+    val socialInteract: List<SocialInteract>?,
     val soundbite: Soundbite?,
     val soundbites: List<Soundbite>?,
     val title: String,

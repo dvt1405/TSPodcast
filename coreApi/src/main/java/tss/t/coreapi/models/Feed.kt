@@ -2,9 +2,12 @@ package tss.t.coreapi.models
 
 import android.os.Parcelable
 import androidx.annotation.VisibleForTesting
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
+@Entity
 data class Feed(
     val artwork: String,
     val author: String,
@@ -16,6 +19,7 @@ data class Feed(
     val episodeCount: Int,
     val explicit: Boolean,
     val generator: String,
+    @PrimaryKey
     val id: Long,
     val image: String,
     val imageUrlHash: Long,
