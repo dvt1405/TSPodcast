@@ -56,7 +56,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import tss.t.coreapi.models.Categories
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.LiveEpisode
 import tss.t.coreapi.models.Podcast
@@ -72,22 +71,23 @@ import tss.t.podcast.LocalSharedTransitionScope
 import tss.t.podcast.ui.navigations.TSNavigators
 import tss.t.podcast.ui.screens.MainViewModel
 import tss.t.podcast.ui.screens.discorver.DiscoverPodcastsScreen
+import tss.t.podcast.ui.screens.favourite.FavouriteScreen
+import tss.t.podcast.ui.screens.favourite.FavouriteViewModel
 import tss.t.podcast.ui.screens.player.PlayerScreen
 import tss.t.podcast.ui.screens.player.PlayerViewModel
 import tss.t.podcast.ui.screens.player.widgets.PlayerWidgetMain
-import tss.t.podcast.ui.screens.playlist.PlaylistScreen
 import tss.t.podcast.ui.screens.podcastsdetail.PodcastDetailScreen
 import tss.t.podcast.ui.screens.podcastsdetail.PodcastViewModel
-import tss.t.podcast.ui.screens.profile.ProfileScreen
 import tss.t.podcast.ui.screens.search.SearchScreen
 import tss.t.podcast.ui.screens.search.SearchViewModel
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.ui.widget.TSPopup
 import tss.t.sharedresources.R
-import java.text.SimpleDateFormat
-import java.util.Calendar
 
+internal const val FAVOURITE_TAB_INDEX = 0
+internal const val HOME_TAB_INDEX = 1
+internal const  val SEARCH_TAB_INDEX = 2
 
 fun <T> spatialExpressiveSpring() = spring<T>(
     dampingRatio = 0.8f,
@@ -157,6 +157,7 @@ fun HomeNavigationScreen(
                 is TSNavigators.PodcastDetail -> {
                     PodcastDetailScreen(
                         podcast = route.podcast,
+                        playList = route.playList,
                         mainViewModel = mainViewModel,
                         sharedElementKey = uiState.from,
                         podcastViewModel = podcastViewModel
@@ -200,7 +201,7 @@ fun HomeNavigationScreen(
                             TSNavigators.navigateTo(
                                 TSNavigators.PodcastDetail(this)
                             )
-                            mainViewModel.getPodcast(this)
+                            mainViewModel.setCurrentPodcast(this)
                         },
                         onFavClick = {
                             //Navigate to Detail Screen
@@ -387,11 +388,19 @@ private fun HomeNavigationScreen(
                 pullRefreshState[selectedTab] = it
             }
         when (selectedTabIndex) {
-            0 -> {
-                PlaylistScreen()
+            FAVOURITE_TAB_INDEX -> {
+                FavouriteScreen(
+                    listState = childListState,
+                    pullToRefreshState = pullToRefreshState,
+                    innerPadding = innerPadding,
+                    viewModel = viewModel<FavouriteViewModel>(LocalViewModelStoreOwner.current!!),
+                    onEmptyClick = {
+                        onTabSelected(tabDefaults[HOME_TAB_INDEX], HOME_TAB_INDEX)
+                    }
+                )
             }
 
-            1 -> {
+            HOME_TAB_INDEX -> {
                 DiscoverPodcastsScreen(
                     isRefreshing = isRefreshing,
                     showLoading = showLoadingView,

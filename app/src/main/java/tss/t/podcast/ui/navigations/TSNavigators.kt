@@ -10,7 +10,8 @@ sealed class TSNavigators(
     data object MainNavigator : TSNavigators("MainNavigator")
     data object SearchNavigator : TSNavigators("Search")
     data class PodcastDetail(
-        val podcast: Podcast
+        val podcast: Podcast,
+        val playList: List<Episode> = emptyList()
     ) : TSNavigators("PodcastDetail")
 
     data class Player(

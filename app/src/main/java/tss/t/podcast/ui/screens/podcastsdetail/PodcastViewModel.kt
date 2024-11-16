@@ -41,6 +41,18 @@ class PodcastViewModel @Inject constructor(
     val uiState: StateFlow<PodcastUIState>
         get() = _uiState
 
+    fun setPodcastAndEpisodes(podcast: Podcast, playList: List<Episode>) {
+        _uiState.update {
+            PodcastUIState.Success(
+                data = playList,
+                liveItems = emptyList()
+            ).apply {
+                this.renderCount = ++_renderCount
+                this.lazyListState = _uiState.value.lazyListState
+            }
+        }
+    }
+
     fun getEpisodes(podcastId: String) {
         _uiState.update {
             PodcastUIState.Loading.apply {

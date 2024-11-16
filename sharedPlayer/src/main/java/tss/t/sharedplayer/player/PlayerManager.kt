@@ -87,7 +87,6 @@ class PlayerManager @Inject constructor(
 
     fun playMedia(currentItem: MediaItem, mediaItems: List<MediaItem>) {
         ensurePlayerCreate()
-        Log.d("TuanDv", "playMedia: ${currentItem}")
         val startIndex = mediaItems.indexOfFirst {
             currentItem.mediaId == it.mediaId
         }

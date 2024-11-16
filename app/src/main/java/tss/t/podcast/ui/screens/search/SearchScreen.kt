@@ -89,7 +89,9 @@ fun SearchScreen(
     }
 
     LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+        if (searchText.isNullOrEmpty() && searchResult.isEmpty()) {
+            focusRequester.requestFocus()
+        }
         snapshotFlow { searchText }
             .debounce(200L)
             .collectLatest {
@@ -168,24 +170,6 @@ fun SearchScreen(
                 .fillMaxWidth()
                 .animateContentSize()
         ) {
-//            stickyHeader("RowsCategory") {
-//                Spacer(Modifier.size(16.dp))
-//                TabGroupV24(
-//                    tabs = categories.map {
-//                        TabData(it.name)
-//                    },
-//                    modifier = Modifier
-//                        .fillMaxWidth(),
-//                    onTabSelected = {
-//                        if (it != -1) {
-//                            selectedCategory = categories[it]
-//                        }
-//                        focusManager.clearFocus(false)
-//                    },
-//                    tsTabMode = TSTabMode.Scrollable,
-//                    defaultSelectedTab = -1
-//                )
-//            }
             if (searchText.isNullOrEmpty()) {
                 item {
                     Text(
@@ -211,7 +195,7 @@ fun SearchScreen(
                     val item = searchResult[index]
                     if (index == 0) {
                         Text(
-                            "Kết qủa hàng đầu",
+                            "Kết qủa hàng đầu cho: $searchText",
                             style = TextStyles.Title5,
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)

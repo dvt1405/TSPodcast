@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.merge
@@ -237,7 +238,19 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun getPodcast(
+    private val _tabSelected by lazy {
+        MutableStateFlow<Int>(1)
+    }
+    val tabSelected: StateFlow<Int>
+        get() = _tabSelected.asStateFlow()
+
+    fun onTabSelected(tab: Int) {
+        _tabSelected.update {
+            tab
+        }
+    }
+
+    fun setCurrentPodcast(
         podcast: Podcast,
         from: String? = null
     ) {

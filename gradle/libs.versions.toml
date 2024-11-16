@@ -23,6 +23,7 @@ okhttp = "4.12.0"
 retrofit = "2.11.0"
 hilt = "2.51.1"
 junitJupiter = "5.8.1"
+roomPaging = "2.6.1"
 uiTooling = "1.7.4"
 securityCryptoKtx = "1.0.0"
 
@@ -40,6 +41,12 @@ androidx-media3-exoplayer-smoothstreaming = { module = "androidx.media3:media3-e
 androidx-media3-session = { module = "androidx.media3:media3-session", version.ref = "media3Exoplayer" }
 androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Exoplayer" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+androidx-room-guava = { module = "androidx.room:room-guava", version.ref = "roomPaging" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomPaging" }
+androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "roomPaging" }
+androidx-room-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomPaging" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomPaging" }
+androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomPaging" }
 firebase-analytics-ktx = { module = "com.google.firebase:firebase-analytics-ktx" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-crashlytics-ktx = { module = "com.google.firebase:firebase-crashlytics-ktx" }
