@@ -126,8 +126,8 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun onFavourite() {
-
+    fun onFavourite(isFav: Boolean) {
+        val currentMediaItem = current?.id ?: return
     }
 
     override fun onCleared() {
@@ -313,6 +313,12 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    fun seekTo(progress: Float) {
+        currentPlayer.seekTo(
+            (currentPlayer.contentDuration * progress).toLong()
+        )
+    }
+
 
     sealed class PlayerUIState {
 
@@ -354,8 +360,18 @@ fun Episode.toMediaItem(album: CharSequence? = null): MediaItem {
             MediaMetadata.Builder()
                 .setTitle(title)
                 .setArtist(persons?.firstOrNull()?.name ?: album)
-                .setDescription(HtmlCompat.fromHtml(description ?: "", HtmlCompat.FROM_HTML_MODE_COMPACT))
-                .setSubtitle(HtmlCompat.fromHtml(description ?: "", HtmlCompat.FROM_HTML_MODE_COMPACT))
+                .setDescription(
+                    HtmlCompat.fromHtml(
+                        description ?: "",
+                        HtmlCompat.FROM_HTML_MODE_COMPACT
+                    )
+                )
+                .setSubtitle(
+                    HtmlCompat.fromHtml(
+                        description ?: "",
+                        HtmlCompat.FROM_HTML_MODE_COMPACT
+                    )
+                )
                 .setDisplayTitle(title)
                 .setIsPlayable(true)
                 .setArtworkUri(Uri.parse(image))
