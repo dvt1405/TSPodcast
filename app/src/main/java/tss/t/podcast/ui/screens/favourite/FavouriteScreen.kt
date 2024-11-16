@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,46 +39,37 @@ fun FavouriteScreen(
     LaunchedEffect(Unit) {
         viewModel.selectAll()
     }
-    PullToRefreshBox(
-        isRefreshing = isRefreshing,
-        state = pullToRefreshState,
-        onRefresh = {
-            isRefreshing = !isRefreshing
-        }
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .animateContentSize(),
+        state = listState
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .animateContentSize(),
-            state = listState
-        ) {
+        item {
+            Spacer(Modifier.size(innerPadding.calculateTopPadding()))
+        }
+        if (uiState.listFav.isEmpty() && !uiState.isLoading) {
             item {
-                Spacer(Modifier.size(innerPadding.calculateTopPadding()))
+                EmptyFavouriteWidget(
+                    Modifier.padding(top = 48.dp),
+                    onClick = onEmptyClick
+                )
             }
-            if (uiState.listFav.isEmpty() && !uiState.isLoading) {
-                item {
-                    EmptyFavouriteWidget(
-                        Modifier.padding(top = 48.dp),
-                        onClick = onEmptyClick
+        } else {
+            items(uiState.listFav) {
+                FavouriteItemWidget(
+                    it,
+                    modifier = Modifier.padding(
+                        vertical = 12.dp,
+                        horizontal = 16.dp
                     )
+                ) {
+                    viewModel.onFavSelected(it)
                 }
-            } else {
-                items(uiState.listFav) {
-                    FavouriteItemWidget(
-                        it,
-                        modifier = Modifier.padding(
-                            vertical = 12.dp,
-                            horizontal = 16.dp
-                        )
-                    ) {
-                        viewModel.onFavSelected(it)
-                    }
-                }
-            }
-            item {
-                Spacer(Modifier.size(innerPadding.calculateBottomPadding()))
             }
         }
-
+        item {
+            Spacer(Modifier.size(innerPadding.calculateBottomPadding()))
+        }
     }
 }
