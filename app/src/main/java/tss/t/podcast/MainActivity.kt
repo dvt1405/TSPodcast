@@ -2,7 +2,9 @@
 
 package tss.t.podcast
 
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
@@ -19,17 +21,19 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import tss.t.coreapi.Constants
 import tss.t.featureonboarding.OnboardingScreen
 import tss.t.featureonboarding.OnboardingViewModel
 import tss.t.featureonboarding.SelectFavouriteCategoryScreen
 import tss.t.hazeandroid.HazeState
+import tss.t.podcast.ui.model.HomeEvent
 import tss.t.podcast.ui.screens.MainViewModel
 import tss.t.podcast.ui.screens.main.BottomBarTab
 import tss.t.podcast.ui.screens.main.HomeNavigationScreen
@@ -53,6 +57,7 @@ class MainActivity : ComponentActivity() {
             }
         }
         onBackPressedDispatcher.addCallback(onBackPressedCallback)
+        handleIntent(intent)
         setContent {
 
             PodcastTheme {
@@ -102,12 +107,42 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        lifecycleScope.launch {
+            mainViewModel.event.collect {
+                when (it) {
+                    HomeEvent.ExitApp -> finish()
+                    HomeEvent.ToastDoubleClickToExit -> Toast.makeText(
+                        this@MainActivity,
+                        R.string.double_click_to_exit,
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    else -> {}
+                }
+            }
+        }
     }
 
     override fun onResume() {
         super.onResume()
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent) {
+        val action = intent.action
+        if (action == Constants.ACTION_START_FROM_NOTIFICATION) {
+            val data = intent.data ?: return
+            if (data.toString().contains(Constants.DEEPLINK_CURRENT_PLAYING)) {
+                val mediaId = data.getQueryParameter(Constants.QUERY_MEDIA_ITEM_NAME)
+                playerViewModel.onRestoreFromNotification(mediaId)
+            }
+        }
+    }
 }
 
 val LocalNavAnimatedVisibilityScope = compositionLocalOf<AnimatedVisibilityScope?> { null }

@@ -1,5 +1,6 @@
 package tss.t.podcast.ui.screens.discorver
 
+import android.widget.Space
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -38,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.MediaItem
 import tss.t.coreapi.models.LiveEpisode
 import tss.t.coreapi.models.Podcast
 import tss.t.hazeandroid.HazeDefaults
@@ -80,6 +82,7 @@ fun DiscoverPodcastsScreen(
     trendingRowState: LazyListState = rememberLazyListState(),
     renderCount: Int = 0,
     recentFeedState: LazyListState = rememberLazyListState(),
+    currentMediaItem: MediaItem? = null
 ) {
     val sharedTransitionScope = LocalSharedTransitionScope.current!!
     val animatedContentScope = LocalNavAnimatedVisibilityScope.current!!
@@ -235,6 +238,9 @@ fun DiscoverPodcastsScreen(
 
             item(key = "SpaceBottom") {
                 Spacer(modifier = Modifier.size(innerPadding.calculateBottomPadding()))
+                if (currentMediaItem != null) {
+                    Spacer(modifier = Modifier.size(86.dp))
+                }
             }
         }
     }

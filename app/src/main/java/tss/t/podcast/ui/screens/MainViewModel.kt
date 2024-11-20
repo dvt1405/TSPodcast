@@ -5,8 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flowOf
@@ -22,9 +26,10 @@ import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.EpisodeResponse
 import tss.t.coreapi.models.LiveEpisode
 import tss.t.coreapi.models.LiveResponse
-import tss.t.coreapi.models.TSDataState
 import tss.t.coreapi.models.Podcast
+import tss.t.coreapi.models.TSDataState
 import tss.t.coreapi.models.TrendingPodcastRes
+import tss.t.podcast.ui.model.HomeEvent
 import tss.t.podcast.ui.navigations.TSNavigators
 import tss.t.podcasts.usecase.GetEpisodeByFeedId
 import tss.t.podcasts.usecase.GetLiveEpisodes
@@ -54,6 +59,15 @@ class MainViewModel @Inject constructor(
     private val sharedPref: SharedPref
 ) : ViewModel(), TSNavigators.Companion.Observer {
     private var renderCount = 0
+    private val _event by lazy {
+        MutableSharedFlow<HomeEvent>(
+            1,
+            1
+        )
+    }
+    val event: SharedFlow<HomeEvent>
+        get() = _event.asSharedFlow()
+
     private val _uiState by lazy {
         MutableStateFlow(
             UIState(
@@ -269,7 +283,35 @@ class MainViewModel @Inject constructor(
     }
 
     fun popBackStack() {
-        TSNavigators.popBack()
+        if (TSNavigators.isRoot) {
+            doubleBackToExit()
+        } else {
+            TSNavigators.popBack()
+        }
+    }
+
+    private var _pendingExitApp = false
+    private var _doubleBackCount = 0
+    private fun doubleBackToExit() {
+        viewModelScope.launch {
+            if (!_pendingExitApp) {
+                _pendingExitApp = true
+                _doubleBackCount++
+                _event.emit(HomeEvent.ToastDoubleClickToExit)
+                delay(2_000L)
+                _pendingExitApp = false
+                _doubleBackCount = 0
+                return@launch
+            }
+            _doubleBackCount++
+            if (_doubleBackCount >= 2) {
+                _event.emit(HomeEvent.ExitApp)
+            }
+        }
+    }
+
+    private fun exitApp() {
+
     }
 
     data class UIState(

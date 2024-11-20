@@ -54,6 +54,9 @@ sealed class TSNavigators(
             ArrayDeque<TSNavigators>()
         }
 
+        val isRoot: Boolean
+            get() = _queue.isEmpty()
+
         fun addToRoute(
             route: TSNavigators
         ) {
