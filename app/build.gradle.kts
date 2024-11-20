@@ -97,6 +97,7 @@ dependencies {
     implementation(libs.firebase.analytics.ktx)
     implementation(libs.firebase.crashlytics.ktx)
     implementation(libs.firebase.messaging.ktx)
+    implementation(libs.firebase.config)
     implementation(libs.androidx.room.runtime)
     kapt(libs.androidx.room.room.compiler)
     annotationProcessor(libs.androidx.room.room.compiler)

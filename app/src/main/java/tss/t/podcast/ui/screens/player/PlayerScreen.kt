@@ -58,9 +58,9 @@ fun PlayerScreen(
         mutableStateOf(SlideAreaState.Hidden)
     }
     PlayerScreen(
-        podcast = viewmodel.podcast,
+        podcast = playerControlUIState.podcast,
         episode = episode,
-        playList = viewmodel.playList,
+        playList = playerControlUIState.playList,
         isPlaying = playerControlUIState.isPlaying,
         contentDuration = playerControlUIState.totalDuration,
         currentPosition = playerControlUIState.currentDuration,
