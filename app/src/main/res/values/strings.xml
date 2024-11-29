@@ -4,4 +4,8 @@
     <string name="empty_favourite_title">Không có chương trình yêu thích.</string>
     <string name="btn_discover_more_title">Khám phá thêm</string>
     <string name="double_click_to_exit">Nhấn nút quay lại để thoát</string>
+    <string name="trending_podcast_title">Podcasts thịnh hành</string>
+    <string name="live_podcast_title">Live Podcasts</string>
+    <string name="recent_podcast_title">Podcasts xu hướng gần đây</string>
+    <string name="fav_podcast_title">Có thể bạn yêu thích</string>
 </resources>

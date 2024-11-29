@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -53,6 +54,9 @@ fun PlayerScreen(
     episode: MediaItem,
     viewmodel: PlayerViewModel = viewModel(viewModelStoreOwner = LocalContext.current as ComponentActivity)
 ) {
+    SideEffect {
+        Log.d("TuanDv", "PlayerScreen: Recompose")
+    }
     val playerControlUIState by viewmodel.playerControlState.collectAsState()
     var slideState by remember {
         mutableStateOf(SlideAreaState.Hidden)
@@ -107,6 +111,9 @@ fun PlayerScreen(
     playList: List<Episode>,
     viewmodel: PlayerViewModel = viewModel(viewModelStoreOwner = LocalContext.current as ComponentActivity)
 ) {
+    SideEffect {
+        Log.d("TuanDv", "PlayerScreen: Recompose")
+    }
     LaunchedEffect(episode) {
         viewmodel.playerEpisode(
             episode,

@@ -1,6 +1,7 @@
 package tss.t.podcast.ui.screens.player.widgets
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -62,18 +63,22 @@ fun BoxScope.PlayerArea(
             .navigationBarsPadding()
             .padding(top = 70.dp)
     ) {
-        AsyncImage(
-            model = imageRequestBuilder(LocalContext.current)
-                .data(episode.mediaMetadata.artworkUri)
-                .build(),
-            contentDescription = episode.mediaMetadata.title.toString(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 30.dp)
-                .padding(bottom = 20.dp)
-                .aspectRatio(1f)
-                .clip(RoundedCornerShape(12.dp))
-        )
+        Box(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            AsyncImage(
+                model = imageRequestBuilder(LocalContext.current)
+                    .data(episode.mediaMetadata.artworkUri)
+                    .build(),
+                contentDescription = episode.mediaMetadata.title.toString(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 30.dp)
+                    .padding(bottom = 20.dp)
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(12.dp))
+            )
+        }
         Text(
             modifier = Modifier
                 .fillMaxWidth()

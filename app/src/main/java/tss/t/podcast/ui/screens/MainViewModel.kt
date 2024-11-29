@@ -83,7 +83,7 @@ class MainViewModel @Inject constructor(
     }
 
     val uiState: StateFlow<UIState>
-        get() = _uiState
+        get() = _uiState.asStateFlow()
 
     init {
         getTrending()
@@ -318,16 +318,7 @@ class MainViewModel @Inject constructor(
         val renderCount: Int = 0,
         val listTrending: List<Podcast> = emptyList(),
         val listFav: List<Podcast> = emptyList(),
-        val liveEpisode: List<List<LiveEpisode>> = listOf(
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-            LiveEpisode.default,
-        ).chunked(3),
+        val liveEpisode: List<List<LiveEpisode>> = _dumpList,
         val recentFeeds: List<Podcast> = emptyList(),
         val recentNewFeeds: List<Podcast> = emptyList(),
         val isDataPartLoading: MutableMap<Int, Boolean> = mutableMapOf(),
@@ -363,6 +354,21 @@ class MainViewModel @Inject constructor(
                     route = route,
                 )
             }
+        }
+    }
+
+    companion object {
+        private val _dumpList by lazy {
+            listOf(
+                LiveEpisode.default,
+                LiveEpisode.default,
+                LiveEpisode.default,
+                LiveEpisode.default,
+                LiveEpisode.default,
+                LiveEpisode.default,
+                LiveEpisode.default,
+                LiveEpisode.default,
+            ).chunked(3)
         }
     }
 }

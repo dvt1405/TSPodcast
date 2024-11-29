@@ -9,6 +9,7 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        maven { url = uri("https://artifacts.applovin.com/android") }
     }
 }
 dependencyResolutionManagement {
@@ -32,3 +33,4 @@ include(":featureOnboarding")
 include(":hazeAndroid")
 include(":sharedPlayer")
 include(":sharedFirebase")
+include(":ads")

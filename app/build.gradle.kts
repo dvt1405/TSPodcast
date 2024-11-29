@@ -7,6 +7,11 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
+    id("applovin-quality-service")
+}
+
+applovin {
+    apiKey = "avJkJkTUhqmoZGJTcdqgylRVHN9sbc3ZSUbub3UL1fXR3fXOyqupneiTBSvfi8FT0iI060T6danq4i-z5ZaZJp"
 }
 
 android {
@@ -105,6 +110,7 @@ dependencies {
     implementation(libs.androidx.room.guava)
     testImplementation(libs.androidx.room.testing)
     implementation(libs.androidx.room.paging)
+    implementation(libs.applovin.sdk)
     implementation(project(":samples"))
     implementation(project(":sharedLibrary"))
     implementation(project(":sharedPlayer"))
@@ -116,4 +122,5 @@ dependencies {
     implementation(project(":featureOnboarding"))
     implementation(project(":hazeAndroid"))
     implementation(project(":sharedFirebase"))
+    implementation(project(":ads"))
 }

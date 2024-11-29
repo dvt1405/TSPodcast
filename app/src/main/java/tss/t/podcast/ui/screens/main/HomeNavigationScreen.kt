@@ -35,7 +35,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -336,7 +335,17 @@ private fun HomeNavigationScreen(
 ) {
     val sharedTransitionScope = LocalSharedTransitionScope.current!!
     val animatedContentScope = LocalNavAnimatedVisibilityScope.current!!
-    val selectedTab = bottomTabs[selectedTabIndex]
+    val selectedTab = remember(selectedTabIndex) { bottomTabs[selectedTabIndex] }
+    val childListState = remember(selectedTab) {
+        listState[selectedTab] ?: LazyListState().also {
+            listState[selectedTab] = it
+        }
+    }
+    val pullToRefreshState = remember(selectedTab) {
+        pullRefreshState[selectedTab] ?: PullToRefreshState().also {
+            pullRefreshState[selectedTab] = it
+        }
+    }
     Scaffold(
         topBar = {
             with(animatedContentScope) {
@@ -386,13 +395,6 @@ private fun HomeNavigationScreen(
             }
         }
     ) { innerPadding ->
-        val childListState = listState[selectedTab] ?: rememberLazyListState().also {
-            listState[selectedTab] = it
-        }
-        val pullToRefreshState =
-            pullRefreshState[selectedTab] ?: rememberPullToRefreshState().also {
-                pullRefreshState[selectedTab] = it
-            }
         when (selectedTabIndex) {
             FAVOURITE_TAB_INDEX -> {
                 FavouriteScreen(

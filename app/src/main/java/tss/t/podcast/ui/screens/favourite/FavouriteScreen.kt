@@ -20,8 +20,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import tss.t.ads.MaxAdViewComposable
 import tss.t.podcast.ui.screens.favourite.widgets.EmptyFavouriteWidget
 import tss.t.podcast.ui.screens.favourite.widgets.FavouriteItemWidget
+import tss.t.sharedfirebase.LocalAnalyticsScope
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +58,11 @@ fun FavouriteScreen(
                 )
             }
         } else {
+            item {
+                MaxAdViewComposable(
+                    tsAnalytics = LocalAnalyticsScope.current!!
+                )
+            }
             items(uiState.listFav) {
                 FavouriteItemWidget(
                     it,

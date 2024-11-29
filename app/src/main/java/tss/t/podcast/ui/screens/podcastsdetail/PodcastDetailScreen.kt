@@ -8,7 +8,7 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateDp
@@ -22,7 +22,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -52,15 +51,19 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -68,30 +71,28 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.util.fastRoundToInt
-import androidx.compose.ui.util.lerp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import tss.t.ads.MaxAdViewComposable
+import tss.t.ads.MaxTemplateNativeAdViewComposable
+import tss.t.ads.MaxTemplateNativeAdViewComposableLoader
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.Podcast
-import tss.t.hazeandroid.HazeState
-import tss.t.hazeandroid.haze
 import tss.t.podcast.LocalNavAnimatedVisibilityScope
 import tss.t.podcast.LocalSharedTransitionScope
 import tss.t.podcast.SharedElementKey
@@ -101,13 +102,28 @@ import tss.t.podcast.ui.screens.main.nonSpatialExpressiveSpring
 import tss.t.podcast.ui.screens.main.podcastDetailBoundsTransform
 import tss.t.podcast.ui.screens.player.PlayerViewModel
 import tss.t.podcast.ui.screens.podcastsdetail.widgets.EpisodeWidget
+import tss.t.sharedfirebase.LocalAnalyticsScope
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.ui.widget.TSPopup
-import tss.t.sharedresources.SharedConstants
+import tss.t.sharedlibrary.ui.widget.ext.linkify
 import tss.t.sharedresources.R
-import kotlin.math.max
-import kotlin.math.min
+import tss.t.sharedresources.SharedConstants
+import kotlin.random.Random
+
+internal val dividerBrush = Brush.linearGradient(
+    listOf(
+        Colors.Primary10,
+        Colors.Secondary,
+        Colors.Primary10
+    )
+)
+
+internal val coverRounded = RoundedCornerShape(20.dp)
+private const val ITEM_KEY_COVER = "Cover"
+private const val ITEM_KEY_TITLE = "Title"
+private const val ITEM_KEY_BOTTOM_NAVIGATION = "BottomNavigation"
+private const val ITEM_AD_BANNER = "AdBanner"
 
 @Composable
 fun PodcastDetailScreen(
@@ -123,7 +139,7 @@ fun PodcastDetailScreen(
             mainViewModel.setCurrentPodcast(podcast)
             podcastViewModel.setPodcastAndEpisodes(podcast, playList)
         } else {
-            podcastViewModel.getEpisodes("${podcast.id}")
+            podcastViewModel.getEpisodes(podcast)
         }
     }
 
@@ -135,33 +151,43 @@ fun PodcastDetailScreen(
     }
 
     val uiState by podcastViewModel.uiState.collectAsState()
-    if (uiState is PodcastViewModel.PodcastUIState.Error) {
-        val message = (uiState as PodcastViewModel.PodcastUIState.Error).exception.message
+    val showErrorDialog = remember(uiState) {
+        uiState is PodcastViewModel.PodcastUIState.Error
+    }
+    val errorException = remember(uiState) {
+        (uiState as? PodcastViewModel.PodcastUIState.Error)?.exception?.message
+    }
+    if (showErrorDialog) {
         Dialog(onDismissRequest = {
             podcastViewModel.dismissDialog()
         }) {
             TSPopup(
                 title = "Lỗi",
-                contentText = message ?: "",
+                contentText = errorException ?: "",
                 positiveText = "Tải lại",
                 onPositiveButtonClick = {
-                    podcastViewModel.getEpisodes("${podcast.id}")
+                    podcastViewModel.getEpisodes(podcast)
                 }
             )
         }
     }
-
-    PodcastDetailScreen(
-        podcast,
-        sharedElementKey,
-        listItems = if (uiState is PodcastViewModel.PodcastUIState.Success) {
+    val listItems = remember(uiState) {
+        if (uiState is PodcastViewModel.PodcastUIState.Success) {
             (uiState as PodcastViewModel.PodcastUIState.Success).data
         } else {
             emptyList()
-        },
+        }
+    }
+    val renderItemList = remember(uiState) {
+        (uiState as? PodcastViewModel.PodcastUIState.Success)?.listRenderItems ?: emptyList()
+    }
+    PodcastDetailScreen(
+        podcast = podcast,
+        sharedElementKey = sharedElementKey,
+        listItems = listItems,
+        renderItemList = renderItemList,
         onBackPress = {
             mainViewModel.popBackStack()
-
         },
         onItemClick = {
             TSNavigators.navigateTo(
@@ -183,6 +209,7 @@ private fun PodcastDetailScreen(
     podcast: Podcast = Podcast.default,
     sharedElementKey: String? = null,
     listItems: List<Episode> = emptyList(),
+    renderItemList: List<Any> = emptyList<Any>(),
     scrollState: LazyListState = rememberLazyListState(),
     onBackPress: () -> Unit = {},
     onItemClick: Episode.() -> Unit = {}
@@ -198,42 +225,38 @@ private fun PodcastDetailScreen(
             }
         }
 
-
-    val coverRoundedCornerAnim by animatedContentScope.transition
-        .animateDp(label = "roundedCorner") { enterExit: EnterExitState ->
-            when (enterExit) {
-                EnterExitState.PreEnter -> 20.dp
-                EnterExitState.Visible -> 20.dp
-                EnterExitState.PostExit -> 20.dp
-            }
+    val shareElementId = remember(sharedElementKey) {
+        if (sharedElementKey.isNullOrEmpty()) {
+            "${podcast.id}"
+        } else {
+            "${sharedElementKey}_${podcast.id}"
         }
-
-
-    val hazeState = remember { HazeState() }
-
-    val shareElementId = if (sharedElementKey.isNullOrEmpty()) {
-        "${podcast.id}"
-    } else {
-        "${sharedElementKey}_${podcast.id}"
     }
-    val layoutInfo by remember { derivedStateOf { scrollState.layoutInfo } }
-    val firstItemIndex by remember { derivedStateOf { scrollState.firstVisibleItemIndex } }
+
+    var showTopBar by remember {
+        mutableStateOf(false)
+    }
     val alpha by animateFloatAsState(
-        if (
-            (layoutInfo.visibleItemsInfo.firstOrNull()?.key == "Cover"
-                    && layoutInfo.visibleItemsInfo.firstOrNull()!!.offset > ExpandedImageSize.roundToPx())
-            || (layoutInfo.visibleItemsInfo.firstOrNull()?.key == "Title")
-            || firstItemIndex >= 3
-        ) {
+        if (showTopBar) {
             1f
         } else {
             0f
         }, label = ""
     )
+    LaunchedEffect(scrollState) {
+        snapshotFlow { scrollState.layoutInfo.visibleItemsInfo.firstOrNull() }
+            .collect {
+                val item = it ?: return@collect
+                showTopBar =
+                    (item.key == ITEM_KEY_COVER && item.offset > ExpandedImageSize.roundToPx())
+                            || item.key === ITEM_KEY_TITLE
+                            || item.index >= 3
+            }
+    }
     with(sharedTransitionScope) {
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(roundedCornerAnim))
+                .clip(coverRounded)
                 .skipToLookaheadSize()
                 .sharedBounds(
                     rememberSharedContentState(
@@ -244,8 +267,7 @@ private fun PodcastDetailScreen(
                         )
                     ),
                     animatedVisibilityScope = animatedContentScope,
-                    clipInOverlayDuringTransition =
-                    OverlayClip(RoundedCornerShape(roundedCornerAnim)),
+                    clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(roundedCornerAnim)),
                     boundsTransform = podcastDetailBoundsTransform,
                     exit = fadeOut(nonSpatialExpressiveSpring()),
                     enter = fadeIn(nonSpatialExpressiveSpring()),
@@ -265,7 +287,7 @@ private fun PodcastDetailScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = podcast.title,
+                    text = podcast.title ?: "",
                     modifier = Modifier
                         .weight(1f)
                         .alpha(alpha),
@@ -276,187 +298,222 @@ private fun PodcastDetailScreen(
                 )
             }
             PodcastDetailBody(
-                hazeState,
-                scrollState,
-                podcast,
-                shareElementId,
-                animatedContentScope,
-                coverRoundedCornerAnim,
-                listItems,
-                onItemClick
+                scrollState = scrollState,
+                podcast = podcast,
+                shareElementId = shareElementId,
+                animatedContentScope = animatedContentScope,
+                listItems = listItems,
+                renderItemList = renderItemList,
+                onItemClick = onItemClick
             )
         }
     }
 }
 
 @Composable
-private fun SharedTransitionScope.PodcastDetailBody(
-    hazeState: HazeState,
+private fun PodcastDetailBody(
     scrollState: LazyListState,
     podcast: Podcast,
     shareElementId: String,
     animatedContentScope: AnimatedVisibilityScope,
-    coverRoundedCornerAnim: Dp,
     listItems: List<Episode>,
+    renderItemList: List<Any>,
     onItemClick: Episode.() -> Unit
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 100.dp)
-            .haze(hazeState),
-        state = scrollState,
-    ) {
-        item(key = "PaddingTop") {
-            Spacer(
-                modifier = Modifier
-                    .size(
-                        GradientScroll - 100.dp - 75.dp
-                    )
-            )
-        }
+    val sharedTransition = LocalSharedTransitionScope.current!!
+    val isLoading = remember(listItems) {
+        listItems.isEmpty()
+    }
 
-        item(key = "Cover") {
-            Box {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(podcast.image)
-                        .addHeader(
-                            SharedConstants.USER_AGENT_KEY,
-                            SharedConstants.USER_AGENT_WEB_VALUE
-                        )
-                        .placeholder(R.drawable.image_loader_place_holder)
-                        .error(R.drawable.image_loader_place_holder)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = podcast.title,
-                    modifier = Modifier
-                        .padding(start = 16.dp)
-                        .size(ExpandedImageSize)
-                        .zIndex(2f)
-                        .clip(RoundedCornerShape(20.dp))
-                        .sharedBounds(
-                            rememberSharedContentState(
-                                SharedElementKey(
-                                    id = shareElementId,
-                                    podcast = podcast,
-                                    type = SharedElementKey.Type.Image
-                                )
-                            ),
-                            animatedContentScope,
-                            clipInOverlayDuringTransition = OverlayClip(
-                                RoundedCornerShape(coverRoundedCornerAnim)
-                            ),
-                        ),
-                    contentScale = ContentScale.Crop,
-                )
-                Spacer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(ExpandedImageSize / 2)
-                        .background(Color.White)
-                        .align(Alignment.BottomStart)
-                )
-            }
-
-        }
-
-        item(key = "Title") {
-            Column(modifier = Modifier.background(Color.White)) {
-                Spacer(Modifier.size(8.dp))
-                Text(
-                    text = podcast.title,
-                    style = TextStyles.Title6,
-                    modifier = HzPadding
-                        .sharedBounds(
-                            rememberSharedContentState(
-                                key = SharedElementKey(
-                                    id = shareElementId,
-                                    podcast = podcast,
-                                    type = SharedElementKey.Type.Title
-                                )
-                            ),
-                            animatedVisibilityScope = animatedContentScope,
-                            boundsTransform = podcastDetailBoundsTransform
-                        )
-                        .skipToLookaheadSize()
-                )
-                Spacer(Modifier.size(4.dp))
-                Text(
-                    text = buildAnnotatedString {
-                        append(
-                            HtmlCompat.fromHtml(
-                                podcast.description ?: "",
-                                HtmlCompat.FROM_HTML_MODE_COMPACT
-                            )
-                        )
-                    },
-                    style = TextStyles.Body4,
-                    color = Colors.TextDescriptionColor,
-                    modifier = HzPadding
-                        .sharedBounds(
-                            rememberSharedContentState(
-                                key = SharedElementKey(
-                                    id = shareElementId,
-                                    podcast = podcast,
-                                    type = SharedElementKey.Type.Description
-                                )
-                            ),
-                            animatedVisibilityScope = animatedContentScope,
-                            boundsTransform = podcastDetailBoundsTransform
-                        )
-                        .skipToLookaheadSize()
-                        .fillMaxWidth()
-                )
-            }
-        }
-
-        items(count = if (listItems.isEmpty()) {
+    val itemCount = remember(renderItemList) {
+        if (renderItemList.isEmpty()) {
             20
         } else {
-            listItems.size
-        }, key = {
-            if (listItems.isEmpty()) it else listItems[it].id
-        }) {
-            val item = if (listItems.isEmpty()) {
-                null
-            } else {
-                listItems[it]
-            }
-            EpisodeWidget(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White)
-                    .padding(16.dp),
-                episode = item,
-                onClick = onItemClick,
-                isLoading = listItems.isEmpty()
-            )
-            Canvas(
-                Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-            ) {
-                drawLine(
-                    Brush.linearGradient(
-                        listOf(
-                            Colors.Primary10,
-                            Colors.Secondary,
-                            Colors.Primary10
+            renderItemList.size
+        }
+    }
+
+    with(sharedTransition) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 100.dp)
+                .animateContentSize(),
+            state = scrollState,
+        ) {
+            item(key = "PaddingTop") {
+                Spacer(
+                    modifier = Modifier
+                        .size(
+                            GradientScroll - 100.dp - 75.dp
                         )
-                    ),
-                    strokeWidth = 1.dp.toPx(),
-                    start = Offset(0f, 1.dp.toPx()),
-                    end = Offset(size.width, 1.dp.toPx())
                 )
             }
-        }
-        item(key = "BottomNavigation") {
-            Spacer(
-                modifier = Modifier
-                    .navigationBarsPadding()
-                    .size(20.dp)
-            )
+
+            item(key = ITEM_KEY_COVER) {
+                Box {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(podcast.image)
+                            .addHeader(
+                                SharedConstants.USER_AGENT_KEY,
+                                SharedConstants.USER_AGENT_WEB_VALUE
+                            )
+                            .placeholder(R.drawable.image_loader_place_holder)
+                            .error(R.drawable.image_loader_place_holder)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = podcast.title,
+                        modifier = Modifier
+                            .padding(start = 16.dp)
+                            .size(ExpandedImageSize)
+                            .zIndex(2f)
+                            .clip(coverRounded)
+                            .sharedBounds(
+                                sharedContentState = rememberSharedContentState(
+                                    SharedElementKey(
+                                        id = shareElementId,
+                                        podcast = podcast,
+                                        type = SharedElementKey.Type.Image
+                                    )
+                                ),
+                                animatedVisibilityScope = animatedContentScope,
+                                clipInOverlayDuringTransition = OverlayClip(coverRounded),
+                            ),
+                        contentScale = ContentScale.Crop,
+                    )
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(ExpandedImageSize / 2)
+                            .background(Color.White)
+                            .align(Alignment.BottomStart)
+                    )
+                }
+
+            }
+
+            item(key = ITEM_AD_BANNER) {
+                MaxAdViewComposable(
+                    modifier = Modifier
+                        .background(Colors.White)
+                        .padding(vertical = 4.dp),
+                    tsAnalytics = LocalAnalyticsScope.current!!
+                )
+            }
+
+            item(key = ITEM_KEY_TITLE) {
+                Column(modifier = Modifier.background(Color.White)) {
+                    Spacer(Modifier.size(8.dp))
+                    Text(
+                        text = podcast.title ?: "",
+                        style = TextStyles.Title6,
+                        modifier = HzPadding
+                            .sharedBounds(
+                                rememberSharedContentState(
+                                    key = SharedElementKey(
+                                        id = shareElementId,
+                                        podcast = podcast,
+                                        type = SharedElementKey.Type.Title
+                                    )
+                                ),
+                                animatedVisibilityScope = animatedContentScope,
+                                boundsTransform = podcastDetailBoundsTransform
+                            )
+                            .skipToLookaheadSize()
+                    )
+                    if (!podcast.description.isNullOrEmpty()) {
+                        Spacer(Modifier.size(4.dp))
+                        Text(
+                            text = HtmlCompat.fromHtml(
+                                /* source = */ podcast.description ?: "",
+                                /* flags = */ HtmlCompat.FROM_HTML_MODE_COMPACT
+                            ).linkify(
+                                TextStyles.Body4.copy(
+                                    color = Colors.ButtonColor,
+                                    textDecoration = TextDecoration.Underline
+                                ).toSpanStyle()
+                            ),
+                            style = TextStyles.Body4,
+                            color = Colors.TextDescriptionColor,
+                            modifier = HzPadding
+                                .sharedBounds(
+                                    rememberSharedContentState(
+                                        key = SharedElementKey(
+                                            id = shareElementId,
+                                            podcast = podcast,
+                                            type = SharedElementKey.Type.Description
+                                        )
+                                    ),
+                                    animatedVisibilityScope = animatedContentScope,
+                                    boundsTransform = podcastDetailBoundsTransform
+                                )
+                                .skipToLookaheadSize()
+                                .fillMaxWidth()
+                        )
+                    }
+                }
+            }
+
+            items(count = itemCount, key = {
+                when {
+                    renderItemList.isEmpty() -> {
+                        it
+                    }
+
+                    renderItemList[it] is Int || renderItemList[it] is MaxTemplateNativeAdViewComposableLoader -> {
+                        "NativeAd-$it"
+                    }
+
+                    renderItemList[it] is Episode -> {
+                        (renderItemList[it] as Episode).id
+                    }
+
+                    else -> {
+                        it
+                    }
+                }
+            }) {
+                val item = if (renderItemList.isEmpty()) {
+                    null
+                } else {
+                    renderItemList[it]
+                }
+                if (item is MaxTemplateNativeAdViewComposableLoader) {
+                    MaxTemplateNativeAdViewComposable(item)
+                } else {
+                    EpisodeWidget(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White)
+                            .padding(16.dp)
+                            .drawWithContent {
+                                val contentPadding = 16.dp.toPx()
+                                val dividerSize = 1.dp.toPx()
+                                drawContent()
+                                drawLine(
+                                    dividerBrush,
+                                    strokeWidth = dividerSize,
+                                    start = Offset(0f, size.height - dividerSize + contentPadding),
+                                    end = Offset(
+                                        size.width,
+                                        size.height - dividerSize + contentPadding
+                                    )
+                                )
+                            },
+                        episode = item as? Episode,
+                        onClick = onItemClick,
+                        isLoading = isLoading
+                    )
+                }
+            }
+            item(key = ITEM_KEY_BOTTOM_NAVIGATION) {
+                Spacer(
+                    modifier = Modifier
+                        .navigationBarsPadding()
+                        .size(20.dp)
+                )
+            }
         }
     }
 }
@@ -466,18 +523,17 @@ private fun SharedTransitionScope.PodcastDetailBody(
 private fun PodcastDetailScreenPreview() {
     SharedTransitionLayout {
         AnimatedContent(true, label = "") {
-            if (it) {
-            }
-            CompositionLocalProvider(
-                LocalSharedTransitionScope provides this@SharedTransitionLayout,
-                LocalNavAnimatedVisibilityScope provides this@AnimatedContent
-            ) {
-                PodcastDetailScreen(
-                    onBackPress = {
+            if (it)
+                CompositionLocalProvider(
+                    LocalSharedTransitionScope provides this@SharedTransitionLayout,
+                    LocalNavAnimatedVisibilityScope provides this@AnimatedContent
+                ) {
+                    PodcastDetailScreen(
+                        onBackPress = {
 
-                    }
-                )
-            }
+                        }
+                    )
+                }
         }
     }
 }
@@ -524,37 +580,6 @@ fun PodcastDetailTopAppBar(
                 modifier = Modifier,
                 colorFilter = ColorFilter.tint(Colors.White)
             )
-        }
-    }
-}
-
-
-@Composable
-private fun CollapsingImageLayout(
-    collapseFractionProvider: () -> Float,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    Layout(
-        modifier = modifier,
-        content = content
-    ) { measurables, constraints ->
-        check(measurables.size == 1)
-
-        val collapseFraction = collapseFractionProvider()
-
-        val imageMaxSize = min(ExpandedImageSize.roundToPx(), constraints.maxWidth)
-        val imageMinSize = max(CollapsedImageSize.roundToPx(), constraints.minWidth)
-        val imageWidth = lerp(imageMaxSize, imageMinSize, collapseFraction)
-        val imagePlaceable = measurables[0].measure(Constraints.fixed(imageWidth, imageWidth))
-
-        val imageY = lerp(220.dp, 100.dp, collapseFraction).roundToPx()
-        val imageX = 16.dp.toPx().toInt()
-        layout(
-            width = constraints.maxWidth,
-            height = imageY + imageWidth
-        ) {
-            imagePlaceable.placeRelative(imageX, imageY)
         }
     }
 }

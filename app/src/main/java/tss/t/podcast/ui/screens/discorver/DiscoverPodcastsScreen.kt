@@ -1,6 +1,5 @@
 package tss.t.podcast.ui.screens.discorver
 
-import android.widget.Space
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -37,9 +36,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
+import tss.t.ads.MaxAdViewComposable
 import tss.t.coreapi.models.LiveEpisode
 import tss.t.coreapi.models.Podcast
 import tss.t.hazeandroid.HazeDefaults
@@ -47,15 +48,27 @@ import tss.t.hazeandroid.HazeState
 import tss.t.hazeandroid.haze
 import tss.t.podcast.LocalNavAnimatedVisibilityScope
 import tss.t.podcast.LocalSharedTransitionScope
+import tss.t.podcast.R
 import tss.t.podcast.ui.screens.MainViewModel
 import tss.t.podcast.ui.screens.discorver.components.LiveRow
 import tss.t.podcast.ui.screens.discorver.components.RecentRow
 import tss.t.podcast.ui.screens.discorver.components.TrendingRow
 import tss.t.podcast.ui.screens.discorver.widgets.FavouriteWidget
 import tss.t.podcast.ui.screens.discorver.widgets.Indicator
+import tss.t.sharedfirebase.LocalAnalyticsScope
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 
+private const val ITEM_RECENT_TITLE = "RecentTitle"
+private const val ITEM_RECENT_ROW = "RecentRow"
+private const val ITEM_LIVE_ROW = "LiveRow"
+private const val ITEM_LIVE_TITLE = "LiveTitle"
+private const val ITEM_FAV_TITLE = "FavTitle"
+private const val ITEM_SPACE_BOTTOM = "SpaceBottom"
+private const val ITEM_AD_BANNER_1 = "AdBanner1"
+private const val ITEM_TRENDING_ROW = "TrendingRow"
+private const val ITEM_TRENDING_TITLE = "TrendingTitle"
+private const val ITEM_SPACE_TOP = "SpaceTop"
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -104,7 +117,9 @@ fun DiscoverPodcastsScreen(
             isRefreshing[MainViewModel.HomepageDataPart.Favourite.value] ?: true
         }
 
-    val pullToRefreshThreshHold = 50.dp + innerPadding.calculateTopPadding()
+    val pullToRefreshThreshHold = remember(innerPadding) {
+        50.dp + innerPadding.calculateTopPadding()
+    }
     var isLoading by remember(showLoading) {
         mutableStateOf(showLoading)
     }
@@ -144,12 +159,12 @@ fun DiscoverPodcastsScreen(
                 },
             state = listState
         ) {
-            item(key = "SpaceTop") {
+            item(key = ITEM_SPACE_TOP) {
                 Spacer(modifier = Modifier.size(innerPadding.calculateTopPadding()))
             }
-            item(key = "TrendingTitle") {
+            item(key = ITEM_TRENDING_TITLE) {
                 Text(
-                    "Trending Podcasts", style = TextStyles.Title4,
+                    stringResource(R.string.trending_podcast_title), style = TextStyles.Title4,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
@@ -158,20 +173,26 @@ fun DiscoverPodcastsScreen(
                         )
                 )
             }
-            item(key = "TrendingRow") {
+            item(key = ITEM_TRENDING_ROW) {
                 TrendingRow(
-                    trendingRowState,
-                    isRefreshing[MainViewModel.HomepageDataPart.Trending.value] ?: true,
-                    placeHolderColor,
-                    listTrending,
-                    sharedTransitionScope,
-                    animatedContentScope,
-                    onTrendingClick
+                    trendingRowState = trendingRowState,
+                    isRefreshing = isRefreshing[MainViewModel.HomepageDataPart.Trending.value]
+                        ?: true,
+                    placeHolderColor = placeHolderColor,
+                    listTrending = listTrending,
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedContentScope = animatedContentScope,
+                    onTrendingClick = onTrendingClick
                 )
             }
-            item(key = "LiveTitle") {
+            item(key = ITEM_AD_BANNER_1) {
+                MaxAdViewComposable(
+                    tsAnalytics = LocalAnalyticsScope.current!!
+                )
+            }
+            item(key = ITEM_LIVE_TITLE) {
                 Text(
-                    "Live Episodes", style = TextStyles.Title4,
+                    stringResource(R.string.live_podcast_title), style = TextStyles.Title4,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
@@ -180,7 +201,7 @@ fun DiscoverPodcastsScreen(
                         )
                 )
             }
-            item(key = "LiveRow") {
+            item(key = ITEM_LIVE_ROW) {
                 LiveRow(
                     isRefreshing = isRefreshing[MainViewModel.HomepageDataPart.LiveEpisode.value]
                         ?: true,
@@ -189,9 +210,9 @@ fun DiscoverPodcastsScreen(
                     onClick = onLiveItemClick
                 )
             }
-            item(key = "RecentTitle") {
+            item(key = ITEM_RECENT_TITLE) {
                 Text(
-                    "Recent Podcasts", style = TextStyles.Title4,
+                    stringResource(R.string.recent_podcast_title), style = TextStyles.Title4,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
@@ -200,7 +221,7 @@ fun DiscoverPodcastsScreen(
                         )
                 )
             }
-            item(key = "RecentRow") {
+            item(key = ITEM_RECENT_ROW) {
                 RecentRow(
                     isRefreshing = isRefreshing[MainViewModel.HomepageDataPart.RecentFeed.value]
                         ?: true,
@@ -212,9 +233,9 @@ fun DiscoverPodcastsScreen(
                     onTrendingClick
                 )
             }
-            item(key = "FavTitle") {
+            item(key = ITEM_FAV_TITLE) {
                 Text(
-                    "Maybe you like", style = TextStyles.Title4,
+                    stringResource(R.string.fav_podcast_title), style = TextStyles.Title4,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
@@ -234,9 +255,15 @@ fun DiscoverPodcastsScreen(
                 ) {
                     onFavClick(this)
                 }
+                if (it == 1 && !isFavRefreshing) {
+                    Spacer(Modifier.size(4.dp))
+                    MaxAdViewComposable(
+                        tsAnalytics = LocalAnalyticsScope.current!!
+                    )
+                }
             }
 
-            item(key = "SpaceBottom") {
+            item(key = ITEM_SPACE_BOTTOM) {
                 Spacer(modifier = Modifier.size(innerPadding.calculateBottomPadding()))
                 if (currentMediaItem != null) {
                     Spacer(modifier = Modifier.size(86.dp))

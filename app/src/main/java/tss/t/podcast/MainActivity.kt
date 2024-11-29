@@ -28,6 +28,11 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import tss.t.ads.ApplovinSdkWrapper
+import tss.t.ads.BannerAdsManager
+import tss.t.ads.LocalBannerAdsManagerScope
+import tss.t.ads.LocalNativeAdsManagerScope
+import tss.t.ads.NativeAdsManager
 import tss.t.coreapi.Constants
 import tss.t.featureonboarding.OnboardingScreen
 import tss.t.featureonboarding.OnboardingViewModel
@@ -40,12 +45,28 @@ import tss.t.podcast.ui.screens.main.HomeNavigationScreen
 import tss.t.podcast.ui.screens.main.tabDefaults
 import tss.t.podcast.ui.screens.player.PlayerViewModel
 import tss.t.podcast.ui.theme.PodcastTheme
+import tss.t.sharedfirebase.LocalAnalyticsScope
+import tss.t.sharedfirebase.TSAnalytics
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val onboardingViewModel: OnboardingViewModel by viewModels<OnboardingViewModel>()
     private val mainViewModel: MainViewModel by viewModels<MainViewModel>()
     private val playerViewModel: PlayerViewModel by viewModels<PlayerViewModel>()
+
+    @Inject
+    lateinit var applovinSdkWrapper: ApplovinSdkWrapper
+
+    @Inject
+    lateinit var tsAnalytics: TSAnalytics
+
+    @Inject
+    lateinit var bannerAdsManager: BannerAdsManager
+
+    @Inject
+    lateinit var nativeAdsManager: NativeAdsManager
+
 
     @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,14 +80,14 @@ class MainActivity : ComponentActivity() {
         onBackPressedDispatcher.addCallback(onBackPressedCallback)
         handleIntent(intent)
         setContent {
+            val listState = remember {
+                mutableStateMapOf<BottomBarTab, LazyListState>()
+            }
+            val pullRefreshState = remember {
+                mutableStateMapOf<BottomBarTab, PullToRefreshState>()
+            }
 
             PodcastTheme {
-                val listState = remember {
-                    mutableStateMapOf<BottomBarTab, LazyListState>()
-                }
-                val pullRefreshState = remember {
-                    mutableStateMapOf<BottomBarTab, PullToRefreshState>()
-                }
                 val tabIndexSelected by mainViewModel.tabSelected.collectAsState()
 
                 val isOnboardingFinished by onboardingViewModel.isOnboardingFinished.collectAsState()
@@ -89,7 +110,10 @@ class MainActivity : ComponentActivity() {
                             CompositionLocalProvider(
                                 LocalSharedTransitionScope provides this,
                                 LocalListStateScope provides listState,
-                                LocalPullToRefreshState provides pullRefreshState
+                                LocalPullToRefreshState provides pullRefreshState,
+                                LocalAnalyticsScope provides tsAnalytics,
+                                LocalBannerAdsManagerScope provides bannerAdsManager,
+                                LocalNativeAdsManagerScope provides nativeAdsManager
                             ) {
                                 HomeNavigationScreen(
                                     mainViewModel = mainViewModel,
@@ -126,6 +150,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        applovinSdkWrapper.loadOpenAds()
     }
 
     override fun onNewIntent(intent: Intent) {
