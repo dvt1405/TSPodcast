@@ -134,7 +134,7 @@ fun MaxAdViewComposable(
         modifier = adViewModifier
     )
 
-    DisposableEffect(adView) {
+    DisposableEffect(Unit) {
         onDispose {
             adView.destroy()
         }

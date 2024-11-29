@@ -75,9 +75,13 @@ class PodcastViewModel @Inject constructor(
         val renderItemList = mutableListOf<Any>()
         for (i in 0..(playList.size / 8).coerceAtLeast(1)) {
             val maxRandom = ((i + 1) * 8 + 1).coerceAtMost(playList.size)
-            var nextInt = Random.nextInt(i * 8 + 1, maxRandom)
+            val minRandom = (i * 8 + 1).coerceAtMost(maxRandom - 1)
+            var nextInt = Random.nextInt(minRandom, maxRandom)
+            if (maxRandom - minRandom <= 1 && adsList.contains(minRandom)) {
+                continue
+            }
             while (adsList.contains(nextInt)) {
-                nextInt = Random.nextInt(i * 8 + 1, maxRandom)
+                nextInt = Random.nextInt(minRandom, maxRandom)
             }
             adsList.add(nextInt)
         }
