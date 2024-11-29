@@ -3,20 +3,21 @@ package tss.t.coreapi.models
 
 import android.os.Parcelable
 import com.google.gson.annotations.Expose
+import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Person(
-    @Expose
+    @SerializedName("group")
     val group: String,
-    @Expose
+    @SerializedName("href")
     val href: String,
-    @Expose
+    @SerializedName("id")
     val id: Int,
-    @Expose
+    @SerializedName("img")
     val img: String,
-    @Expose
+    @SerializedName("name")
     val name: String,
-    @Expose
+    @SerializedName("role")
     val role: String
 ) : Parcelable

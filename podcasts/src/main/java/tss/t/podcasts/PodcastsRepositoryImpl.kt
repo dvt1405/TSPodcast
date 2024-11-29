@@ -21,7 +21,6 @@ import tss.t.coreapi.models.CategoryRes
 import tss.t.coreapi.models.EpisodeResponse
 import tss.t.coreapi.models.LiveResponse
 import tss.t.coreapi.models.PodcastByFeedIdRes
-import tss.t.coreapi.models.SearchByPersonRes
 import tss.t.coreapi.models.SearchResponse
 import tss.t.coreapi.models.StatCurrent
 import tss.t.coreapi.models.TSDataState
@@ -90,7 +89,7 @@ class PodcastsRepositoryImpl @Inject constructor(
         max: Int,
         fulltext: Boolean?,
         pretty: Boolean
-    ): TSDataState<SearchByPersonRes> {
+    ): TSDataState<SearchResponse> {
         return withContext(Dispatchers.IO) {
             api.searchPodcastsByPerson(
                 query = query,

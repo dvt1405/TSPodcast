@@ -2,6 +2,7 @@ package tss.t.coreapi.models
 
 import android.annotation.SuppressLint
 import android.os.Parcelable
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.Expose
@@ -13,9 +14,11 @@ import java.util.Calendar
 
 @Parcelize
 data class TrendingPodcastRes(
+    @SerializedName("count")
     val count: Int,
     @SerializedName("feeds")
     val items: List<Podcast>,
+    @SerializedName("max")
     val max: Int?
 ) : BaseResponse(), Parcelable {
 
@@ -33,25 +36,63 @@ data class TrendingPodcastRes(
 @Parcelize
 @Entity
 data class Podcast(
+    @SerializedName("categories")
+    @ColumnInfo("categories")
     val categories: Categories? = Categories(),
+    @SerializedName("dateCrawled")
+    @ColumnInfo("dateCrawled")
     val dateCrawled: Long,
+    @SerializedName("datePublished")
+    @ColumnInfo("datePublished")
     val datePublished: Long,
+    @SerializedName("datePublishedPretty")
+    @ColumnInfo("datePublishedPretty")
     val datePublishedPretty: String?,
+    @SerializedName("enclosureLength")
+    @ColumnInfo("enclosureLength")
     val enclosureLength: Long,
+    @SerializedName("enclosureType")
+    @ColumnInfo("enclosureType")
     val enclosureType: String?,
+    @SerializedName("enclosureUrl")
+    @ColumnInfo("enclosureUrl")
     val enclosureUrl: String?,
+    @SerializedName("explicit")
+    @ColumnInfo("explicit")
     val explicit: Int,
+    @SerializedName("feedId")
+    @ColumnInfo("feedId")
     val feedId: Long,
+    @SerializedName("feedImage")
+    @ColumnInfo("feedImage")
     val feedImage: String?,
+    @SerializedName("feedItunesId")
+    @ColumnInfo("feedItunesId")
     val feedItunesId: Long?,
+    @SerializedName("feedLanguage")
+    @ColumnInfo("feedLanguage")
     val feedLanguage: String?,
+    @SerializedName("feedTitle")
+    @ColumnInfo("feedTitle")
     val feedTitle: String?,
+    @SerializedName("guid")
+    @ColumnInfo("guid")
     val guid: String?,
     @PrimaryKey
+    @ColumnInfo("id")
+    @SerializedName("id")
     val id: Long,
+    @SerializedName("image")
+    @ColumnInfo("image")
     val image: String,
+    @SerializedName("link")
+    @ColumnInfo("link")
     val link: String?,
+    @SerializedName("title")
+    @ColumnInfo("title")
     val title: String?,
+    @SerializedName("description")
+    @ColumnInfo("description")
     val description: String?
 ) : Parcelable {
     @SuppressLint("SimpleDateFormat")

@@ -7,7 +7,6 @@ import tss.t.coreapi.models.CategoryRes
 import tss.t.coreapi.models.EpisodeResponse
 import tss.t.coreapi.models.LiveResponse
 import tss.t.coreapi.models.PodcastByFeedIdRes
-import tss.t.coreapi.models.SearchByPersonRes
 import tss.t.coreapi.models.SearchResponse
 import tss.t.coreapi.models.StatCurrent
 import tss.t.coreapi.models.TSDataState
@@ -266,7 +265,7 @@ interface API {
      * Parameter shall not have a value
      * @param pretty If present, makes the output “pretty” to help with debugging.
      * Parameter shall not have a value
-     * @return [SearchByPersonRes]
+     * @return [SearchResponse]
      * ```
      * SCHEMA
      * {
@@ -389,7 +388,7 @@ interface API {
         @Query("max") max: Int, //min 1 max 100
         @Query("fulltext") fulltext: Boolean? = true,
         @Query("pretty") pretty: Boolean = false
-    ): TSDataState<SearchByPersonRes>
+    ): TSDataState<SearchResponse>
 
 
     /**

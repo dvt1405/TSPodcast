@@ -1,6 +1,7 @@
 package tss.t.coreapi.models
 
 import android.os.Parcelable
+import androidx.annotation.Keep
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.Expose
@@ -10,14 +11,19 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 data class EpisodeResponse(
+    @SerializedName("count")
     val count: Int,
+    @SerializedName("items")
     val items: List<Episode>,
+    @SerializedName("liveItems")
     val liveItems: List<LiveEpisode>? = null,
+    @SerializedName("query")
     val query: String? = null,
 ) : BaseResponse() {
     @Expose(serialize = false, deserialize = false)
     var type: Type? = null
 
+    @Keep
     enum class Type {
         RecentEpisode,
         LiveEpisode
@@ -27,40 +33,72 @@ data class EpisodeResponse(
 @Parcelize
 @Entity
 data class Episode(
+    @SerializedName("chaptersUrl")
     val chaptersUrl: String?,
+    @SerializedName("dateCrawled")
     val dateCrawled: Long,
+    @SerializedName("datePublished")
     val datePublished: Long,
+    @SerializedName("datePublishedPretty")
     val datePublishedPretty: String,
+    @SerializedName("description")
     val description: String?,
+    @SerializedName("duration")
     val duration: Long,
+    @SerializedName("enclosureLength")
     val enclosureLength: Long,
+    @SerializedName("enclosureType")
     val enclosureType: String,
     @SerializedName("enclosureUrl")
     val enclosureUrl: String,
+    @SerializedName("episode")
     val episode: Long?,
+    @SerializedName("episodeType")
     val episodeType: String?,
+    @SerializedName("explicit")
     val explicit: Int,
+    @SerializedName("feedDead")
     val feedDead: Int,
+    @SerializedName("feedDuplicateOf")
     val feedDuplicateOf: Long?,
+    @SerializedName("feedId")
     val feedId: Long,
+    @SerializedName("feedImage")
     val feedImage: String,
+    @SerializedName("feedItunesId")
     val feedItunesId: Long,
+    @SerializedName("feedLanguage")
     val feedLanguage: String?,
+    @SerializedName("feedUrl")
     val feedUrl: String,
+    @SerializedName("guid")
     val guid: String,
     @PrimaryKey
+    @SerializedName("id")
     val id: Long,
+    @SerializedName("image")
     val image: String,
+    @SerializedName("link")
     val link: String,
+    @SerializedName("persons")
     val persons: List<Person>? = null,
+    @SerializedName("podcastGuid")
     val podcastGuid: String,
+    @SerializedName("season")
     val season: Int,
+    @SerializedName("socialInteract")
     val socialInteract: List<SocialInteract>?,
+    @SerializedName("soundbite")
     val soundbite: Soundbite?,
+    @SerializedName("soundbites")
     val soundbites: List<Soundbite>?,
+    @SerializedName("title")
     val title: String,
+    @SerializedName("transcriptUrl")
     val transcriptUrl: String?,
+    @SerializedName("transcripts")
     val transcripts: List<PodcastTranscript>?,
+    @SerializedName("value")
     val value: Value?
 ) : Parcelable {
     companion object {
@@ -143,37 +181,65 @@ data class Episode(
 
 @Parcelize
 data class LiveEpisode(
+    @SerializedName("categories")
     val categories: Categories? = null,
+    @SerializedName("chaptersUrl")
     val chaptersUrl: String?,
+    @SerializedName("contentLink")
     val contentLink: String,
+    @SerializedName("dateCrawled")
     val dateCrawled: Long,
+    @SerializedName("datePublished")
     val datePublished: Long,
+    @SerializedName("datePublishedPretty")
     val datePublishedPretty: String,
+    @SerializedName("description")
     val description: String?,
+    @SerializedName("duration")
     val duration: Long,
+    @SerializedName("enclosureLength")
     val enclosureLength: Long,
+    @SerializedName("enclosureType")
     val enclosureType: String,
     @SerializedName("enclosureUrl")
     val enclosureUrl: String,
+    @SerializedName("endTime")
     val endTime: Long,
+    @SerializedName("episode")
     val episode: Long,
+    @SerializedName("episodeType")
     val episodeType: String?,
+    @SerializedName("explicit")
     val explicit: Int,
+    @SerializedName("feedDead")
     val feedDead: Int,
+    @SerializedName("feedDuplicateOf")
     val feedDuplicateOf: Long,
+    @SerializedName("feedId")
     val feedId: Long,
+    @SerializedName("feedImage")
     val feedImage: String,
+    @SerializedName("feedItunesId")
     val feedItunesId: Long,
+    @SerializedName("feedLanguage")
     val feedLanguage: String?,
+    @SerializedName("guid")
     val guid: String,
+    @SerializedName("id")
     val id: Long,
     @SerializedName("image")
     val image: String,
+    @SerializedName("link")
     val link: String,
+    @SerializedName("season")
     val season: Int,
+    @SerializedName("startTime")
     val startTime: Long,
+    @SerializedName("status")
     val status: String,
+    @SerializedName("title")
     val title: String,
+    @SerializedName("transcriptUrl")
     val transcriptUrl: String
 ) : Parcelable {
     companion object {
@@ -217,9 +283,14 @@ data class LiveEpisode(
 
 @Parcelize
 data class SocialInteract(
+    @SerializedName("accountId")
     val accountId: String,
+    @SerializedName("accountUrl")
     val accountUrl: String,
+    @SerializedName("priority")
     val priority: Int,
+    @SerializedName("protocol")
     val protocol: String,
+    @SerializedName("url")
     val url: String
 ) : Parcelable
