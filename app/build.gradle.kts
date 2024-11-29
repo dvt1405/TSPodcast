@@ -22,8 +22,8 @@ android {
         applicationId = "tss.t.podcast"
         minSdk = 23
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 10004
+        versionName = "v1.4.$versionCode"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -32,8 +32,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            setProperty("archivesBaseName", "TSPodcast.${defaultConfig.versionName}_D")
+        }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            setProperty("archivesBaseName", "TSPodcast.${defaultConfig.versionName}_R")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
