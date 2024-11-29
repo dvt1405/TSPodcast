@@ -4,11 +4,13 @@ import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.applovin.mediation.MaxAd
@@ -18,6 +20,13 @@ import com.applovin.mediation.nativeAds.MaxNativeAdListener
 import com.applovin.mediation.nativeAds.MaxNativeAdLoader
 import com.applovin.mediation.nativeAds.MaxNativeAdView
 import tss.t.securedtoken.NativeLib
+import tss.t.sharedlibrary.utils.drawDivider
+
+enum class NativeAd {
+    Small,
+    Medium,
+    Manual
+}
 
 /**
  * Ad loader to load Max Native ads with Templates API using Jetpack Compose.
@@ -25,6 +34,7 @@ import tss.t.securedtoken.NativeLib
 class MaxTemplateNativeAdViewComposableLoader(
     adUnitIdentifier: String = NativeLib.getNativeMediumId(),
     context: Context,
+    val format: NativeAd = NativeAd.Medium
 ) {
     var nativeAdView = mutableStateOf<MaxNativeAdView?>(null)
     private var nativeAd: MaxAd? = null
@@ -99,9 +109,17 @@ fun MaxTemplateNativeAdViewComposable(nativeAdLoader: MaxTemplateNativeAdViewCom
         AndroidView(
             factory = { adView },
             modifier = Modifier
-                .height(300.dp)
-                .fillMaxWidth()
                 .background(Color.White)
+                .padding(vertical = 16.dp)
+                .height(
+                    if (nativeAdLoader.format == NativeAd.Medium) {
+                        300.dp
+                    } else {
+                        150.dp
+                    }
+                )
+                .fillMaxWidth()
+                .drawDivider(horizontalPaddingDp = 16.dp)
         )
     }
 }

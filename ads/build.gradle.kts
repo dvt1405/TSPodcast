@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.applovin.sdk)
     implementation(libs.hilt.android)
     implementation(libs.androidx.lifecycle.process)
+    implementation(project(":sharedLibrary"))
     kapt(libs.hilt.android.compiler)
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)

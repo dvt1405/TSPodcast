@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import tss.t.ads.MaxTemplateNativeAdViewComposableLoader
+import tss.t.ads.NativeAd
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.EpisodeResponse
 import tss.t.coreapi.models.LiveEpisode
@@ -93,7 +94,12 @@ class PodcastViewModel @Inject constructor(
                 renderItemList.add(
                     MaxTemplateNativeAdViewComposableLoader(
                         adUnitIdentifier = adId,
-                        context = App.instance
+                        context = App.instance,
+                        format = if (randomAd == 0) {
+                            NativeAd.Medium
+                        } else {
+                            NativeAd.Small
+                        }
                     )
                 )
             }
