@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -35,7 +36,8 @@ class PodcastsRepositoryImpl @Inject constructor(
     private val api: API,
     private val sharedPref: SharedPref,
     @ApplicationContext
-    private val context: Context
+    private val context: Context,
+    private val blacklistRepository: BlacklistRepositoryImpl
 ) : IPodcastRepository {
     override suspend fun searchPodcasts(
         query: String,
@@ -164,10 +166,10 @@ class PodcastsRepositoryImpl @Inject constructor(
         id: String,
         pretty: Boolean?
     ): Flow<TSDataState<PodcastByFeedIdRes>> {
-        return flow {
+        return flow<TSDataState<PodcastByFeedIdRes>> {
             val resul = api.getPodcastByFeedId(id, pretty)
             if (resul is TSDataState.Success) {
-                emit(api.getPodcastByFeedId(id, pretty))
+                emit(resul)
             } else {
                 throw (resul as? TSDataState.Error)?.exception
                     ?: IllegalStateException("Get podcast failed")
@@ -187,9 +189,29 @@ class PodcastsRepositoryImpl @Inject constructor(
         notcat: String?,
         pretty: Boolean?
     ): TSDataState<TrendingPodcastRes> {
-        return api.getTrending(
-            max = max, since = since, lang = lang, cat = cat, notcat = notcat, pretty = pretty
+        var result = api.getTrending(
+            max = max,
+            since = since,
+            lang = lang,
+            cat = cat,
+            notcat = notcat,
+            pretty = pretty
         )
+
+        if (result is TSDataState.Success) {
+            val filteredItems = result.data.items.filter {
+                !(blacklistRepository.isInBlacklist(it.id.toString())
+                        || blacklistRepository.isContainKeywordsBlacklist(it.title)
+                        || blacklistRepository.isContainKeywordsBlacklist(it.description, false))
+            }
+            result = TSDataState.Success(
+                data = result.data.copy(
+                    count = filteredItems.size,
+                    items = filteredItems
+                )
+            )
+        }
+        return result
     }
 
     override suspend fun getEpisodeByFeedId(
@@ -243,6 +265,24 @@ class PodcastsRepositoryImpl @Inject constructor(
                     pretty = pretty
                 )
             )
+        }.map {
+            if (it is TSDataState.Success) {
+                val data = it.data.items.filter {
+                    !(blacklistRepository.isInBlacklist(it.feedId.toString())
+                            || blacklistRepository.isContainKeywordsBlacklist(it.title)
+                            || blacklistRepository.isContainKeywordsBlacklist(
+                        it.description,
+                        false
+                    ))
+                }
+                return@map TSDataState.Success(
+                    it.data.copy(
+                        items = data,
+                        count = data.size
+                    )
+                )
+            }
+            it
         }.retryWhen { cause, attempt ->
             cause !is IllegalStateException && attempt < 3
         }.catch {
@@ -290,7 +330,25 @@ class PodcastsRepositoryImpl @Inject constructor(
                     desc = desc,
                     pretty = pretty
                 )
-            ).retryWhen { cause, attempt ->
+            ).map {
+                if (it is TSDataState.Success) {
+                    val data = it.data.items.filter {
+                        !(blacklistRepository.isInBlacklist(it.id.toString())
+                                || blacklistRepository.isContainKeywordsBlacklist(it.title)
+                                || blacklistRepository.isContainKeywordsBlacklist(
+                            it.description,
+                            false
+                        ))
+                    }
+                    return@map TSDataState.Success(
+                        it.data.copy(
+                            items = data,
+                            count = data.size
+                        )
+                    )
+                }
+                it
+            }.retryWhen { cause, attempt ->
                 cause !is IllegalStateException && attempt < 3
             }.catch {
                 emit(TSDataState.Error(it))
@@ -316,7 +374,25 @@ class PodcastsRepositoryImpl @Inject constructor(
                     notcat = notcat,
                     pretty = pretty
                 )
-            ).retryWhen { cause, attempt ->
+            ).map {
+                if (it is TSDataState.Success) {
+                    val data = it.data.items.filter {
+                        !(blacklistRepository.isInBlacklist(it.id.toString())
+                                || blacklistRepository.isContainKeywordsBlacklist(it.title)
+                                || blacklistRepository.isContainKeywordsBlacklist(
+                            it.description,
+                            false
+                        ))
+                    }
+                    return@map TSDataState.Success(
+                        it.data.copy(
+                            items = data,
+                            count = data.size
+                        )
+                    )
+                }
+                it
+            }.retryWhen { cause, attempt ->
                 cause !is IllegalStateException && attempt < 3
             }.catch {
                 emit(TSDataState.Error(it))

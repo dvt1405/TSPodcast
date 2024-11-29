@@ -51,7 +51,7 @@ data class Podcast(
     val id: Long,
     val image: String,
     val link: String?,
-    val title: String,
+    val title: String?,
     val description: String?
 ) : Parcelable {
     @SuppressLint("SimpleDateFormat")
