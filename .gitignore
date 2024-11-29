@@ -24,3 +24,4 @@ local.properties
 /.idea/androidTestResultsUserPreferences.xml
 /.safedk
 /.idea/runConfigurations.xml
+/app/release
