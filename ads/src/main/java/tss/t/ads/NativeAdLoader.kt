@@ -19,6 +19,8 @@ import com.applovin.mediation.MaxError
 import com.applovin.mediation.nativeAds.MaxNativeAdListener
 import com.applovin.mediation.nativeAds.MaxNativeAdLoader
 import com.applovin.mediation.nativeAds.MaxNativeAdView
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import tss.t.securedtoken.NativeLib
 import tss.t.sharedlibrary.utils.drawDivider
 
@@ -47,14 +49,22 @@ class MaxTemplateNativeAdViewComposableLoader(
             override fun onNativeAdLoaded(loadedNativeAdView: MaxNativeAdView?, ad: MaxAd) {
                 if (nativeAd != null) {
                     nativeAdLoader.destroy(nativeAd)
-                    nativeAdView.value?.let {
-                        it.removeAllViews()
-                        it.addView(loadedNativeAdView)
+                    runCatching {
+                        nativeAdView.value?.let {
+                            it.removeAllViews()
+                            it.addView(loadedNativeAdView)
+                        }
+                    }.onFailure {
+                        Firebase.crashlytics.recordException(it)
                     }
                 }
 
                 nativeAd = ad // Save ad for cleanup.
-                nativeAdView.value = loadedNativeAdView
+                runCatching {
+                    nativeAdView.value = loadedNativeAdView
+                }.onFailure {
+                    Firebase.crashlytics.recordException(it)
+                }
                 isLoaded = true
             }
 
