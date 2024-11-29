@@ -4,11 +4,13 @@ import tss.t.core.repository.IPodcastRepository
 import tss.t.core.storage.SharedPref
 import tss.t.coreapi.models.TSDataState
 import tss.t.coreapi.models.TrendingPodcastRes
+import tss.t.podcasts.BlacklistRepositoryImpl
 import javax.inject.Inject
 
 class GetTrendingPodcasts @Inject constructor(
     private val repository: IPodcastRepository,
-    private val sharedPref: SharedPref
+    private val sharedPref: SharedPref,
+    private val blacklistRepositoryImpl: BlacklistRepositoryImpl
 ) {
 
     suspend operator fun invoke(
@@ -48,16 +50,27 @@ class GetTrendingPodcasts @Inject constructor(
             cat = cat,
             notcat = notcat,
             pretty = pretty
-        ).also {
+        ).also { it ->
             synchronized(lock) {
                 if (it is TSDataState.Success) {
+                    val result = it.data.items.filter {
+                        !(blacklistRepositoryImpl.isInBlacklist(it.id.toString())
+                                || blacklistRepositoryImpl.isInBlacklist(it.feedId.toString())
+                                || blacklistRepositoryImpl.isContainKeywordsBlacklist(it.title))
+                    }
                     if (cat.isNullOrEmpty()) {
-                        cachedData = it.data
+                        cachedData = it.data.copy(
+                            items = result,
+                            count = result.size
+                        )
                         lastUpdate = System.currentTimeMillis()
                         sharedPref.save("lastUpdateTrending", lastUpdate)
                         sharedPref.save("cachedTrending", cachedData)
                     } else {
-                        cachedDataFav = it.data
+                        cachedDataFav = it.data.copy(
+                            items = result,
+                            count = result.size
+                        )
                         lastUpdateFav = System.currentTimeMillis()
                         sharedPref.save("lastUpdateTrending_$cat", cachedDataFav)
                         sharedPref.save("cachedTrending_$cat", lastUpdateFav)

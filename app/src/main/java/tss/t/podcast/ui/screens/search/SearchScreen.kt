@@ -1,7 +1,6 @@
 package tss.t.podcast.ui.screens.search
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -12,17 +11,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.KeyboardArrowLeft
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -35,9 +30,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -48,23 +41,20 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.google.gson.Gson
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import org.json.JSONObject
+import tss.t.ads.MaxAdViewComposable
 import tss.t.coreapi.models.CategoryRes
 import tss.t.coreapi.models.Feed
-import tss.t.coreapi.models.Podcast
 import tss.t.podcast.R
 import tss.t.podcast.ui.screens.search.widgets.SearchPodcastItem
 import tss.t.podcast.ui.theme.PodcastTheme
+import tss.t.sharedfirebase.LocalAnalyticsScope
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.ui.widget.TSOutlinedTextField
-import tss.t.sharedlibrary.ui.widget.TSTabMode
-import tss.t.sharedlibrary.ui.widget.TabData
-import tss.t.sharedlibrary.ui.widget.TabGroupV24
 
 @OptIn(FlowPreview::class)
 @Composable
@@ -165,6 +155,9 @@ fun SearchScreen(
             )
 
         }
+        MaxAdViewComposable(
+            tsAnalytics = LocalAnalyticsScope.current!!
+        )
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()

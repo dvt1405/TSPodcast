@@ -103,7 +103,7 @@ fun FavouriteWidget(
                 .padding(end = 16.dp)
         ) {
             Text(
-                podcast.title, style = TextStyles.Title6,
+                podcast.title ?: "", style = TextStyles.Title6,
                 modifier = Modifier
                     .placeholder(
                         isLoading, placeHolderColor,

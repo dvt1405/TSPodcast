@@ -1,19 +1,26 @@
 package tss.t.podcast.ui.navigations
 
+import androidx.compose.runtime.Immutable
 import androidx.media3.common.MediaItem
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.Podcast
 
+@Immutable
 sealed class TSNavigators(
     val id: String
 ) {
+    @Immutable
     data object MainNavigator : TSNavigators("MainNavigator")
+    @Immutable
     data object SearchNavigator : TSNavigators("Search")
+    @Immutable
     data class PodcastDetail(
         val podcast: Podcast,
-        val playList: List<Episode> = emptyList()
+        val playList: List<Episode> = emptyList(),
+        val renderItem: List<Any> = emptyList()
     ) : TSNavigators("PodcastDetail")
 
+    @Immutable
     data class Player(
         val item: Episode,
         val playList: List<Episode> = emptyList(),
@@ -31,6 +38,7 @@ sealed class TSNavigators(
         }
     }
 
+    @Immutable
     data class PlayerFromMini(
         val item: MediaItem,
         val mediaId: String = item.mediaId
@@ -53,6 +61,9 @@ sealed class TSNavigators(
         private val _queue by lazy {
             ArrayDeque<TSNavigators>()
         }
+
+        val isRoot: Boolean
+            get() = _queue.isEmpty()
 
         fun addToRoute(
             route: TSNavigators

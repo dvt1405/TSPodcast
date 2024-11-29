@@ -6,6 +6,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -17,6 +19,7 @@ import tss.t.coreapi.converter.MapStringStringJsonConverter
 import tss.t.coreapi.converter.TSDataStateJsonConverter
 import tss.t.coreapi.models.Categories
 import tss.t.securedtoken.NativeLib
+import javax.inject.Named
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -50,14 +53,23 @@ class NetworkModule {
     }
 
     @Provides
-    fun provideRetrofit(gson: Gson, client: OkHttpClient): Retrofit.Builder {
+    @Named("NetworkScope")
+    fun provideNetworkCoroutineScope(): CoroutineScope = CoroutineScope(Dispatchers.IO)
+
+    @Provides
+    fun provideRetrofit(
+        gson: Gson,
+        client: OkHttpClient,
+        @Named("NetworkScope")
+        scope: CoroutineScope
+    ): Retrofit.Builder {
         return Retrofit.Builder()
             .addConverterFactory(
                 GsonConverterFactory
                     .create(gson)
             )
             .addConverterFactory(TSDataStateJsonConverter.Factory(gson))
-            .addCallAdapterFactory(TSDataStateCallAdapterFactory())
+            .addCallAdapterFactory(TSDataStateCallAdapterFactory(scope))
             .client(client)
     }
 

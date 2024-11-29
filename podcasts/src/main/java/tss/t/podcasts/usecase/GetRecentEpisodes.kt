@@ -5,10 +5,12 @@ import kotlinx.coroutines.flow.map
 import tss.t.core.repository.IPodcastRepository
 import tss.t.coreapi.models.EpisodeResponse
 import tss.t.coreapi.models.TSDataState
+import tss.t.podcasts.BlacklistRepositoryImpl
 import javax.inject.Inject
 
 class GetRecentEpisodes @Inject constructor(
-    private val repository: IPodcastRepository
+    private val repository: IPodcastRepository,
+    private val blacklist: BlacklistRepositoryImpl
 ) {
     suspend operator fun invoke(
         @IntRange(from = 1, to = 1000)

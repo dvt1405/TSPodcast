@@ -15,6 +15,8 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,7 +35,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -52,10 +53,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.MediaItem
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.LiveEpisode
 import tss.t.coreapi.models.Podcast
@@ -87,7 +90,7 @@ import tss.t.sharedresources.R
 
 internal const val FAVOURITE_TAB_INDEX = 0
 internal const val HOME_TAB_INDEX = 1
-internal const  val SEARCH_TAB_INDEX = 2
+internal const val SEARCH_TAB_INDEX = 2
 
 fun <T> spatialExpressiveSpring() = spring<T>(
     dampingRatio = 0.8f,
@@ -244,7 +247,8 @@ fun HomeNavigationScreen(
                         },
                         renderCount = uiState.renderCount,
                         recentFeedState = recentFeedState,
-                        pagerState = liveState
+                        pagerState = liveState,
+                        currentMediaItem = playerState.currentMediaItem
                     )
                 }
             }
@@ -327,10 +331,21 @@ private fun HomeNavigationScreen(
     onLiveItemClick: LiveEpisode.() -> Unit = {},
     renderCount: Int = 0,
     recentFeedState: LazyListState = rememberLazyListState(),
+    currentMediaItem: MediaItem? = null
 ) {
     val sharedTransitionScope = LocalSharedTransitionScope.current!!
     val animatedContentScope = LocalNavAnimatedVisibilityScope.current!!
-    val selectedTab = bottomTabs[selectedTabIndex]
+    val selectedTab = remember(selectedTabIndex) { bottomTabs[selectedTabIndex] }
+    val childListState = remember(selectedTab) {
+        listState[selectedTab] ?: LazyListState().also {
+            listState[selectedTab] = it
+        }
+    }
+    val pullToRefreshState = remember(selectedTab) {
+        pullRefreshState[selectedTab] ?: PullToRefreshState().also {
+            pullRefreshState[selectedTab] = it
+        }
+    }
     Scaffold(
         topBar = {
             with(animatedContentScope) {
@@ -380,19 +395,21 @@ private fun HomeNavigationScreen(
             }
         }
     ) { innerPadding ->
-        val childListState = listState[selectedTab] ?: rememberLazyListState().also {
-            listState[selectedTab] = it
-        }
-        val pullToRefreshState =
-            pullRefreshState[selectedTab] ?: rememberPullToRefreshState().also {
-                pullRefreshState[selectedTab] = it
-            }
         when (selectedTabIndex) {
             FAVOURITE_TAB_INDEX -> {
                 FavouriteScreen(
                     listState = childListState,
                     pullToRefreshState = pullToRefreshState,
-                    innerPadding = innerPadding,
+                    innerPadding = PaddingValues(
+                        start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+                        end = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+                        top = innerPadding.calculateTopPadding(),
+                        bottom = if (currentMediaItem == null) {
+                            innerPadding.calculateBottomPadding()
+                        } else {
+                            innerPadding.calculateBottomPadding() + 86.dp
+                        }
+                    ),
                     viewModel = viewModel<FavouriteViewModel>(LocalViewModelStoreOwner.current!!),
                     onEmptyClick = {
                         onTabSelected(tabDefaults[HOME_TAB_INDEX], HOME_TAB_INDEX)
@@ -420,7 +437,8 @@ private fun HomeNavigationScreen(
                     trendingRowState = trendingRowState,
                     renderCount = renderCount,
                     recentFeedState = recentFeedState,
-                    onLiveItemClick = onLiveItemClick
+                    onLiveItemClick = onLiveItemClick,
+                    currentMediaItem = currentMediaItem
                 )
             }
 
@@ -438,7 +456,16 @@ private fun HomeNavigationScreen(
                     },
                     categories = listCategory,
                     searchResult = listSearch,
-                    innerPadding = innerPadding,
+                    innerPadding = PaddingValues(
+                        start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+                        end = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+                        top = innerPadding.calculateTopPadding(),
+                        bottom = if (currentMediaItem == null) {
+                            innerPadding.calculateBottomPadding()
+                        } else {
+                            innerPadding.calculateBottomPadding() + 86.dp
+                        }
+                    ),
                     onSearchSelected = { feed ->
                         TSNavigators.navigateTo(TSNavigators.PodcastDetail(Podcast.fromFeed(feed)))
                     }

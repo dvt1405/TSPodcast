@@ -1,8 +1,10 @@
 package tss.t.podcast.ui.screens.player
 
 import android.net.Uri
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.compose.runtime.Immutable
+import androidx.core.os.bundleOf
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,11 +25,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import tss.t.coreapi.Constants
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.Podcast
 import tss.t.podcasts.usecase.favourite.DeleteFavouriteUseCase
 import tss.t.podcasts.usecase.favourite.IsFavouriteUseCase
 import tss.t.podcasts.usecase.favourite.SaveFavouriteUseCase
+import tss.t.podcasts.usecase.history.GetEpisodeLocalUseCase
 import tss.t.podcasts.usecase.history.SaveCurrentPlayingUseCase
 import tss.t.sharedplayer.controller.TSMediaController
 import tss.t.sharedplayer.player.PlayerManager
@@ -40,12 +44,11 @@ class PlayerViewModel @Inject constructor(
     private val saveFavouriteUseCase: SaveFavouriteUseCase,
     private val deleteFavouriteUseCase: DeleteFavouriteUseCase,
     private val isFavouriteUseCase: IsFavouriteUseCase,
-    private val saveCurrentPlayingUseCase: SaveCurrentPlayingUseCase
+    private val saveCurrentPlayingUseCase: SaveCurrentPlayingUseCase,
+    private val getEpisodeLocalUseCase: GetEpisodeLocalUseCase
 ) : ViewModel(), Player.Listener {
 
     private var current: Episode? = null
-    private var currentPodcast: Podcast? = null
-    private var currentPlayList: List<Episode>? = null
     private val currentPlayer: Player
         get() = playerManager.player
 
@@ -56,11 +59,6 @@ class PlayerViewModel @Inject constructor(
     val playerControlState: StateFlow<PlayerControlState>
         get() = _playerControlState.asStateFlow()
 
-    val podcast: Podcast?
-        get() = currentPodcast
-    val playList: List<Episode>
-        get() = currentPlayList ?: emptyList()
-
     fun playerEpisode(
         episode: Episode,
         podcast: Podcast? = null,
@@ -68,8 +66,6 @@ class PlayerViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             current = episode
-            currentPodcast = podcast
-            currentPlayList = listItem
 
             val mediaItem = episode.toMediaItem(podcast?.title)
             val isFav = isFavouriteUseCase(episode)
@@ -77,7 +73,9 @@ class PlayerViewModel @Inject constructor(
                 it.copy(
                     currentMediaItem = mediaItem,
                     isLoading = true,
-                    isFavourite = isFav
+                    isFavourite = isFav,
+                    podcast = podcast,
+                    playList = listItem
                 )
             }
             currentPlayer.addListener(this@PlayerViewModel)
@@ -133,7 +131,8 @@ class PlayerViewModel @Inject constructor(
             ?.toLong() ?: return
         val currentMediaItem = mediaController.sessionController?.currentMediaItem
         viewModelScope.launch(Dispatchers.IO) {
-            val currentItem = currentPlayList?.firstOrNull { it.id == id } ?: return@launch
+            val currentItem =
+                _playerControlState.value.playList.firstOrNull { it.id == id } ?: return@launch
             val isFav = isFavouriteUseCase(currentItem)
             _playerControlState.update {
                 it.copy(
@@ -301,6 +300,7 @@ class PlayerViewModel @Inject constructor(
         ) {
             return
         }
+        saveHistory(currentPlayer.currentMediaItem)
         _playerControlState.update {
             it.copy(
                 currentDuration = currentPlayer.currentPosition,
@@ -312,6 +312,11 @@ class PlayerViewModel @Inject constructor(
                     .toFloat()
             )
         }
+    }
+
+    private fun saveHistory(mediaItem: MediaItem?) {
+        val item = mediaItem ?: return
+
     }
 
     @OptIn(UnstableApi::class)
@@ -355,26 +360,47 @@ class PlayerViewModel @Inject constructor(
         )
     }
 
-
-    sealed class PlayerUIState {
-
-        data class PreparingPlay(
-            val currentMediaItemId: String,
-            val playList: List<Episode> = emptyList(),
-            val podcast: Podcast? = null
-        ) : PlayerUIState()
-
-        data class ReadyToPlay(
-            val currentMediaItemId: String,
-            val playList: List<Episode> = emptyList(),
-            val podcast: Podcast? = null
-        ) : PlayerUIState()
-
-        data class Playing(
-            val currentMediaItemId: String,
-            val playList: List<Episode> = emptyList(),
-            val podcast: Podcast? = null
-        )
+    fun onRestoreFromNotification(mediaId: String?) {
+        Log.d("TuanDv", "onRestoreFromNotification: currentMediaItem: ${currentPlayer.currentMediaItem?.mediaId}")
+        if (currentPlayer.currentMediaItem?.mediaId == mediaId) {
+            val currentValue = _playerControlState.value.currentMediaItem
+            if (currentValue == null && currentPlayer.isPlaying) {
+                _playerControlState.update {
+                    it.copy(
+                        currentMediaItem = currentPlayer.currentMediaItem,
+                        isPlaying = currentPlayer.isPlaying,
+                        currentDuration = currentPlayer.contentPosition,
+                        totalDuration = currentPlayer.contentDuration,
+                        currentProgress = (currentPlayer.contentPosition.toDouble() / currentPlayer.contentDuration).toFloat(),
+                    )
+                }
+                viewModelScope.launch {
+                    val episodeId = mediaId?.toLongOrNull() ?: return@launch
+                    val episode = getEpisodeLocalUseCase(episodeId) ?: return@launch
+                    Log.d("TuanDv", "episode: $episode")
+                    val podcastAndEpisode = getEpisodeLocalUseCase.getRelated(episode.feedId)
+                    Log.d("TuanDv", "podcastAndEpisode: $podcastAndEpisode")
+                    _playerControlState.update {
+                        it.copy(
+                            podcast = podcastAndEpisode?.podcast,
+                            playList = podcastAndEpisode?.episode ?: emptyList()
+                        )
+                    }
+                }
+                currentPlayer.addListener(this@PlayerViewModel)
+            }
+        } else {
+            val episodeId = mediaId?.toLongOrNull() ?: return
+            viewModelScope.launch {
+                val episode = getEpisodeLocalUseCase(episodeId) ?: return@launch
+                val podcastAndEpisode = getEpisodeLocalUseCase.getRelated(episode.feedId)
+                playerEpisode(
+                    episode,
+                    podcastAndEpisode?.podcast,
+                    listItem = podcastAndEpisode?.episode ?: emptyList()
+                )
+            }
+        }
     }
 
     @Immutable
@@ -385,7 +411,9 @@ class PlayerViewModel @Inject constructor(
         val currentDuration: Long = 0L,
         val totalDuration: Long = 0L,
         val currentProgress: Float = 0f,
-        val isFavourite: Boolean = false
+        val isFavourite: Boolean = false,
+        val podcast: Podcast? = null,
+        val playList: List<Episode> = emptyList()
     )
 }
 
@@ -415,6 +443,11 @@ fun Episode.toMediaItem(album: CharSequence? = null): MediaItem {
                 .setArtworkUri(Uri.parse(image))
                 .setDurationMs(duration)
                 .setAlbumTitle(album)
+                .setExtras(
+                    bundleOf(
+                        Constants.EXTRA_MEDIA_TYPE_KEY to Constants.MEDIA_TYPE_EPISODE
+                    )
+                )
                 .build()
         )
         .build()

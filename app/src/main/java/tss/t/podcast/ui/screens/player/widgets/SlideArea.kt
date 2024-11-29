@@ -37,9 +37,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import tss.t.ads.MaxAdViewComposable
 import tss.t.coreapi.models.Episode
 import tss.t.podcast.ui.screens.podcastsdetail.toPx
 import tss.t.podcast.ui.screens.podcastsdetail.widgets.EpisodeWidget
+import tss.t.sharedfirebase.LocalAnalyticsScope
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 
@@ -153,6 +155,10 @@ fun BoxScope.SlideArea(
         }
         HorizontalDivider(
             color = Colors.NeutralDark.copy(0.3f),
+        )
+        MaxAdViewComposable(
+            modifier = Modifier.padding(vertical = 4.dp),
+            tsAnalytics = LocalAnalyticsScope.current!!
         )
         LazyColumn(
             modifier = Modifier

@@ -1,16 +1,19 @@
 package tss.t.podcasts.usecase
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onEach
 import tss.t.core.repository.IPodcastRepository
 import tss.t.coreapi.models.PodcastByFeedIdRes
 import tss.t.coreapi.models.TSDataState
+import tss.t.podcasts.BlacklistRepositoryImpl
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 class GetPodcastByFeedID @Inject constructor(
-    private val repository: IPodcastRepository
+    private val repository: IPodcastRepository,
+    private val blacklistRepository: BlacklistRepositoryImpl
 ) {
 
     suspend operator fun invoke(feedId: String): Flow<TSDataState<PodcastByFeedIdRes>> {

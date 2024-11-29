@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 object NotificationUtils {
-    const val DEFAULT_FCM_CHANNEL = "Fcm_notification_channel"
+    const val DEFAULT_FCM_CHANNEL = "TSStudio"
 
     val notificationExecutor by lazy {
         CoroutineScope(Dispatchers.IO)
@@ -37,6 +37,7 @@ object NotificationUtils {
         builder.setVibrationEnabled(false)
         builder.setSound(null, null)
         builder.setDescription("TSS group notifications")
+        builder.setName("TSS Notifications")
         val isExists = managerCompat.getNotificationChannel(channelId) != null
         if (!isExists) {
             managerCompat.createNotificationChannel(builder.build())
