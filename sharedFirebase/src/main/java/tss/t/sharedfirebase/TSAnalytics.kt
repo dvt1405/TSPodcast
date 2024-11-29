@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import androidx.compose.runtime.compositionLocalOf
 import androidx.core.os.bundleOf
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
@@ -19,6 +20,8 @@ import kotlinx.coroutines.launch
 import tss.t.sharedlibrary.utils.getAndroidDeviceId
 import javax.inject.Inject
 import javax.inject.Singleton
+
+val LocalAnalyticsScope = compositionLocalOf<TSAnalytics?> { null }
 
 @Singleton
 class TSAnalytics @Inject constructor(
@@ -125,8 +128,8 @@ class TSAnalytics @Inject constructor(
 
     fun trackEvent(
         eventName: String,
-        screenName: String?,
-        vararg prop: Pair<String, Any>
+        screenName: String? = currentScreenName,
+        vararg prop: Pair<String, Any?>
     ) {
         _analyticScope.launch {
             Firebase.analytics.logEvent(
