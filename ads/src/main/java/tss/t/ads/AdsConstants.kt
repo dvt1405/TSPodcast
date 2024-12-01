@@ -13,6 +13,8 @@ object AdsConstants {
     const val EVENT_NAME_AD_BANNER_CLICKED = "applovin_banner_clicked"
     const val EVENT_NAME_AD_BANNER_LOAD_FAILED = "applovin_banner_load_failed"
     const val EVENT_NAME_AD_BANNER_DISPLAY_FAILED = "applovin_banner_display_failed"
+    const val EVENT_NAME_AD_BANNER_DISPLAYED = "applovin_banner_displayed"
+    const val EVENT_NAME_AD_BANNER_HIDDEN = "applovin_banner_hidden"
     const val EVENT_NAME_AD_BANNER_EXPANDED = "applovin_banner_expanded"
     const val EVENT_NAME_AD_BANNER_COLLAPSED = "applovin_banner_collapsed"
 

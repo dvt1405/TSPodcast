@@ -1,6 +1,5 @@
 package tss.t.podcast.ui.screens.player
 
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -54,9 +53,6 @@ fun PlayerScreen(
     episode: MediaItem,
     viewmodel: PlayerViewModel = viewModel(viewModelStoreOwner = LocalContext.current as ComponentActivity)
 ) {
-    SideEffect {
-        Log.d("TuanDv", "PlayerScreen: Recompose")
-    }
     val playerControlUIState by viewmodel.playerControlState.collectAsState()
     var slideState by remember {
         mutableStateOf(SlideAreaState.Hidden)
@@ -111,9 +107,6 @@ fun PlayerScreen(
     playList: List<Episode>,
     viewmodel: PlayerViewModel = viewModel(viewModelStoreOwner = LocalContext.current as ComponentActivity)
 ) {
-    SideEffect {
-        Log.d("TuanDv", "PlayerScreen: Recompose")
-    }
     LaunchedEffect(episode) {
         viewmodel.playerEpisode(
             episode,

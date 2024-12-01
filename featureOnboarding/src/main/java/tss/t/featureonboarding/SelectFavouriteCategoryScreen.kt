@@ -1,7 +1,6 @@
 package tss.t.featureonboarding
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
@@ -150,7 +149,6 @@ fun SelectFavouriteCategoryScreen(
                             textStyle = TextStyles.Body3,
                             icon = Icons.Rounded.Clear,
                             iconClick = {
-                                Log.d("TuanDv", "SelectFavouriteCategoryScreen: ${it.isFavourite}")
                                 onItemSelected(it, listCategory.indexOf(it), !it.isFavourite)
                             },
                             iconSize = 20.dp,

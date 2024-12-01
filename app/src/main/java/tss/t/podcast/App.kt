@@ -1,6 +1,5 @@
 package tss.t.podcast
 
-import android.util.Log
 import com.google.firebase.FirebaseApp
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
@@ -25,7 +24,12 @@ class App : CoreApp() {
         Firebase.messaging
             .token
             .addOnSuccessListener {
-                Log.d("TuanDv", "onCreate: $it")
+            }
+            .addOnFailureListener {
+
+            }
+            .addOnCanceledListener {
+
             }
         registerActivityLifecycleCallbacks(mediaController)
         applovinSdkWrapper.initSdk()

@@ -25,9 +25,6 @@ abstract class BaseViewModel() : ViewModel() {
                 handleEvent(it)
             }
             .filterNotNull()
-            .onCompletion {
-                Log.e("TuanDv", it?.message, it)
-            }
     }
 
     init {

@@ -1,7 +1,6 @@
 package tss.t.podcast.ui.screens.player
 
 import android.net.Uri
-import android.util.Log
 import androidx.annotation.OptIn
 import androidx.compose.runtime.Immutable
 import androidx.core.os.bundleOf
@@ -361,7 +360,6 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun onRestoreFromNotification(mediaId: String?) {
-        Log.d("TuanDv", "onRestoreFromNotification: currentMediaItem: ${currentPlayer.currentMediaItem?.mediaId}")
         if (currentPlayer.currentMediaItem?.mediaId == mediaId) {
             val currentValue = _playerControlState.value.currentMediaItem
             if (currentValue == null && currentPlayer.isPlaying) {
@@ -377,9 +375,7 @@ class PlayerViewModel @Inject constructor(
                 viewModelScope.launch {
                     val episodeId = mediaId?.toLongOrNull() ?: return@launch
                     val episode = getEpisodeLocalUseCase(episodeId) ?: return@launch
-                    Log.d("TuanDv", "episode: $episode")
                     val podcastAndEpisode = getEpisodeLocalUseCase.getRelated(episode.feedId)
-                    Log.d("TuanDv", "podcastAndEpisode: $podcastAndEpisode")
                     _playerControlState.update {
                         it.copy(
                             podcast = podcastAndEpisode?.podcast,

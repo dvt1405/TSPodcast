@@ -17,7 +17,5 @@ inline fun <reified T> ConfigAPI.getConfig(key: String, defValue: T?): T? {
     if (jsonStr.isNullOrEmpty()) return defValue
     return runCatching {
         gson.fromJson(jsonStr, T::class.java)
-    }.onFailure {
-        Log.d("TuanDv", "getConfig: {key: $key, error: ${it.message}}", it)
     }.getOrNull()
 }

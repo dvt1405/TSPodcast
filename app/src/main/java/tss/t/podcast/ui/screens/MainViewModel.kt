@@ -131,7 +131,6 @@ class MainViewModel @Inject constructor(
                     val data = rs.data
                     updateData(data)
                 } else if (rs is TSDataState.Error) {
-                    Log.e("TuanDv", "getTrending: ${rs.exception.message}", rs.exception)
                 }
             }
         }
@@ -342,12 +341,10 @@ class MainViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        Log.d("TUanDv", "onCleared: ")
         TSNavigators.remove(this)
     }
 
     override fun onChanged(route: TSNavigators?) {
-        Log.d("TUanDv", "onChanged: ${route?.id}")
         viewModelScope.launch {
             _uiState.update {
                 it.copy(

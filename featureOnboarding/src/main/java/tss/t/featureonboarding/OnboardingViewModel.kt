@@ -1,8 +1,5 @@
 package tss.t.featureonboarding
 
-import android.os.StatFs
-import android.util.Log
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -84,7 +81,6 @@ class OnboardingViewModel @Inject constructor(
                 TSDataState.Loading()
             }
             getCategories().collectLatest {
-                Log.d("TuanDv", "loadCategory: $it")
                 _categoryState.value = it
             }
         }

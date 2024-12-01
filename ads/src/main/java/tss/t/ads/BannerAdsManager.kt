@@ -1,12 +1,7 @@
 package tss.t.ads
 
 import android.content.Context
-import android.graphics.Color
-import android.os.Build
-import android.util.Log
 import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,16 +23,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.applovin.mediation.MaxAd
 import com.applovin.mediation.MaxAdFormat
-import com.applovin.mediation.MaxAdViewAdListener
 import com.applovin.mediation.MaxError
 import com.applovin.mediation.MaxErrorCode
 import com.applovin.mediation.ads.MaxAdView
-import com.applovin.sdk.AppLovinSdkUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import tss.t.ads.BannerAdsManager.MaxAdViewAdListenerAdapter
 import tss.t.securedtoken.NativeLib
 import tss.t.sharedfirebase.TSAnalytics
 import javax.inject.Inject
@@ -158,76 +150,6 @@ class BannerAdsManager @Inject constructor(
         instance = this
     }
 
-    @Composable
-    fun BannerAdsViewCompose(
-        modifier: Modifier = Modifier,
-        adFormat: MaxAdFormat = MaxAdFormat.BANNER
-    ) {
-        val context = LocalContext.current
-        val heightPx = remember(adFormat) {
-            val heightDp = adFormat.getAdaptiveSize(context).height
-            AppLovinSdkUtils.dpToPx(context, heightDp)
-        }
-        var visibility by remember {
-            mutableIntStateOf(View.GONE)
-        }
-        var failedCount by remember {
-            mutableIntStateOf(0)
-        }
-        val scope = rememberCoroutineScope()
-        val listener = remember {
-            object : MaxAdViewAdListenerAdapter(tsAnalytics) {
-                override fun onAdLoaded(ad: MaxAd) {
-                    super.onAdLoaded(ad)
-                    visibility = View.VISIBLE
-                    failedCount = 0
-                }
-
-                override fun onAdDisplayFailed(ad: MaxAd, error: MaxError) {
-                    super.onAdDisplayFailed(ad, error)
-                    visibility = View.GONE
-                }
-
-                override fun onAdLoadFailed(adUnitId: String, error: MaxError) {
-                    super.onAdLoadFailed(adUnitId, error)
-                    visibility = View.GONE
-                    failedCount++
-                    errorHandle(adUnitId, error, failedCount, scope)
-                }
-            }
-        }
-        AndroidView(
-            factory = {
-                MaxAdView(
-                    NativeLib.getAdBannerId(),
-                    adFormat,
-                    context
-                ).also {
-                    Log.d("TuanDv", "BannerAdsViewCompose:  Init")
-                }.apply {
-                    this.visibility = visibility
-                    setBackgroundColor(Color.WHITE)
-                    setListener(listener)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        setAllowClickWhenDisabled(true)
-                    }
-                    val width = ViewGroup.LayoutParams.MATCH_PARENT
-                    layoutParams = FrameLayout.LayoutParams(width, heightPx)
-                    loadAd()
-                }
-            },
-            modifier = modifier
-                .fillMaxWidth(),
-            update = {
-                it.visibility = visibility
-                it.startAutoRefresh()
-            },
-            onReset = {
-                it.visibility = visibility
-                it.stopAutoRefresh()
-            })
-    }
-
     fun errorHandle(
         adUnitId: String,
         error: MaxError,
@@ -263,71 +185,6 @@ class BannerAdsManager @Inject constructor(
                     callback()
                 }
             }
-        }
-    }
-
-    open class MaxAdViewAdListenerAdapter(
-        private val tsAnalytics: TSAnalytics
-    ) : MaxAdViewAdListener {
-        override fun onAdLoaded(ad: MaxAd) {
-            Log.d("TuanDv", "onAdLoaded: $ad")
-            tsAnalytics.trackEvent(
-                AdsConstants.EVENT_NAME_AD_BANNER_LOADED,
-                prop = ad.toArray()
-            )
-        }
-
-        override fun onAdLoadFailed(adUnitId: String, error: MaxError) {
-            Log.d("TuanDv", "onAdLoadFailed: $error")
-            tsAnalytics.trackEvent(
-                AdsConstants.EVENT_NAME_AD_BANNER_LOAD_FAILED,
-                screenName = tsAnalytics.currentScreenName,
-                "adUnitId" to adUnitId,
-                *error.toArray()
-            )
-        }
-
-        override fun onAdDisplayed(ad: MaxAd) {
-            Log.d("TuanDv", "onAdDisplayed: $ad")
-        }
-
-        override fun onAdClicked(ad: MaxAd) {
-            tsAnalytics.trackEvent(
-                AdsConstants.EVENT_NAME_AD_BANNER_CLICKED,
-                prop = ad.toArray()
-            )
-        }
-
-        override fun onAdHidden(ad: MaxAd) {
-            Log.d("TuanDv", "onAdHidden: $ad")
-        }
-
-        override fun onAdDisplayFailed(ad: MaxAd, error: MaxError) {
-            Log.d("TuanDv", "onAdHidden: $ad  $error")
-            tsAnalytics.trackEvent(
-                AdsConstants.EVENT_NAME_AD_BANNER_DISPLAY_FAILED,
-                screenName = tsAnalytics.currentScreenName,
-                *ad.toArray(),
-                *error.toArray()
-            )
-        }
-
-        override fun onAdExpanded(ad: MaxAd) {
-            Log.d("TuanDv", "onAdHidden: $ad")
-            tsAnalytics.trackEvent(
-                AdsConstants.EVENT_NAME_AD_BANNER_EXPANDED,
-                screenName = tsAnalytics.currentScreenName,
-                *ad.toArray(),
-            )
-        }
-
-        override fun onAdCollapsed(ad: MaxAd) {
-            Log.d("TuanDv", "onAdHidden: $ad")
-            tsAnalytics.trackEvent(
-                AdsConstants.EVENT_NAME_AD_BANNER_COLLAPSED,
-                screenName = tsAnalytics.currentScreenName,
-                *ad.toArray(),
-            )
         }
     }
 
