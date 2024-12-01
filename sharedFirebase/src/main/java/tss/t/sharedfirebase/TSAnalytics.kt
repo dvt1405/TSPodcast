@@ -60,6 +60,7 @@ class TSAnalytics @Inject constructor(
     var currentScreenName: String? = null
 
     init {
+        instance = this
         initDefaultAttrs()
         (context as? Application)?.registerActivityLifecycleCallbacks(
             object : ActivityLifecycleCallbacks {
@@ -141,5 +142,10 @@ class TSAnalytics @Inject constructor(
                 }
             )
         }
+    }
+
+    companion object {
+        var instance: TSAnalytics? = null
+            private set
     }
 }

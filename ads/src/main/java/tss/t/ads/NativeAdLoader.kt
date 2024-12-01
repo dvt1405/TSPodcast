@@ -21,6 +21,7 @@ import com.applovin.mediation.nativeAds.MaxNativeAdView
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import tss.t.securedtoken.NativeLib
+import tss.t.sharedfirebase.TSAnalytics
 import tss.t.sharedlibrary.utils.drawDivider
 
 enum class NativeAd {
@@ -63,18 +64,38 @@ class MaxTemplateNativeAdViewComposableLoader(
                     Firebase.crashlytics.recordException(it)
                 }
                 isLoaded = true
+                TSAnalytics.instance?.trackEvent(
+                    eventName = AdsConstants.EVENT_NAME_AD_NATIVE_LOADED,
+                    prop = ad.toArray()
+                )
             }
 
             override fun onNativeAdLoadFailed(adUnitId: String, error: MaxError) {
                 isLoaded = false
+                TSAnalytics.instance?.trackEvent(
+                    eventName = AdsConstants.EVENT_NAME_AD_NATIVE_LOAD_FAILED,
+                    screenName = TSAnalytics.instance?.currentScreenName,
+                    *error.toArray(),
+                    "adUnitId" to adUnitId
+                )
             }
 
             override fun onNativeAdClicked(ad: MaxAd) {
+                TSAnalytics.instance?.trackEvent(
+                    eventName = AdsConstants.EVENT_NAME_AD_NATIVE_CLICKED,
+                    screenName = TSAnalytics.instance?.currentScreenName,
+                    *ad.toArray()
+                )
             }
 
             override fun onNativeAdExpired(nativeAd: MaxAd) {
                 isLoaded = false
                 nativeAdLoader.destroy(nativeAd)
+                TSAnalytics.instance?.trackEvent(
+                    eventName = AdsConstants.EVENT_NAME_AD_NATIVE_EXPIRED,
+                    screenName = TSAnalytics.instance?.currentScreenName,
+                    *nativeAd.toArray()
+                )
             }
         }
         nativeAdLoader.apply {
