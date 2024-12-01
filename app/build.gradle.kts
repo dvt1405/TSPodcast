@@ -22,7 +22,7 @@ android {
         applicationId = "tss.t.podcast"
         minSdk = 23
         targetSdk = 34
-        versionCode = 10004
+        versionCode = 10005
         versionName = "v1.4.$versionCode"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
