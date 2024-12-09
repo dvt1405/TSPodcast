@@ -22,7 +22,7 @@ android {
         applicationId = "tss.t.podcast"
         minSdk = 23
         targetSdk = 34
-        versionCode = 10005
+        versionCode = 10006
         versionName = "v1.4.$versionCode"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -36,6 +36,8 @@ android {
             setProperty("archivesBaseName", "TSPodcast.${defaultConfig.versionName}_D")
         }
         release {
+            defaultConfig.versionCode = 10007
+            defaultConfig.versionName = "v1.4.${defaultConfig.versionCode}"
             isMinifyEnabled = true
             isShrinkResources = true
             setProperty("archivesBaseName", "TSPodcast.${defaultConfig.versionName}_R")
