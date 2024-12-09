@@ -75,4 +75,5 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(project(":securedToken"))
     implementation(project(":sharedFirebase"))
+    implementation(project(":core"))
 }

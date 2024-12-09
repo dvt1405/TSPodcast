@@ -6,6 +6,9 @@ import com.applovin.mediation.MaxAdListener
 import com.applovin.mediation.MaxError
 import com.applovin.mediation.ads.MaxAppOpenAd
 import dagger.hilt.android.qualifiers.ApplicationContext
+import tss.t.core.storage.SharedPref
+import tss.t.core.storage.hasSelectFavouriteCategory
+import tss.t.core.storage.isOnboardingFinished
 import tss.t.securedtoken.NativeLib
 import tss.t.sharedfirebase.TSAnalytics
 import javax.inject.Inject
@@ -15,8 +18,13 @@ import javax.inject.Singleton
 class AppOpenAdManager @Inject constructor(
     @ApplicationContext
     private val applicationContext: Context,
-    private val tsAnalytics: TSAnalytics
+    private val tsAnalytics: TSAnalytics,
+    private val sharedPref: SharedPref
 ) : MaxAdListener {
+
+    val adEnabled: Boolean
+        get() = sharedPref.isOnboardingFinished() && sharedPref.hasSelectFavouriteCategory()
+
     private val showAdThreshHold by lazy {
         AdsConstants.A_MINUTES * 10
     }

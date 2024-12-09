@@ -84,6 +84,7 @@ class ApplovinSdkWrapper @Inject constructor(
     }
 
     fun loadOpenAds() {
+        if (!appOpenAdManager.adEnabled) return
         when (_state) {
 
             SdkState.Ready -> {
