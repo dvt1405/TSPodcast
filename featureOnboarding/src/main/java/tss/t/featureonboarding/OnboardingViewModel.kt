@@ -1,5 +1,6 @@
 package tss.t.featureonboarding
 
+import android.util.Log
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -122,14 +123,14 @@ class OnboardingViewModel @Inject constructor(
     }
 
     fun putFavouriteItem(category: CategoryRes.Category, index: Int) {
-        category.isFavourite = true
+        Log.d("TuanDv", "putFavouriteItem: $category")
         _listFavouriteCategory.update {
             val newList = it
-            if (newList.contains(category)) {
-                val crrIndex = newList.indexOfFirst { it.id == category.id }
-                newList[crrIndex] = category
+            val crrIndex = newList.indexOfFirst { it.id == category.id }
+            if (crrIndex >= 0) {
+                newList[crrIndex] = category.copy(isFavourite = true)
             } else {
-                newList.add(category)
+                newList.add(category.copy(isFavourite = true))
             }
             newList
         }
@@ -153,14 +154,11 @@ class OnboardingViewModel @Inject constructor(
     }
 
     fun removeFavouriteItem(category: CategoryRes.Category, index: Int) {
-        category.isFavourite = false
         _listFavouriteCategory.update {
             val newList = it
-            if (newList.contains(category)) {
-                val crrIndex = newList.indexOfFirst { it.id == category.id }
-                newList[crrIndex] = category
-            } else {
-                newList.add(category)
+            val crrIndex = newList.indexOfFirst { it.id == category.id }
+            if (crrIndex > -1) {
+                newList.removeAt(crrIndex)
             }
             newList
         }

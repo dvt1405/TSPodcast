@@ -13,7 +13,6 @@ data class CategoryRes(
         val id: Int,
         @SerializedName("name")
         val name: String,
-        @SerializedName("isFavourite")
-        var isFavourite: Boolean = false
+        val isFavourite: Boolean? = null
     )
 }

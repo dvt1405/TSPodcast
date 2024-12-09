@@ -28,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
@@ -50,6 +52,7 @@ import tss.t.coreapi.models.TSDataState
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.ui.animations.skeleton.placeholder
+import tss.t.sharedlibrary.ui.shapes.TSShapes
 import tss.t.sharedlibrary.ui.widget.TSBadge
 import tss.t.sharedlibrary.ui.widget.TSButton
 
@@ -61,13 +64,10 @@ fun SelectFavouriteCategoryScreen(viewmodel: OnboardingViewModel) {
     val isLoading by remember(listCategory) {
         mutableStateOf(listCategory is TSDataState.Loading)
     }
-    val listItems by remember(listCategory, listSelected) {
+    val listItems by remember(listCategory) {
         mutableStateOf(
             if (listCategory is TSDataState.Success) {
-                (listCategory as TSDataState.Success<CategoryRes>).data.feeds.map { curr ->
-                    curr.isFavourite = listSelected.any { curr.id == it.id }
-                    curr
-                }
+                (listCategory as TSDataState.Success<CategoryRes>).data.feeds
             } else {
                 emptyList()
             }
@@ -75,6 +75,7 @@ fun SelectFavouriteCategoryScreen(viewmodel: OnboardingViewModel) {
     }
     SelectFavouriteCategoryScreen(
         listCategory = listItems,
+        listSelected = listSelected,
         isLoading = isLoading,
         onItemSelected = { index, selected ->
             if (selected) {
@@ -94,24 +95,29 @@ fun SelectFavouriteCategoryScreen(viewmodel: OnboardingViewModel) {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SelectFavouriteCategoryScreen(
-    listCategory: List<CategoryRes.Category> = listOf(),
+    listCategory: List<CategoryRes.Category> = emptyList(),
+    listSelected: List<CategoryRes.Category> = emptyList(),
     isLoading: Boolean = false,
     onSaveAndContinue: () -> Unit = {},
     onItemSelected: CategoryRes.Category.(Int, Boolean) -> Unit = { _, _ -> },
 ) {
     val screenSize = LocalConfiguration.current.screenWidthDp
-    val rowCount = (screenSize / 150)
-    val rowWidth = (screenSize.dp - ((rowCount - 1) * 16).dp - 32.dp) / rowCount
+    val rowCount = remember {
+        (screenSize / 150)
+    }
+    val rowWidth = remember {
+        (screenSize.dp - ((rowCount - 1) * 16).dp - 32.dp) / rowCount
+    }
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(title = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        "Select your favorite Categories",
+                        text = stringResource(R.string.select_favourite_category_screen_title),
                         style = TextStyles.Title4
                     )
                     Text(
-                        "(Select at least 3)",
+                        stringResource(R.string.select_favourite_category_screen_description),
                         style = TextStyles.SubTitle3,
                     )
                 }
@@ -137,35 +143,37 @@ fun SelectFavouriteCategoryScreen(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    listCategory.filter {
-                        it.isFavourite
-                    }.forEach {
+                    listSelected.forEachIndexed { _, category ->
                         TSBadge(
-                            it.name,
+                            badgeTitle = category.name,
                             modifier = Modifier.padding(
-                                vertical = 8.dp,
+                                vertical = 4.dp,
                                 horizontal = 8.dp
                             ),
                             textStyle = TextStyles.Body3,
                             icon = Icons.Rounded.Clear,
                             iconClick = {
-                                onItemSelected(it, listCategory.indexOf(it), !it.isFavourite)
+                                onItemSelected(
+                                    category,
+                                    listCategory.indexOfFirst { it.id == category.id },
+                                    false
+                                )
                             },
-                            iconSize = 20.dp,
+                            iconSize = 16.dp,
                             color = Colors.Secondary
                         )
                     }
                 }
                 TSButton(
-                    title = "Lưu và tiếp tục", onClick = {
+                    title = stringResource(R.string.select_favourite_category_screen_btn_confirm_title),
+                    onClick = {
                         onSaveAndContinue()
-                    }, modifier = Modifier
+                    },
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                         .padding(bottom = 58.dp),
-                    enable = listCategory.filter {
-                        it.isFavourite
-                    }.size >= 3
+                    enable = listSelected.size >= 3
                 )
             }
         },
@@ -193,6 +201,7 @@ fun SelectFavouriteCategoryScreen(
                 items(listCategory) { item ->
                     CategoryItem(
                         category = item,
+                        selected = listSelected.any { item.id == it.id },
                         modifier = Modifier.size(rowWidth),
                         onClick = {
                             onItemSelected.invoke(item, listCategory.indexOf(item), it)
@@ -212,29 +221,30 @@ fun SelectFavouriteCategoryScreen(
 @Composable
 private fun CategoryItem(
     category: CategoryRes.Category = CategoryRes.Category(1, "Arts"),
+    selected: Boolean = category.isFavourite ?: false,
     modifier: Modifier = Modifier,
     onClick: CategoryRes.Category.(Boolean) -> Unit = {}
 ) {
-    var selected by remember {
-        mutableStateOf(category.isFavourite)
+    var isSelected by remember(selected) {
+        mutableStateOf(selected)
     }
 
     val background by animateColorAsState(
-        if (selected) Colors.Primary.copy(alpha = 0.1f) else Color.Transparent,
+        if (isSelected) Colors.Primary.copy(alpha = 0.1f) else Color.Transparent,
         label = ""
     )
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(20.dp))
+            .clip(TSShapes.rounded20)
             .border(
                 2.dp, color = Colors.StrokeColor,
-                shape = RoundedCornerShape(20.dp)
+                shape = TSShapes.rounded20
             )
-            .background(background, RoundedCornerShape(20.dp))
+            .background(background, TSShapes.rounded20)
             .clickable {
-                selected = !selected
-                onClick(category, selected)
+                isSelected = !isSelected
+                onClick(category, isSelected)
             }
     ) {
         Image(
