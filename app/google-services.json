@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "187551572250",
-    "project_id": "tspodcast-4d735",
-    "storage_bucket": "tspodcast-4d735.appspot.com"
+    "project_number": "522103746332",
+    "project_id": "podcast-25c93",
+    "storage_bucket": "podcast-25c93.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:187551572250:android:e952fdb02a12421bd60ca3",
+        "mobilesdk_app_id": "1:522103746332:android:561c9f81fd5a7cc501d4d9",
         "android_client_info": {
           "package_name": "tss.t.podcast"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCzj_Hx4K1djd8iAKxPfIP7lkfz2-Wn038"
+          "current_key": "AIzaSyB8k7haNLZQdWXFoFLxYgtLcHD-q4F30o0"
         }
       ],
       "services": {
