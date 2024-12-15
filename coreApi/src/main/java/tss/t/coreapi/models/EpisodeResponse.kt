@@ -101,6 +101,11 @@ data class Episode(
     @SerializedName("value")
     val value: Value?
 ) : Parcelable {
+
+    fun getImageUrl(): String {
+        return image.trim().ifEmpty { feedImage }
+    }
+
     companion object {
         val default by lazy {
             Episode(

@@ -173,10 +173,9 @@ fun BoxScope.SlideArea(
             items(playList.size) {
                 EpisodeWidget(
                     episode = playList[it],
-                    onClick = {
+                    modifier = Modifier.clickable {
                         onSelected(playList[it])
-                    },
-                    modifier = Modifier.padding(
+                    }.padding(
                         horizontal = 16.dp,
                         vertical = 12.dp
                     )

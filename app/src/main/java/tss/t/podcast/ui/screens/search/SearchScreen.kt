@@ -60,7 +60,7 @@ import tss.t.sharedlibrary.ui.widget.TSOutlinedTextField
 @Composable
 fun SearchScreen(
     initSearchText: String? = null,
-    trendingKeyword: String? = "Radio hay",
+    trendingKeyword: String = stringResource(R.string.search_suggest_key_title),
     onSearch: (String?) -> Unit = {},
     categories: List<CategoryRes.Category> = emptyList(),
     searchResult: List<Feed> = emptyList(),
@@ -166,7 +166,7 @@ fun SearchScreen(
             if (searchText.isNullOrEmpty()) {
                 item {
                     Text(
-                        "Thử tìm kiếm: $trendingKeyword",
+                        stringResource(R.string.try_search_with_keyword_title, trendingKeyword),
                         style = TextStyles.Title5,
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
@@ -188,7 +188,7 @@ fun SearchScreen(
                     val item = searchResult[index]
                     if (index == 0) {
                         Text(
-                            "Kết qủa hàng đầu cho: $searchText",
+                            stringResource(R.string.search_result_title, (searchText ?: "")),
                             style = TextStyles.Title5,
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
@@ -213,6 +213,7 @@ fun EmptySearchWidget(
     modifier: Modifier = Modifier,
     searchText: String?
 ) {
+    val context = LocalContext.current
     Column(
         modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -224,7 +225,7 @@ fun EmptySearchWidget(
         )
         Text(
             buildAnnotatedString {
-                append("Không có kết quả cho: ")
+                append(context.getString(R.string.empty_search_title))
                 withStyle(TextStyles.Title5.toSpanStyle()) {
                     append(searchText)
                 }

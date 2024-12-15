@@ -52,9 +52,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -73,6 +73,7 @@ import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -85,9 +86,12 @@ import androidx.compose.ui.util.fastRoundToInt
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.core.text.HtmlCompat
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import kotlinx.coroutines.launch
 import tss.t.ads.MaxAdViewComposable
 import tss.t.ads.MaxTemplateNativeAdViewComposable
 import tss.t.ads.MaxTemplateNativeAdViewComposableLoader
@@ -96,7 +100,7 @@ import tss.t.coreapi.models.Podcast
 import tss.t.podcast.LocalNavAnimatedVisibilityScope
 import tss.t.podcast.LocalSharedTransitionScope
 import tss.t.podcast.SharedElementKey
-import tss.t.podcast.ui.navigations.TSNavigators
+import tss.t.podcast.ui.navigations.TSRouter
 import tss.t.podcast.ui.screens.MainViewModel
 import tss.t.podcast.ui.screens.main.nonSpatialExpressiveSpring
 import tss.t.podcast.ui.screens.main.podcastDetailBoundsTransform
@@ -109,7 +113,6 @@ import tss.t.sharedlibrary.ui.widget.TSPopup
 import tss.t.sharedlibrary.ui.widget.ext.linkify
 import tss.t.sharedresources.R
 import tss.t.sharedresources.SharedConstants
-import kotlin.random.Random
 
 internal val dividerBrush = Brush.linearGradient(
     listOf(
@@ -127,19 +130,17 @@ private const val ITEM_AD_BANNER = "AdBanner"
 
 @Composable
 fun PodcastDetailScreen(
+    navHost: NavHostController,
     podcast: Podcast = Podcast.default,
     playList: List<Episode> = emptyList(),
     sharedElementKey: String? = null,
     mainViewModel: MainViewModel = viewModel<MainViewModel>(),
     podcastViewModel: PodcastViewModel = viewModel<PodcastViewModel>(),
-    playerViewmodel: PlayerViewModel = viewModel<PlayerViewModel>()
+    playerViewmodel: PlayerViewModel = viewModel<PlayerViewModel>(LocalViewModelStoreOwner.current!!)
 ) {
     LaunchedEffect(podcast, playList) {
         if (playList.isNotEmpty()) {
-            mainViewModel.setCurrentPodcast(podcast)
             podcastViewModel.setPodcastAndEpisodes(podcast, playList)
-        } else {
-            podcastViewModel.getEpisodes(podcast)
         }
     }
 
@@ -149,6 +150,7 @@ fun PodcastDetailScreen(
             podcastViewModel.onSavedState()
         }
     }
+    val coroutineScope = rememberCoroutineScope()
 
     val uiState by podcastViewModel.uiState.collectAsState()
     val showErrorDialog = remember(uiState) {
@@ -162,9 +164,9 @@ fun PodcastDetailScreen(
             podcastViewModel.dismissDialog()
         }) {
             TSPopup(
-                title = "Lỗi",
+                title = stringResource(R.string.dialog_error_title),
                 contentText = errorException ?: "",
-                positiveText = "Tải lại",
+                positiveText = stringResource(R.string.dialog_positive_btn_title),
                 onPositiveButtonClick = {
                     podcastViewModel.getEpisodes(podcast)
                 }
@@ -173,7 +175,7 @@ fun PodcastDetailScreen(
     }
     val listItems = remember(uiState) {
         if (uiState is PodcastViewModel.PodcastUIState.Success) {
-            (uiState as PodcastViewModel.PodcastUIState.Success).data
+            (uiState as PodcastViewModel.PodcastUIState.Success).episodes
         } else {
             emptyList()
         }
@@ -186,17 +188,19 @@ fun PodcastDetailScreen(
         sharedElementKey = sharedElementKey,
         listItems = listItems,
         renderItemList = renderItemList,
-        onBackPress = {
-            mainViewModel.popBackStack()
-        },
+        onBackPress = { navHost.popBackStack() },
         onItemClick = {
-            TSNavigators.navigateTo(
-                TSNavigators.Player(
-                    item = this,
-                    podcast = podcast,
-                    playList = (uiState as PodcastViewModel.PodcastUIState.Success).data
+            val episode = this
+            coroutineScope.launch {
+                playerViewmodel.playerEpisode(
+                    episode = episode,
+                    podcast = uiState.podcast,
+                    listItem = listItems
                 )
-            )
+                navHost.navigate(TSRouter.Player.route) {
+                    restoreState = true
+                }
+            }
         },
         scrollState = uiState.lazyListState ?: rememberLazyListState().also {
             podcastViewModel.initListState(it)
@@ -247,10 +251,10 @@ private fun PodcastDetailScreen(
         snapshotFlow { scrollState.layoutInfo.visibleItemsInfo.firstOrNull() }
             .collect {
                 val item = it ?: return@collect
-                showTopBar =
-                    (item.key == ITEM_KEY_COVER && item.offset > ExpandedImageSize.roundToPx())
-                            || item.key === ITEM_KEY_TITLE
-                            || item.index >= 3
+                showTopBar = (item.key == ITEM_KEY_COVER
+                        && item.offset > ExpandedImageSize.roundToPx())
+                        || item.key === ITEM_KEY_TITLE
+                        || item.index >= 3
             }
     }
     with(sharedTransitionScope) {
@@ -485,6 +489,7 @@ private fun PodcastDetailBody(
                     EpisodeWidget(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .clickable { onItemClick(item as Episode) }
                             .background(Color.White)
                             .padding(16.dp)
                             .drawWithContent {
@@ -494,7 +499,10 @@ private fun PodcastDetailBody(
                                 drawLine(
                                     dividerBrush,
                                     strokeWidth = dividerSize,
-                                    start = Offset(0f, size.height - dividerSize + contentPadding),
+                                    start = Offset(
+                                        0f,
+                                        size.height - dividerSize + contentPadding
+                                    ),
                                     end = Offset(
                                         size.width,
                                         size.height - dividerSize + contentPadding
@@ -502,7 +510,6 @@ private fun PodcastDetailBody(
                                 )
                             },
                         episode = item as? Episode,
-                        onClick = onItemClick,
                         isLoading = isLoading
                     )
                 }

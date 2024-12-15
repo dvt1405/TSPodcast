@@ -16,6 +16,7 @@ import androidx.media3.common.util.Util
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,40 +59,41 @@ class PlayerViewModel @Inject constructor(
     val playerControlState: StateFlow<PlayerControlState>
         get() = _playerControlState.asStateFlow()
 
-    fun playerEpisode(
+    suspend fun playerEpisode(
         episode: Episode,
         podcast: Podcast? = null,
         listItem: List<Episode> = emptyList()
     ) {
-        viewModelScope.launch {
+        viewModelScope.async {
             current = episode
-
-            val mediaItem = episode.toMediaItem(podcast?.title)
+            val playList = listItem.ifEmpty { _playerControlState.value.playList }
+            val currentPodcast = podcast ?: _playerControlState.value.podcast
+            val mediaItem = episode.toMediaItem(currentPodcast?.title)
             val isFav = isFavouriteUseCase(episode)
             _playerControlState.update {
                 it.copy(
                     currentMediaItem = mediaItem,
                     isLoading = true,
                     isFavourite = isFav,
-                    podcast = podcast,
-                    playList = listItem
+                    podcast = currentPodcast,
+                    playList = playList
                 )
             }
             currentPlayer.addListener(this@PlayerViewModel)
             playerManager.playMedia(
-                episode.toMediaItem(podcast?.title),
-                listItem.map {
-                    it.toMediaItem(podcast?.title)
+                currentItem = episode.toMediaItem(currentPodcast?.title),
+                mediaItems = playList.map {
+                    it.toMediaItem(currentPodcast?.title)
                 }
             )
             withContext(Dispatchers.IO) {
                 saveCurrentPlayingUseCase(
                     episode = episode,
-                    podcast = podcast,
-                    playList = listItem
+                    podcast = currentPodcast,
+                    playList = playList
                 )
             }
-        }
+        }.await()
     }
 
     fun onPlayPause() {
@@ -391,8 +393,8 @@ class PlayerViewModel @Inject constructor(
                 val episode = getEpisodeLocalUseCase(episodeId) ?: return@launch
                 val podcastAndEpisode = getEpisodeLocalUseCase.getRelated(episode.feedId)
                 playerEpisode(
-                    episode,
-                    podcastAndEpisode?.podcast,
+                    episode = episode,
+                    podcast = podcastAndEpisode?.podcast,
                     listItem = podcastAndEpisode?.episode ?: emptyList()
                 )
             }
@@ -436,7 +438,7 @@ fun Episode.toMediaItem(album: CharSequence? = null): MediaItem {
                 )
                 .setDisplayTitle(title)
                 .setIsPlayable(true)
-                .setArtworkUri(Uri.parse(image))
+                .setArtworkUri(Uri.parse(getImageUrl()))
                 .setDurationMs(duration)
                 .setAlbumTitle(album)
                 .setExtras(

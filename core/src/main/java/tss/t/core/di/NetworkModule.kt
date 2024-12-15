@@ -13,6 +13,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import tss.t.core.BuildConfig
 import tss.t.core.network.TSDataStateCallAdapterFactory
 import tss.t.coreapi.API
 import tss.t.coreapi.converter.MapStringStringJsonConverter
@@ -46,9 +47,13 @@ class NetworkModule {
                 request.header("User-Agent", NativeLib.getUserAgent())
                 return@Interceptor it.proceed(request.build())
             })
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                this.level = HttpLoggingInterceptor.Level.BODY
-            })
+            .apply {
+                if (BuildConfig.DEBUG) {
+                    addInterceptor(HttpLoggingInterceptor().apply {
+                        this.level = HttpLoggingInterceptor.Level.BODY
+                    })
+                }
+            }
             .build()
     }
 

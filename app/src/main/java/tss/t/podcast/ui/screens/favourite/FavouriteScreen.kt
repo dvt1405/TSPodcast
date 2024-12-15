@@ -17,10 +17,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import kotlinx.coroutines.launch
 import tss.t.ads.MaxAdViewComposable
+import tss.t.podcast.ui.navigations.TSRouter
+import tss.t.podcast.ui.screens.MainViewModel
 import tss.t.podcast.ui.screens.favourite.widgets.EmptyFavouriteWidget
 import tss.t.podcast.ui.screens.favourite.widgets.FavouriteItemWidget
 import tss.t.sharedfirebase.LocalAnalyticsScope
@@ -28,7 +33,9 @@ import tss.t.sharedfirebase.LocalAnalyticsScope
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavouriteScreen(
+    rootNavHost: NavHostController,
     listState: LazyListState,
+    mainViewModel: MainViewModel,
     innerPadding: PaddingValues,
     pullToRefreshState: PullToRefreshState,
     viewModel: FavouriteViewModel,
@@ -41,6 +48,8 @@ fun FavouriteScreen(
     LaunchedEffect(Unit) {
         viewModel.selectAll()
     }
+    val coroutineScope = rememberCoroutineScope()
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -71,7 +80,12 @@ fun FavouriteScreen(
                         horizontal = 16.dp
                     )
                 ) {
-                    viewModel.onFavSelected(it)
+                    coroutineScope.launch {
+                        viewModel.onFavSelected(it)?.let { podcast ->
+                            mainViewModel.setCurrentPodcast(podcast)
+                        }
+                        rootNavHost.navigate(TSRouter.PodcastDetail.route)
+                    }
                 }
             }
         }

@@ -136,7 +136,7 @@ class TSAnalytics @Inject constructor(
             Firebase.analytics.logEvent(
                 eventName,
                 bundleOf(*_defaultAttrs.toList().toTypedArray()).apply {
-                    putAll(bundleOf(*prop))
+                    putAll(bundleOf(*prop.filter { it.second != null }.toTypedArray()))
                     putLong("event_time_stamp", System.currentTimeMillis() / 1000)
                     putString("screen", screenName)
                 }

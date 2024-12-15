@@ -1,11 +1,11 @@
 package tss.t.podcast.ui.screens
 
-import android.util.Log
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -30,7 +30,7 @@ import tss.t.coreapi.models.Podcast
 import tss.t.coreapi.models.TSDataState
 import tss.t.coreapi.models.TrendingPodcastRes
 import tss.t.podcast.ui.model.HomeEvent
-import tss.t.podcast.ui.navigations.TSNavigators
+import tss.t.podcast.ui.navigations.NavConstants
 import tss.t.podcasts.usecase.GetEpisodeByFeedId
 import tss.t.podcasts.usecase.GetLiveEpisodes
 import tss.t.podcasts.usecase.GetPodcastByFeedID
@@ -55,9 +55,10 @@ data class MainInteractors @Inject constructor(
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
     private val interactors: MainInteractors,
     private val sharedPref: SharedPref
-) : ViewModel(), TSNavigators.Companion.Observer {
+) : ViewModel() {
     private var renderCount = 0
     private val _event by lazy {
         MutableSharedFlow<HomeEvent>(
@@ -85,9 +86,25 @@ class MainViewModel @Inject constructor(
     val uiState: StateFlow<UIState>
         get() = _uiState.asStateFlow()
 
+    private val _mapLazyListState by lazy {
+        mutableMapOf<String, LazyListState>()
+    }
+
     init {
         getTrending()
-        TSNavigators.add(this)
+    }
+
+    fun getLazyListState(key: String): LazyListState {
+        var cached = synchronized(_mapLazyListState) {
+            _mapLazyListState[key]
+        }
+        if (cached == null) {
+            cached = LazyListState()
+            synchronized(_mapLazyListState) {
+                _mapLazyListState[key] = cached
+            }
+        }
+        return cached
     }
 
     fun reload() {
@@ -251,66 +268,17 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private val _tabSelected by lazy {
-        MutableStateFlow<Int>(1)
-    }
-    val tabSelected: StateFlow<Int>
-        get() = _tabSelected.asStateFlow()
-
-    fun onTabSelected(tab: Int) {
-        _tabSelected.update {
-            tab
-        }
-    }
-
     fun setCurrentPodcast(
         podcast: Podcast,
         from: String? = null
     ) {
+        savedStateHandle[NavConstants.KEY_PODCAST] = podcast
         _uiState.update {
             it.copy(
                 currentPodcast = podcast,
                 from = from
             )
         }
-    }
-
-    fun onErrorDialogDismiss() {
-        _uiState.update {
-            it.copy(error = null, renderCount = ++renderCount)
-        }
-    }
-
-    fun popBackStack() {
-        if (TSNavigators.isRoot) {
-            doubleBackToExit()
-        } else {
-            TSNavigators.popBack()
-        }
-    }
-
-    private var _pendingExitApp = false
-    private var _doubleBackCount = 0
-    private fun doubleBackToExit() {
-        viewModelScope.launch {
-            if (!_pendingExitApp) {
-                _pendingExitApp = true
-                _doubleBackCount++
-                _event.emit(HomeEvent.ToastDoubleClickToExit)
-                delay(2_000L)
-                _pendingExitApp = false
-                _doubleBackCount = 0
-                return@launch
-            }
-            _doubleBackCount++
-            if (_doubleBackCount >= 2) {
-                _event.emit(HomeEvent.ExitApp)
-            }
-        }
-    }
-
-    private fun exitApp() {
-
     }
 
     data class UIState(
@@ -325,7 +293,6 @@ class MainViewModel @Inject constructor(
         val error: Throwable? = null,
         val currentPodcast: Podcast? = null,
         val from: String? = null,
-        val route: TSNavigators? = null,
         val episode: Episode? = null,
         val playList: List<Episode> = emptyList()
     )
@@ -339,19 +306,14 @@ class MainViewModel @Inject constructor(
         RecentEpisode(5)
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        TSNavigators.remove(this)
+    fun emitEvent(homeEvent: HomeEvent) {
+        viewModelScope.launch {
+            _event.emit(homeEvent)
+        }
     }
 
-    override fun onChanged(route: TSNavigators?) {
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    route = route,
-                )
-            }
-        }
+    fun getCurrentPodcast(): Podcast? {
+        return savedStateHandle[NavConstants.KEY_PODCAST]
     }
 
     companion object {

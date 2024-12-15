@@ -4,13 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tss.t.core.models.FavouriteDTO
-import tss.t.podcast.ui.navigations.TSNavigators
+import tss.t.coreapi.models.Podcast
 import tss.t.podcasts.usecase.favourite.SelectAllFavourite
 import tss.t.podcasts.usecase.favourite.SelectPodcastAndEpisodeByFavourite
 import javax.inject.Inject
@@ -44,13 +45,10 @@ class FavouriteViewModel @Inject constructor(
         }
     }
 
-    fun onFavSelected(fav: FavouriteDTO) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val podcast = _selectPodcastAndEpisodeByFavourite.invoke(fav) ?: return@launch
-            TSNavigators.navigateTo(
-                TSNavigators.PodcastDetail(podcast.podcast)
-            )
-        }
+    suspend fun onFavSelected(fav: FavouriteDTO): Podcast? {
+        return viewModelScope.async(Dispatchers.IO) {
+            _selectPodcastAndEpisodeByFavourite.invoke(fav)
+        }.await()?.podcast
     }
 
     data class FavouriteUIState(
