@@ -1,6 +1,14 @@
 <resources>
-    <string name="app_name">Podcast</string>
+    <string name="app_name">TSPodcast</string>
+    <string name="discorver_screen_title">Khám phá</string>
+    <string name="favourite_screen_title">Yêu thích</string>
+    <string name="search_screen_title">Tìm kiếm</string>
+
     <string name="search_hint_title">Tìm podcast, nghệ sĩ</string>
+    <string name="search_result_title">Kết qủa hàng đầu cho: %s</string>
+    <string name="try_search_with_keyword_title">Thử tìm kiếm: %s</string>
+    <string name="empty_search_title">Không có kết quả cho: </string>
+    <string name="search_suggest_key_title">Radio hay</string>
     <string name="empty_favourite_title">Không có chương trình yêu thích.</string>
     <string name="btn_discover_more_title">Khám phá thêm</string>
     <string name="double_click_to_exit">Nhấn nút quay lại để thoát</string>

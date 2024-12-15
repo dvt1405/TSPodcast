@@ -54,19 +54,14 @@ class OnboardingViewModel @Inject constructor(
     val categoryState: StateFlow<TSDataState<CategoryRes>>
         get() = _categoryState
 
-    var isOnboardingFinished = MutableStateFlow(
+    private val _onboardingStep = MutableStateFlow(
         OnboardingStep(
             isOnboardingDone = sharedPref.isOnboardingFinished(),
             isSelectedFavourite = sharedPref.hasSelectFavouriteCategory()
         )
     )
-
-    private val _renderCount by lazy {
-        MutableStateFlow(0)
-    }
-
-    val renderCount: StateFlow<Int>
-        get() = _renderCount
+    val onboardingStep: StateFlow<OnboardingStep>
+        get() = _onboardingStep
 
     val uiState: StateFlow<OnboardingUIState>
         get() = _uiState
@@ -88,7 +83,7 @@ class OnboardingViewModel @Inject constructor(
     }
 
     private fun checkOnBoardingFinish() {
-        isOnboardingFinished.update {
+        _onboardingStep.update {
             it.copy(isOnboardingDone = sharedPref.isOnboardingFinished())
         }
     }
@@ -99,7 +94,7 @@ class OnboardingViewModel @Inject constructor(
             "OnboardingFinished",
             "Onboarding"
         )
-        isOnboardingFinished.update {
+        _onboardingStep.update {
             it.copy(isOnboardingDone = sharedPref.isOnboardingFinished())
         }
     }
@@ -167,7 +162,7 @@ class OnboardingViewModel @Inject constructor(
 
     fun saveFavouriteItem() {
         sharedPref.saveFavouriteCategory(_listFavouriteCategory.value.toSet())
-        isOnboardingFinished.update {
+        _onboardingStep.update {
             it.copy(isSelectedFavourite = true)
         }
     }

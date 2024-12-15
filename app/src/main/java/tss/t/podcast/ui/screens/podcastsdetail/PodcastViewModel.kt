@@ -18,9 +18,9 @@ import tss.t.ads.NativeAd
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.EpisodeResponse
 import tss.t.coreapi.models.LiveEpisode
+import tss.t.coreapi.models.Podcast
 import tss.t.coreapi.models.PodcastByFeedIdRes
 import tss.t.coreapi.models.TSDataState
-import tss.t.coreapi.models.Podcast
 import tss.t.podcast.App
 import tss.t.podcasts.usecase.GetEpisodeByFeedId
 import tss.t.podcasts.usecase.GetPodcastByFeedID
@@ -37,7 +37,6 @@ data class PodcastInteractors @Inject constructor(
 class PodcastViewModel @Inject constructor(
     private val interactors: PodcastInteractors
 ) : ViewModel() {
-    private var _renderCount: Int = 0
 
     private val _uiState by lazy {
         MutableStateFlow<PodcastUIState>(PodcastUIState.Init)
@@ -59,11 +58,10 @@ class PodcastViewModel @Inject constructor(
                     ?: generateItemList(playList)
             }
             PodcastUIState.Success(
-                data = playList,
+                episodes = playList,
                 liveItems = emptyList(),
                 listRenderItems = renderItemList
             ).apply {
-                this.renderCount = ++_renderCount
                 this.lazyListState = _uiState.value.lazyListState
                 this.podcast = podcast
             }
@@ -112,6 +110,12 @@ class PodcastViewModel @Inject constructor(
     }
 
     fun getEpisodes(podcast: Podcast) {
+        if (_uiState.value is PodcastUIState.Success) {
+            val data = (_uiState.value as PodcastUIState.Success).episodes
+            if (data.isNotEmpty() && _uiState.value.podcast?.id == podcast.id) {
+                return
+            }
+        }
         (_uiState.value as? PodcastUIState.Success)?.listRenderItems?.forEach {
             if (it is MaxTemplateNativeAdViewComposableLoader) {
                 it.destroy()
@@ -119,8 +123,8 @@ class PodcastViewModel @Inject constructor(
         }
         _uiState.update {
             PodcastUIState.Loading.apply {
-                this.renderCount = ++_renderCount
                 this.lazyListState = it.lazyListState
+                this.podcast = podcast
             }
         }
 
@@ -130,11 +134,10 @@ class PodcastViewModel @Inject constructor(
             ) { rs1: TSDataState<EpisodeResponse>, rs2: TSDataState<PodcastByFeedIdRes> ->
                 if (rs1 is TSDataState.Success) {
                     PodcastUIState.Success(
-                        data = rs1.data.items,
+                        episodes = rs1.data.items,
                         liveItems = rs1.data.liveItems ?: emptyList(),
                         listRenderItems = generateItemList(rs1.data.items)
                     ).apply {
-                        this.renderCount = ++_renderCount
                         this.lazyListState = _uiState.value.lazyListState
                         this.podcast = podcast
                     }
@@ -142,7 +145,8 @@ class PodcastViewModel @Inject constructor(
                     PodcastUIState.Error(
                         exception = rs1.exception()
                     ).apply {
-                        this.renderCount = ++_renderCount
+                        this.lazyListState = _uiState.value.lazyListState
+                        this.podcast = podcast
                     }
                 }
             }.collectLatest {
@@ -163,6 +167,7 @@ class PodcastViewModel @Inject constructor(
         _uiState.update {
             val newState = it
             newState.lazyListState = lazyListState
+            newState.podcast = it.podcast
             newState
         }
     }
@@ -195,9 +200,15 @@ class PodcastViewModel @Inject constructor(
         }
     }
 
+    fun clearTempListState() {
+        _uiState.update {
+            it.lazyListState = null
+            it
+        }
+    }
+
     @Immutable
     sealed class PodcastUIState(
-        var renderCount: Int = 0,
         var podcast: Podcast? = null,
         var lazyListState: LazyListState? = null
     ) {
@@ -209,7 +220,7 @@ class PodcastViewModel @Inject constructor(
 
         @Immutable
         data class Success(
-            val data: List<Episode>,
+            val episodes: List<Episode>,
             val liveItems: List<LiveEpisode>,
             val listRenderItems: List<Any>
         ) : PodcastUIState()

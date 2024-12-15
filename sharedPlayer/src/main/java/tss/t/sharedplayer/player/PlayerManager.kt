@@ -2,7 +2,6 @@ package tss.t.sharedplayer.player
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player

@@ -3,8 +3,6 @@ package tss.t.podcast.ui.screens.player.widgets
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +24,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.launch
-import tss.t.sharedlibrary.theme.Colors
+import tss.t.podcast.ui.screens.podcastsdetail.toPx
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedresources.R
 
@@ -80,7 +80,15 @@ fun PlayerWidgetMain(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .background(Colors.White)
+                .background(
+                    Brush.radialGradient(
+                        listOf(
+                            Color(0xFFf1f4f9),
+                            Color(0xFFE2E9F3)
+                        ),
+                        radius = 100.dp.toPx()
+                    )
+                )
                 .height(60.dp)
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)

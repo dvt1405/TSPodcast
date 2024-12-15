@@ -1,6 +1,5 @@
 package tss.t.podcast.ui.screens.podcastsdetail.widgets
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,26 +27,39 @@ import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.ui.animations.skeleton.placeholder
 import tss.t.sharedresources.R
+import tss.t.sharedresources.SharedConstants
 
 val placeHolderShape = RoundedCornerShape(4.dp)
 val episodeCoverShape = RoundedCornerShape(12.dp)
+
 @Composable
 fun EpisodeWidget(
     modifier: Modifier = Modifier,
     episode: Episode? = null,
     isLoading: Boolean = false,
-    onClick: Episode.() -> Unit = {}
 ) {
     val context = LocalContext.current
     val imageRequest = remember(episode) {
         ImageRequest.Builder(context)
             .data(
                 episode?.image
+                    .takeIf {
+                        !it.isNullOrEmpty()
+                    }
+                    ?: episode?.feedImage
             )
             .addHeader(
-                "User-Agent",
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+                SharedConstants.USER_AGENT_KEY,
+                SharedConstants.USER_AGENT_WEB_VALUE
             )
+            .apply {
+                episode?.link?.let {
+                    this.addHeader(
+                        SharedConstants.REFERER_KEY,
+                        it
+                    )
+                }
+            }
             .placeholder(R.drawable.image_loader_place_holder_12dp)
             .error(R.drawable.onboarding_slide_7)
             .crossfade(true)
@@ -73,10 +85,7 @@ fun EpisodeWidget(
         }
     }
     Row(
-        modifier = modifier
-            .clickable {
-                episode?.let { onClick(it) }
-            },
+        modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         AsyncImage(

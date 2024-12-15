@@ -1,6 +1,5 @@
 package tss.t.podcast.ui.screens.player
 
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.DraggableState
@@ -20,13 +19,12 @@ import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,14 +33,14 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
+import androidx.navigation.NavHostController
 import com.google.gson.Gson
+import kotlinx.coroutines.launch
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.EpisodeResponse
 import tss.t.coreapi.models.Podcast
 import tss.t.coreapi.models.TrendingPodcastRes
-import tss.t.podcast.ui.navigations.TSNavigators
 import tss.t.podcast.ui.screens.player.widgets.PlayerArea
 import tss.t.podcast.ui.screens.player.widgets.SlideArea
 import tss.t.podcast.ui.screens.player.widgets.SlideAreaState
@@ -50,13 +48,15 @@ import tss.t.sharedlibrary.theme.Colors
 
 @Composable
 fun PlayerScreen(
+    navHost: NavHostController,
     episode: MediaItem,
-    viewmodel: PlayerViewModel = viewModel(viewModelStoreOwner = LocalContext.current as ComponentActivity)
+    viewmodel: PlayerViewModel
 ) {
     val playerControlUIState by viewmodel.playerControlState.collectAsState()
     var slideState by remember {
         mutableStateOf(SlideAreaState.Hidden)
     }
+    val coroutineScope = rememberCoroutineScope()
     PlayerScreen(
         podcast = playerControlUIState.podcast,
         episode = episode,
@@ -84,10 +84,14 @@ fun PlayerScreen(
         },
         onLoop = {},
         onSelected = {
-            viewmodel.playerEpisode(this)
+            val selectedEpisode = this
+            coroutineScope.launch {
+                viewmodel.playerEpisode(selectedEpisode)
+                slideState = SlideAreaState.Hidden
+            }
         },
         onClosePlayer = {
-            TSNavigators.popBack()
+            navHost.popBackStack()
         },
         onSeek = {
             viewmodel.seekTo(it)
@@ -96,69 +100,10 @@ fun PlayerScreen(
         onSlideStateChanged = {
             slideState = it
         },
-        isEpisodeFavourite = playerControlUIState.isFavourite
-    )
-}
-
-@Composable
-fun PlayerScreen(
-    podcast: Podcast,
-    episode: Episode,
-    playList: List<Episode>,
-    viewmodel: PlayerViewModel = viewModel(viewModelStoreOwner = LocalContext.current as ComponentActivity)
-) {
-    LaunchedEffect(episode) {
-        viewmodel.playerEpisode(
-            episode,
-            podcast,
-            playList
-        )
-    }
-    var slideState by remember {
-        mutableStateOf(SlideAreaState.Hidden)
-    }
-    val playerControlUIState by viewmodel.playerControlState.collectAsState()
-
-    PlayerScreen(
-        podcast = podcast,
-        episode = playerControlUIState.currentMediaItem ?: episode.toMediaItem(podcast.title),
-        playList = playList,
-        isPlaying = playerControlUIState.isPlaying,
-        contentDuration = playerControlUIState.totalDuration,
-        currentPosition = playerControlUIState.currentDuration,
-        progress = {
-            playerControlUIState.currentProgress
-        },
-        onFavourite = {
-            viewmodel.onFavouriteChanged(it)
-        },
-        onSkipToNext = {
-            viewmodel.onSkipToNext()
-        },
-        onSkipPrevious = {
-            viewmodel.onSkipToPrevious()
-        },
-        onPlayPause = {
-            viewmodel.onPlayPause()
-        },
-        onPlayListClick = {
-            slideState = SlideAreaState.Expanded
-        },
-        onLoop = {},
-        onSelected = {
-            viewmodel.playerEpisode(this, podcast, playList)
-        },
-        onClosePlayer = {
-            TSNavigators.popBack()
-        },
-        onSeek = {
-            viewmodel.seekTo(it)
-        },
-        onSlideStateChanged = {
-            slideState = it
-        },
-        slideState = slideState,
-        isEpisodeFavourite = playerControlUIState.isFavourite
+        isEpisodeFavourite = playerControlUIState.isFavourite,
+        onDismissSlideArea = {
+            slideState = SlideAreaState.Hidden
+        }
     )
 }
 
@@ -181,6 +126,7 @@ internal fun PlayerScreen(
     onSeek: (Float) -> Unit = {},
     onSelected: Episode.() -> Unit = {},
     onClosePlayer: () -> Unit = {},
+    onDismissSlideArea: () -> Unit = {},
     isEpisodeFavourite: Boolean = false,
     onSlideStateChanged: (SlideAreaState) -> Unit = {},
 ) {
@@ -205,7 +151,9 @@ internal fun PlayerScreen(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .clickable(onClick = onClosePlayer)
+                    .clickable(onClick = {
+                        onClosePlayer()
+                    })
                     .padding(12.dp)
             )
             Icon(
@@ -217,7 +165,11 @@ internal fun PlayerScreen(
                     .clip(CircleShape)
                     .rotate(90f)
                     .clickable {
-
+                        if (slideState == SlideAreaState.Hidden) {
+                            onClosePlayer()
+                        } else {
+                            onDismissSlideArea()
+                        }
                     }
                     .padding(12.dp),
             )

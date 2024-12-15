@@ -17,9 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -39,7 +37,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.MediaItem
 import tss.t.ads.MaxAdViewComposable
 import tss.t.coreapi.models.LiveEpisode
 import tss.t.coreapi.models.Podcast
@@ -55,6 +52,7 @@ import tss.t.podcast.ui.screens.discorver.components.RecentRow
 import tss.t.podcast.ui.screens.discorver.components.TrendingRow
 import tss.t.podcast.ui.screens.discorver.widgets.FavouriteWidget
 import tss.t.podcast.ui.screens.discorver.widgets.Indicator
+import tss.t.podcast.ui.screens.player.PlayerViewModel
 import tss.t.sharedfirebase.LocalAnalyticsScope
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
@@ -69,6 +67,7 @@ private const val ITEM_AD_BANNER_1 = "AdBanner1"
 private const val ITEM_TRENDING_ROW = "TrendingRow"
 private const val ITEM_TRENDING_TITLE = "TrendingTitle"
 private const val ITEM_SPACE_TOP = "SpaceTop"
+private const val ITEM_FAV_CATEGORIES = "FavouritesCategories"
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -76,30 +75,27 @@ private const val ITEM_SPACE_TOP = "SpaceTop"
 )
 @Composable
 fun DiscoverPodcastsScreen(
-    isRefreshing: Map<Int, Boolean> = emptyMap(),
+    uiState: MainViewModel.UIState = MainViewModel.UIState(),
+    playerControlState: PlayerViewModel.PlayerControlState,
+    hazeState: HazeState,
+    innerPadding: PaddingValues,
     showLoading: Boolean = true,
     onRefresh: () -> Unit,
-    hazeState: HazeState,
-    pullRefreshState: PullToRefreshState,
-    innerPadding: PaddingValues,
-    listTrending: List<Podcast>,
-    listFav: List<Podcast>,
-    liveEpisode: List<List<LiveEpisode>> = emptyList(),
-    pagerState: PagerState = rememberPagerState() { liveEpisode.size },
-    recentFeeds: List<Podcast> = emptyList(),
-    recentNewFeeds: List<Podcast> = emptyList(),
     onTrendingClick: Podcast.() -> Unit = {},
     onFavClick: Podcast.() -> Unit = {},
     onLiveItemClick: LiveEpisode.() -> Unit = {},
-    listState: LazyListState = rememberLazyListState(),
-    trendingRowState: LazyListState = rememberLazyListState(),
-    renderCount: Int = 0,
-    recentFeedState: LazyListState = rememberLazyListState(),
-    currentMediaItem: MediaItem? = null
 ) {
     val sharedTransitionScope = LocalSharedTransitionScope.current!!
     val animatedContentScope = LocalNavAnimatedVisibilityScope.current!!
     val infiniteTransition = rememberInfiniteTransition(label = "InfiniteTransition")
+    val parentListState = rememberLazyListState()
+    val trendingRowState = rememberLazyListState()
+    val recentFeedState = rememberLazyListState()
+    val pagerState = rememberPagerState { uiState.liveEpisode.size }
+    val currentMediaItem = remember(playerControlState.currentMediaItem?.mediaId) {
+        playerControlState.currentMediaItem
+    }
+
     val placeHolderColor by infiniteTransition.animateColor(
         initialValue = Colors.Primary10.copy(alpha = 0.3f),
         targetValue = Colors.Secondary.copy(alpha = 0.3f),
@@ -112,18 +108,20 @@ fun DiscoverPodcastsScreen(
         ),
         label = "Color"
     )
-    val isFavRefreshing =
-        remember(key1 = isRefreshing[MainViewModel.HomepageDataPart.Favourite.value]) {
-            isRefreshing[MainViewModel.HomepageDataPart.Favourite.value] ?: true
-        }
 
-    val pullToRefreshThreshHold = remember(innerPadding) {
+    val isFavRefreshing = remember(key1 = uiState.isDataPartLoading) {
+        uiState.isDataPartLoading[MainViewModel.HomepageDataPart.Favourite.value] ?: true
+    }
+
+    val pullToRefreshThreshHold = remember(innerPadding.calculateTopPadding()) {
         50.dp + innerPadding.calculateTopPadding()
     }
-    var isLoading by remember(showLoading) {
+    var isLoading by remember {
         mutableStateOf(showLoading)
     }
-    LaunchedEffect(showLoading, renderCount) {
+    val pullRefreshState: PullToRefreshState = rememberPullToRefreshState()
+
+    LaunchedEffect(showLoading) {
         isLoading = showLoading
     }
     PullToRefreshBox(
@@ -157,7 +155,7 @@ fun DiscoverPodcastsScreen(
                 .graphicsLayer {
                     translationY = pullRefreshState.distanceFraction * 50.dp.toPx()
                 },
-            state = listState
+            state = parentListState
         ) {
             item(key = ITEM_SPACE_TOP) {
                 Spacer(modifier = Modifier.size(innerPadding.calculateTopPadding()))
@@ -176,10 +174,10 @@ fun DiscoverPodcastsScreen(
             item(key = ITEM_TRENDING_ROW) {
                 TrendingRow(
                     trendingRowState = trendingRowState,
-                    isRefreshing = isRefreshing[MainViewModel.HomepageDataPart.Trending.value]
+                    isRefreshing = uiState.isDataPartLoading[MainViewModel.HomepageDataPart.Trending.value]
                         ?: true,
                     placeHolderColor = placeHolderColor,
-                    listTrending = listTrending,
+                    listTrending = uiState.listTrending,
                     sharedTransitionScope = sharedTransitionScope,
                     animatedContentScope = animatedContentScope,
                     onTrendingClick = onTrendingClick
@@ -203,9 +201,9 @@ fun DiscoverPodcastsScreen(
             }
             item(key = ITEM_LIVE_ROW) {
                 LiveRow(
-                    isRefreshing = isRefreshing[MainViewModel.HomepageDataPart.LiveEpisode.value]
+                    isRefreshing = uiState.isDataPartLoading[MainViewModel.HomepageDataPart.LiveEpisode.value]
                         ?: true,
-                    liveEpisode = liveEpisode,
+                    liveEpisode = uiState.liveEpisode,
                     pagerState = pagerState,
                     onClick = onLiveItemClick
                 )
@@ -223,10 +221,10 @@ fun DiscoverPodcastsScreen(
             }
             item(key = ITEM_RECENT_ROW) {
                 RecentRow(
-                    isRefreshing = isRefreshing[MainViewModel.HomepageDataPart.RecentFeed.value]
+                    isRefreshing = uiState.isDataPartLoading[MainViewModel.HomepageDataPart.RecentFeed.value]
                         ?: true,
                     placeHolderColor,
-                    recentFeeds,
+                    uiState.recentFeeds,
                     sharedTransitionScope,
                     animatedContentScope,
                     recentFeedState,
@@ -245,12 +243,21 @@ fun DiscoverPodcastsScreen(
                 )
             }
 
-            items(if (isFavRefreshing) 50 else listFav.size) {
+            items(if (isFavRefreshing) 50 else uiState.listFav.size,
+                key = {
+                    if (isFavRefreshing) {
+                        ITEM_FAV_CATEGORIES
+                            .plus("Loading")
+                            .plus(it)
+                    } else {
+                        uiState.listFav[it].id
+                    }
+                }) {
                 FavouriteWidget(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
                         .padding(top = 16.dp),
-                    podcast = if (!isFavRefreshing) listFav[it] else Podcast.default,
+                    podcast = if (!isFavRefreshing) uiState.listFav[it] else Podcast.default,
                     isLoading = isFavRefreshing
                 ) {
                     onFavClick(this)
@@ -273,7 +280,7 @@ fun DiscoverPodcastsScreen(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 @Preview(backgroundColor = 0xFFE1D5D5)
 fun DiscoverPodcastsScreenPreview() {
@@ -286,23 +293,20 @@ fun DiscoverPodcastsScreenPreview() {
                 ) {
                     if (it) {
                         DiscoverPodcastsScreen(
-                            isRefreshing = emptyMap(),
+                            hazeState = remember { HazeState() },
+                            innerPadding = PaddingValues(),
+                            showLoading = true,
                             onRefresh = {
 
                             },
-                            hazeState = remember { HazeState() },
-                            pullRefreshState = rememberPullToRefreshState(),
-                            innerPadding = PaddingValues(),
-                            listTrending = listOf(),
-                            listFav = listOf(),
                             onTrendingClick = {
 
                             },
                             onFavClick = {
 
                             },
-                            listState = rememberLazyListState(),
-                            showLoading = true
+                            uiState = MainViewModel.UIState(),
+                            playerControlState = PlayerViewModel.PlayerControlState()
                         )
                     } else {
                         Box { }
