@@ -22,7 +22,6 @@ import tss.t.core.storage.SharedPref
 import tss.t.core.storage.getFavouriteCategory
 import tss.t.coreapi.Constants
 import tss.t.coreapi.models.BaseResponse
-import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.EpisodeResponse
 import tss.t.coreapi.models.LiveEpisode
 import tss.t.coreapi.models.LiveResponse
@@ -31,6 +30,8 @@ import tss.t.coreapi.models.TSDataState
 import tss.t.coreapi.models.TrendingPodcastRes
 import tss.t.podcast.ui.model.HomeEvent
 import tss.t.podcast.ui.navigations.NavConstants
+import tss.t.podcast.ui.screens.uimodels.main.HomepageDataPart
+import tss.t.podcast.ui.screens.uimodels.main.UIState
 import tss.t.podcasts.usecase.GetEpisodeByFeedId
 import tss.t.podcasts.usecase.GetLiveEpisodes
 import tss.t.podcasts.usecase.GetPodcastByFeedID
@@ -281,31 +282,6 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    data class UIState(
-        val renderCount: Int = 0,
-        val listTrending: List<Podcast> = emptyList(),
-        val listFav: List<Podcast> = emptyList(),
-        val liveEpisode: List<List<LiveEpisode>> = _dumpList,
-        val recentFeeds: List<Podcast> = emptyList(),
-        val recentNewFeeds: List<Podcast> = emptyList(),
-        val isDataPartLoading: MutableMap<Int, Boolean> = mutableMapOf(),
-        val showLoadingView: Boolean = true,
-        val error: Throwable? = null,
-        val currentPodcast: Podcast? = null,
-        val from: String? = null,
-        val episode: Episode? = null,
-        val playList: List<Episode> = emptyList()
-    )
-
-    enum class HomepageDataPart(val value: Int) {
-        Trending(0),
-        Favourite(1),
-        LiveEpisode(2),
-        RecentFeed(3),
-        RecentNewFeeds(4),
-        RecentEpisode(5)
-    }
-
     fun emitEvent(homeEvent: HomeEvent) {
         viewModelScope.launch {
             _event.emit(homeEvent)
@@ -314,20 +290,5 @@ class MainViewModel @Inject constructor(
 
     fun getCurrentPodcast(): Podcast? {
         return savedStateHandle[NavConstants.KEY_PODCAST]
-    }
-
-    companion object {
-        private val _dumpList by lazy {
-            listOf(
-                LiveEpisode.default,
-                LiveEpisode.default,
-                LiveEpisode.default,
-                LiveEpisode.default,
-                LiveEpisode.default,
-                LiveEpisode.default,
-                LiveEpisode.default,
-                LiveEpisode.default,
-            ).chunked(3)
-        }
     }
 }

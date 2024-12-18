@@ -70,6 +70,7 @@ import tss.t.podcast.ui.screens.player.PlayerViewModel
 import tss.t.podcast.ui.screens.podcastsdetail.PodcastViewModel
 import tss.t.podcast.ui.screens.search.SearchScreen
 import tss.t.podcast.ui.screens.search.SearchViewModel
+import tss.t.podcast.ui.screens.uimodels.main.UIState
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 
@@ -230,7 +231,7 @@ private fun HomeNavHost(
     favViewModel: FavouriteViewModel,
     animationScope: AnimatedVisibilityScope = LocalNavAnimatedVisibilityScope.current!!,
     hazeState: HazeState,
-    dashboardUIState: MainViewModel.UIState,
+    dashboardUIState: UIState,
     playerControlState: PlayerViewModel.PlayerControlState,
     innerPadding: PaddingValues
 ) {
