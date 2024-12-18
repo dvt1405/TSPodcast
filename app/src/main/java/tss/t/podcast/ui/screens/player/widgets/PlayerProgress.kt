@@ -63,7 +63,7 @@ fun PlayerProgress(
         }
     }
 
-    val animateProgress = remember {
+    val animateProgress = remember(progress) {
         Animatable(progress)
     }
     val coroutineScope = rememberCoroutineScope()
@@ -123,7 +123,8 @@ fun PlayerProgress(
             Colors.Primary,
             radius = 4.dp.toPx() * animateScaleY,
             center = Offset(
-                x = (size.width - 4.dp.toPx()) * animateProgress.value,
+                x = ((size.width - 4.dp.toPx()) * animateProgress.value)
+                    .coerceIn(0f, size.width),
                 y = size.height / 2 * animateScaleY
             )
         )
@@ -137,11 +138,12 @@ fun PlayerProgress(
                 style = TextStyles.SubTitle4,
                 maxLines = 1,
             )
+
             drawText(
                 textLayoutResult = textLayout,
                 topLeft = Offset(
                     x = (size.width - 4.dp.toPx()) * animateProgress.value - textLayout.size.width / 2,
-                    y = size.height
+                    y = -textLayout.size.height.toFloat()
                 )
             )
         }
