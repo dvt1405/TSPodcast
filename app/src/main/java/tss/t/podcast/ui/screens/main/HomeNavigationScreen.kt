@@ -36,6 +36,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +53,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import kotlinx.coroutines.launch
+import tss.t.coreapi.models.Episode
+import tss.t.coreapi.models.Podcast
 import tss.t.hazeandroid.HazeDefaults
 import tss.t.hazeandroid.HazeState
 import tss.t.hazeandroid.HazeStyle
@@ -240,6 +244,8 @@ private fun HomeNavHost(
     val searchViewModel = viewModel<SearchViewModel>(viewmodelStore)
     val mainViewModel: MainViewModel = viewModel(viewmodelStore)
     val podcastViewModel: PodcastViewModel = viewModel(viewmodelStore)
+    val playerViewModel: PlayerViewModel = viewModel(viewmodelStore)
+    val coroutineScope = rememberCoroutineScope()
     NavHost(
         navController = innerNavHost,
         startDestination = TSHomeRouter.Discover.route,
@@ -267,7 +273,13 @@ private fun HomeNavHost(
                         parentNavHost.navigate(TSRouter.PodcastDetail.route)
                     },
                     onLiveItemClick = {
-                        parentNavHost.navigate(TSRouter.Player.route)
+                        coroutineScope.launch {
+                            playerViewModel.playLive(
+                                liveEpisode = this@DiscoverPodcastsScreen,
+                                listItem = dashboardUIState.liveEpisode.flatten()
+                            )
+                            parentNavHost.navigate(TSRouter.Player.route)
+                        }
                     },
                 )
             }
@@ -323,7 +335,10 @@ private fun HomeNavHost(
                         innerPadding.calculateBottomPadding() + 86.dp
                     }
                 ),
-                onSearchSelected = { _ ->
+                onSearchSelected = { feed ->
+                    val podcast = Podcast.fromFeed(feed)
+                    mainViewModel.setCurrentPodcast(podcast)
+                    podcastViewModel.getEpisodes(podcast)
                     parentNavHost.navigate(TSRouter.PodcastDetail.route)
                 }
             )

@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import tss.t.coreapi.Constants
 import tss.t.coreapi.models.Episode
+import tss.t.coreapi.models.LiveEpisode
 import tss.t.coreapi.models.Podcast
 import tss.t.podcasts.usecase.favourite.DeleteFavouriteUseCase
 import tss.t.podcasts.usecase.favourite.IsFavouriteUseCase
@@ -399,6 +400,43 @@ class PlayerViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    suspend fun playLive(
+        liveEpisode: LiveEpisode,
+        listItem: List<LiveEpisode>
+    ) {
+        val item = Episode.fromLive(liveEpisode)
+        val playList = listItem.map {
+            Episode.fromLive(it)
+        }
+        val podcast = Podcast(
+            categories = liveEpisode.categories,
+            dateCrawled = liveEpisode.dateCrawled,
+            datePublished = liveEpisode.datePublished,
+            datePublishedPretty = liveEpisode.datePublishedPretty,
+            enclosureLength = liveEpisode.enclosureLength,
+            enclosureType = liveEpisode.enclosureType,
+            enclosureUrl = liveEpisode.enclosureUrl,
+            explicit = liveEpisode.explicit,
+            feedId = liveEpisode.feedId,
+            feedImage = liveEpisode.feedImage,
+            feedItunesId = liveEpisode.feedItunesId,
+            feedLanguage = liveEpisode.feedLanguage,
+            feedTitle = liveEpisode.title,
+            guid = liveEpisode.guid,
+            id = liveEpisode.feedId,
+            image = liveEpisode.image,
+            link = liveEpisode.link,
+            title = liveEpisode.title,
+            description = liveEpisode.description
+
+        )
+        playerEpisode(
+            episode = item,
+            listItem = playList,
+            podcast = podcast
+        )
     }
 
     @Immutable

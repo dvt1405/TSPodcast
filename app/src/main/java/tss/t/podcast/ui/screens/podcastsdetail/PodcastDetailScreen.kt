@@ -59,6 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
@@ -69,7 +70,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -81,14 +86,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastRoundToInt
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
+import androidx.core.graphics.drawable.toBitmapOrNull
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.MediaItem
 import androidx.navigation.NavHostController
+import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.launch
@@ -111,6 +120,7 @@ import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.ui.widget.TSPopup
 import tss.t.sharedlibrary.ui.widget.ext.linkify
+import tss.t.sharedlibrary.utils.imageRequestBuilder
 import tss.t.sharedresources.R
 import tss.t.sharedresources.SharedConstants
 
@@ -159,6 +169,7 @@ fun PodcastDetailScreen(
     val errorException = remember(uiState) {
         (uiState as? PodcastViewModel.PodcastUIState.Error)?.exception?.message
     }
+    val playerUIState by playerViewmodel.playerControlState.collectAsState()
     if (showErrorDialog) {
         Dialog(onDismissRequest = {
             podcastViewModel.dismissDialog()
@@ -202,6 +213,7 @@ fun PodcastDetailScreen(
                 }
             }
         },
+        currentMediaItem = playerUIState.currentMediaItem,
         scrollState = uiState.lazyListState ?: rememberLazyListState().also {
             podcastViewModel.initListState(it)
         }
@@ -215,6 +227,7 @@ private fun PodcastDetailScreen(
     listItems: List<Episode> = emptyList(),
     renderItemList: List<Any> = emptyList<Any>(),
     scrollState: LazyListState = rememberLazyListState(),
+    currentMediaItem: MediaItem? = null,
     onBackPress: () -> Unit = {},
     onItemClick: Episode.() -> Unit = {}
 ) {
@@ -281,7 +294,7 @@ private fun PodcastDetailScreen(
             PodcastDetailTopAppBar(podcast) {
                 onBackPress()
             }
-            Header(podcastID = podcast.id)
+            Header(podcast = podcast)
             Row(
                 modifier = Modifier
                     .statusBarsPadding()
@@ -308,6 +321,7 @@ private fun PodcastDetailScreen(
                 animatedContentScope = animatedContentScope,
                 listItems = listItems,
                 renderItemList = renderItemList,
+                currentMediaItem = currentMediaItem,
                 onItemClick = onItemClick
             )
         }
@@ -322,6 +336,7 @@ private fun PodcastDetailBody(
     animatedContentScope: AnimatedVisibilityScope,
     listItems: List<Episode>,
     renderItemList: List<Any>,
+    currentMediaItem: MediaItem? = null,
     onItemClick: Episode.() -> Unit
 ) {
     val sharedTransition = LocalSharedTransitionScope.current!!
@@ -337,6 +352,9 @@ private fun PodcastDetailBody(
         }
     }
 
+    val isPlayingMedia = remember(currentMediaItem) {
+        currentMediaItem != null
+    }
     with(sharedTransition) {
         LazyColumn(
             modifier = Modifier
@@ -520,6 +538,9 @@ private fun PodcastDetailBody(
                         .navigationBarsPadding()
                         .size(20.dp)
                 )
+                if (isPlayingMedia) {
+                    Spacer(Modifier.size(60.dp))
+                }
             }
         }
     }
@@ -592,8 +613,8 @@ fun PodcastDetailTopAppBar(
 }
 
 @Composable
-private fun Header(podcastID: Long) {
-    val brushColors = listOf(Color(0xff7057f5), Color(0xff86f7fa))
+private fun Header(podcast: Podcast) {
+    val brushColors = listOf(Color(0xDCF9FFFF), Color(0xFFDCF9FF))
 
     val infiniteTransition = rememberInfiniteTransition(label = "background")
     val targetOffset = with(LocalDensity.current) {
@@ -608,11 +629,29 @@ private fun Header(podcastID: Long) {
         ),
         label = "offset"
     )
+    val context = LocalContext.current
+    val imageLoader = remember {
+        ImageLoader(context)
+    }
+    var imageBitmap: ImageBitmap? by remember {
+        mutableStateOf(null)
+    }
+
+    LaunchedEffect(podcast) {
+        imageBitmap = imageLoader.execute(
+            imageRequestBuilder(context)
+                .diskCacheKey(podcast.image.ifEmpty { podcast.feedImage })
+                .data(podcast.image.ifEmpty { podcast.feedImage })
+                .build()
+        ).drawable
+            ?.toBitmapOrNull()
+            ?.asImageBitmap()
+    }
     Spacer(
         modifier = Modifier
-            .height(GradientScroll)
+            .height(GradientScroll + 50.dp)
             .fillMaxWidth()
-            .blur(40.dp)
+            .blur(50.dp, BlurredEdgeTreatment.Unbounded)
             .drawWithCache {
                 val brushSize = 400f
                 val brush = Brush.linearGradient(
@@ -623,6 +662,18 @@ private fun Header(podcastID: Long) {
                 )
                 onDrawBehind {
                     drawRect(brush)
+                    imageBitmap?.let { img ->
+                        drawIntoCanvas {
+                            it.drawImageRect(
+                                image = img,
+                                dstSize = IntSize(size.width.toInt(), size.height.toInt()),
+                                paint = Paint().apply {
+                                    alpha = 0.7f
+                                }
+
+                            )
+                        }
+                    }
                 }
             }
     )

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -17,6 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -55,7 +59,18 @@ fun BoxScope.PlayerArea(
     val formatter = remember {
         Formatter(formatBuilder, Locale.getDefault())
     }
-
+    AsyncImage(
+        model = imageRequestBuilder(LocalContext.current)
+            .diskCacheKey(episode.mediaMetadata.artworkUri.toString())
+            .data(episode.mediaMetadata.artworkUri)
+            .build(),
+        contentDescription = episode.mediaMetadata.title.toString(),
+        modifier = Modifier
+            .fillMaxSize()
+            .blur(50.dp, BlurredEdgeTreatment.Unbounded)
+            .alpha(0.6f)
+            .clip(RoundedCornerShape(12.dp))
+    )
     Column(
         modifier = Modifier
             .statusBarsPadding()
@@ -68,6 +83,7 @@ fun BoxScope.PlayerArea(
         ) {
             AsyncImage(
                 model = imageRequestBuilder(LocalContext.current)
+                    .diskCacheKey(episode.mediaMetadata.artworkUri.toString())
                     .data(episode.mediaMetadata.artworkUri)
                     .build(),
                 contentDescription = episode.mediaMetadata.title.toString(),
@@ -99,7 +115,7 @@ fun BoxScope.PlayerArea(
             maxLines = 1
         )
         PlayerProgress(
-            progress(),
+            progress = progress(),
             start = 0L,
             end = contentDuration,
             onProgressChanged = {
