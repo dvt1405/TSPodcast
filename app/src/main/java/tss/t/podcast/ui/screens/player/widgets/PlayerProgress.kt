@@ -80,7 +80,6 @@ fun PlayerProgress(
             .pointerInput(Unit) {
                 detectHorizontalDragGestures(
                     onHorizontalDrag = { p, dragAmount ->
-                        p.scrollDelta.x
                         if (isDragging) {
                             coroutineScope.launch {
                                 val targetValue = dragAmount / size.width + animateProgress.value
@@ -120,7 +119,11 @@ fun PlayerProgress(
                     Colors.Secondary
                 )
             ),
-            size = Size(size.width * animateProgress.value, size.height * 0.5f * animateScaleY),
+            size = Size(
+                (size.width * animateProgress.value)
+                    .coerceIn(0f, size.width),
+                size.height * 0.5f * animateScaleY
+            ),
             topLeft = Offset(0f, size.height * 0.25f * animateScaleY),
             cornerRadius = CornerRadius(100.dp.toPx())
         )
