@@ -88,8 +88,6 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var bannerAdsManager: BannerAdsManager
 
-    @Inject
-    lateinit var nativeAdsManager: NativeAdsManager
     private var navHostController: NavHostController? = null
     private var homeInnerNavHostController: NavHostController? = null
 
@@ -133,7 +131,6 @@ class MainActivity : ComponentActivity() {
                         LocalPullToRefreshState provides pullRefreshState,
                         LocalAnalyticsScope provides tsAnalytics,
                         LocalBannerAdsManagerScope provides bannerAdsManager,
-                        LocalNativeAdsManagerScope provides nativeAdsManager
                     ) {
                         TSNavGraph(
                             innerNavHost = innerNavGraph,

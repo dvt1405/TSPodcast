@@ -3,6 +3,8 @@ package tss.t.podcast.ui.screens.player
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.DraggableState
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -133,10 +135,32 @@ internal fun PlayerScreen(
     var dragDelta by remember {
         mutableFloatStateOf(0f)
     }
+    var fling by remember {
+        mutableFloatStateOf(0f)
+    }
     val draggableState: DraggableState = rememberDraggableState {
         dragDelta = it
     }
-    Box(modifier = Modifier.fillMaxWidth()) {
+    var isDragging by remember {
+        mutableStateOf(false)
+    }
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .draggable(
+            state = rememberDraggableState {
+                dragDelta = it
+            },
+            orientation = Orientation.Vertical,
+            onDragStarted = {
+                dragDelta = 0f
+                isDragging = true
+            },
+            onDragStopped = {
+                isDragging = false
+                fling = it
+            }
+        )
+    ) {
         Row(
             modifier = Modifier
                 .statusBarsPadding()
@@ -195,8 +219,10 @@ internal fun PlayerScreen(
             draggableState = draggableState,
             dragDelta = dragDelta,
             onSelected = onSelected,
+            isDragInProgress = isDragging,
             state = slideState,
-            onStateChanged = onSlideStateChanged
+            onStateChanged = onSlideStateChanged,
+            fling = fling
         )
     }
 }
