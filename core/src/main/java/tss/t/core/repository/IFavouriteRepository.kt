@@ -5,7 +5,8 @@ import tss.t.core.models.FavouriteDTO
 enum class MediaType {
     Podcast,
     Radio,
-    PodcastEpisode
+    PodcastEpisode,
+    TVChannel,
 }
 
 interface IFavouriteRepository {

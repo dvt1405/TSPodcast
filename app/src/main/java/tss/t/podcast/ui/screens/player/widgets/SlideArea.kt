@@ -47,9 +47,9 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.MediaItem
 import kotlinx.coroutines.launch
 import tss.t.ads.MaxAdViewComposable
-import tss.t.coreapi.models.Episode
 import tss.t.podcast.ui.screens.podcastsdetail.toPx
 import tss.t.podcast.ui.screens.podcastsdetail.widgets.EpisodeWidget
 import tss.t.sharedfirebase.LocalAnalyticsScope
@@ -66,7 +66,7 @@ enum class SlideAreaState {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BoxScope.SlideArea(
-    playList: List<Episode>,
+    playList: List<MediaItem>,
     state: SlideAreaState = SlideAreaState.Expanded,
     listState: LazyListState = rememberLazyListState(),
     draggableState: DraggableState = rememberDraggableState {},
@@ -74,7 +74,7 @@ fun BoxScope.SlideArea(
     dragDelta: Float = 0f,
     fling: Float = 0f,
     onStateChanged: (SlideAreaState) -> Unit = {},
-    onSelected: Episode.() -> Unit = {},
+    onSelected: MediaItem.() -> Unit = {},
 ) {
     val initSize = 680.dp.toPx()
     val anim = remember {
@@ -291,7 +291,7 @@ fun BoxScope.SlideArea(
             }
             items(playList.size) {
                 EpisodeWidget(
-                    episode = playList[it],
+                    mediaItem = playList[it],
                     modifier = Modifier
                         .clickable(
                             enabled = !dragging && !listState.isScrollInProgress,

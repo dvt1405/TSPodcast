@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id("com.google.dagger.hilt.android")
+    id("kotlin-kapt")
 }
 
 android {
@@ -53,6 +55,11 @@ dependencies {
     implementation(libs.coil)
     implementation(libs.material)
     implementation(libs.coil.compose)
+    implementation(libs.jsoup)
+    implementation(libs.retrofit.gson)
+    implementation(libs.androidx.security.crypto.ktx)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.android.compiler)
     implementation(project(":sharedResources"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

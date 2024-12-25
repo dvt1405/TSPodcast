@@ -28,7 +28,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import coil.compose.AsyncImage
-import tss.t.coreapi.models.Podcast
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.utils.imageRequestBuilder
 import java.util.Formatter
@@ -37,7 +36,6 @@ import java.util.Locale
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun BoxScope.PlayerArea(
-    podcast: Podcast?,
     episode: MediaItem,
     isPlaying: Boolean = false,
     isEpisodeFavourite: Boolean = false,
@@ -110,7 +108,7 @@ fun BoxScope.PlayerArea(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 4.dp),
-            text = podcast?.title ?: episode.mediaMetadata.description.toString(),
+            text = episode.mediaMetadata.albumTitle?.toString() ?: episode.mediaMetadata.description.toString(),
             style = TextStyles.SubTitle3,
             maxLines = 1
         )

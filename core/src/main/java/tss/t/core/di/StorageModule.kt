@@ -11,6 +11,7 @@ import tss.t.core.storage.dao.FavouriteDao
 import tss.t.coreapi.dao.EpisodeDao
 import tss.t.coreapi.dao.FeedDao
 import tss.t.coreapi.dao.PodcastDao
+import tss.t.coreradio.storage.dao.RadioChannelDao
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -44,4 +45,10 @@ class StorageModule {
     fun favouriteDao(
         podcastDatabase: PodcastDatabase
     ): FavouriteDao = podcastDatabase.favouriteDao()
+
+
+    @Provides
+    fun radioDao(
+        podcastDatabase: PodcastDatabase
+    ): RadioChannelDao = podcastDatabase.radioDao()
 }

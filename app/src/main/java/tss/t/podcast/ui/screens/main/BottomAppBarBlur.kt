@@ -21,8 +21,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.DateRange
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Radio
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -74,11 +76,18 @@ sealed class BottomBarTab(
         icon = Icons.Rounded.Search,
         color = Color(0xFFADFF64)
     )
+
+    data object Radio : BottomBarTab(
+        title = "Radio",
+        icon = Icons.Rounded.Radio,
+        color = Color(0xFFADFF64)
+    )
 }
 
 internal val tabDefaults = listOf(
     BottomBarTab.Profile,
     BottomBarTab.Home,
+    BottomBarTab.Radio,
     BottomBarTab.Settings,
 )
 

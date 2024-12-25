@@ -1,5 +1,6 @@
 package tss.t.podcasts.usecase.history
 
+import androidx.media3.common.MediaItem
 import tss.t.core.repository.IHistoryRepository
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.Podcast
@@ -17,6 +18,14 @@ class SaveCurrentPlayingUseCase @Inject constructor(
             episode = episode,
             podcast = podcast,
             listItem = playList
+        )
+    }
+
+    suspend operator fun invoke(
+        mediaItem: MediaItem,
+    ) {
+        historyRepository.saveCurrentPlaying(
+            mediaItem = mediaItem.mediaId
         )
     }
 }

@@ -11,6 +11,7 @@ import tss.t.coreapi.models.PodcastTranscript
 import tss.t.coreapi.models.SocialInteract
 import tss.t.coreapi.models.Soundbite
 import tss.t.coreapi.models.Value
+import tss.t.coreradio.models.RadioChannel
 
 class PodcastTypeConverters {
     private val gson by lazy { Gson() }
@@ -151,9 +152,43 @@ class PodcastTypeConverters {
     }
 
     @TypeConverter
-    fun stringToMediaType(string: String): MediaType {
+    fun stringToRadioLink(string: String): List<RadioChannel.Link> {
         return runCatching {
-            MediaType.valueOf(string)
-        }.getOrDefault(MediaType.PodcastEpisode)
+            gson.fromJson(
+                string,
+                radoLinkListType
+            )
+        }.getOrDefault(emptyList())
+    }
+
+    @TypeConverter
+    fun radioLinkToString(links: List<RadioChannel.Link>): String {
+        return runCatching {
+            gson.toJson(links)
+        }.getOrDefault("")
+    }
+
+    @TypeConverter
+    fun stringToListString(string: String): List<String> {
+        return runCatching {
+            gson.fromJson(string, listStringType)
+        }.getOrDefault(emptyList())
+    }
+
+    @TypeConverter
+    fun listStringToString(list: List<String>): String {
+        return runCatching {
+            gson.toJson(list)
+        }.getOrDefault("")
+    }
+
+    companion object {
+        private val radoLinkListType by lazy {
+            object : TypeToken<List<RadioChannel.Link>>() {}
+        }
+
+        private val listStringType by lazy {
+            object : TypeToken<List<String>>() {}
+        }
     }
 }
