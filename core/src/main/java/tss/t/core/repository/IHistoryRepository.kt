@@ -1,10 +1,11 @@
 package tss.t.core.repository
 
-import android.media.browse.MediaBrowser.MediaItem
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.Podcast
 
 interface IHistoryRepository {
+    suspend fun saveCurrentPlaying(mediaItem: String)
+
     suspend fun saveCurrentPlaying(
         episode: Episode,
         podcast: Podcast?,
@@ -12,7 +13,7 @@ interface IHistoryRepository {
     )
 
     suspend fun saveCurrentPlaying(
-        episode: MediaItem,
+        mediaItemId: String,
         podcast: Podcast,
         listItem: List<Episode>
     )

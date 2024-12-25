@@ -6,7 +6,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.internal.SynchronizedObject
@@ -37,8 +39,11 @@ class PlayerManager @Inject constructor(
 
     @androidx.annotation.OptIn(UnstableApi::class)
     private fun createPlayer(): Player {
+        val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+        val mediaSourceFactory = DefaultMediaSourceFactory(httpDataSourceFactory)
         return ExoPlayer.Builder(context)
             .setPauseAtEndOfMediaItems(true)
+            .setMediaSourceFactory(mediaSourceFactory)
             .build()
             .apply {
                 this.playWhenReady = true
@@ -95,7 +100,13 @@ class PlayerManager @Inject constructor(
             }
         } else {
             _player?.setMediaItems(
-                mediaItems,
+                mediaItems.mapIndexed { index, mediaItem ->
+                    if (index == startIndex) {
+                        currentItem
+                    } else {
+                        mediaItem
+                    }
+                },
                 startIndex,
                 0L
             )

@@ -145,5 +145,6 @@ enum class TSRouter(val route: String) {
 enum class TSHomeRouter(val route: String) {
     Discover("Discover"),
     Favourite("Favourite"),
-    Search("Search")
+    Search("Search"),
+    Radio("Radio")
 }

@@ -3,10 +3,15 @@ package tss.t.coreapi.models
 import androidx.annotation.Keep
 
 @Keep
-sealed class TSDataState<T : Any> {
-    data class Success<T : Any>(val data: T) : TSDataState<T>()
-    data class Loading<T : Any>(val data: T? = null) : TSDataState<T>()
-    data class Error<T : Any>(val exception: Throwable) : TSDataState<T>()
+sealed class TSDataState<T : Any>(
+    open val data: T?
+) {
+    data class Success<T : Any>(override val data: T) : TSDataState<T>(data)
+    data class Loading<T : Any>(override val data: T? = null) : TSDataState<T>(data)
+    data class Error<T : Any>(
+        val exception: Throwable,
+        override val data: T? = null
+    ) : TSDataState<T>(data)
 
     fun isSuccess(): Boolean {
         return this is Success

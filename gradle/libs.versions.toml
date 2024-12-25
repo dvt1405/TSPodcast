@@ -11,12 +11,13 @@ coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
+kotlinxCoroutinesTest = "1.9.0"
 lifecycleRuntimeKtx = "2.8.6"
 activityCompose = "1.9.2"
 composeBom = "2024.09.00"
 appcompat = "1.7.0"
 loggingInterceptor = "4.12.0"
-material = "1.7.2"
+material = "1.7.6"
 materialVersion = "1.12.0"
 media3Exoplayer = "1.4.1"
 navigationCompose = "2.8.0"
@@ -28,6 +29,8 @@ roomPaging = "2.6.1"
 uiTooling = "1.7.4"
 securityCryptoKtx = "1.0.0"
 lifecycleProcess = "2.8.7"
+jsoupVer = "1.15.3"
+uiGraphicsAndroid = "1.7.6"
 
 [libraries]
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityCompose" }
@@ -68,11 +71,14 @@ androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
-androidx-material3 = { group = "androidx.compose.material3", name = "material3", version = "1.3.0" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version = "1.3.1" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
+material-icons = { group = "androidx.compose.material", name = "material-icons-core", version.ref = "material" }
+material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "material" }
 material = { group = "androidx.compose.material", name = "material", version.ref = "material" }
 google-material = { group = "com.google.android.material", name = "material", version.ref = "materialVersion" }
-androidx-collection = "androidx.collection:collection:1.4.4"
+androidx-collection = "androidx.collection:collection:1.4.5"
 
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
@@ -90,6 +96,8 @@ coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
 androidx-security-crypto-ktx = { group = "androidx.security", name = "security-crypto", version.ref = "securityCryptoKtx" }
 androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycleProcess" }
+jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoupVer" }
+androidx-ui-graphics-android = { group = "androidx.compose.ui", name = "ui-graphics-android", version.ref = "uiGraphicsAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

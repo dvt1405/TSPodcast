@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,6 +67,11 @@ fun PlayerProgress(
     val animateProgress = remember {
         Animatable(progress)
     }
+    LaunchedEffect(progress) {
+        if (animateProgress.targetValue != progress && !isDragging) {
+            animateProgress.animateTo(progress)
+        }
+    }
     val coroutineScope = rememberCoroutineScope()
     val textMeasurer = rememberTextMeasurer()
     Canvas(
@@ -74,7 +80,6 @@ fun PlayerProgress(
             .pointerInput(Unit) {
                 detectHorizontalDragGestures(
                     onHorizontalDrag = { p, dragAmount ->
-                        p.scrollDelta.x
                         if (isDragging) {
                             coroutineScope.launch {
                                 val targetValue = dragAmount / size.width + animateProgress.value
@@ -114,7 +119,11 @@ fun PlayerProgress(
                     Colors.Secondary
                 )
             ),
-            size = Size(size.width * animateProgress.value, size.height * 0.5f * animateScaleY),
+            size = Size(
+                (size.width * animateProgress.value)
+                    .coerceIn(0f, size.width),
+                size.height * 0.5f * animateScaleY
+            ),
             topLeft = Offset(0f, size.height * 0.25f * animateScaleY),
             cornerRadius = CornerRadius(100.dp.toPx())
         )
@@ -123,7 +132,8 @@ fun PlayerProgress(
             Colors.Primary,
             radius = 4.dp.toPx() * animateScaleY,
             center = Offset(
-                x = (size.width - 4.dp.toPx()) * animateProgress.value,
+                x = ((size.width - 4.dp.toPx()) * animateProgress.value)
+                    .coerceIn(0f, size.width),
                 y = size.height / 2 * animateScaleY
             )
         )
@@ -137,11 +147,12 @@ fun PlayerProgress(
                 style = TextStyles.SubTitle4,
                 maxLines = 1,
             )
+
             drawText(
                 textLayoutResult = textLayout,
                 topLeft = Offset(
                     x = (size.width - 4.dp.toPx()) * animateProgress.value - textLayout.size.width / 2,
-                    y = size.height
+                    y = -textLayout.size.height.toFloat()
                 )
             )
         }

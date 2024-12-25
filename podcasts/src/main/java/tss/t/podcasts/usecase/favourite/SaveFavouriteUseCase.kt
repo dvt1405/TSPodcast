@@ -1,11 +1,13 @@
 package tss.t.podcasts.usecase.favourite
 
+import androidx.media3.common.MediaItem
 import tss.t.core.models.FavouriteDTO
 import tss.t.core.repository.IFavouriteRepository
 import tss.t.core.repository.MediaType
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.Feed
 import tss.t.coreapi.models.Podcast
+import tss.t.podcasts.utils.ext.toFavouriteDTO
 import javax.inject.Inject
 
 class SaveFavouriteUseCase @Inject constructor(
@@ -44,6 +46,13 @@ class SaveFavouriteUseCase @Inject constructor(
                 image = episode.image,
                 description = episode.description
             )
+        )
+    }
+
+    suspend operator fun invoke(mediaItem: MediaItem) {
+        repository.saveFavourite(
+            isFav = true,
+            favouriteDTO = mediaItem.toFavouriteDTO()
         )
     }
 }

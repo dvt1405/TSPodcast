@@ -46,13 +46,14 @@ import tss.t.hazeandroid.haze
 import tss.t.podcast.LocalNavAnimatedVisibilityScope
 import tss.t.podcast.LocalSharedTransitionScope
 import tss.t.podcast.R
-import tss.t.podcast.ui.screens.MainViewModel
 import tss.t.podcast.ui.screens.discorver.components.LiveRow
 import tss.t.podcast.ui.screens.discorver.components.RecentRow
 import tss.t.podcast.ui.screens.discorver.components.TrendingRow
 import tss.t.podcast.ui.screens.discorver.widgets.FavouriteWidget
 import tss.t.podcast.ui.screens.discorver.widgets.Indicator
 import tss.t.podcast.ui.screens.player.PlayerViewModel
+import tss.t.podcast.ui.screens.uimodels.main.HomepageDataPart
+import tss.t.podcast.ui.screens.uimodels.main.UIState
 import tss.t.sharedfirebase.LocalAnalyticsScope
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
@@ -75,7 +76,7 @@ private const val ITEM_FAV_CATEGORIES = "FavouritesCategories"
 )
 @Composable
 fun DiscoverPodcastsScreen(
-    uiState: MainViewModel.UIState = MainViewModel.UIState(),
+    uiState: UIState = UIState(),
     playerControlState: PlayerViewModel.PlayerControlState,
     hazeState: HazeState,
     innerPadding: PaddingValues,
@@ -109,8 +110,8 @@ fun DiscoverPodcastsScreen(
         label = "Color"
     )
 
-    val isFavRefreshing = remember(key1 = uiState.isDataPartLoading) {
-        uiState.isDataPartLoading[MainViewModel.HomepageDataPart.Favourite.value] ?: true
+    val isFavRefreshing = remember(key1 = uiState.isDataPartLoading[HomepageDataPart.Favourite.value]) {
+        uiState.isDataPartLoading[HomepageDataPart.Favourite.value] ?: true
     }
 
     val pullToRefreshThreshHold = remember(innerPadding.calculateTopPadding()) {
@@ -174,7 +175,7 @@ fun DiscoverPodcastsScreen(
             item(key = ITEM_TRENDING_ROW) {
                 TrendingRow(
                     trendingRowState = trendingRowState,
-                    isRefreshing = uiState.isDataPartLoading[MainViewModel.HomepageDataPart.Trending.value]
+                    isRefreshing = uiState.isDataPartLoading[HomepageDataPart.Trending.value]
                         ?: true,
                     placeHolderColor = placeHolderColor,
                     listTrending = uiState.listTrending,
@@ -201,7 +202,7 @@ fun DiscoverPodcastsScreen(
             }
             item(key = ITEM_LIVE_ROW) {
                 LiveRow(
-                    isRefreshing = uiState.isDataPartLoading[MainViewModel.HomepageDataPart.LiveEpisode.value]
+                    isRefreshing = uiState.isDataPartLoading[HomepageDataPart.LiveEpisode.value]
                         ?: true,
                     liveEpisode = uiState.liveEpisode,
                     pagerState = pagerState,
@@ -221,7 +222,7 @@ fun DiscoverPodcastsScreen(
             }
             item(key = ITEM_RECENT_ROW) {
                 RecentRow(
-                    isRefreshing = uiState.isDataPartLoading[MainViewModel.HomepageDataPart.RecentFeed.value]
+                    isRefreshing = uiState.isDataPartLoading[HomepageDataPart.RecentFeed.value]
                         ?: true,
                     placeHolderColor,
                     uiState.recentFeeds,
@@ -305,7 +306,7 @@ fun DiscoverPodcastsScreenPreview() {
                             onFavClick = {
 
                             },
-                            uiState = MainViewModel.UIState(),
+                            uiState = UIState(),
                             playerControlState = PlayerViewModel.PlayerControlState()
                         )
                     } else {

@@ -15,6 +15,11 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments["room.schemaLocation"] = "$projectDir/schemas"
+            }
+        }
     }
 
     buildTypes {
@@ -36,6 +41,9 @@ android {
     buildFeatures {
         buildConfig = true
     }
+    sourceSets {
+        getByName("androidTest").assets.srcDirs(File("$projectDir/schemas"))
+    }
 }
 
 dependencies {
@@ -48,6 +56,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.hilt.android)
+    androidTestImplementation(libs.androidx.room.testing)
     kapt(libs.hilt.android.compiler)
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
@@ -69,4 +78,5 @@ dependencies {
     implementation(project(":sharedLibrary"))
     implementation(project(":securedToken"))
     implementation(project(":coreApi"))
+    implementation(project(":coreRadio"))
 }

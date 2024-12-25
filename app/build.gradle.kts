@@ -36,7 +36,7 @@ android {
             setProperty("archivesBaseName", "TSPodcast.${defaultConfig.versionName}_D")
         }
         release {
-            defaultConfig.versionCode = 10007
+            defaultConfig.versionCode = 10009
             defaultConfig.versionName = "v1.4.${defaultConfig.versionCode}"
             isMinifyEnabled = true
             isShrinkResources = true
@@ -79,6 +79,8 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.google.material)
     implementation(libs.material)
+    implementation(libs.material.icons)
+    implementation(libs.material.icons.extended)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.exoplayer.dash)
@@ -89,6 +91,7 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer.smoothstreaming)
     implementation(libs.androidx.media3.exoplayer.ima)
     implementation(libs.androidx.media3.datasource.cronet)
+    implementation(libs.androidx.ui.graphics.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -124,9 +127,11 @@ dependencies {
     implementation(project(":sharedResources"))
     implementation(project(":securedToken"))
     implementation(project(":coreApi"))
+    implementation(project(":coreRadio"))
     implementation(project(":core"))
     implementation(project(":podcasts"))
     implementation(project(":featureOnboarding"))
+    implementation(project(":featureRadio"))
     implementation(project(":hazeAndroid"))
     implementation(project(":sharedFirebase"))
     implementation(project(":ads"))

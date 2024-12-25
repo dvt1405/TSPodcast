@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -17,6 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -24,7 +28,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import coil.compose.AsyncImage
-import tss.t.coreapi.models.Podcast
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.utils.imageRequestBuilder
 import java.util.Formatter
@@ -33,7 +36,6 @@ import java.util.Locale
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun BoxScope.PlayerArea(
-    podcast: Podcast?,
     episode: MediaItem,
     isPlaying: Boolean = false,
     isEpisodeFavourite: Boolean = false,
@@ -55,7 +57,18 @@ fun BoxScope.PlayerArea(
     val formatter = remember {
         Formatter(formatBuilder, Locale.getDefault())
     }
-
+    AsyncImage(
+        model = imageRequestBuilder(LocalContext.current)
+            .diskCacheKey(episode.mediaMetadata.artworkUri.toString())
+            .data(episode.mediaMetadata.artworkUri)
+            .build(),
+        contentDescription = episode.mediaMetadata.title.toString(),
+        modifier = Modifier
+            .fillMaxSize()
+            .blur(50.dp, BlurredEdgeTreatment.Unbounded)
+            .alpha(0.6f)
+            .clip(RoundedCornerShape(12.dp))
+    )
     Column(
         modifier = Modifier
             .statusBarsPadding()
@@ -68,6 +81,7 @@ fun BoxScope.PlayerArea(
         ) {
             AsyncImage(
                 model = imageRequestBuilder(LocalContext.current)
+                    .diskCacheKey(episode.mediaMetadata.artworkUri.toString())
                     .data(episode.mediaMetadata.artworkUri)
                     .build(),
                 contentDescription = episode.mediaMetadata.title.toString(),
@@ -94,12 +108,12 @@ fun BoxScope.PlayerArea(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 4.dp),
-            text = podcast?.title ?: episode.mediaMetadata.description.toString(),
+            text = episode.mediaMetadata.albumTitle?.toString() ?: episode.mediaMetadata.description.toString(),
             style = TextStyles.SubTitle3,
             maxLines = 1
         )
         PlayerProgress(
-            progress(),
+            progress = progress(),
             start = 0L,
             end = contentDuration,
             onProgressChanged = {

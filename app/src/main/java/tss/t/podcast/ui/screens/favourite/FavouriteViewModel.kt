@@ -11,7 +11,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tss.t.core.models.FavouriteDTO
+import tss.t.core.repository.MediaType
 import tss.t.coreapi.models.Podcast
+import tss.t.coreapi.models.databaseview.PodcastAndEpisode
+import tss.t.coreradio.models.RadioChannel
 import tss.t.podcasts.usecase.favourite.SelectAllFavourite
 import tss.t.podcasts.usecase.favourite.SelectPodcastAndEpisodeByFavourite
 import javax.inject.Inject
@@ -45,10 +48,17 @@ class FavouriteViewModel @Inject constructor(
         }
     }
 
-    suspend fun onFavSelected(fav: FavouriteDTO): Podcast? {
+    suspend fun onFavSelected(fav: FavouriteDTO): Any? {
+        val type = fav.type
         return viewModelScope.async(Dispatchers.IO) {
-            _selectPodcastAndEpisodeByFavourite.invoke(fav)
-        }.await()?.podcast
+            when (type) {
+                MediaType.Radio -> _selectPodcastAndEpisodeByFavourite.invoke<List<RadioChannel>>(
+                    fav
+                )
+
+                else -> _selectPodcastAndEpisodeByFavourite.invoke<PodcastAndEpisode?>(fav)
+            }
+        }.await()
     }
 
     data class FavouriteUIState(

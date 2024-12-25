@@ -3,6 +3,8 @@ package tss.t.podcast.ui.screens.player
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.DraggableState
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,9 +39,7 @@ import androidx.media3.common.MediaItem
 import androidx.navigation.NavHostController
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
-import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.EpisodeResponse
-import tss.t.coreapi.models.Podcast
 import tss.t.coreapi.models.TrendingPodcastRes
 import tss.t.podcast.ui.screens.player.widgets.PlayerArea
 import tss.t.podcast.ui.screens.player.widgets.SlideArea
@@ -58,23 +58,23 @@ fun PlayerScreen(
     }
     val coroutineScope = rememberCoroutineScope()
     PlayerScreen(
-        podcast = playerControlUIState.podcast,
         episode = episode,
-        playList = playerControlUIState.playList,
         isPlaying = playerControlUIState.isPlaying,
-        contentDuration = playerControlUIState.totalDuration,
+        slideState = slideState,
         currentPosition = playerControlUIState.currentDuration,
+        contentDuration = playerControlUIState.totalDuration,
+        playList = playerControlUIState.playList,
         progress = {
             playerControlUIState.currentProgress
         },
         onFavourite = {
             viewmodel.onFavouriteChanged(it)
         },
-        onSkipToNext = {
-            viewmodel.onSkipToNext()
-        },
         onSkipPrevious = {
             viewmodel.onSkipToPrevious()
+        },
+        onSkipToNext = {
+            viewmodel.onSkipToNext()
         },
         onPlayPause = {
             viewmodel.onPlayPause()
@@ -83,39 +83,37 @@ fun PlayerScreen(
             slideState = SlideAreaState.Expanded
         },
         onLoop = {},
+        onSeek = {
+            viewmodel.seekTo(it)
+        },
         onSelected = {
             val selectedEpisode = this
             coroutineScope.launch {
-                viewmodel.playerEpisode(selectedEpisode)
+                viewmodel.playerMediaItem(selectedEpisode)
                 slideState = SlideAreaState.Hidden
             }
         },
         onClosePlayer = {
             navHost.popBackStack()
         },
-        onSeek = {
-            viewmodel.seekTo(it)
-        },
-        slideState = slideState,
-        onSlideStateChanged = {
-            slideState = it
-        },
-        isEpisodeFavourite = playerControlUIState.isFavourite,
         onDismissSlideArea = {
             slideState = SlideAreaState.Hidden
+        },
+        isEpisodeFavourite = playerControlUIState.isFavourite,
+        onSlideStateChanged = {
+            slideState = it
         }
     )
 }
 
 @Composable
 internal fun PlayerScreen(
-    podcast: Podcast?,
     episode: MediaItem,
     isPlaying: Boolean = false,
     slideState: SlideAreaState = SlideAreaState.Hidden,
     currentPosition: Long = 0L,
     contentDuration: Long = 0L,
-    playList: List<Episode>,
+    playList: List<MediaItem>,
     progress: () -> Float = { 0f },
     onFavourite: (Boolean) -> Unit = {},
     onSkipPrevious: () -> Unit = {},
@@ -124,7 +122,7 @@ internal fun PlayerScreen(
     onPlayListClick: () -> Unit = {},
     onLoop: () -> Unit = {},
     onSeek: (Float) -> Unit = {},
-    onSelected: Episode.() -> Unit = {},
+    onSelected: MediaItem.() -> Unit = {},
     onClosePlayer: () -> Unit = {},
     onDismissSlideArea: () -> Unit = {},
     isEpisodeFavourite: Boolean = false,
@@ -133,10 +131,32 @@ internal fun PlayerScreen(
     var dragDelta by remember {
         mutableFloatStateOf(0f)
     }
+    var fling by remember {
+        mutableFloatStateOf(0f)
+    }
     val draggableState: DraggableState = rememberDraggableState {
         dragDelta = it
     }
-    Box(modifier = Modifier.fillMaxWidth()) {
+    var isDragging by remember {
+        mutableStateOf(false)
+    }
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .draggable(
+            state = rememberDraggableState {
+                dragDelta = it
+            },
+            orientation = Orientation.Vertical,
+            onDragStarted = {
+                dragDelta = 0f
+                isDragging = true
+            },
+            onDragStopped = {
+                isDragging = false
+                fling = it
+            }
+        )
+    ) {
         Row(
             modifier = Modifier
                 .statusBarsPadding()
@@ -175,11 +195,11 @@ internal fun PlayerScreen(
             )
         }
         PlayerArea(
-            podcast = podcast,
+            episode = episode,
             isPlaying = isPlaying,
+            isEpisodeFavourite = isEpisodeFavourite,
             currentPosition = currentPosition,
             contentDuration = contentDuration,
-            episode = episode,
             progress = progress,
             onFavourite = onFavourite,
             onSkipPrevious = onSkipPrevious,
@@ -187,16 +207,17 @@ internal fun PlayerScreen(
             onPlayPause = onPlayPause,
             onPlayListClick = onPlayListClick,
             onLoop = onLoop,
-            onSeek = onSeek,
-            isEpisodeFavourite = isEpisodeFavourite
+            onSeek = onSeek
         )
         SlideArea(
             playList = playList,
             draggableState = draggableState,
             dragDelta = dragDelta,
             onSelected = onSelected,
+            isDragInProgress = isDragging,
             state = slideState,
-            onStateChanged = onSlideStateChanged
+            onStateChanged = onSlideStateChanged,
+            fling = fling
         )
     }
 }
@@ -228,9 +249,10 @@ fun PlayerScreenPreview() {
                 .background(Colors.White)
         ) {
             PlayerScreen(
-                podcast = podcast,
                 episode = episodeResponse.items.first().toMediaItem(podcast.title),
-                playList = episodeResponse.items,
+                playList = episodeResponse.items.map {
+                    it.toMediaItem()
+                },
                 progress = {
                     0.2f
                 }

@@ -16,4 +16,5 @@
     <string name="live_podcast_title">Live Podcasts</string>
     <string name="recent_podcast_title">Podcasts xu hướng gần đây</string>
     <string name="fav_podcast_title">Có thể bạn yêu thích</string>
+    <string name="radio_screen_title">Radio</string>
 </resources>

@@ -16,13 +16,16 @@ import tss.t.coreapi.dao.PodcastDao
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.Feed
 import tss.t.coreapi.models.Podcast
+import tss.t.coreradio.models.RadioChannel
+import tss.t.coreradio.storage.dao.RadioChannelDao
 
 @Database(
     entities = [
         Podcast::class,
         Feed::class,
         Episode::class,
-        FavouriteDTO::class
+        FavouriteDTO::class,
+        RadioChannel::class
     ],
     version = PodcastDatabase.DB_VERSION,
     views = [],
@@ -36,11 +39,12 @@ abstract class PodcastDatabase : RoomDatabase() {
     abstract fun episodeDao(): EpisodeDao
     abstract fun feedDao(): FeedDao
     abstract fun favouriteDao(): FavouriteDao
+    abstract fun radioDao(): RadioChannelDao
 
     companion object {
         @Volatile
         private var db: PodcastDatabase? = null
-        const val DB_VERSION = 4
+        const val DB_VERSION = 5
 
         @Synchronized
         fun instance(context: Context): PodcastDatabase {
@@ -54,6 +58,11 @@ abstract class PodcastDatabase : RoomDatabase() {
                         db.execSQL("ALTER TABLE FavouriteDTO ADD COLUMN image TEXT")
                     }
 
+                })
+                .addMigrations(object : Migration(4, 5) {
+                    override fun migrate(db: SupportSQLiteDatabase) {
+                        db.execSQL("CREATE TABLE IF NOT EXISTS `RadioChannel` (`channelId` TEXT NOT NULL, `channelName` TEXT NOT NULL, `categories` TEXT NOT NULL, `category` TEXT NOT NULL, `logo` TEXT NOT NULL, `links` TEXT NOT NULL, PRIMARY KEY(`channelId`))")
+                    }
                 })
                 .build()
                 .also {

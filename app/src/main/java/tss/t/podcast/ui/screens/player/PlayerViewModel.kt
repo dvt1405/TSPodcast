@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
@@ -22,12 +23,19 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import tss.t.core.repository.MediaType
 import tss.t.coreapi.Constants
 import tss.t.coreapi.models.Episode
+import tss.t.coreapi.models.LiveEpisode
 import tss.t.coreapi.models.Podcast
+import tss.t.coreradio.models.RadioChannel
+import tss.t.coreradio.usecase.GetPlayableLink
 import tss.t.podcasts.usecase.favourite.DeleteFavouriteUseCase
 import tss.t.podcasts.usecase.favourite.IsFavouriteUseCase
 import tss.t.podcasts.usecase.favourite.SaveFavouriteUseCase
@@ -45,10 +53,10 @@ class PlayerViewModel @Inject constructor(
     private val deleteFavouriteUseCase: DeleteFavouriteUseCase,
     private val isFavouriteUseCase: IsFavouriteUseCase,
     private val saveCurrentPlayingUseCase: SaveCurrentPlayingUseCase,
-    private val getEpisodeLocalUseCase: GetEpisodeLocalUseCase
+    private val getEpisodeLocalUseCase: GetEpisodeLocalUseCase,
+    private val getPlayableLink: GetPlayableLink
 ) : ViewModel(), Player.Listener {
 
-    private var current: Episode? = null
     private val currentPlayer: Player
         get() = playerManager.player
 
@@ -64,12 +72,13 @@ class PlayerViewModel @Inject constructor(
         podcast: Podcast? = null,
         listItem: List<Episode> = emptyList()
     ) {
+        val currentPodcast = podcast ?: _playerControlState.value.podcast
         viewModelScope.async {
-            current = episode
-            val playList = listItem.ifEmpty { _playerControlState.value.playList }
-            val currentPodcast = podcast ?: _playerControlState.value.podcast
+            val playList = listItem.map {
+                it.toMediaItem(currentPodcast?.title)
+            }.ifEmpty { _playerControlState.value.playList }
             val mediaItem = episode.toMediaItem(currentPodcast?.title)
-            val isFav = isFavouriteUseCase(episode)
+            val isFav = isFavouriteUseCase(mediaItem)
             _playerControlState.update {
                 it.copy(
                     currentMediaItem = mediaItem,
@@ -82,18 +91,95 @@ class PlayerViewModel @Inject constructor(
             currentPlayer.addListener(this@PlayerViewModel)
             playerManager.playMedia(
                 currentItem = episode.toMediaItem(currentPodcast?.title),
-                mediaItems = playList.map {
-                    it.toMediaItem(currentPodcast?.title)
-                }
+                mediaItems = playList
             )
             withContext(Dispatchers.IO) {
                 saveCurrentPlayingUseCase(
                     episode = episode,
                     podcast = currentPodcast,
+                    playList = listItem
+                )
+            }
+        }.await()
+    }
+
+    suspend fun playerMediaItem(
+        mediaItem: MediaItem,
+    ) {
+        val currentPodcast = _playerControlState.value.podcast
+        val playList = _playerControlState.value.playList
+        viewModelScope.async {
+            val isFav = isFavouriteUseCase(mediaItem)
+            _playerControlState.update {
+                it.copy(
+                    currentMediaItem = mediaItem,
+                    isLoading = true,
+                    isFavourite = isFav,
+                    podcast = currentPodcast,
+                    playList = playList
+                )
+            }
+            currentPlayer.addListener(this@PlayerViewModel)
+            playerManager.playMedia(
+                currentItem = mediaItem,
+                mediaItems = playList
+            )
+            withContext(Dispatchers.IO) {
+                saveCurrentPlayingUseCase(mediaItem)
+            }
+        }.await()
+    }
+
+    suspend fun playRadio(
+        radioChannel: RadioChannel,
+        listRadio: List<RadioChannel>
+    ) {
+        viewModelScope.async {
+            val playList = listRadio.map {
+                it.toMediaItem()
+            }.ifEmpty { _playerControlState.value.playList }
+            val mediaItem = radioChannel.toMediaItem()
+            val isFav = isFavouriteUseCase(mediaItem)
+            _playerControlState.update {
+                it.copy(
+                    currentMediaItem = mediaItem,
+                    isLoading = true,
+                    isFavourite = isFav,
+                    podcast = null,
                     playList = playList
                 )
             }
         }.await()
+        viewModelScope.launch {
+            currentPlayer.addListener(this@PlayerViewModel)
+            getPlayableLink(radioChannel)
+                .mapLatest {
+                    if (it.isSuccess) {
+                        radioChannel.copy(
+                            links = listOf(it.getOrThrow())
+                        )
+                    } else {
+                        radioChannel
+                    }
+                }
+                .map {
+                    it.toMediaItem()
+                }
+                .collectLatest {
+                    playerManager.playMedia(
+                        currentItem = it,
+                        mediaItems = _playerControlState.value.playList
+                    )
+                    withContext(Dispatchers.IO) {
+                        saveCurrentPlayingUseCase(it)
+                    }
+                    _playerControlState.update {
+                        it.copy(
+                            isLoading = false,
+                        )
+                    }
+                }
+        }
     }
 
     fun onPlayPause() {
@@ -128,12 +214,11 @@ class PlayerViewModel @Inject constructor(
     private fun checkFavourite(mediaId: String? = null) {
         val id = mediaId ?: mediaController.sessionController
             ?.currentMediaItem
-            ?.mediaId
-            ?.toLong() ?: return
+            ?.mediaId ?: return
         val currentMediaItem = mediaController.sessionController?.currentMediaItem
         viewModelScope.launch(Dispatchers.IO) {
             val currentItem =
-                _playerControlState.value.playList.firstOrNull { it.id == id } ?: return@launch
+                _playerControlState.value.playList.firstOrNull { it.mediaId == id } ?: return@launch
             val isFav = isFavouriteUseCase(currentItem)
             _playerControlState.update {
                 it.copy(
@@ -156,7 +241,7 @@ class PlayerViewModel @Inject constructor(
 
     fun onFavouriteChanged(isFav: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
-            current?.let {
+            _playerControlState.value.currentMediaItem?.let {
                 if (isFav) {
                     saveFavouriteUseCase(it)
                 } else {
@@ -326,7 +411,7 @@ class PlayerViewModel @Inject constructor(
         _playerControlState.update {
             it.copy(
                 isPlaying = currentPlayer.isPlaying,
-                isLoading = currentPlayer.isLoading
+                isLoading = false
             )
         }
     }
@@ -381,7 +466,9 @@ class PlayerViewModel @Inject constructor(
                     _playerControlState.update {
                         it.copy(
                             podcast = podcastAndEpisode?.podcast,
-                            playList = podcastAndEpisode?.episode ?: emptyList()
+                            playList = podcastAndEpisode?.episode?.map {
+                                it.toMediaItem()
+                            } ?: emptyList()
                         )
                     }
                 }
@@ -401,17 +488,55 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    suspend fun playLive(
+        liveEpisode: LiveEpisode,
+        listItem: List<LiveEpisode>
+    ) {
+        val item = Episode.fromLive(liveEpisode)
+        val playList = listItem.map {
+            Episode.fromLive(it)
+        }
+        val podcast = Podcast(
+            categories = liveEpisode.categories,
+            dateCrawled = liveEpisode.dateCrawled,
+            datePublished = liveEpisode.datePublished,
+            datePublishedPretty = liveEpisode.datePublishedPretty,
+            enclosureLength = liveEpisode.enclosureLength,
+            enclosureType = liveEpisode.enclosureType,
+            enclosureUrl = liveEpisode.enclosureUrl,
+            explicit = liveEpisode.explicit,
+            feedId = liveEpisode.feedId,
+            feedImage = liveEpisode.feedImage,
+            feedItunesId = liveEpisode.feedItunesId,
+            feedLanguage = liveEpisode.feedLanguage,
+            feedTitle = liveEpisode.title,
+            guid = liveEpisode.guid,
+            id = liveEpisode.feedId,
+            image = liveEpisode.image,
+            link = liveEpisode.link,
+            title = liveEpisode.title,
+            description = liveEpisode.description
+
+        )
+        playerEpisode(
+            episode = item,
+            listItem = playList,
+            podcast = podcast
+        )
+    }
+
     @Immutable
     data class PlayerControlState(
         val isLoading: Boolean = true,
         val isPlaying: Boolean = false,
         val currentMediaItem: MediaItem? = null,
+        val mediaType: MediaType = MediaType.PodcastEpisode,
         val currentDuration: Long = 0L,
         val totalDuration: Long = 0L,
         val currentProgress: Float = 0f,
         val isFavourite: Boolean = false,
         val podcast: Podcast? = null,
-        val playList: List<Episode> = emptyList()
+        val playList: List<MediaItem> = emptyList()
     )
 }
 
@@ -436,6 +561,7 @@ fun Episode.toMediaItem(album: CharSequence? = null): MediaItem {
                         HtmlCompat.FROM_HTML_MODE_COMPACT
                     )
                 )
+                .setMediaType(MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE)
                 .setDisplayTitle(title)
                 .setIsPlayable(true)
                 .setArtworkUri(Uri.parse(getImageUrl()))
@@ -444,6 +570,47 @@ fun Episode.toMediaItem(album: CharSequence? = null): MediaItem {
                 .setExtras(
                     bundleOf(
                         Constants.EXTRA_MEDIA_TYPE_KEY to Constants.MEDIA_TYPE_EPISODE
+                    )
+                )
+                .build()
+        )
+        .build()
+}
+
+fun RadioChannel.toMediaItem(album: CharSequence? = "VOV"): MediaItem {
+    val link = links.firstOrNull()?.link
+    val mimeType = when {
+        true == link?.contains("m3u8") -> MimeTypes.APPLICATION_M3U8
+        else -> null
+    }
+    return MediaItem.Builder()
+        .setMediaId(channelId)
+        .setMimeType(mimeType)
+        .setUri(links.firstOrNull()?.link)
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setTitle(channelName)
+                .setArtist(album)
+                .setDescription(
+                    HtmlCompat.fromHtml(
+                        channelName,
+                        HtmlCompat.FROM_HTML_MODE_COMPACT
+                    )
+                )
+                .setSubtitle(
+                    HtmlCompat.fromHtml(
+                        album?.toString() ?: "",
+                        HtmlCompat.FROM_HTML_MODE_COMPACT
+                    )
+                )
+                .setMediaType(MediaMetadata.MEDIA_TYPE_RADIO_STATION)
+                .setDisplayTitle(channelName)
+                .setIsPlayable(true)
+                .setArtworkUri(Uri.parse(logo))
+                .setAlbumTitle(album)
+                .setExtras(
+                    bundleOf(
+                        Constants.EXTRA_MEDIA_TYPE_KEY to Constants.MEDIA_TYPE_RADIO
                     )
                 )
                 .build()

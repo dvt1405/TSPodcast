@@ -24,10 +24,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import tss.t.ads.MaxAdViewComposable
+import tss.t.core.models.FavouriteDTO
+import tss.t.coreapi.models.databaseview.PodcastAndEpisode
+import tss.t.coreradio.models.RadioChannel
 import tss.t.podcast.ui.navigations.TSRouter
 import tss.t.podcast.ui.screens.MainViewModel
 import tss.t.podcast.ui.screens.favourite.widgets.EmptyFavouriteWidget
 import tss.t.podcast.ui.screens.favourite.widgets.FavouriteItemWidget
+import tss.t.podcast.ui.screens.player.PlayerViewModel
 import tss.t.sharedfirebase.LocalAnalyticsScope
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,6 +40,7 @@ fun FavouriteScreen(
     rootNavHost: NavHostController,
     listState: LazyListState,
     mainViewModel: MainViewModel,
+    playerViewModel: PlayerViewModel,
     innerPadding: PaddingValues,
     pullToRefreshState: PullToRefreshState,
     viewModel: FavouriteViewModel,
@@ -72,19 +77,23 @@ fun FavouriteScreen(
                     tsAnalytics = LocalAnalyticsScope.current!!
                 )
             }
-            items(uiState.listFav) {
+            items(uiState.listFav) { favouriteDTO ->
                 FavouriteItemWidget(
-                    it,
+                    favouriteDTO,
                     modifier = Modifier.padding(
                         vertical = 12.dp,
                         horizontal = 16.dp
                     )
                 ) {
                     coroutineScope.launch {
-                        viewModel.onFavSelected(it)?.let { podcast ->
-                            mainViewModel.setCurrentPodcast(podcast)
-                        }
-                        rootNavHost.navigate(TSRouter.PodcastDetail.route)
+                        val podcastEpisode = viewModel.onFavSelected(it) ?: return@launch
+                        onFavouriteSelected(
+                            mainViewModel,
+                            podcastEpisode,
+                            playerViewModel,
+                            favouriteDTO,
+                            rootNavHost
+                        )
                     }
                 }
             }
@@ -92,5 +101,36 @@ fun FavouriteScreen(
         item {
             Spacer(Modifier.size(innerPadding.calculateBottomPadding()))
         }
+    }
+}
+
+private suspend fun onFavouriteSelected(
+    mainViewModel: MainViewModel,
+    related: Any,
+    playerViewModel: PlayerViewModel,
+    favouriteDTO: FavouriteDTO,
+    rootNavHost: NavHostController
+) {
+    if (related is PodcastAndEpisode) {
+        mainViewModel.setCurrentPodcast(related.podcast)
+        playerViewModel.playerEpisode(
+            episode = related.episode.firstOrNull {
+                favouriteDTO.id == it.id.toString()
+            } ?: related.episode.first(),
+            podcast = related.podcast,
+            listItem = related.episode
+        )
+        rootNavHost.navigate(TSRouter.PodcastDetail.route)
+    } else if (related is List<*>) {
+        val listRadio = related.filterIsInstance<RadioChannel>()
+            .takeIf { it.isNotEmpty() }
+            ?: return
+        val playItem = listRadio.firstOrNull { it.channelId == favouriteDTO.id }
+            ?: listRadio.first()
+        playerViewModel.playRadio(
+            playItem,
+            listRadio
+        )
+        rootNavHost.navigate(TSRouter.Player.route)
     }
 }

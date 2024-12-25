@@ -1,6 +1,5 @@
 package tss.t.podcasts
 
-import android.media.browse.MediaBrowser
 import tss.t.core.repository.IHistoryRepository
 import tss.t.core.storage.SharedPref
 import tss.t.core.storage.dao.FavouriteDao
@@ -18,6 +17,10 @@ class HistoryRepository @Inject constructor(
     private val podcastDao: PodcastDao,
     private val favouriteDao: FavouriteDao
 ) : IHistoryRepository {
+    override suspend fun saveCurrentPlaying(mediaItem: String) {
+        sharedPref.save(EXTRA_CURRENT_ITEM_ID, mediaItem)
+    }
+
     override suspend fun saveCurrentPlaying(
         episode: Episode,
         podcast: Podcast?,
@@ -31,11 +34,13 @@ class HistoryRepository @Inject constructor(
     }
 
     override suspend fun saveCurrentPlaying(
-        episode: MediaBrowser.MediaItem,
+        mediaItemId: String,
         podcast: Podcast,
         listItem: List<Episode>
     ) {
-        TODO("Not yet implemented")
+        sharedPref.save(EXTRA_CURRENT_ITEM_ID, mediaItemId)
+        episodeDao.inserts(listItem)
+        podcastDao.insert(podcast)
     }
 
     companion object {

@@ -6,12 +6,14 @@ import tss.t.core.repository.MediaType
 import tss.t.coreapi.dao.EpisodeDao
 import tss.t.coreapi.dao.PodcastDao
 import tss.t.coreapi.models.databaseview.PodcastAndEpisode
+import tss.t.coreradio.storage.dao.RadioChannelDao
 import javax.inject.Inject
 
 class SelectPodcastAndEpisodeByFavourite @Inject constructor(
     private val repository: IFavouriteRepository,
     private val episodeDao: EpisodeDao,
-    private val podcastDao: PodcastDao
+    private val podcastDao: PodcastDao,
+    private val radioChannelDao: RadioChannelDao
 ) {
     suspend operator fun invoke(
         id: String,
@@ -29,7 +31,7 @@ class SelectPodcastAndEpisodeByFavourite @Inject constructor(
         return items
     }
 
-    suspend operator fun invoke(
+    private suspend fun getPodcastAndEpisode(
         fav: FavouriteDTO
     ): PodcastAndEpisode? {
         val mediaType = fav.type
@@ -41,5 +43,14 @@ class SelectPodcastAndEpisodeByFavourite @Inject constructor(
             return podcastDao.selectAllEpisodeById(pc.feedId)
         }
         return podcastDao.selectAllEpisodeById(fav.id.toLong())
+    }
+
+    suspend operator fun <T> invoke(
+        fav: FavouriteDTO,
+    ): T {
+        return when (fav.type) {
+            MediaType.Radio -> radioChannelDao.getAll() as T
+            else -> getPodcastAndEpisode(fav) as T
+        }
     }
 }

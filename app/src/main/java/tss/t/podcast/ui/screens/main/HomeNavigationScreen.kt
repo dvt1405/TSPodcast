@@ -36,6 +36,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +53,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import kotlinx.coroutines.launch
+import tss.t.coreapi.models.Podcast
+import tss.t.featureradio.RadioViewModel
+import tss.t.featureradio.ui.RadioScreen
 import tss.t.hazeandroid.HazeDefaults
 import tss.t.hazeandroid.HazeState
 import tss.t.hazeandroid.HazeStyle
@@ -70,12 +75,14 @@ import tss.t.podcast.ui.screens.player.PlayerViewModel
 import tss.t.podcast.ui.screens.podcastsdetail.PodcastViewModel
 import tss.t.podcast.ui.screens.search.SearchScreen
 import tss.t.podcast.ui.screens.search.SearchViewModel
+import tss.t.podcast.ui.screens.uimodels.main.UIState
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 
 internal const val FAVOURITE_TAB_INDEX = 0
 internal const val HOME_TAB_INDEX = 1
-internal const val SEARCH_TAB_INDEX = 2
+internal const val RADIO_TAB_INDEX = 2
+internal const val SEARCH_TAB_INDEX = 3
 
 fun <T> spatialExpressiveSpring() = spring<T>(
     dampingRatio = 0.8f,
@@ -114,6 +121,7 @@ fun HomeNavigationScreen(
             TSHomeRouter.Discover.name -> R.string.discorver_screen_title
             TSHomeRouter.Favourite.name -> R.string.favourite_screen_title
             TSHomeRouter.Search.name -> R.string.search_screen_title
+            TSHomeRouter.Radio.name -> R.string.radio_screen_title
             else -> R.string.app_name
         }
     }
@@ -123,6 +131,7 @@ fun HomeNavigationScreen(
             TSHomeRouter.Discover.name -> HOME_TAB_INDEX
             TSHomeRouter.Favourite.name -> FAVOURITE_TAB_INDEX
             TSHomeRouter.Search.name -> SEARCH_TAB_INDEX
+            TSHomeRouter.Radio.name -> RADIO_TAB_INDEX
             else -> HOME_TAB_INDEX
         }
     }
@@ -201,6 +210,10 @@ private fun bottomBarNavigateTo(index: Int, innerNavHost: NavHostController) {
         SEARCH_TAB_INDEX -> {
             findAndPopupTo(innerNavHost, TSHomeRouter.Search)
         }
+
+        RADIO_TAB_INDEX -> {
+            findAndPopupTo(innerNavHost, TSHomeRouter.Radio)
+        }
     }
 }
 
@@ -230,7 +243,7 @@ private fun HomeNavHost(
     favViewModel: FavouriteViewModel,
     animationScope: AnimatedVisibilityScope = LocalNavAnimatedVisibilityScope.current!!,
     hazeState: HazeState,
-    dashboardUIState: MainViewModel.UIState,
+    dashboardUIState: UIState,
     playerControlState: PlayerViewModel.PlayerControlState,
     innerPadding: PaddingValues
 ) {
@@ -239,6 +252,8 @@ private fun HomeNavHost(
     val searchViewModel = viewModel<SearchViewModel>(viewmodelStore)
     val mainViewModel: MainViewModel = viewModel(viewmodelStore)
     val podcastViewModel: PodcastViewModel = viewModel(viewmodelStore)
+    val playerViewModel: PlayerViewModel = viewModel(viewmodelStore)
+    val coroutineScope = rememberCoroutineScope()
     NavHost(
         navController = innerNavHost,
         startDestination = TSHomeRouter.Discover.route,
@@ -266,7 +281,13 @@ private fun HomeNavHost(
                         parentNavHost.navigate(TSRouter.PodcastDetail.route)
                     },
                     onLiveItemClick = {
-                        parentNavHost.navigate(TSRouter.Player.route)
+                        coroutineScope.launch {
+                            playerViewModel.playLive(
+                                liveEpisode = this@DiscoverPodcastsScreen,
+                                listItem = dashboardUIState.liveEpisode.flatten()
+                            )
+                            parentNavHost.navigate(TSRouter.Player.route)
+                        }
                     },
                 )
             }
@@ -277,6 +298,7 @@ private fun HomeNavHost(
                 rootNavHost = parentNavHost,
                 listState = rememberLazyListState(),
                 mainViewModel = mainViewModel,
+                playerViewModel = playerViewModel,
                 innerPadding = PaddingValues(
                     start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
                     end = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
@@ -322,8 +344,47 @@ private fun HomeNavHost(
                         innerPadding.calculateBottomPadding() + 86.dp
                     }
                 ),
-                onSearchSelected = { _ ->
+                onSearchSelected = { feed ->
+                    val podcast = Podcast.fromFeed(feed)
+                    mainViewModel.setCurrentPodcast(podcast)
+                    podcastViewModel.getEpisodes(podcast)
                     parentNavHost.navigate(TSRouter.PodcastDetail.route)
+                }
+            )
+        }
+
+        composable(TSHomeRouter.Radio.route) {
+            val radioViewModel = viewModel<RadioViewModel>(viewmodelStore)
+            val uiState by radioViewModel.uiState.collectAsState()
+            val listState by radioViewModel.listState
+            RadioScreen(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .padding(
+                        bottom = if (playerControlState.currentMediaItem != null) {
+                            86.dp
+                        } else {
+                            0.dp
+                        }
+                    ),
+                radioUISate = uiState,
+                currentMediaItem = playerControlState.currentMediaItem,
+                isMediaPlaying = playerControlState.isPlaying,
+                isMediaLoading = playerControlState.isLoading,
+                listState = listState,
+                onPlay = {
+                    coroutineScope.launch {
+                        playerViewModel.playRadio(it, uiState.data?.listRadio ?: emptyList())
+                    }
+                },
+                onPause = {
+                    playerViewModel.onPlayPause()
+                },
+                onClick = {
+                    coroutineScope.launch {
+                        playerViewModel.playRadio(it, uiState.data?.listRadio ?: emptyList())
+                        parentNavHost.navigate(TSRouter.Player.route)
+                    }
                 }
             )
         }
