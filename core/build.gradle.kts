@@ -15,11 +15,11 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments["room.schemaLocation"] = "$projectDir/schemas"
-            }
-        }
+//        javaCompileOptions {
+//            annotationProcessorOptions {
+//                arguments["room.schemaLocation"] = "$projectDir/schemas"
+//            }
+//        }
     }
 
     buildTypes {
@@ -41,9 +41,9 @@ android {
     buildFeatures {
         buildConfig = true
     }
-    sourceSets {
-        getByName("androidTest").assets.srcDirs(File("$projectDir/schemas"))
-    }
+//    sourceSets {
+//        getByName("androidTest").assets.srcDirs(File("$projectDir/schemas"))
+//    }
 }
 
 dependencies {

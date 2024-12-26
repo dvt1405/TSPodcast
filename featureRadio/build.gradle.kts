@@ -90,4 +90,5 @@ dependencies {
     implementation(project(":securedToken"))
     implementation(project(":core"))
     implementation(project(":coreRadio"))
+    implementation(project(":hazeAndroid"))
 }

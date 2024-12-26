@@ -358,15 +358,9 @@ private fun HomeNavHost(
             val uiState by radioViewModel.uiState.collectAsState()
             val listState by radioViewModel.listState
             RadioScreen(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .padding(
-                        bottom = if (playerControlState.currentMediaItem != null) {
-                            86.dp
-                        } else {
-                            0.dp
-                        }
-                    ),
+                modifier = Modifier,
+                contentPadding = innerPadding,
+                hazeState = hazeState,
                 radioUISate = uiState,
                 currentMediaItem = playerControlState.currentMediaItem,
                 isMediaPlaying = playerControlState.isPlaying,

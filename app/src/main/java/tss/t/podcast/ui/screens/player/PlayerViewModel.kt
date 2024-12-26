@@ -16,6 +16,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
@@ -43,6 +44,8 @@ import tss.t.podcasts.usecase.history.GetEpisodeLocalUseCase
 import tss.t.podcasts.usecase.history.SaveCurrentPlayingUseCase
 import tss.t.sharedplayer.controller.TSMediaController
 import tss.t.sharedplayer.player.PlayerManager
+import tss.t.sharedplayer.utils.ext.album
+import tss.t.sharedplayer.utils.ext.mediaType
 import javax.inject.Inject
 
 @HiltViewModel
@@ -85,10 +88,11 @@ class PlayerViewModel @Inject constructor(
                     isLoading = true,
                     isFavourite = isFav,
                     podcast = currentPodcast,
-                    playList = playList
+                    playList = playList,
+                    exception = null
                 )
             }
-            currentPlayer.addListener(this@PlayerViewModel)
+            setupPlayerListener()
             playerManager.playMedia(
                 currentItem = episode.toMediaItem(currentPodcast?.title),
                 mediaItems = playList
@@ -103,11 +107,10 @@ class PlayerViewModel @Inject constructor(
         }.await()
     }
 
-    suspend fun playerMediaItem(
-        mediaItem: MediaItem,
-    ) {
+    suspend fun playerMediaItem(mediaItem: MediaItem) {
         val currentPodcast = _playerControlState.value.podcast
         val playList = _playerControlState.value.playList
+        val mediaType = mediaItem.mediaType
         viewModelScope.async {
             val isFav = isFavouriteUseCase(mediaItem)
             _playerControlState.update {
@@ -116,27 +119,84 @@ class PlayerViewModel @Inject constructor(
                     isLoading = true,
                     isFavourite = isFav,
                     podcast = currentPodcast,
-                    playList = playList
+                    playList = playList,
+                    exception = null
                 )
             }
-            currentPlayer.addListener(this@PlayerViewModel)
-            playerManager.playMedia(
-                currentItem = mediaItem,
-                mediaItems = playList
-            )
+            setupPlayerListener()
+            when (mediaType) {
+                MediaType.Radio -> {
+                    handlePlayRadioItem(mediaItem, playList)
+                }
+
+                else -> {
+                    playerManager.playMedia(
+                        currentItem = mediaItem,
+                        mediaItems = playList
+                    )
+                }
+            }
             withContext(Dispatchers.IO) {
                 saveCurrentPlayingUseCase(mediaItem)
             }
         }.await()
     }
 
+    private suspend fun handlePlayRadioItem(
+        mediaItem: MediaItem,
+        playList: List<MediaItem>
+    ) {
+        val mediaItemResult = extractPlayerLink(mediaItem)
+        if (mediaItemResult.isFailure) {
+            _playerControlState.update {
+                it.copy(
+                    exception = mediaItemResult.exceptionOrNull()
+                )
+            }
+        } else {
+            val readyToPlay = mediaItemResult.getOrDefault(mediaItem)
+            _playerControlState.update {
+                it.copy(
+                    currentMediaItem = readyToPlay,
+                    exception = null
+                )
+            }
+            playerManager.playMedia(
+                currentItem = readyToPlay,
+                mediaItems = playList,
+            )
+        }
+    }
+
+    private suspend fun extractPlayerLink(mediaItem: MediaItem): Result<MediaItem> {
+        val link = getPlayableLink(
+            mediaItem.mediaId,
+            mediaItem.album!!
+        )
+        return if (link.isSuccess) {
+            Result.success(
+                mediaItem.buildUpon()
+                    .setUri(link.getOrDefault(emptyList()).first())
+                    .build()
+            )
+        } else {
+            Result.failure(link.exceptionOrNull()!!)
+        }
+    }
+
+    private fun setupPlayerListener() {
+        currentPlayer.removeListener(this@PlayerViewModel)
+        currentPlayer.addListener(this@PlayerViewModel)
+    }
+
+    @kotlin.OptIn(ExperimentalCoroutinesApi::class)
     suspend fun playRadio(
         radioChannel: RadioChannel,
         listRadio: List<RadioChannel>
     ) {
         viewModelScope.async {
             val playList = listRadio.map {
-                it.toMediaItem()
+                it.toMediaItem(it.category)
             }.ifEmpty { _playerControlState.value.playList }
             val mediaItem = radioChannel.toMediaItem()
             val isFav = isFavouriteUseCase(mediaItem)
@@ -146,12 +206,13 @@ class PlayerViewModel @Inject constructor(
                     isLoading = true,
                     isFavourite = isFav,
                     podcast = null,
-                    playList = playList
+                    playList = playList,
+                    exception = null
                 )
             }
         }.await()
         viewModelScope.launch {
-            currentPlayer.addListener(this@PlayerViewModel)
+            setupPlayerListener()
             getPlayableLink(radioChannel)
                 .mapLatest {
                     if (it.isSuccess) {
@@ -176,6 +237,7 @@ class PlayerViewModel @Inject constructor(
                     _playerControlState.update {
                         it.copy(
                             isLoading = false,
+                            exception = null
                         )
                     }
                 }
@@ -188,14 +250,16 @@ class PlayerViewModel @Inject constructor(
             _playerControlState.update {
                 it.copy(
                     isLoading = false,
-                    isPlaying = false
+                    isPlaying = false,
+                    exception = null
                 )
             }
         } else {
             currentPlayer.play()
             _playerControlState.update {
                 it.copy(
-                    isPlaying = true
+                    isPlaying = true,
+                    exception = null
                 )
             }
         }
@@ -211,7 +275,7 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    private fun checkFavourite(mediaId: String? = null) {
+    fun checkFavourite(mediaId: String? = null) {
         val id = mediaId ?: mediaController.sessionController
             ?.currentMediaItem
             ?.mediaId ?: return
@@ -411,7 +475,8 @@ class PlayerViewModel @Inject constructor(
         _playerControlState.update {
             it.copy(
                 isPlaying = currentPlayer.isPlaying,
-                isLoading = false
+                isLoading = (currentPlayer.playbackState == Player.STATE_IDLE)
+                        && !currentPlayer.isPlaying
             )
         }
     }
@@ -472,7 +537,7 @@ class PlayerViewModel @Inject constructor(
                         )
                     }
                 }
-                currentPlayer.addListener(this@PlayerViewModel)
+                setupPlayerListener()
             }
         } else {
             val episodeId = mediaId?.toLongOrNull() ?: return
@@ -536,7 +601,8 @@ class PlayerViewModel @Inject constructor(
         val currentProgress: Float = 0f,
         val isFavourite: Boolean = false,
         val podcast: Podcast? = null,
-        val playList: List<MediaItem> = emptyList()
+        val playList: List<MediaItem> = emptyList(),
+        val exception: Throwable? = null
     )
 }
 

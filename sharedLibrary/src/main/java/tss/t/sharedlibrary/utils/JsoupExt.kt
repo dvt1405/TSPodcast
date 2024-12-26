@@ -50,6 +50,14 @@ class JsoupExt @Inject constructor(
         return@withContext doc.parse()
     }
 
+    suspend fun safeConnect(
+        url: String,
+        cookieReferer: String = url,
+        headers: Map<String, String> = emptyMap(),
+    ) = runCatching {
+        connect(url, cookieReferer, headers)
+    }.getOrNull()
+
     private fun getCookie(key: String): Map<String, String> {
         val str = _cookieStore.getString(key, null) ?: return emptyMap()
         return runCatching {

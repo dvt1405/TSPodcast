@@ -1,6 +1,5 @@
 package tss.t.coreradio.usecase
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
@@ -37,7 +36,6 @@ class GetRadioList @Inject constructor(
             }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     suspend operator fun invoke() = apis.values.map {
         it.getRadioList()
     }
