@@ -27,6 +27,7 @@ import tss.t.coreradio.models.RadioChannel
 import tss.t.featureradio.models.RadioUISate
 import tss.t.featureradio.ui.widget.RadioChannelItem
 import tss.t.featureradio.ui.widget.RadioChannelItemShimmer
+import tss.t.hazeandroid.HazeDefaults
 import tss.t.hazeandroid.HazeState
 import tss.t.hazeandroid.haze
 
@@ -54,7 +55,10 @@ fun RadioScreen(
     val layoutDirection = LocalConfiguration.current.layoutDirection
     LazyColumn(
         modifier = modifier
-            .haze(hazeState)
+            .haze(
+                state = hazeState,
+                style = HazeDefaults.tint
+            )
             .animateContentSize(),
         state = listState
     ) {

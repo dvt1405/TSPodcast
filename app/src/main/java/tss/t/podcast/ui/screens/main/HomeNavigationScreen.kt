@@ -311,6 +311,7 @@ private fun HomeNavHost(
                 ),
                 pullToRefreshState = rememberPullToRefreshState(),
                 viewModel = favViewModel,
+                hazeState = hazeState,
                 onEmptyClick = {
                     innerNavHost.popBackStack(
                         route = TSHomeRouter.Discover.route,
@@ -334,6 +335,7 @@ private fun HomeNavHost(
                 },
                 categories = listCategory,
                 searchResult = listSearch,
+                hazeState = hazeState,
                 innerPadding = PaddingValues(
                     start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
                     end = innerPadding.calculateStartPadding(LayoutDirection.Ltr),

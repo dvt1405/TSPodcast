@@ -2,6 +2,9 @@ package tss.t.podcast.ui.theme
 
 import android.app.Activity
 import android.os.Build
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -9,7 +12,12 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
+import tss.t.podcast.LocalNavAnimatedVisibilityScope
+import tss.t.podcast.LocalSharedTransitionScope
+import tss.t.sharedfirebase.LocalAnalyticsScope
+import tss.t.sharedfirebase.TSAnalytics
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -55,4 +63,24 @@ fun PodcastTheme(
         typography = Typography,
         content = content
     )
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+fun PodcastThemePreview(
+    content: @Composable () -> Unit
+) {
+    SharedTransitionScope {
+        AnimatedContent(true, label = "") {
+            if (it) {
+                CompositionLocalProvider(
+                    LocalSharedTransitionScope provides this@SharedTransitionScope,
+                    LocalNavAnimatedVisibilityScope provides this,
+                    LocalAnalyticsScope provides TSAnalytics(LocalContext.current)
+                ) {
+                    content()
+                }
+            }
+        }
+    }
 }

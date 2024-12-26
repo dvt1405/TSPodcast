@@ -27,6 +27,9 @@ import tss.t.ads.MaxAdViewComposable
 import tss.t.core.models.FavouriteDTO
 import tss.t.coreapi.models.databaseview.PodcastAndEpisode
 import tss.t.coreradio.models.RadioChannel
+import tss.t.hazeandroid.HazeDefaults
+import tss.t.hazeandroid.HazeState
+import tss.t.hazeandroid.haze
 import tss.t.podcast.ui.navigations.TSRouter
 import tss.t.podcast.ui.screens.MainViewModel
 import tss.t.podcast.ui.screens.favourite.widgets.EmptyFavouriteWidget
@@ -42,6 +45,7 @@ fun FavouriteScreen(
     mainViewModel: MainViewModel,
     playerViewModel: PlayerViewModel,
     innerPadding: PaddingValues,
+    hazeState: HazeState,
     pullToRefreshState: PullToRefreshState,
     viewModel: FavouriteViewModel,
     onEmptyClick: () -> Unit = {}
@@ -58,6 +62,10 @@ fun FavouriteScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
+            .haze(
+                state = hazeState,
+                style = HazeDefaults.tint
+            )
             .animateContentSize(),
         state = listState
     ) {
