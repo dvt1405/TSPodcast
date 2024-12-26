@@ -75,7 +75,7 @@ class TSAnalytics @Inject constructor(
         _analyticScope.launch {
             try {
                 val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-                _defaultAttrs["app_version"] = pInfo.versionName
+                _defaultAttrs["app_version"] = pInfo.versionName ?: ""
             } catch (e: PackageManager.NameNotFoundException) {
                 e.printStackTrace()
             }

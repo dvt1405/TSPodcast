@@ -1,3 +1,5 @@
+import tss.t.build.TSBuilds
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -9,10 +11,10 @@ plugins {
 
 android {
     namespace = "tss.t.coreapi"
-    compileSdk = 34
+    compileSdk = TSBuilds.combineSdk
 
     defaultConfig {
-        minSdk = 23
+        minSdk = TSBuilds.minSdk
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -28,11 +30,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = TSBuilds.javaVersion
+        targetCompatibility = TSBuilds.javaVersion
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = TSBuilds.jvmTarget
     }
 }
 
