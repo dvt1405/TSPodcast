@@ -3,6 +3,7 @@ import tss.t.build.TSBuilds
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.compose.compiler)
     id("kotlin-kapt")
     id("kotlinx-serialization")
     id("com.google.dagger.hilt.android")
@@ -39,9 +40,6 @@ android {
         compose = true
         buildConfig = true
         viewBinding = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
     }
 }
 
