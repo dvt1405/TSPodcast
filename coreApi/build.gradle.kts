@@ -3,10 +3,10 @@ import tss.t.build.TSBuilds
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.dagger.hilt)
+    alias(libs.plugins.kotlin.serilization)
+    alias(libs.plugins.kotlin.parcelize)
     id("kotlin-kapt")
-    id("kotlinx-serialization")
-    id("kotlin-parcelize")
-    id("com.google.dagger.hilt.android")
 }
 
 android {

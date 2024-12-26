@@ -4,12 +4,12 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.dagger.hilt)
+    alias(libs.plugins.kotlin.serilization)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.kotlin.parcelize)
     id("kotlin-kapt")
-    id("kotlinx-serialization")
-    id("kotlin-parcelize")
-    id("com.google.dagger.hilt.android")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
     id("applovin-quality-service")
 }
 

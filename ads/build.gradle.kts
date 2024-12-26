@@ -4,9 +4,9 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serilization)
+    alias(libs.plugins.dagger.hilt)
     id("kotlin-kapt")
-    id("kotlinx-serialization")
-    id("com.google.dagger.hilt.android")
 }
 
 android {

@@ -4,9 +4,10 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.dagger.hilt)
+    alias(libs.plugins.kotlin.serilization)
     id("kotlin-kapt")
-    id("kotlinx-serialization")
-    id("com.google.dagger.hilt.android")}
+}
 
 android {
     namespace = "tss.t.featureonboarding"
