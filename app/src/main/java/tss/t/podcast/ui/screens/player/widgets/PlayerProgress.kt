@@ -42,6 +42,7 @@ import java.util.Locale
 fun PlayerProgress(
     progress: Float,
     modifier: Modifier = Modifier,
+    isLive: Boolean = false,
     start: Long = 0L,
     end: Long = 10_000L,
     onProgressChanged: (Float) -> Unit = {}
@@ -67,7 +68,11 @@ fun PlayerProgress(
     val animateProgress = remember {
         Animatable(progress)
     }
-    LaunchedEffect(progress) {
+    LaunchedEffect(progress, isLive) {
+        if (isLive) {
+            animateProgress.snapTo(1f)
+            return@LaunchedEffect
+        }
         if (animateProgress.targetValue != progress && !isDragging) {
             animateProgress.animateTo(progress)
         }
@@ -80,6 +85,7 @@ fun PlayerProgress(
             .pointerInput(Unit) {
                 detectHorizontalDragGestures(
                     onHorizontalDrag = { p, dragAmount ->
+                        if (isLive) return@detectHorizontalDragGestures
                         if (isDragging) {
                             coroutineScope.launch {
                                 val targetValue = dragAmount / size.width + animateProgress.value
@@ -88,13 +94,16 @@ fun PlayerProgress(
                         }
                     },
                     onDragStart = {
+                        if (isLive) return@detectHorizontalDragGestures
                         isDragging = true
                     },
                     onDragEnd = {
+                        if (isLive) return@detectHorizontalDragGestures
                         isDragging = false
                         onProgressChanged(animateProgress.value)
                     },
                     onDragCancel = {
+                        if (isLive) return@detectHorizontalDragGestures
                         isDragging = false
                     }
                 )
@@ -151,7 +160,11 @@ fun PlayerProgress(
             drawText(
                 textLayoutResult = textLayout,
                 topLeft = Offset(
-                    x = (size.width - 4.dp.toPx()) * animateProgress.value - textLayout.size.width / 2,
+                    x = ((size.width - 4.dp.toPx()) * animateProgress.value)
+                        .coerceIn(
+                            0f,
+                            size.width
+                        ) - textLayout.size.width / 2,
                     y = -textLayout.size.height.toFloat()
                 )
             )

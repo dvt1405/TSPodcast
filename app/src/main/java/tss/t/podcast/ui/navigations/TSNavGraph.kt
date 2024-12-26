@@ -119,6 +119,7 @@ fun TSNavGraph(
             popExitTransition = { fadeOut(targetAlpha = 0.1f) + slideOutVertically { it } }
         ) {
             val playerUIState by playerViewModel.playerControlState.collectAsState()
+            playerViewModel.checkFavourite(playerUIState.currentMediaItem?.mediaId)
             CompositionLocalProvider(
                 LocalNavAnimatedVisibilityScope provides this,
                 LocalViewModelStoreOwner provides viewModelStoreOwner

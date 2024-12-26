@@ -22,10 +22,10 @@ class VOHRepository @Inject constructor(
     private val baseUrl = BASE_URL
 
     override suspend fun getRadioList(): List<RadioChannel> {
-        val main = jsoupExt.connect(
+        val main = jsoupExt.safeConnect(
             url = baseUrl,
             cookieReferer = baseUrl
-        ).body()
+        )?.body() ?: return radioChannelDao.getAllByCategory(RadioRepo.VOH.name)
         val moreChannelLink = main.selectFirst("a.btn-more-radio")
             ?.absUrl("href")
         var useMain = false

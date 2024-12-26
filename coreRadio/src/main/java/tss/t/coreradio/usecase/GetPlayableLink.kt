@@ -18,9 +18,12 @@ class GetPlayableLink @Inject constructor(
     suspend operator fun invoke(radioChannel: RadioChannel) =
         (
                 if (radioChannel.category.equals(RadioRepo.VOV.name, ignoreCase = true))
-                    flowOf(apis[RadioRepo.VOV]!!.getPlayableLink(radioChannel = radioChannel))
-                else flowOf(apis[RadioRepo.VOH]!!.getPlayableLink(radioChannel = radioChannel))
+                    flowOf(apis[RadioRepo.VOV]!!)
+                else flowOf(apis[RadioRepo.VOH]!!)
                 )
+            .map {
+                it.getPlayableLink(radioChannel = radioChannel)
+            }
             .retry(2)
             .map {
                 if (it.link.isNotEmpty()) {
@@ -34,6 +37,21 @@ class GetPlayableLink @Inject constructor(
             }
 
     suspend operator fun invoke(link: String) = apis[RadioRepo.VOV]!!.getPlayableLink(link)
+    suspend operator fun invoke(
+        link: String,
+        category: String
+    ) = runCatching {
+        getRepo(category)
+            .getPlayableLink(link)
+    }
+
+    private fun getRepo(category: String): RadioApi {
+        return if (category.equals(RadioRepo.VOH.name, ignoreCase = true)) {
+            apis[RadioRepo.VOH]!!
+        } else {
+            apis[RadioRepo.VOV]!!
+        }
+    }
 
     companion object {
         private val _cache by lazy {

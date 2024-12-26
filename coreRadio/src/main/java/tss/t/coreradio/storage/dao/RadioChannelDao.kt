@@ -24,4 +24,8 @@ abstract class RadioChannelDao {
     @Query("Select * from RadioChannel")
     abstract fun getAll(): List<RadioChannel>
 
+
+    @Query("Select * from RadioChannel where category=:category")
+    abstract fun getAllByCategory(category: String): List<RadioChannel>
+
 }
