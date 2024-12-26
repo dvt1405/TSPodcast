@@ -48,6 +48,9 @@ import org.json.JSONObject
 import tss.t.ads.MaxAdViewComposable
 import tss.t.coreapi.models.CategoryRes
 import tss.t.coreapi.models.Feed
+import tss.t.hazeandroid.HazeDefaults
+import tss.t.hazeandroid.HazeState
+import tss.t.hazeandroid.haze
 import tss.t.podcast.R
 import tss.t.podcast.ui.screens.search.widgets.SearchPodcastItem
 import tss.t.podcast.ui.theme.PodcastTheme
@@ -61,6 +64,7 @@ import tss.t.sharedlibrary.ui.widget.TSOutlinedTextField
 fun SearchScreen(
     initSearchText: String? = null,
     trendingKeyword: String = stringResource(R.string.search_suggest_key_title),
+    hazeState: HazeState,
     onSearch: (String?) -> Unit = {},
     categories: List<CategoryRes.Category> = emptyList(),
     searchResult: List<Feed> = emptyList(),
@@ -160,6 +164,10 @@ fun SearchScreen(
         )
         LazyColumn(
             modifier = Modifier
+                .haze(
+                    state = hazeState,
+                    style = HazeDefaults.tint
+                )
                 .fillMaxWidth()
                 .animateContentSize()
         ) {
@@ -254,7 +262,8 @@ fun SearchScreenPreview() {
     }
     PodcastTheme {
         SearchScreen(
-            categories = listFeed
+            categories = listFeed,
+            hazeState = HazeState()
         )
     }
 }

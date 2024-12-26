@@ -1,8 +1,6 @@
 package tss.t.podcast.ui.screens.discorver
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
@@ -25,7 +23,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,6 +40,7 @@ import tss.t.coreapi.models.LiveEpisode
 import tss.t.coreapi.models.Podcast
 import tss.t.hazeandroid.HazeDefaults
 import tss.t.hazeandroid.HazeState
+import tss.t.hazeandroid.HazeTint
 import tss.t.hazeandroid.haze
 import tss.t.podcast.LocalNavAnimatedVisibilityScope
 import tss.t.podcast.LocalSharedTransitionScope
@@ -54,6 +53,7 @@ import tss.t.podcast.ui.screens.discorver.widgets.Indicator
 import tss.t.podcast.ui.screens.player.PlayerViewModel
 import tss.t.podcast.ui.screens.uimodels.main.HomepageDataPart
 import tss.t.podcast.ui.screens.uimodels.main.UIState
+import tss.t.podcast.ui.theme.PodcastThemePreview
 import tss.t.sharedfirebase.LocalAnalyticsScope
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
@@ -110,9 +110,10 @@ fun DiscoverPodcastsScreen(
         label = "Color"
     )
 
-    val isFavRefreshing = remember(key1 = uiState.isDataPartLoading[HomepageDataPart.Favourite.value]) {
-        uiState.isDataPartLoading[HomepageDataPart.Favourite.value] ?: true
-    }
+    val isFavRefreshing =
+        remember(key1 = uiState.isDataPartLoading[HomepageDataPart.Favourite.value]) {
+            uiState.isDataPartLoading[HomepageDataPart.Favourite.value] ?: true
+        }
 
     val pullToRefreshThreshHold = remember(innerPadding.calculateTopPadding()) {
         50.dp + innerPadding.calculateTopPadding()
@@ -146,12 +147,8 @@ fun DiscoverPodcastsScreen(
         LazyColumn(
             modifier = Modifier
                 .haze(
-                    hazeState,
-                    HazeDefaults.style(
-                        backgroundColor = Colors.White,
-                        tint = Colors.White.copy(.1f),
-                        blurRadius = 20.dp,
-                    )
+                    state = hazeState,
+                    style = HazeDefaults.tint
                 )
                 .graphicsLayer {
                     translationY = pullRefreshState.distanceFraction * 50.dp.toPx()
@@ -163,7 +160,8 @@ fun DiscoverPodcastsScreen(
             }
             item(key = ITEM_TRENDING_TITLE) {
                 Text(
-                    stringResource(R.string.trending_podcast_title), style = TextStyles.Title4,
+                    stringResource(R.string.trending_podcast_title),
+                    style = TextStyles.Title4,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
@@ -211,7 +209,8 @@ fun DiscoverPodcastsScreen(
             }
             item(key = ITEM_RECENT_TITLE) {
                 Text(
-                    stringResource(R.string.recent_podcast_title), style = TextStyles.Title4,
+                    stringResource(R.string.recent_podcast_title),
+                    style = TextStyles.Title4,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
@@ -281,40 +280,27 @@ fun DiscoverPodcastsScreen(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 @Preview(backgroundColor = 0xFFE1D5D5)
 fun DiscoverPodcastsScreenPreview() {
     Box(modifier = Modifier.background(Colors.White)) {
-        SharedTransitionScope {
-            AnimatedContent(true, label = "") {
-                CompositionLocalProvider(
-                    LocalSharedTransitionScope provides this@SharedTransitionScope,
-                    LocalNavAnimatedVisibilityScope provides this
-                ) {
-                    if (it) {
-                        DiscoverPodcastsScreen(
-                            hazeState = remember { HazeState() },
-                            innerPadding = PaddingValues(),
-                            showLoading = true,
-                            onRefresh = {
+        PodcastThemePreview {
+            DiscoverPodcastsScreen(
+                hazeState = remember { HazeState() },
+                innerPadding = PaddingValues(),
+                showLoading = true,
+                onRefresh = {
 
-                            },
-                            onTrendingClick = {
+                },
+                onTrendingClick = {
 
-                            },
-                            onFavClick = {
+                },
+                onFavClick = {
 
-                            },
-                            uiState = UIState(),
-                            playerControlState = PlayerViewModel.PlayerControlState()
-                        )
-                    } else {
-                        Box { }
-                    }
-                }
-
-            }
+                },
+                uiState = UIState(),
+                playerControlState = PlayerViewModel.PlayerControlState()
+            )
         }
     }
 }
