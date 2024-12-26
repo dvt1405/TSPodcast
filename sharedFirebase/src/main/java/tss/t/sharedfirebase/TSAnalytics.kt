@@ -7,55 +7,32 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.core.os.bundleOf
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKeys
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import tss.t.sharedlibrary.utils.getAndroidDeviceId
 import javax.inject.Inject
 import javax.inject.Singleton
 
-val LocalAnalyticsScope = compositionLocalOf<TSAnalytics?> { null }
+val LocalAnalyticsScope = staticCompositionLocalOf<TSAnalytics?> { null }
 
 @Singleton
 class TSAnalytics @Inject constructor(
     @ApplicationContext
-    val context: Context
+    val context: Context,
+    private val sharedPref: TSFirebaseSharedPref,
+    @FirebaseScope(FirebaseDispatcher.IO)
+    private val _analyticScope: CoroutineScope
 ) {
-    private val _analyticScope by lazy { CoroutineScope(Dispatchers.IO) }
     private val _defaultAttrs by lazy {
         mutableMapOf<String, Any>(
             "os" to Build.VERSION.RELEASE,
             "os_version" to Build.VERSION.SDK_INT
         )
     }
-    private val _firebaseSharedPref by lazy {
-        EncryptedSharedPreferences.create(
-            "firebase_shared_prefs",
-            MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
-            context,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-    }
-
-    private var androidId: String? = _firebaseSharedPref.getString("DeviceId", null)
-        get() {
-            return if (field != null) field
-            else _firebaseSharedPref.getString("DeviceId", null)
-        }
-        set(value) {
-            _firebaseSharedPref.edit()
-                .putString("DeviceId", field)
-                .apply()
-            field = value
-        }
 
     var currentScreenName: String? = null
 
@@ -92,14 +69,7 @@ class TSAnalytics @Inject constructor(
     }
 
     private fun initDefaultAttrs() {
-        if (androidId == null) {
-            context.getAndroidDeviceId()
-                .takeIf { !it.isNullOrEmpty() }
-                ?.let {
-                    androidId = it
-                }
-        }
-        androidId?.let {
+        sharedPref.androidId?.let {
             _defaultAttrs["device_id"] = it
         }
         _analyticScope.launch {

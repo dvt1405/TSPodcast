@@ -1,6 +1,5 @@
 package tss.t.podcast.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -14,10 +13,13 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import tss.t.podcast.LocalNavAnimatedVisibilityScope
 import tss.t.podcast.LocalSharedTransitionScope
 import tss.t.sharedfirebase.LocalAnalyticsScope
 import tss.t.sharedfirebase.TSAnalytics
+import tss.t.sharedfirebase.TSFirebaseSharedPref
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -70,13 +72,18 @@ fun PodcastTheme(
 fun PodcastThemePreview(
     content: @Composable () -> Unit
 ) {
+    val scope = CoroutineScope(Dispatchers.Default)
     SharedTransitionScope {
         AnimatedContent(true, label = "") {
             if (it) {
                 CompositionLocalProvider(
                     LocalSharedTransitionScope provides this@SharedTransitionScope,
                     LocalNavAnimatedVisibilityScope provides this,
-                    LocalAnalyticsScope provides TSAnalytics(LocalContext.current)
+                    LocalAnalyticsScope provides TSAnalytics(
+                        context = LocalContext.current,
+                        sharedPref = TSFirebaseSharedPref(LocalContext.current, scope),
+                        _analyticScope = scope
+                    )
                 ) {
                     content()
                 }

@@ -32,6 +32,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import tss.t.securedtoken.NativeLib
 import tss.t.sharedfirebase.TSAnalytics
+import tss.t.sharedlibrary.utils.LocalRemoteConfig
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -51,7 +52,11 @@ fun MaxAdViewComposable(
     tsAnalytics: TSAnalytics,
 ) {
     val context = LocalContext.current
-
+    val configAPI = LocalRemoteConfig.current
+    val adEnable = remember {
+        configAPI.getBoolean(AdsConstants.KEY_ADS_ENABLE)
+    }
+    if (!adEnable) return
     val adViewModifier = when (adFormat) {
         // Set background or background color for ads to be fully functional.
         MaxAdFormat.BANNER -> modifier

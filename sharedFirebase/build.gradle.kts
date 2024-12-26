@@ -37,6 +37,8 @@ android {
 
 dependencies {
 
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.google.material)
@@ -47,6 +49,7 @@ dependencies {
     implementation(libs.firebase.analytics.ktx)
     implementation(libs.firebase.crashlytics.ktx)
     implementation(libs.firebase.messaging.ktx)
+    implementation(libs.firebase.remote.config)
     implementation(libs.coil)
     implementation(libs.coil.compose)
     implementation(project(":sharedLibrary"))

@@ -6,13 +6,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import tss.t.sharedlibrary.utils.ConfigAPI
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class BlacklistRepositoryImpl @Inject constructor(
     @ApplicationContext
-    private val context: Context
+    private val context: Context,
+    private val remoteConfigAPI: ConfigAPI
 ) {
     private val _scope by lazy { CoroutineScope(Dispatchers.IO) }
     private val _blackListId by lazy {
@@ -29,14 +31,15 @@ class BlacklistRepositoryImpl @Inject constructor(
 
     fun loadBlacklist() {
         _scope.launch {
-            val blackList = context.assets.open("blacklist.json")
-                .bufferedReader()
-                .readText()
-                .let {
-                    runCatching {
-                        JSONObject(it)
-                    }.getOrNull()
-                } ?: return@launch
+            val blackList = remoteConfigAPI.getJSONObject(ConfigKeys.KEY_BLACK_LIST)
+                ?: context.assets.open("blacklist.json")
+                    .bufferedReader()
+                    .readText()
+                    .let {
+                        runCatching {
+                            JSONObject(it)
+                        }.getOrNull()
+                    } ?: return@launch
             val blackListId = blackList.optJSONArray("feedId")
             val blackListKeyword = blackList.optJSONArray("filterText")
             if (blackListId != null) {

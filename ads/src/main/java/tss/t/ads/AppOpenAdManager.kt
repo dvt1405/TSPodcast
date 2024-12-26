@@ -11,6 +11,7 @@ import tss.t.core.storage.hasSelectFavouriteCategory
 import tss.t.core.storage.isOnboardingFinished
 import tss.t.securedtoken.NativeLib
 import tss.t.sharedfirebase.TSAnalytics
+import tss.t.sharedlibrary.utils.ConfigAPI
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,7 +20,8 @@ class AppOpenAdManager @Inject constructor(
     @ApplicationContext
     private val applicationContext: Context,
     private val tsAnalytics: TSAnalytics,
-    private val sharedPref: SharedPref
+    private val sharedPref: SharedPref,
+    private val configAPI: ConfigAPI
 ) : MaxAdListener {
 
     val adEnabled: Boolean
@@ -37,6 +39,7 @@ class AppOpenAdManager @Inject constructor(
     }
 
     fun showAdIfReady() {
+        if (!configAPI.getBoolean(AdsConstants.KEY_ADS_ENABLE)) return
         if (System.currentTimeMillis() - lastShowAd < showAdThreshHold || appOpenAd?.isReady == true) {
             return
         }

@@ -69,7 +69,10 @@ import tss.t.podcast.ui.screens.player.widgets.PlayerWidgetMain
 import tss.t.podcast.ui.screens.podcastsdetail.PodcastViewModel
 import tss.t.podcast.ui.theme.PodcastTheme
 import tss.t.sharedfirebase.LocalAnalyticsScope
+import tss.t.sharedfirebase.LocalRemoteConfigScope
 import tss.t.sharedfirebase.TSAnalytics
+import tss.t.sharedfirebase.TSFirebaseRemoteConfig
+import tss.t.sharedlibrary.utils.LocalRemoteConfig
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -87,6 +90,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var bannerAdsManager: BannerAdsManager
+
+    @Inject
+    lateinit var tsRemoteConfig: TSFirebaseRemoteConfig
 
     private var navHostController: NavHostController? = null
     private var homeInnerNavHostController: NavHostController? = null
@@ -131,6 +137,8 @@ class MainActivity : ComponentActivity() {
                         LocalPullToRefreshState provides pullRefreshState,
                         LocalAnalyticsScope provides tsAnalytics,
                         LocalBannerAdsManagerScope provides bannerAdsManager,
+                        LocalRemoteConfigScope provides tsRemoteConfig,
+                        LocalRemoteConfig provides tsRemoteConfig
                     ) {
                         TSNavGraph(
                             innerNavHost = innerNavGraph,

@@ -1,7 +1,7 @@
 package tss.t.ads
 
 import android.content.Context
-import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.staticCompositionLocalOf
 import com.applovin.sdk.AppLovinMediationProvider
 import com.applovin.sdk.AppLovinSdk
 import com.applovin.sdk.AppLovinSdkInitializationConfiguration
@@ -9,12 +9,13 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
 import tss.t.securedtoken.NativeLib
 import tss.t.sharedfirebase.TSAnalytics
+import tss.t.sharedlibrary.utils.ConfigAPI
 import javax.inject.Inject
 import javax.inject.Singleton
 
-val LocalBannerAdsManagerScope = compositionLocalOf<BannerAdsManager?> { null }
-val LocalNativeAdsManagerScope = compositionLocalOf<NativeAdsManager?> { null }
-val LocalAppOpenAdManagerScope = compositionLocalOf<AppOpenAdManager?> { null }
+val LocalBannerAdsManagerScope = staticCompositionLocalOf<BannerAdsManager?> { null }
+val LocalNativeAdsManagerScope = staticCompositionLocalOf<NativeAdsManager?> { null }
+val LocalAppOpenAdManagerScope = staticCompositionLocalOf<AppOpenAdManager?> { null }
 
 @Singleton
 class ApplovinSdkWrapper @Inject constructor(
@@ -24,7 +25,8 @@ class ApplovinSdkWrapper @Inject constructor(
     private val adBannerAdsManager: BannerAdsManager,
     private val nativeAdsManager: NativeAdsManager,
     private val tsAnalytics: TSAnalytics,
-    private val adsScope: ApplovinCoroutineScope
+    private val adsScope: ApplovinCoroutineScope,
+    private val configAPI: ConfigAPI
 ) {
     private var _state: SdkState = SdkState.None
     private var _isInitSdkInProcess: Boolean = false
