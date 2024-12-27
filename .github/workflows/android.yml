@@ -2,7 +2,7 @@ name: Android Test
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "TSP-*" ]
   pull_request:
     branches: [ "main" ]
 
