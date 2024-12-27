@@ -1,32 +1,33 @@
 [versions]
-agp = "8.5.1"
+agp = "8.7.3"
+applovinqualityservicegradleplugin = "4.10.0"
 applovinSdk = "13.0.1"
 coil = "2.7.0"
 dotsindicatorVersion = "5.0"
-firebaseBom = "33.5.1"
-fragmentKtx = "1.8.3"
+firebaseBom = "33.7.0"
+fragmentKtx = "1.8.5"
 gson = "2.11.0"
-kotlin = "1.9.0"
-coreKtx = "1.13.1"
+kotlin = "2.0.0"
+coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 kotlinxCoroutinesTest = "1.9.0"
-lifecycleRuntimeKtx = "2.8.6"
-activityCompose = "1.9.2"
-composeBom = "2024.09.00"
+lifecycleRuntimeKtx = "2.8.7"
+activityCompose = "1.9.3"
+composeBom = "2024.12.01"
 appcompat = "1.7.0"
 loggingInterceptor = "4.12.0"
 material = "1.7.6"
 materialVersion = "1.12.0"
-media3Exoplayer = "1.4.1"
-navigationCompose = "2.8.0"
+media3Exoplayer = "1.5.1"
+navigationCompose = "2.8.5"
 okhttp = "4.12.0"
 retrofit = "2.11.0"
 hilt = "2.51.1"
 junitJupiter = "5.8.1"
 roomPaging = "2.6.1"
-uiTooling = "1.7.4"
+uiTooling = "1.7.6"
 securityCryptoKtx = "1.0.0"
 lifecycleProcess = "2.8.7"
 jsoupVer = "1.15.3"
@@ -53,11 +54,13 @@ androidx-room-room-compiler = { module = "androidx.room:room-compiler", version.
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomPaging" }
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomPaging" }
 applovin-sdk = { module = "com.applovin:applovin-sdk", version.ref = "applovinSdk" }
+applovinqualityservicegradleplugin = { module = "com.applovin.quality:AppLovinQualityServiceGradlePlugin", version.ref = "applovinqualityservicegradleplugin" }
 firebase-analytics-ktx = { module = "com.google.firebase:firebase-analytics-ktx" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-config = { module = "com.google.firebase:firebase-config" }
 firebase-crashlytics-ktx = { module = "com.google.firebase:firebase-crashlytics-ktx" }
 firebase-messaging-ktx = { module = "com.google.firebase:firebase-messaging" }
+firebase-remote-config = { module = "com.google.firebase:firebase-config" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -103,4 +106,9 @@ androidx-ui-graphics-android = { group = "androidx.compose.ui", name = "ui-graph
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version = "2.0.20" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+dagger-hilt = { id = "com.google.dagger.hilt.android", version = "2.51.1" }
+kotlin-serilization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+google-services = { id = "com.google.gms.google-services", version = "4.4.2" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version = "3.0.2" }
+kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }

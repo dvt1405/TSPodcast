@@ -1,12 +1,15 @@
+import tss.t.build.TSBuilds
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.dagger.hilt)
+    alias(libs.plugins.kotlin.serilization)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.kotlin.parcelize)
     id("kotlin-kapt")
-    id("kotlinx-serialization")
-    id("kotlin-parcelize")
-    id("com.google.dagger.hilt.android")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
     id("applovin-quality-service")
 }
 
@@ -16,12 +19,12 @@ applovin {
 
 android {
     namespace = "tss.t.podcast"
-    compileSdk = 34
+    compileSdk = TSBuilds.combineSdk
 
     defaultConfig {
         applicationId = "tss.t.podcast"
-        minSdk = 23
-        targetSdk = 34
+        minSdk = TSBuilds.minSdk
+        targetSdk = TSBuilds.combineSdk
         versionCode = 10006
         versionName = "v1.4.$versionCode"
 
@@ -48,23 +51,24 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = TSBuilds.javaVersion
+        targetCompatibility = TSBuilds.javaVersion
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = TSBuilds.jvmTarget
     }
     buildFeatures {
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
     }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+}
+
+composeCompiler {
+    reportsDestination = layout.buildDirectory.dir("compose_compiler")
 }
 
 dependencies {

@@ -1,17 +1,20 @@
+import tss.t.build.TSBuilds
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serilization)
+    alias(libs.plugins.dagger.hilt)
     id("kotlin-kapt")
-    id("kotlinx-serialization")
-    id("com.google.dagger.hilt.android")
 }
 
 android {
     namespace = "tss.t.ads"
-    compileSdk = 34
+    compileSdk = TSBuilds.combineSdk
 
     defaultConfig {
-        minSdk = 23
+        minSdk = TSBuilds.minSdk
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -27,19 +30,16 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = TSBuilds.javaVersion
+        targetCompatibility = TSBuilds.javaVersion
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = TSBuilds.jvmTarget
     }
     buildFeatures {
         compose = true
         buildConfig = true
         viewBinding = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
     }
 }
 

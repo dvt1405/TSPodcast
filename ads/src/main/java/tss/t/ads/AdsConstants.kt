@@ -25,4 +25,6 @@ object AdsConstants {
     const val EVENT_NAME_AD_NATIVE_EXPIRED = "applovin_native_expired"
     const val EVENT_NAME_AD_NATIVE_EXPANDED = "applovin_native_expanded"
     const val EVENT_NAME_AD_NATIVE_COLLAPSED = "applovin_native_collapsed"
+
+    const val KEY_ADS_ENABLE = "ads_enable"
 }

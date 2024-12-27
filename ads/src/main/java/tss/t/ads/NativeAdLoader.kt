@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +25,7 @@ import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import tss.t.securedtoken.NativeLib
 import tss.t.sharedfirebase.TSAnalytics
+import tss.t.sharedlibrary.utils.LocalRemoteConfig
 import tss.t.sharedlibrary.utils.drawDivider
 
 enum class NativeAd {
@@ -46,6 +48,10 @@ class MaxTemplateNativeAdViewComposableLoader(
     private var isLoaded = false
 
     init {
+        setupListener()
+    }
+
+    private fun setupListener() {
         val adRevenueListener = MaxAdRevenueListener { }
         val adListener = object : MaxNativeAdListener() {
             override fun onNativeAdLoaded(loadedNativeAdView: MaxNativeAdView?, ad: MaxAd) {
@@ -130,7 +136,11 @@ class MaxTemplateNativeAdViewComposableLoader(
  */
 @Composable
 fun MaxTemplateNativeAdViewComposable(nativeAdLoader: MaxTemplateNativeAdViewComposableLoader) {
-
+    val configAPI = LocalRemoteConfig.current
+    val adEnable = remember {
+        configAPI.getBoolean(AdsConstants.KEY_ADS_ENABLE)
+    }
+    if (!adEnable) return
     LaunchedEffect(Unit) {
         nativeAdLoader.loadAd()
     }
