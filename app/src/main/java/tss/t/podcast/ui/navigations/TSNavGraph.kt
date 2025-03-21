@@ -124,11 +124,13 @@ fun TSNavGraph(
                 LocalNavAnimatedVisibilityScope provides this,
                 LocalViewModelStoreOwner provides viewModelStoreOwner
             ) {
-                PlayerScreen(
-                    episode = playerUIState.currentMediaItem!!,
-                    viewmodel = playerViewModel,
-                    navHost = navHost
-                )
+                if (playerUIState.currentMediaItem != null) {
+                    PlayerScreen(
+                        episode = playerUIState.currentMediaItem!!,
+                        viewmodel = playerViewModel,
+                        navHost = navHost
+                    )
+                }
             }
         }
     }

@@ -194,11 +194,16 @@ class PlayerViewModel @Inject constructor(
         radioChannel: RadioChannel,
         listRadio: List<RadioChannel>
     ) {
+        val mediaItem = radioChannel.toMediaItem()
+        _playerControlState.update {
+            it.copy(
+                currentMediaItem = mediaItem
+            )
+        }
         viewModelScope.async {
             val playList = listRadio.map {
                 it.toMediaItem(it.category)
             }.ifEmpty { _playerControlState.value.playList }
-            val mediaItem = radioChannel.toMediaItem()
             val isFav = isFavouriteUseCase(mediaItem)
             _playerControlState.update {
                 it.copy(

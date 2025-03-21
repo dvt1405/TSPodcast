@@ -54,8 +54,6 @@ import kotlinx.coroutines.launch
 import tss.t.ads.ApplovinSdkWrapper
 import tss.t.ads.BannerAdsManager
 import tss.t.ads.LocalBannerAdsManagerScope
-import tss.t.ads.LocalNativeAdsManagerScope
-import tss.t.ads.NativeAdsManager
 import tss.t.coreapi.Constants
 import tss.t.featureonboarding.OnboardingViewModel
 import tss.t.podcast.ui.model.HomeEvent

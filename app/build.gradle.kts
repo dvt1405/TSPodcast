@@ -39,7 +39,7 @@ android {
             setProperty("archivesBaseName", "TSPodcast.${defaultConfig.versionName}_D")
         }
         release {
-            defaultConfig.versionCode = 10010
+            defaultConfig.versionCode = 10011
             defaultConfig.versionName = "v1.4.${defaultConfig.versionCode}"
             isMinifyEnabled = true
             isShrinkResources = true
@@ -125,6 +125,7 @@ dependencies {
     testImplementation(libs.androidx.room.testing)
     implementation(libs.androidx.room.paging)
     implementation(libs.applovin.sdk)
+    implementation(libs.facebook.android.sdk)
     implementation(project(":samples"))
     implementation(project(":sharedLibrary"))
     implementation(project(":sharedPlayer"))

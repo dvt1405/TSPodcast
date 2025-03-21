@@ -4,6 +4,7 @@ applovinqualityservicegradleplugin = "4.10.0"
 applovinSdk = "13.0.1"
 coil = "2.7.0"
 dotsindicatorVersion = "5.0"
+facebookAndroidSdk = "18.0.2"
 firebaseBom = "33.7.0"
 fragmentKtx = "1.8.5"
 gson = "2.11.0"
@@ -32,6 +33,9 @@ securityCryptoKtx = "1.0.0"
 lifecycleProcess = "2.8.7"
 jsoupVer = "1.15.3"
 uiGraphicsAndroid = "1.7.6"
+playServicesWallet = "19.4.0"
+lifecycleViewmodelKtx = "2.8.7"
+lifecycleLivedataKtx = "2.8.7"
 
 [libraries]
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityCompose" }
@@ -55,6 +59,7 @@ androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomPaging" }
 applovin-sdk = { module = "com.applovin:applovin-sdk", version.ref = "applovinSdk" }
 applovinqualityservicegradleplugin = { module = "com.applovin.quality:AppLovinQualityServiceGradlePlugin", version.ref = "applovinqualityservicegradleplugin" }
+facebook-android-sdk = { module = "com.facebook.android:facebook-android-sdk", version.ref = "facebookAndroidSdk" }
 firebase-analytics-ktx = { module = "com.google.firebase:firebase-analytics-ktx" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-config = { module = "com.google.firebase:firebase-config" }
@@ -101,6 +106,9 @@ androidx-security-crypto-ktx = { group = "androidx.security", name = "security-c
 androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycleProcess" }
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoupVer" }
 androidx-ui-graphics-android = { group = "androidx.compose.ui", name = "ui-graphics-android", version.ref = "uiGraphicsAndroid" }
+play-services-wallet = { group = "com.google.android.gms", name = "play-services-wallet", version.ref = "playServicesWallet" }
+androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
+androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
