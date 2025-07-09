@@ -1,4 +1,4 @@
-import tss.t.build.TSBuilds
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
@@ -19,12 +19,12 @@ applovin {
 
 android {
     namespace = "tss.t.podcast"
-    compileSdk = TSBuilds.combineSdk
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
+        minSdk = libs.versions.minSdk.get().toInt()
+
         applicationId = "tss.t.podcast"
-        minSdk = TSBuilds.minSdk
-        targetSdk = TSBuilds.combineSdk
         versionCode = 10006
         versionName = "v1.4.$versionCode"
 
@@ -51,11 +51,13 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = TSBuilds.javaVersion
-        targetCompatibility = TSBuilds.javaVersion
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = TSBuilds.jvmTarget
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_11
+        }
     }
     buildFeatures {
         compose = true
