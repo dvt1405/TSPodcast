@@ -1,4 +1,4 @@
-import tss.t.build.TSBuilds
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.library)
@@ -8,10 +8,10 @@ plugins {
 
 android {
     namespace = "tss.t.samples"
-    compileSdk = TSBuilds.combineSdk
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = TSBuilds.minSdk
+        minSdk = libs.versions.minSdk.get().toInt()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -33,11 +33,13 @@ android {
         compose = true
     }
     compileOptions {
-        sourceCompatibility = TSBuilds.javaVersion
-        targetCompatibility = TSBuilds.javaVersion
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = TSBuilds.jvmTarget
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_11
+        }
     }
     packaging {
         resources {

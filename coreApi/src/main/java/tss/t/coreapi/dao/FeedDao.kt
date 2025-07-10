@@ -10,14 +10,14 @@ import tss.t.coreapi.models.Feed
 @Dao
 abstract class FeedDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun insert(podcast: Feed)
+    abstract suspend fun insert(podcast: Feed)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun inserts(podcast: List<Feed>)
+    abstract suspend fun inserts(podcast: List<Feed>)
 
     @Delete
-    abstract fun delete(podcast: Feed)
+    abstract suspend fun delete(podcast: Feed)
 
     @Query("Select * from Feed where id=:id")
-    abstract fun selectById(id: Long): Feed?
+    abstract suspend fun selectById(id: Long): Feed?
 }

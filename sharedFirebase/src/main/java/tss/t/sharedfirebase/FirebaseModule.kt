@@ -32,10 +32,20 @@ abstract class AbsFirebaseModule {
 }
 
 @Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+@Target(
+    AnnotationTarget.PROPERTY,
+    AnnotationTarget.VALUE_PARAMETER,
+    AnnotationTarget.FUNCTION,
+    AnnotationTarget.CONSTRUCTOR,
+    AnnotationTarget.TYPE_PARAMETER,
+    AnnotationTarget.ANNOTATION_CLASS,
+)
 annotation class FirebaseScope(
-    val value: FirebaseDispatcher
+    val value: String
 )
 
-enum class FirebaseDispatcher {
-    IO, Default
+object FirebaseDispatcher {
+    const val IO = "IO"
+    const val Default ="Default"
 }

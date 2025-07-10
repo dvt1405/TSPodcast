@@ -8,5 +8,5 @@ abstract class BaseResponse(
     @SerializedName("description")
     open val description: String = "",
     @SerializedName("status")
-    open val status: String = "",
+    open val status: String = ""
 )

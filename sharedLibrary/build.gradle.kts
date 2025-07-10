@@ -1,4 +1,4 @@
-import tss.t.build.TSBuilds
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.library)
@@ -6,15 +6,15 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.dagger.hilt)
     alias(libs.plugins.kotlin.serilization)
-    id("kotlin-kapt")
+    alias(libs.plugins.ksp)
 }
 
 android {
     namespace = "tss.t.sharedlibrary"
-    compileSdk = TSBuilds.combineSdk
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = TSBuilds.minSdk
+        minSdk = libs.versions.minSdk.get().toInt()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -33,11 +33,13 @@ android {
         compose = true
     }
     compileOptions {
-        sourceCompatibility = TSBuilds.javaVersion
-        targetCompatibility = TSBuilds.javaVersion
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = TSBuilds.jvmTarget
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_11
+        }
     }
 }
 
@@ -60,7 +62,11 @@ dependencies {
     implementation(libs.retrofit.gson)
     implementation(libs.androidx.security.crypto.ktx)
     implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.bundles.dagger)
+    ksp(libs.dagger.compiler)
+    ksp(libs.dagger.android.processor)
+
     implementation(project(":sharedResources"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

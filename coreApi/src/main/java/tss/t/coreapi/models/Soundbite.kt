@@ -1,16 +1,15 @@
 package tss.t.coreapi.models
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
 
 @Parcelize
 data class Soundbite(
-    @SerializedName("duration")
+    //@SerializedName("duration")
     val duration: Int,
-    @SerializedName("startTime")
+    //@SerializedName("startTime")
     val startTime: Int,
-    @SerializedName("title")
+    //@SerializedName("title")
     val title: String
 ): Parcelable

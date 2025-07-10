@@ -12,11 +12,11 @@ import tss.t.coreradio.storage.dao.RadioChannelDao
 import javax.inject.Inject
 
 class GetRadioList @Inject constructor(
-    private val apis: Map<RadioRepo, @JvmSuppressWildcards RadioApi>,
+    private val apis: Map<String, @JvmSuppressWildcards RadioApi>,
     private val radioChannelDao: RadioChannelDao
 ) {
     suspend operator fun invoke(
-        repoKey: RadioRepo
+        repoKey: String
     ): Flow<Result<List<RadioChannel>>> {
         val repo = apis[repoKey]
         assert(repo != null) {

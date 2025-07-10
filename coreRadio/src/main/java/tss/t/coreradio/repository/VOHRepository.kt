@@ -25,7 +25,7 @@ class VOHRepository @Inject constructor(
         val main = jsoupExt.safeConnect(
             url = baseUrl,
             cookieReferer = baseUrl
-        )?.body() ?: return radioChannelDao.getAllByCategory(RadioRepo.VOH.name)
+        )?.body() ?: return radioChannelDao.getAllByCategory(RadioRepo.VOH)
         val moreChannelLink = main.selectFirst("a.btn-more-radio")
             ?.absUrl("href")
         var useMain = false
@@ -86,18 +86,18 @@ class VOHRepository @Inject constructor(
                         RadioChannel.ItemLinkType.Playable,
                         link = jsObj.optString("url", ""),
                         id = jsObj.optString("url", ""),
-                        source = RadioRepo.VOH.name
+                        source = RadioRepo.VOH
                     ),
                     RadioChannel.Link(
                         RadioChannel.ItemLinkType.Browsable,
                         link = jsObj.optString("slug", ""),
                         id = jsObj.optString("slug", ""),
-                        source = RadioRepo.VOH.name
+                        source = RadioRepo.VOH
                     ),
                 ),
                 logo = jsObj.optString("logoPath", ""),
-                categories = listOf(RadioRepo.VOH.name),
-                category = RadioRepo.VOH.name
+                categories = listOf(RadioRepo.VOH),
+                category = RadioRepo.VOH
             )
             listChannel.add(channel)
         }
@@ -122,7 +122,7 @@ class VOHRepository @Inject constructor(
                             RadioChannel.ItemLinkType.Browsable,
                             link = channelLink,
                             id = channelLink,
-                            source = RadioRepo.VOH.name
+                            source = RadioRepo.VOH
                         )
                     ),
                     logo = logo,
@@ -152,7 +152,7 @@ class VOHRepository @Inject constructor(
                             RadioChannel.ItemLinkType.Browsable,
                             link = channelLink,
                             id = channelLink,
-                            source = RadioRepo.VOH.name
+                            source = RadioRepo.VOH
                         )
                     ),
                     logo = logo,

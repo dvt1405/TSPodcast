@@ -1,27 +1,27 @@
-import tss.t.build.TSBuilds
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.dagger.hilt)
     alias(libs.plugins.kotlin.serilization)
-    id("kotlin-kapt")
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
 }
 
 android {
     namespace = "tss.t.core"
-    compileSdk = TSBuilds.combineSdk
+    compileSdk = libs.versions.compileSdk.get().toInt()
+
+    room {
+        schemaDirectory("$projectDir/schemas")
+    }
 
     defaultConfig {
-        minSdk = TSBuilds.minSdk
+        minSdk = libs.versions.minSdk.get().toInt()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
-//        javaCompileOptions {
-//            annotationProcessorOptions {
-//                arguments["room.schemaLocation"] = "$projectDir/schemas"
-//            }
-//        }
     }
 
     buildTypes {
@@ -34,18 +34,17 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = TSBuilds.javaVersion
-        targetCompatibility = TSBuilds.javaVersion
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = TSBuilds.jvmTarget
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_11
+        }
     }
     buildFeatures {
         buildConfig = true
     }
-//    sourceSets {
-//        getByName("androidTest").assets.srcDirs(File("$projectDir/schemas"))
-//    }
 }
 
 dependencies {
@@ -59,24 +58,26 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.hilt.android)
     androidTestImplementation(libs.androidx.room.testing)
-    kapt(libs.hilt.android.compiler)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.bundles.dagger)
+    ksp(libs.dagger.compiler)
+    ksp(libs.dagger.android.processor)
+
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging.interceptor)
     implementation(libs.androidx.security.crypto.ktx)
-    implementation(libs.androidx.room.runtime)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics.ktx)
     implementation(libs.firebase.crashlytics.ktx)
     implementation(libs.firebase.messaging.ktx)
     implementation(libs.firebase.config)
-    kapt(libs.androidx.room.room.compiler)
-    annotationProcessor(libs.androidx.room.room.compiler)
+    implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.room.guava)
-    testImplementation(libs.androidx.room.testing)
     implementation(libs.androidx.room.paging)
+    ksp(libs.androidx.room.room.compiler)
+    testImplementation(libs.androidx.room.testing)
     implementation(project(":sharedLibrary"))
     implementation(project(":securedToken"))
     implementation(project(":coreApi"))

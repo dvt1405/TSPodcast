@@ -5,119 +5,117 @@ import androidx.annotation.VisibleForTesting
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
-@Parcelize
 @Entity
 data class Feed(
-    @SerializedName("artwork")
+    //@SerializedName("artwork")
     @ColumnInfo("artwork")
     val artwork: String,
-    @SerializedName("author")
+    //@SerializedName("author")
     @ColumnInfo("author")
     val author: String,
-    @SerializedName("categories")
+    //@SerializedName("categories")
     @ColumnInfo("categories")
     val categories: Categories?,
-    @SerializedName("contentType")
+    //@SerializedName("contentType")
     @ColumnInfo("contentType")
     val contentType: String,
-    @SerializedName("crawlErrors")
+    //@SerializedName("crawlErrors")
     @ColumnInfo("crawlErrors")
     val crawlErrors: Int,
-    @SerializedName("dead")
+    //@SerializedName("dead")
     @ColumnInfo("dead")
     val dead: Int,
-    @SerializedName("description")
+    //@SerializedName("description")
     @ColumnInfo("description")
     val description: String,
-    @SerializedName("episodeCount")
+    //@SerializedName("episodeCount")
     @ColumnInfo("episodeCount")
     val episodeCount: Int,
-    @SerializedName("explicit")
+    //@SerializedName("explicit")
     @ColumnInfo("explicit")
     val explicit: Boolean,
-    @SerializedName("generator")
+    //@SerializedName("generator")
     @ColumnInfo("generator")
     val generator: String,
-    @SerializedName("id")
+    //@SerializedName("id")
     @ColumnInfo("id")
     @PrimaryKey
     val id: Long,
-    @SerializedName("image")
+    //@SerializedName("image")
     @ColumnInfo("image")
     val image: String,
-    @SerializedName("imageUrlHash")
+    //@SerializedName("imageUrlHash")
     @ColumnInfo("imageUrlHash")
     val imageUrlHash: Long,
-    @SerializedName("itunesId")
+    //@SerializedName("itunesId")
     @ColumnInfo("itunesId")
     val itunesId: Long?,
-    @SerializedName("language")
+    //@SerializedName("language")
     @ColumnInfo("language")
     val language: String,
-    @SerializedName("lastCrawlTime")
+    //@SerializedName("lastCrawlTime")
     @ColumnInfo("lastCrawlTime")
     val lastCrawlTime: Long,
-    @SerializedName("lastGoodHttpStatusTime")
+    //@SerializedName("lastGoodHttpStatusTime")
     @ColumnInfo("lastGoodHttpStatusTime")
     val lastGoodHttpStatusTime: Int,
-    @SerializedName("lastHttpStatus")
+    //@SerializedName("lastHttpStatus")
     @ColumnInfo("lastHttpStatus")
     val lastHttpStatus: Int,
-    @SerializedName("lastParseTime")
+    //@SerializedName("lastParseTime")
     @ColumnInfo("lastParseTime")
     val lastParseTime: Long,
-    @SerializedName("lastUpdateTime")
+    //@SerializedName("lastUpdateTime")
     @ColumnInfo("lastUpdateTime")
     val lastUpdateTime: Long,
-    @SerializedName("link")
+    //@SerializedName("link")
     @ColumnInfo("link")
     val link: String,
-    @SerializedName("locked")
+    //@SerializedName("locked")
     @ColumnInfo("locked")
     val locked: Int,
-    @SerializedName("medium")
+    //@SerializedName("medium")
     @ColumnInfo("medium")
     val medium: String,
-    @SerializedName("newestItemPubdate")
+    //@SerializedName("newestItemPubdate")
     @ColumnInfo("newestItemPubdate")
     val newestItemPubdate: Long,
-    @SerializedName("originalUrl")
+    //@SerializedName("originalUrl")
     @ColumnInfo("originalUrl")
     val originalUrl: String,
-    @SerializedName("ownerName")
+    //@SerializedName("ownerName")
     @ColumnInfo("ownerName")
     val ownerName: String,
-    @SerializedName("parseErrors")
+    //@SerializedName("parseErrors")
     @ColumnInfo("parseErrors")
     val parseErrors: Int,
-    @SerializedName("podcastGuid")
+    //@SerializedName("podcastGuid")
     @ColumnInfo("podcastGuid")
     val podcastGuid: String,
-    @SerializedName("title")
+    //@SerializedName("title")
     @ColumnInfo("title")
     val title: String,
-    @SerializedName("type")
+    //@SerializedName("type")
     @ColumnInfo("type")
     val type: Int,
-    @SerializedName("url")
+    //@SerializedName("url")
     @ColumnInfo("url")
     val url: String,
-    @SerializedName("chash")
+    //@SerializedName("chash")
     @ColumnInfo("chash")
     val chash: String? = null,
-    @SerializedName("funding")
+    //@SerializedName("funding")
     @ColumnInfo("funding")
     val funding: Funding? = null,
-    @SerializedName("itunesType")
+    //@SerializedName("itunesType")
     @ColumnInfo("itunesType")
     val itunesType: String? = null,
-    @SerializedName("value")
+    //@SerializedName("value")
     @ColumnInfo("value")
     val value: Value? = null
-) : Parcelable {
+) {
     companion object {
         @VisibleForTesting
         val testItem by lazy {
@@ -164,10 +162,10 @@ data class Feed(
 
 @Parcelize
 data class Model(
-    @SerializedName("method")
+    //@SerializedName("method")
     val method: String,
-    @SerializedName("suggested")
+    //@SerializedName("suggested")
     val suggested: String? = null,
-    @SerializedName("type")
+    //@SerializedName("type")
     val type: String
 ) : Parcelable

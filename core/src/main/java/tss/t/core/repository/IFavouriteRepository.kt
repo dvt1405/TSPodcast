@@ -1,13 +1,7 @@
 package tss.t.core.repository
 
 import tss.t.core.models.FavouriteDTO
-
-enum class MediaType {
-    Podcast,
-    Radio,
-    PodcastEpisode,
-    TVChannel,
-}
+import tss.t.core.repository.MediaType
 
 interface IFavouriteRepository {
     suspend fun saveFavourite(

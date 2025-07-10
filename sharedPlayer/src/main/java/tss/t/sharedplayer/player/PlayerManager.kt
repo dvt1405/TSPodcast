@@ -26,6 +26,7 @@ class PlayerManager @Inject constructor(
     }
     private var _player: Player? = null
 
+    @OptIn(InternalCoroutinesApi::class)
     val player: Player
         get() = synchronized(syncLock) {
             _player ?: createPlayer().also {
@@ -50,6 +51,7 @@ class PlayerManager @Inject constructor(
             }
     }
 
+    @OptIn(InternalCoroutinesApi::class)
     private fun ensurePlayerCreate() {
         synchronized(syncLock) {
             if (_player == null) {
