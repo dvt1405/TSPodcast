@@ -1,4 +1,13 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
+import java.io.FileInputStream
+
+// Load local.properties
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
 
 plugins {
     alias(libs.plugins.android.application)
@@ -38,9 +47,15 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("$projectDir/KeyStore")
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "changeit"
-            keyAlias = System.getenv("KEY_ALIAS") ?: "release"
-            keyPassword = System.getenv("KEY_PASSWORD") ?: "changeit"
+            storePassword = localProperties.getProperty("KEYSTORE_PASSWORD") 
+                ?: System.getenv("KEYSTORE_PASSWORD") 
+                ?: "changeit"
+            keyAlias = localProperties.getProperty("KEY_ALIAS") 
+                ?: System.getenv("KEY_ALIAS") 
+                ?: "release"
+            keyPassword = localProperties.getProperty("KEY_PASSWORD") 
+                ?: System.getenv("KEY_PASSWORD") 
+                ?: "changeit"
         }
     }
 
