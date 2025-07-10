@@ -5,6 +5,24 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      buildType:
+        description: 'Build type (debug or release)'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - debug
+          - release
+      releaseNotes:
+        description: 'Release notes for this build'
+        required: true
+        default: 'New release with improvements and bug fixes'
+      distributionGroups:
+        description: 'Firebase App Distribution groups (comma-separated)'
+        required: true
+        default: 'podcasttester'
 
 jobs:
   test:
@@ -58,3 +76,32 @@ jobs:
           name: release-apk
           path: app/build/outputs/apk/release/*.apk
           retention-days: 1
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-apk
+          path: ./apk
+
+      - name: Find APK path
+        id: find-apk
+        run: |
+          APK_PATH=$(find ./apk -name "*.apk" | head -n 1)
+          echo "APK Path: $APK_PATH"
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+
+      - name: Distribute to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ github.event.inputs.buildType == 'debug' && secrets.FIREBASE_DEBUG_APP_ID || secrets.FIREBASE_RELEASE_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          groups: ${{ github.event.inputs.distributionGroups }}
+          releaseNotes: ${{ github.event.inputs.releaseNotes }}
+          file: ${{ steps.find-apk.outputs.apk_path }}

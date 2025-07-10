@@ -31,20 +31,20 @@ Before you can use the GitHub Actions workflow, you need to set up the following
 
 For environment-specific secrets (e.g., different Firebase App IDs for development, staging, and production), see the [GitHub Environments Guide](GITHUB_ENVIRONMENTS_GUIDE.md) for detailed instructions on how to set up and switch between different environments in GitHub Actions.
 
-## Triggering the Release Workflow
+## Triggering the Release Process
 
-The release workflow can be triggered in two ways:
+The release process can be triggered in two ways:
 
 ### Automatic Trigger
 
-The release workflow is automatically triggered when the `Android Test` workflow completes successfully. This ensures that the app is only released after it passes all tests and builds successfully.
+The release job is automatically triggered when the workflow runs on a push to the main branch. This ensures that the app is only released after it passes all tests and builds successfully.
 
 ### Manual Trigger
 
-The release workflow can also be triggered manually:
+The release process can also be triggered manually:
 
 1. Go to your GitHub repository
-2. Click on "Actions" > "Release to Firebase App Distribution"
+2. Click on "Actions" > "Android Test"
 3. Click on "Run workflow"
 4. Select the build type (debug or release)
 5. Enter the release notes and distribution groups (comma-separated)
@@ -52,22 +52,32 @@ The release workflow can also be triggered manually:
 
 ## Workflow Details
 
-The release process is now split across two workflows:
+The release process is now consolidated in a single workflow (`android.yml`) with multiple jobs:
 
-### Android Test Workflow (`android.yml`)
+### Test Job
 
-This workflow runs on every push to the main branch and pull request:
-
-1. Runs unit tests
-2. Builds the release APK
-3. Uploads the APK as an artifact (available for download from the GitHub Actions page)
-
-### Release Workflow (`release.yml`)
-
-This workflow is triggered either manually or after the Android Test workflow completes:
+This job runs first and performs unit tests:
 
 1. Checks out the code
-2. Downloads the APK artifact built by the Android Test workflow
+2. Sets up the Java environment
+3. Runs unit tests
+4. Uploads test results as artifacts
+
+### Build Job
+
+This job runs after the test job completes successfully:
+
+1. Checks out the code
+2. Sets up the Java environment
+3. Builds the release APK
+4. Uploads the APK as an artifact (available for download from the GitHub Actions page)
+
+### Release Job
+
+This job runs after the build job completes successfully, either when manually triggered or on a push to the main branch:
+
+1. Checks out the code
+2. Downloads the APK artifact from the build job
 3. Finds the path to the downloaded APK
 4. Distributes the APK to Firebase App Distribution using the Firebase Distribution GitHub Action:
    - Uses the appropriate Firebase App ID based on the build type
@@ -78,10 +88,11 @@ This approach ensures that:
 - The app is only released after passing all tests
 - The same APK that was tested is the one that gets released
 - The build process is not duplicated, saving time and resources
+- The entire process is consolidated in a single workflow file for easier management
 
 ## Customizing the Workflow
 
-You can customize the workflow by editing the `.github/workflows/release.yml` file:
+You can customize the workflow by editing the `.github/workflows/android.yml` file:
 
 - Change the default build type (debug or release)
 - Change the default release notes
@@ -89,6 +100,7 @@ You can customize the workflow by editing the `.github/workflows/release.yml` fi
 - Add additional build steps or tests
 - Modify the APK path if your build outputs are in a different location
 - Customize the distribution groups based on the build type
+- Adjust the conditions for when the release job should run
 
 For more advanced customization, such as deploying to different environments (development, staging, production) with environment-specific secrets, see the [GitHub Environments Guide](GITHUB_ENVIRONMENTS_GUIDE.md) and check out the example workflow in `.github/workflows/environment_example.yml`.
 
@@ -108,17 +120,18 @@ For more detailed troubleshooting related to Firebase service accounts and App D
 
 ## Integrating with Existing Processes
 
-The workflows are now integrated by default:
+The release process is now fully integrated into the main workflow:
 
 1. The `android.yml` workflow runs automatically on every push to main and pull request
-2. When `android.yml` completes successfully, the `release.yml` workflow is automatically triggered
-3. The release workflow distributes the APK to Firebase App Distribution
+2. The workflow runs the test, build, and release jobs in sequence
+3. The release job distributes the APK to Firebase App Distribution
 4. Monitor the distribution in the Firebase console
 
-For more control, you can still manually trigger the release workflow:
+For more control, you can manually trigger the workflow:
    - Use the debug build type for internal testing
    - Use the release build type for beta testing or production releases
    - Use different distribution groups for debug and release builds to target different testers
+   - The manual trigger allows you to specify custom release notes and distribution groups
 
 ## Google Play Console Deployment
 
