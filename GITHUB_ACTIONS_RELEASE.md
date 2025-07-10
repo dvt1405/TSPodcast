@@ -14,16 +14,13 @@ Before you can use the GitHub Actions workflow, you need to set up the following
 2. **KEYSTORE_PASSWORD**: Password for the keystore
 3. **KEY_ALIAS**: Alias for the key (usually "release")
 4. **KEY_PASSWORD**: Password for the key
-5. **FIREBASE_TOKEN**: Firebase CLI token
-   - See [Firebase Token Setup Guide](FIREBASE_TOKEN_SETUP.md) for detailed instructions on how to set up and obtain a Firebase token from the Firebase console
-   - Quick command reference:
-   ```bash
-   firebase login:ci
-   ```
+5. **FIREBASE_SERVICE_ACCOUNT_JSON**: Firebase Service Account JSON
+   - See [Firebase Service Account Setup Guide](FIREBASE_SERVICE_ACCOUNT_SETUP.md) for detailed instructions on how to set up and obtain a Firebase service account JSON
+   - This is the recommended authentication method for Firebase App Distribution
 
 6. **FIREBASE_DEBUG_APP_ID**: Your Firebase App ID for debug builds (found in the Firebase console)
 7. **FIREBASE_RELEASE_APP_ID**: Your Firebase App ID for release builds (found in the Firebase console)
-   - See [Firebase Token Setup Guide](FIREBASE_TOKEN_SETUP.md#setting-up-firebase-app-ids) for instructions on how to find your Firebase App IDs
+   - These App IDs can be found in the Firebase Console under Project Settings > General > Your apps
 
 ## Setting Up GitHub Secrets
 
@@ -36,7 +33,15 @@ For environment-specific secrets (e.g., different Firebase App IDs for developme
 
 ## Triggering the Release Workflow
 
-The release workflow is triggered manually:
+The release workflow can be triggered in two ways:
+
+### Automatic Trigger
+
+The release workflow is automatically triggered when the `Android Test` workflow completes successfully. This ensures that the app is only released after it passes all tests and builds successfully.
+
+### Manual Trigger
+
+The release workflow can also be triggered manually:
 
 1. Go to your GitHub repository
 2. Click on "Actions" > "Release to Firebase App Distribution"
@@ -47,16 +52,32 @@ The release workflow is triggered manually:
 
 ## Workflow Details
 
-The workflow performs the following steps:
+The release process is now split across two workflows:
+
+### Android Test Workflow (`android.yml`)
+
+This workflow runs on every push to the main branch and pull request:
+
+1. Runs unit tests
+2. Builds the release APK
+3. Uploads the APK as an artifact (available for download from the GitHub Actions page)
+
+### Release Workflow (`release.yml`)
+
+This workflow is triggered either manually or after the Android Test workflow completes:
 
 1. Checks out the code
-2. Sets up the Java environment
-3. Sets up the keystore from the base64-encoded secret
-4. Builds the APK (debug or release, based on the selected build type)
-5. Uploads the APK as an artifact (available for download from the GitHub Actions page)
-6. Distributes the APK to Firebase App Distribution using the appropriate Firebase App ID:
-   - For debug builds: Uses the FIREBASE_DEBUG_APP_ID
-   - For release builds: Uses the FIREBASE_RELEASE_APP_ID
+2. Downloads the APK artifact built by the Android Test workflow
+3. Finds the path to the downloaded APK
+4. Distributes the APK to Firebase App Distribution using the Firebase Distribution GitHub Action:
+   - Uses the appropriate Firebase App ID based on the build type
+   - Authenticates using the Firebase service account JSON
+   - Includes the specified release notes and distribution groups
+
+This approach ensures that:
+- The app is only released after passing all tests
+- The same APK that was tested is the one that gets released
+- The build process is not duplicated, saving time and resources
 
 ## Customizing the Workflow
 
@@ -80,21 +101,24 @@ If the workflow fails, check the following:
 3. Verify that the Firebase App IDs are correct:
    - FIREBASE_DEBUG_APP_ID should match the app ID in app/src/debug/google-services.json
    - FIREBASE_RELEASE_APP_ID should match the app ID in app/src/release/google-services.json
-4. Ensure the Firebase token has the necessary permissions
+4. Ensure the Firebase service account has the necessary permissions
 5. Make sure the selected build type matches the intended distribution target
 
-For more detailed troubleshooting related to Firebase tokens and App Distribution, see the [Troubleshooting section in the Firebase Token Setup Guide](FIREBASE_TOKEN_SETUP.md#troubleshooting).
+For more detailed troubleshooting related to Firebase service accounts and App Distribution, see the [Troubleshooting section in the Firebase Service Account Setup Guide](FIREBASE_SERVICE_ACCOUNT_SETUP.md#troubleshooting).
 
 ## Integrating with Existing Processes
 
-This workflow can be integrated with your existing release process:
+The workflows are now integrated by default:
 
-1. Run tests using the `android.yml` workflow
-2. If tests pass, manually trigger the release workflow:
+1. The `android.yml` workflow runs automatically on every push to main and pull request
+2. When `android.yml` completes successfully, the `release.yml` workflow is automatically triggered
+3. The release workflow distributes the APK to Firebase App Distribution
+4. Monitor the distribution in the Firebase console
+
+For more control, you can still manually trigger the release workflow:
    - Use the debug build type for internal testing
    - Use the release build type for beta testing or production releases
-3. Monitor the distribution in the Firebase console
-4. Use different distribution groups for debug and release builds to target different testers
+   - Use different distribution groups for debug and release builds to target different testers
 
 ## Google Play Console Deployment
 
