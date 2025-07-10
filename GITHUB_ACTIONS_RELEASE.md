@@ -32,6 +32,8 @@ Before you can use the GitHub Actions workflow, you need to set up the following
 3. Click on "New repository secret"
 4. Add each of the secrets listed above
 
+For environment-specific secrets (e.g., different Firebase App IDs for development, staging, and production), see the [GitHub Environments Guide](GITHUB_ENVIRONMENTS_GUIDE.md) for detailed instructions on how to set up and switch between different environments in GitHub Actions.
+
 ## Triggering the Release Workflow
 
 The release workflow is triggered manually:
@@ -67,6 +69,8 @@ You can customize the workflow by editing the `.github/workflows/release.yml` fi
 - Modify the APK path if your build outputs are in a different location
 - Customize the distribution groups based on the build type
 
+For more advanced customization, such as deploying to different environments (development, staging, production) with environment-specific secrets, see the [GitHub Environments Guide](GITHUB_ENVIRONMENTS_GUIDE.md) and check out the example workflow in `.github/workflows/environment_example.yml`.
+
 ## Troubleshooting
 
 If the workflow fails, check the following:
@@ -91,3 +95,14 @@ This workflow can be integrated with your existing release process:
    - Use the release build type for beta testing or production releases
 3. Monitor the distribution in the Firebase console
 4. Use different distribution groups for debug and release builds to target different testers
+
+## Google Play Console Deployment
+
+For deploying to Google Play Console internal testing, use the `release-playstore.yml` workflow instead. This workflow:
+
+- Builds an Android App Bundle (.aab) instead of an APK
+- Automatically increments the version code
+- Deploys to Google Play Console internal testing
+- Commits the version code increment back to the repository
+
+See the [Google Play Deployment Guide](GOOGLE_PLAY_DEPLOYMENT.md) for detailed instructions on how to set up and use this workflow.
