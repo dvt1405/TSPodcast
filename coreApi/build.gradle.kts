@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.dagger.hilt)
     alias(libs.plugins.kotlin.serilization)
     alias(libs.plugins.kotlin.parcelize)
-    id("kotlin-kapt")
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -52,12 +52,14 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.bundles.dagger)
+    ksp(libs.dagger.compiler)
+    ksp(libs.dagger.android.processor)
+
     implementation(libs.androidx.room.runtime)
-    kapt(libs.androidx.room.room.compiler)
-    annotationProcessor(libs.androidx.room.room.compiler)
     implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.room.guava)
-    testImplementation(libs.androidx.room.testing)
     implementation(libs.androidx.room.paging)
+    ksp(libs.androidx.room.room.compiler)
+    testImplementation(libs.androidx.room.testing)
 }

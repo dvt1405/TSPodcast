@@ -10,7 +10,7 @@ import dagger.multibindings.IntoMap
 import tss.t.coreradio.api.RadioApi
 import tss.t.coreradio.repository.RadioRepository
 import tss.t.coreradio.repository.VOHRepository
-import javax.inject.Qualifier
+import javax.inject.Named
 
 
 @Module
@@ -18,37 +18,24 @@ import javax.inject.Qualifier
 abstract class AbsRadioModule {
     @Binds
     @IntoMap
-    @RadioRepoMapKey(RadioRepo.VOV)
+    @RadioMapKey(RadioRepo.VOV)
     abstract fun bindVOVApi(repo: RadioRepository): RadioApi
 
     @Binds
-    @RadioRepoQualifier(RadioRepo.VOV)
+    @Named(RadioRepo.VOV)
     abstract fun bindVOVApiS(repo: RadioRepository): RadioApi
 
     @Binds
     @IntoMap
-    @RadioRepoMapKey(RadioRepo.VOH)
+    @RadioMapKey(RadioRepo.VOH)
     abstract fun bindVOHApi(repo: VOHRepository): RadioApi
 }
 
 @MapKey
-@Target(
-    AnnotationTarget.FUNCTION,
-    AnnotationTarget.PROPERTY,
-    AnnotationTarget.VALUE_PARAMETER
-)
-@Retention(AnnotationRetention.RUNTIME)
-annotation class RadioRepoMapKey(val value: RadioRepo = RadioRepo.VOV) {}
-
-@Qualifier
-@Target(
-    AnnotationTarget.PROPERTY, AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FUNCTION
-)
-@Retention(AnnotationRetention.RUNTIME)
-annotation class RadioRepoQualifier(val value: RadioRepo = RadioRepo.VOV) {}
+annotation class RadioMapKey(val key: String)
 
 @Keep
-enum class RadioRepo {
-    VOV,
-    VOH
+object RadioRepo {
+    const val VOV = "VOV"
+    const val VOH = "VOH"
 }

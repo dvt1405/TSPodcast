@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.dagger.hilt)
     alias(libs.plugins.kotlin.serilization)
-    id("kotlin-kapt")
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -62,7 +62,11 @@ dependencies {
     implementation(libs.retrofit.gson)
     implementation(libs.androidx.security.crypto.ktx)
     implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.bundles.dagger)
+    ksp(libs.dagger.compiler)
+    ksp(libs.dagger.android.processor)
+
     implementation(project(":sharedResources"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -1,14 +1,13 @@
 package tss.t.coreapi.models
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
 
 @Parcelize
 data class Value(
-    @SerializedName("destinations")
+    //@SerializedName("destinations")
     val destinations: List<Destination>,
-    @SerializedName("model")
+    //@SerializedName("model")
     val model: Model
 ) : Parcelable

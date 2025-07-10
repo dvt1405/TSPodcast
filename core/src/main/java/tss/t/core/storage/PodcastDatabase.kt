@@ -1,6 +1,7 @@
 package tss.t.core.storage
 
 import android.content.Context
+import androidx.room.BuiltInTypeConverters
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -32,7 +33,12 @@ import tss.t.coreradio.storage.dao.RadioChannelDao
     autoMigrations = [],
     exportSchema = true
 )
-@TypeConverters(PodcastTypeConverters::class)
+@TypeConverters(
+    PodcastTypeConverters::class,
+    builtInTypeConverters = BuiltInTypeConverters(
+        enums = BuiltInTypeConverters.State.ENABLED
+    )
+)
 abstract class PodcastDatabase : RoomDatabase() {
 
     abstract fun podcastDao(): PodcastDao

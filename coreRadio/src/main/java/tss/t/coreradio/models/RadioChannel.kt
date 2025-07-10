@@ -1,47 +1,42 @@
 package tss.t.coreradio.models
 
-import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.google.gson.annotations.SerializedName
-import kotlinx.parcelize.Parcelize
 
-@Parcelize
 @Entity(tableName = "RadioChannel")
 data class RadioChannel(
     @PrimaryKey
-    @SerializedName("channelId")
+    //@SerializedName("channelId")
     @ColumnInfo("channelId")
     val channelId: String,
-    @SerializedName("channelName")
+    //@SerializedName("channelName")
     @ColumnInfo("channelName")
     val channelName: String,
-    @SerializedName("categories")
+    //@SerializedName("categories")
     @ColumnInfo("categories")
     val categories: List<String>,
-    @SerializedName("category")
+    //@SerializedName("category")
     @ColumnInfo("category")
     val category: String = "VOV",
-    @SerializedName("logo")
+    //@SerializedName("logo")
     @ColumnInfo("logo")
     val logo: String,
-    @SerializedName("links")
+    //@SerializedName("links")
     @ColumnInfo("links")
-    val links: List<Link>
-) : Parcelable {
+    val links: List<Link>,
+) {
 
-    @Parcelize
     data class Link(
-        @SerializedName("type")
+        //@SerializedName("type")
         val type: ItemLinkType,
-        @SerializedName("link")
+        //@SerializedName("link")
         val link: String,
-        @SerializedName("id")
+        //@SerializedName("id")
         val id: String,
-        @SerializedName("source")
-        val source: String
-    ) : Parcelable
+        //@SerializedName("source")
+        val source: String,
+    )
 
     enum class ItemLinkType {
         Playable,

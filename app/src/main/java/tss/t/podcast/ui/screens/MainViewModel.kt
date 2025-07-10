@@ -4,6 +4,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -58,8 +59,9 @@ data class MainInteractors @Inject constructor(
 class MainViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val interactors: MainInteractors,
-    private val sharedPref: SharedPref
+    private val sharedPref: SharedPref,
 ) : ViewModel() {
+    private val gson = Gson()
     private var renderCount = 0
     private val _event by lazy {
         MutableSharedFlow<HomeEvent>(
@@ -273,7 +275,7 @@ class MainViewModel @Inject constructor(
         podcast: Podcast,
         from: String? = null
     ) {
-        savedStateHandle[NavConstants.KEY_PODCAST] = podcast
+        savedStateHandle[NavConstants.KEY_PODCAST] = gson.toJson(podcast)
         _uiState.update {
             it.copy(
                 currentPodcast = podcast,
@@ -289,6 +291,10 @@ class MainViewModel @Inject constructor(
     }
 
     fun getCurrentPodcast(): Podcast? {
-        return savedStateHandle[NavConstants.KEY_PODCAST]
+        return savedStateHandle.get<String?>(NavConstants.KEY_PODCAST)?.let {
+            runCatching {
+                gson.fromJson(it, Podcast::class.java)
+            }.getOrNull()
+        }
     }
 }

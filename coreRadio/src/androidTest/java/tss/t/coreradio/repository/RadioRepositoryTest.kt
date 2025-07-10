@@ -78,8 +78,12 @@ internal val radioChannelDao by lazy {
             set.removeIf { it.channelId == id }
         }
 
-        override fun getAll(): List<RadioChannel> {
+        override suspend fun getAll(): List<RadioChannel> {
             return set.toList()
+        }
+
+        override suspend fun getAllByCategory(category: String): List<RadioChannel> {
+            return set.filter { it.category == category }
         }
 
     }

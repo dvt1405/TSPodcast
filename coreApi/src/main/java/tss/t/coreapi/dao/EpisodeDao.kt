@@ -10,14 +10,14 @@ import tss.t.coreapi.models.Episode
 @Dao
 abstract class EpisodeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun insert(podcast: Episode)
+    abstract suspend fun insert(podcast: Episode)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun inserts(podcast: List<Episode>)
+    abstract suspend fun inserts(podcast: List<Episode>)
 
     @Delete
-    abstract fun delete(podcast: Episode)
+    abstract suspend fun delete(podcast: Episode)
 
     @Query("Select * from Episode where id=:id")
-    abstract fun selectById(id: Long): Episode?
+    abstract suspend fun selectById(id: Long): Episode?
 }

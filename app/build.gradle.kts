@@ -8,8 +8,9 @@ plugins {
     alias(libs.plugins.kotlin.serilization)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.firebase.appdistribution)
     alias(libs.plugins.kotlin.parcelize)
-    id("kotlin-kapt")
+    alias(libs.plugins.ksp)
     id("applovin-quality-service")
 }
 
@@ -34,6 +35,15 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("$projectDir/KeyStore")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "changeit"
+            keyAlias = System.getenv("KEY_ALIAS") ?: "release"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: "changeit"
+        }
+    }
+
     buildTypes {
         debug {
             setProperty("archivesBaseName", "TSPodcast.${defaultConfig.versionName}_D")
@@ -43,11 +53,24 @@ android {
             defaultConfig.versionName = "v1.4.${defaultConfig.versionCode}"
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             setProperty("archivesBaseName", "TSPodcast.${defaultConfig.versionName}_R")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+    }
+
+    bundle {
+        language {
+            enableSplit = true
+        }
+        density {
+            enableSplit = true
+        }
+        abi {
+            enableSplit = true
         }
     }
     compileOptions {
@@ -106,7 +129,11 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.bundles.dagger)
+    ksp(libs.dagger.compiler)
+    ksp(libs.dagger.android.processor)
+
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
     implementation(libs.coil)
@@ -120,8 +147,7 @@ dependencies {
     implementation(libs.firebase.messaging.ktx)
     implementation(libs.firebase.config)
     implementation(libs.androidx.room.runtime)
-    kapt(libs.androidx.room.room.compiler)
-    annotationProcessor(libs.androidx.room.room.compiler)
+    ksp(libs.androidx.room.room.compiler)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.guava)
     testImplementation(libs.androidx.room.testing)
@@ -142,4 +168,75 @@ dependencies {
     implementation(project(":hazeAndroid"))
     implementation(project(":sharedFirebase"))
     implementation(project(":ads"))
+}
+
+// Firebase App Distribution configuration
+// We'll use different app IDs for debug and release builds
+// Debug: 1:187551572250:android:e952fdb02a12421bd60ca3
+// Release: 1:522103746332:android:561c9f81fd5a7cc501d4d9
+
+// Create a custom property for the Firebase App ID
+val debugFirebaseAppId = "1:187551572250:android:e952fdb02a12421bd60ca3"
+val releaseFirebaseAppId = "1:522103746332:android:561c9f81fd5a7cc501d4d9"
+
+// Firebase App Distribution is configured per build type
+
+// Tasks for generating and distributing APK/AAB files
+tasks.register("generateDebugApk") {
+    dependsOn("assembleDebug")
+    doLast {
+        println("Debug APK generated at: ${layout.buildDirectory.get().asFile}/outputs/apk/debug/")
+    }
+}
+
+tasks.register("generateReleaseApk") {
+    dependsOn("assembleRelease")
+    doLast {
+        println("Release APK generated at: ${layout.buildDirectory.get().asFile}/outputs/apk/release/")
+    }
+}
+
+tasks.register("generateReleaseBundle") {
+    dependsOn("bundleRelease")
+    doLast {
+        println("Release AAB generated at: ${layout.buildDirectory.get().asFile}/outputs/bundle/release/")
+    }
+}
+
+// Set up the app ID for debug builds
+// Configure Firebase App Distribution for debug builds
+android.buildTypes.getByName("debug") {
+    firebaseAppDistribution {
+        appId = debugFirebaseAppId
+        releaseNotes = "Debug build with latest features for testing"
+        groups = "podcasttester"
+    }
+}
+
+// Set up the app ID for release builds
+// Configure Firebase App Distribution for release builds
+android.buildTypes.getByName("release") {
+    firebaseAppDistribution {
+        appId = releaseFirebaseAppId
+        releaseNotes = "Release build with stable features"
+        groups = "release-testers"
+    }
+}
+
+// Debug distribution task
+tasks.register("distributeDebugApk") {
+    dependsOn("assembleDebug")
+    doLast {
+        println("Debug APK generated at: ${layout.buildDirectory.get().asFile}/outputs/apk/debug/")
+        println("To distribute to Firebase App Distribution, run: ./gradlew appDistributionUploadDebug")
+    }
+}
+
+// Release distribution task
+tasks.register("distributeReleaseApk") {
+    dependsOn("assembleRelease")
+    doLast {
+        println("Release APK generated at: ${layout.buildDirectory.get().asFile}/outputs/apk/release/")
+        println("To distribute to Firebase App Distribution, run: ./gradlew appDistributionUploadRelease")
+    }
 }

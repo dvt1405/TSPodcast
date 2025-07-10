@@ -29,8 +29,8 @@ abstract class FavouriteDao {
     ): FavouriteDTO?
 
     @Query("Select * from FavouriteDTO")
-    abstract fun getAll(): List<FavouriteDTO>
+    abstract suspend fun getAll(): List<FavouriteDTO>
 
     @Query("Select * from FavouriteDTO where type=:type")
-    abstract fun getAllByType(type: MediaType): List<FavouriteDTO>
+    abstract suspend  fun getAllByType(type: MediaType): List<FavouriteDTO>
 }

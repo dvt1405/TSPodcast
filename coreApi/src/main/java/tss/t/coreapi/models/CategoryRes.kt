@@ -1,17 +1,15 @@
 package tss.t.coreapi.models
 
-import com.google.gson.annotations.SerializedName
-
 data class CategoryRes(
-    @SerializedName("count")
+    //@SerializedName("count")
     val count: Int,
-    @SerializedName("feeds")
+    //@SerializedName("feeds")
     val feeds: List<Category>,
 ) : BaseResponse() {
     data class Category(
-        @SerializedName("id")
+        //@SerializedName("id")
         val id: Int,
-        @SerializedName("name")
+        //@SerializedName("name")
         val name: String,
         val isFavourite: Boolean? = null
     )

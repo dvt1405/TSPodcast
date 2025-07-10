@@ -26,7 +26,7 @@ class RadioRepository @Inject constructor(
 
     override suspend fun getRadioList(): List<RadioChannel> {
         val doc = jsoupExt.safeConnect(baseUrl)
-            ?: return radioChannelDao.getAllByCategory(RadioRepo.VOV.name)
+            ?: return radioChannelDao.getAllByCategory(RadioRepo.VOV)
         val body = doc.body()
         val rows = body.select(".row .col")
         val listChannel = rows.mapNotNull {
@@ -59,7 +59,7 @@ class RadioRepository @Inject constructor(
                 channelId = link,
                 channelName = name,
                 logo = logo,
-                categories = listOf(RadioRepo.VOV.name),
+                categories = listOf(RadioRepo.VOV),
                 links = listOf(
                     RadioChannel.Link(
                         RadioChannel.ItemLinkType.Browsable,
@@ -68,7 +68,7 @@ class RadioRepository @Inject constructor(
                         source = baseUrl
                     )
                 ),
-                category = RadioRepo.VOV.name
+                category = RadioRepo.VOV
             )
         }
         radioChannelDao.inserts(listChannel)
