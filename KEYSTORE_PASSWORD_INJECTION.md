@@ -78,6 +78,53 @@ If you prefer not to use `local.properties`, you can also:
 
 3. Create a separate `keystore.properties` file (would require similar changes as implemented for `local.properties`).
 
+## GitHub Actions Integration
+
+The project uses GitHub Actions for CI/CD, and the signing configuration is injected into the build process using environment variables.
+
+### In android.yml (CI workflow)
+
+The `android.yml` workflow injects the signing configuration from GitHub Secrets:
+
+```yaml
+- name: Build with Gradle
+  env:
+    KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+    KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+    KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+  run: ./gradlew assembleRelease
+```
+
+### In release.yml (Release workflow)
+
+The `release.yml` workflow also injects the signing configuration from GitHub Secrets:
+
+```yaml
+- name: Build APK
+  env:
+    KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+    KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+    KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+    BUILD_TYPE: ${{ github.event.inputs.buildType }}
+  run: |
+    if [ "$BUILD_TYPE" == "debug" ]; then
+      ./gradlew generateDebugApk
+    else
+      ./gradlew generateReleaseApk
+    fi
+```
+
+### Setting Up GitHub Secrets
+
+To use this feature, you need to add your signing information as secrets in your GitHub repository:
+
+1. Go to your GitHub repository
+2. Click on "Settings" > "Secrets and variables" > "Actions"
+3. Add the following secrets:
+   - `KEYSTORE_PASSWORD`: Your keystore password
+   - `KEY_ALIAS`: Your key alias (usually "release")
+   - `KEY_PASSWORD`: Your key password
+
 ## Security Considerations
 
 - Never commit files containing passwords to version control

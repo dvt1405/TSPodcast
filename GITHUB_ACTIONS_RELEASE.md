@@ -15,12 +15,15 @@ Before you can use the GitHub Actions workflow, you need to set up the following
 3. **KEY_ALIAS**: Alias for the key (usually "release")
 4. **KEY_PASSWORD**: Password for the key
 5. **FIREBASE_TOKEN**: Firebase CLI token
+   - See [Firebase Token Setup Guide](FIREBASE_TOKEN_SETUP.md) for detailed instructions on how to set up and obtain a Firebase token from the Firebase console
+   - Quick command reference:
    ```bash
    firebase login:ci
    ```
 
 6. **FIREBASE_DEBUG_APP_ID**: Your Firebase App ID for debug builds (found in the Firebase console)
 7. **FIREBASE_RELEASE_APP_ID**: Your Firebase App ID for release builds (found in the Firebase console)
+   - See [Firebase Token Setup Guide](FIREBASE_TOKEN_SETUP.md#setting-up-firebase-app-ids) for instructions on how to find your Firebase App IDs
 
 ## Setting Up GitHub Secrets
 
@@ -75,6 +78,8 @@ If the workflow fails, check the following:
    - FIREBASE_RELEASE_APP_ID should match the app ID in app/src/release/google-services.json
 4. Ensure the Firebase token has the necessary permissions
 5. Make sure the selected build type matches the intended distribution target
+
+For more detailed troubleshooting related to Firebase tokens and App Distribution, see the [Troubleshooting section in the Firebase Token Setup Guide](FIREBASE_TOKEN_SETUP.md#troubleshooting).
 
 ## Integrating with Existing Processes
 
