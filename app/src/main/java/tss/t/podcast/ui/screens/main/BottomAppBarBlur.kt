@@ -20,8 +20,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DateRange
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Radio
@@ -47,6 +48,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import tss.t.hazeandroid.HazeDefaults
 import tss.t.hazeandroid.HazeState
 import tss.t.hazeandroid.haze
@@ -57,7 +59,7 @@ import tss.t.sharedlibrary.theme.TextStyles
 sealed class BottomBarTab(
     val title: String,
     val icon: ImageVector,
-    val color: Color
+    val color: Color,
 ) {
     data object Profile : BottomBarTab(
         title = "Favorite",
@@ -97,7 +99,7 @@ fun BottomBarTabs(
     selectedTab: Int = 1,
     onTabSelected: (BottomBarTab, Int) -> Unit = { _, _ -> },
     textColor: Color = Colors.White,
-    contentColor: Color = Colors.White
+    contentColor: Color = Colors.White,
 ) {
     CompositionLocalProvider(
         LocalTextStyle provides TextStyles.Title6.copy(color = textColor),
@@ -135,8 +137,20 @@ fun BottomBarTabs(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Icon(imageVector = tabs[tab].icon, contentDescription = tabs[tab].title)
-                    Text(text = tabs[tab].title)
+                    Icon(
+                        imageVector = tabs[tab].icon,
+                        contentDescription = tabs[tab].title
+                    )
+                    BasicText(
+                        text = tabs[tab].title,
+                        maxLines = 1,
+                        style = TextStyles.Title6.copy(color = textColor),
+                        autoSize = TextAutoSize.StepBased(
+                            minFontSize = 8.sp,
+                            maxFontSize = 14.sp,
+                            stepSize = 0.5.sp,
+                        )
+                    )
                 }
             }
         }

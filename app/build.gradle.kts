@@ -33,6 +33,7 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
 
         applicationId = "tss.t.podcast"
         versionCode = 10006
@@ -58,15 +59,15 @@ android {
 
     buildTypes {
         debug {
-            setProperty("archivesBaseName", "TSPodcast.${defaultConfig.versionName}_D")
+            base.archivesName.set("TSPodcast.${defaultConfig.versionName}_D")
         }
         release {
-            defaultConfig.versionCode = 10011
+            defaultConfig.versionCode = 10012
             defaultConfig.versionName = "v1.4.${defaultConfig.versionCode}"
             isMinifyEnabled = true
             isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
-            setProperty("archivesBaseName", "TSPodcast.${defaultConfig.versionName}_R")
+            base.archivesName.set("TSPodcast.${defaultConfig.versionName}_R")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
