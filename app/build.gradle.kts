@@ -33,6 +33,7 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
 
         applicationId = "tss.t.podcast"
         versionCode = 10006
@@ -61,7 +62,7 @@ android {
             base.archivesName.set("TSPodcast.${defaultConfig.versionName}_D")
         }
         release {
-            defaultConfig.versionCode = 10011
+            defaultConfig.versionCode = 10012
             defaultConfig.versionName = "v1.4.${defaultConfig.versionCode}"
             isMinifyEnabled = true
             isShrinkResources = true
