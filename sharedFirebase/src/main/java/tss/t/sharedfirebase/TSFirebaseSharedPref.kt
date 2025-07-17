@@ -8,22 +8,17 @@ import kotlinx.coroutines.CoroutineScope
 import tss.t.sharedlibrary.utils.getAndroidDeviceId
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.core.content.edit
 
 @Singleton
 class TSFirebaseSharedPref @Inject constructor(
     @ApplicationContext
     val context: Context,
     @FirebaseScope(FirebaseDispatcher.IO)
-    private val _coroutineScope: CoroutineScope
+    private val _coroutineScope: CoroutineScope,
 ) {
     private val _firebaseSharedPref by lazy {
-        EncryptedSharedPreferences.create(
-            "firebase_shared_prefs",
-            MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
-            context,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+        context.getSharedPreferences("firebase_shared_prefs", Context.MODE_PRIVATE)
     }
 
     internal var androidId: String? = _firebaseSharedPref.getString("DeviceId", null)
@@ -32,9 +27,9 @@ class TSFirebaseSharedPref @Inject constructor(
             else _firebaseSharedPref.getString("DeviceId", null)
         }
         private set(value) {
-            _firebaseSharedPref.edit()
-                .putString("DeviceId", field)
-                .apply()
+            _firebaseSharedPref.edit {
+                putString("DeviceId", field)
+            }
             field = value
         }
 

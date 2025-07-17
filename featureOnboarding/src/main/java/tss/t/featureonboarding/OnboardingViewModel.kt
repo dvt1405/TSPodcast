@@ -118,7 +118,6 @@ class OnboardingViewModel @Inject constructor(
     }
 
     fun putFavouriteItem(category: CategoryRes.Category, index: Int) {
-        Log.d("TuanDv", "putFavouriteItem: $category")
         _listFavouriteCategory.update {
             val newList = it
             val crrIndex = newList.indexOfFirst { it.id == category.id }

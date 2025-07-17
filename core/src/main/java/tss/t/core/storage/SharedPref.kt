@@ -16,57 +16,55 @@ import java.lang.reflect.WildcardType
 import java.util.Objects
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.core.content.edit
 
 @Singleton
 class SharedPref @Inject constructor(
     @ApplicationContext
-    context: Context
+    context: Context,
 ) {
     val _sharedPref by lazy {
-        EncryptedSharedPreferences.create(
-            TAG,
-            MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
-            context,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+        context.getSharedPreferences(TAG, Context.MODE_PRIVATE)
     }
 
     val gson by lazy { Gson() }
 
     fun clear(key: String) {
-        _sharedPref.edit()
-            .remove(key)
-            .apply()
+        _sharedPref.edit {
+            remove(key)
+        }
     }
 
     inline fun <reified T> save(key: String, value: T) {
-        val edit = _sharedPref.edit()
-        when (T::class.java) {
-            Boolean::class.java,
-            Boolean::class.javaPrimitiveType,
-            Boolean::class.javaObjectType -> edit.putBoolean(key, value as Boolean)
+        _sharedPref.edit {
+            when (T::class.java) {
+                Boolean::class.java,
+                Boolean::class.javaPrimitiveType,
+                Boolean::class.javaObjectType,
+                    -> putBoolean(key, value as Boolean)
 
-            Int::class.java,
-            Int::class.javaPrimitiveType,
-            Int::class.javaObjectType -> edit.putInt(key, value as Int)
+                Int::class.java,
+                Int::class.javaPrimitiveType,
+                Int::class.javaObjectType,
+                    -> putInt(key, value as Int)
 
-            Float::class.java,
-            Float::class.javaPrimitiveType,
-            Float::class.javaObjectType -> edit.putFloat(key, value as Float)
+                Float::class.java,
+                Float::class.javaPrimitiveType,
+                Float::class.javaObjectType,
+                    -> putFloat(key, value as Float)
 
-            Long::class.java,
-            Long::class.javaPrimitiveType,
-            Long::class.javaObjectType -> edit.putLong(key, value as Long)
+                Long::class.java,
+                Long::class.javaPrimitiveType,
+                Long::class.javaObjectType,
+                    -> putLong(key, value as Long)
 
-            String::class.java -> edit.putString(key, value as String)
+                String::class.java -> putString(key, value as String)
 
-            else -> {
-                edit.putString(key, gson.toJson(value))
+                else -> {
+                    putString(key, gson.toJson(value))
+                }
             }
         }
-
-        edit.apply()
     }
 
     fun getParameterUpperBound(index: Int, type: ParameterizedType): Type {
@@ -81,21 +79,32 @@ class SharedPref @Inject constructor(
 
     fun getRawType(type: Type): Class<*> {
         Objects.requireNonNull(type, "type == null")
-        if (type is Class<*>) {
-            return type
-        } else if (type is ParameterizedType) {
-            val rawType = type.rawType
-            require(rawType is Class<*>)
-            return rawType as Class<*>
-        } else if (type is GenericArrayType) {
-            val componentType = type.genericComponentType
-            return Array.newInstance(getRawType(componentType), 0).javaClass
-        } else if (type is TypeVariable<*>) {
-            return Any::class.java
-        } else if (type is WildcardType) {
-            return getRawType((type as WildcardType).upperBounds[0])
-        } else {
-            throw java.lang.IllegalArgumentException("Expected a Class, ParameterizedType, or GenericArrayType, but <" + type + "> is of type " + type.javaClass.name)
+        when (type) {
+            is Class<*> -> {
+                return type
+            }
+
+            is ParameterizedType -> {
+                val rawType = type.rawType
+                return rawType as Class<*>
+            }
+
+            is GenericArrayType -> {
+                val componentType = type.genericComponentType
+                return Array.newInstance(getRawType(componentType), 0).javaClass
+            }
+
+            is TypeVariable<*> -> {
+                return Any::class.java
+            }
+
+            is WildcardType -> {
+                return getRawType((type as WildcardType).upperBounds[0])
+            }
+
+            else -> {
+                throw java.lang.IllegalArgumentException("Expected a Class, ParameterizedType, or GenericArrayType, but <" + type + "> is of type " + type.javaClass.name)
+            }
         }
     }
 
@@ -106,7 +115,8 @@ class SharedPref @Inject constructor(
             when (T::class.java) {
                 Boolean::class.javaObjectType,
                 Boolean::class.javaPrimitiveType,
-                Boolean::class.java -> {
+                Boolean::class.java,
+                    -> {
                     _sharedPref.getBoolean(key, false) as? T
                 }
 
@@ -137,9 +147,9 @@ class SharedPref @Inject constructor(
                 }
             }
         }.onFailure {
-            _sharedPref.edit()
-                .remove(key)
-                .apply()
+            _sharedPref.edit {
+                remove(key)
+            }
         }.getOrNull()
     }
 
