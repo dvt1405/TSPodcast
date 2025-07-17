@@ -45,7 +45,7 @@ fun PlayerProgress(
     isLive: Boolean = false,
     start: Long = 0L,
     end: Long = 10_000L,
-    onProgressChanged: (Float) -> Unit = {}
+    onProgressChanged: (Float) -> Unit = {},
 ) {
     val formatBuilder = remember {
         StringBuilder()
@@ -89,7 +89,9 @@ fun PlayerProgress(
                         if (isDragging) {
                             coroutineScope.launch {
                                 val targetValue = dragAmount / size.width + animateProgress.value
-                                animateProgress.snapTo(targetValue)
+                                animateProgress.snapTo(
+                                    targetValue.coerceIn(0f, 1f)
+                                )
                             }
                         }
                     },
@@ -100,7 +102,10 @@ fun PlayerProgress(
                     onDragEnd = {
                         if (isLive) return@detectHorizontalDragGestures
                         isDragging = false
-                        onProgressChanged(animateProgress.value)
+                        onProgressChanged(
+                            animateProgress.value
+                                .coerceIn(0f, 1f)
+                        )
                     },
                     onDragCancel = {
                         if (isLive) return@detectHorizontalDragGestures
