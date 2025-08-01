@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,7 +44,7 @@ fun PlayerControl(
     onSkipPrevious: () -> Unit = {},
     onPlayPause: () -> Unit = {},
     onSkipToNext: () -> Unit = {},
-    onPlayListClick: () -> Unit = {}
+    onPlayListClick: () -> Unit = {},
 ) {
     var fav by remember(isFav) {
         mutableStateOf(isFav)
@@ -79,8 +81,14 @@ fun PlayerControl(
             targetState = isPlaying,
             label = "",
             transitionSpec = {
-                (fadeIn(animationSpec = tween(220, delayMillis = 30)))
-                    .togetherWith(fadeOut(animationSpec = tween(90)))
+                (fadeIn(animationSpec = tween(220, delayMillis = 30))
+                        + scaleIn(
+                    animationSpec = tween(220, delayMillis = 30),
+                    initialScale = 0.8f
+                )).togetherWith(
+                    fadeOut(animationSpec = tween(90))
+                            + scaleOut(animationSpec = tween(90), targetScale = 0.8f)
+                )
             }
         ) {
             if (it) {

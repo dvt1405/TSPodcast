@@ -179,7 +179,7 @@ fun SelectFavouriteCategoryScreen(
         },
     ) { paddingValues ->
         LazyVerticalGrid(
-            GridCells.Fixed(rowCount),
+            columns = GridCells.Fixed(rowCount),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier

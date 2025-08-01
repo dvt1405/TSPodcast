@@ -3,10 +3,12 @@
 package tss.t.podcast
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -98,7 +100,12 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(
+                scrim = Color.TRANSPARENT,
+                darkScrim = Color.TRANSPARENT
+            )
+        )
         val onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (navHostController?.currentBackStackEntry?.destination?.route == TSRouter.Main.route) {
@@ -234,7 +241,7 @@ private fun MiniPlayer(
     playerControlState: PlayerViewModel.PlayerControlState,
     parentNavHost: NavHostController,
     innerPadding: PaddingValues,
-    playerViewModel: PlayerViewModel
+    playerViewModel: PlayerViewModel,
 ) {
     val backStackEntry by parentNavHost.currentBackStackEntryAsState()
     val paddingBottom = remember(backStackEntry?.destination?.route) {

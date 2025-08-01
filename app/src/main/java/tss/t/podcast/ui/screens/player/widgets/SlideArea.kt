@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.overscroll
+import androidx.compose.foundation.rememberOverscrollEffect
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
@@ -50,7 +51,6 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import kotlinx.coroutines.launch
 import tss.t.ads.MaxAdViewComposable
-import tss.t.podcast.ui.screens.podcastsdetail.toPx
 import tss.t.podcast.ui.screens.podcastsdetail.widgets.EpisodeWidget
 import tss.t.sharedfirebase.LocalAnalyticsScope
 import tss.t.sharedlibrary.theme.Colors
@@ -75,9 +75,13 @@ fun BoxScope.SlideArea(
     fling: Float = 0f,
     onStateChanged: (SlideAreaState) -> Unit = {},
     onSelected: MediaItem.() -> Unit = {},
+    playerAreaHeight: Int = 0
 ) {
-    val initSize = 680.dp.toPx()
-    val anim = remember {
+    val initSize = remember(playerAreaHeight) {
+        playerAreaHeight.toFloat()
+    }
+
+    val anim = remember(initSize) {
         Animatable(initSize)
     }
     var dragging by remember(isDragInProgress) {
@@ -87,7 +91,7 @@ fun BoxScope.SlideArea(
     var slideAreaState by remember {
         mutableStateOf(state)
     }
-    val overScroll = ScrollableDefaults.overscrollEffect()
+    val overScroll = rememberOverscrollEffect()
     val flingBehavior = ScrollableDefaults.flingBehavior()
     var isAllowScrollListContent by remember {
         mutableStateOf(false)
@@ -107,7 +111,7 @@ fun BoxScope.SlideArea(
                     }
                 }
                 if (!listState.canScrollForward || !listState.canScrollBackward) {
-                    overScroll.applyToFling(Velocity(0f, velocity)) {
+                    overScroll?.applyToFling(Velocity(0f, velocity)) {
                         -it
                     }
                 }
@@ -133,7 +137,9 @@ fun BoxScope.SlideArea(
     var dragPosition by remember {
         mutableFloatStateOf(0f)
     }
-    val minPosition = 0f
+    val minPosition = remember {
+        0f
+    }
     LaunchedEffect(key1 = dragDelta) {
         if (dragging) {
             if (((listState.canScrollForward && dragDelta < 0) || (listState.canScrollBackward && dragDelta > 0))
@@ -148,7 +154,7 @@ fun BoxScope.SlideArea(
                 return@LaunchedEffect
             }
             if (!listState.canScrollForward) {
-                overScroll.applyToScroll(
+                overScroll?.applyToScroll(
                     Offset(0f, dragDelta),
                     NestedScrollSource.UserInput
                 ) { remainingOffset ->
@@ -167,7 +173,7 @@ fun BoxScope.SlideArea(
             if (!listState.canScrollBackward
                 && abs(dragDelta) > 0
                 && !listState.isScrollInProgress
-                && !overScroll.isInProgress
+                && overScroll?.isInProgress == false
             ) {
                 coroutineScope.launch {
                     anim.snapTo(anim.value - dragDelta)
@@ -203,7 +209,7 @@ fun BoxScope.SlideArea(
                 }
             )
             .background(
-                Color(0xFFE9F3FE),
+                color = Color(0xFFE9F3FE),
                 shape = RoundedCornerShape(
                     topStart = 12.dp,
                     topEnd = 12.dp

@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -140,6 +141,9 @@ internal fun PlayerScreen(
     var isDragging by remember {
         mutableStateOf(false)
     }
+    var playerArea by remember {
+        mutableIntStateOf(0)
+    }
     Box(modifier = Modifier
         .fillMaxWidth()
         .draggable(
@@ -207,7 +211,10 @@ internal fun PlayerScreen(
             onPlayPause = onPlayPause,
             onPlayListClick = onPlayListClick,
             onLoop = onLoop,
-            onSeek = onSeek
+            onSeek = onSeek,
+            onPlayerSizeChanged = {
+                playerArea  = it.coerceAtLeast(playerArea)
+            }
         )
         SlideArea(
             playList = playList,
@@ -217,7 +224,8 @@ internal fun PlayerScreen(
             isDragInProgress = isDragging,
             state = slideState,
             onStateChanged = onSlideStateChanged,
-            fling = fling
+            fling = fling,
+            playerAreaHeight = playerArea
         )
     }
 }
