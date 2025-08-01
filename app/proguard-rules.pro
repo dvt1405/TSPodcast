@@ -20,5 +20,6 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class tss.t.coreradio.models.*
--keep class tss.t.coreapi.models.*
+-keep class tss.t.coreradio.models.** { *; }
+-keep class tss.t.coreapi.models.** { *; }
+-keep class tss.t.core.** { *; }
