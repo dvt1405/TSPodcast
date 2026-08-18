@@ -43,13 +43,9 @@ import java.util.Locale
 
 @Composable
 fun rememberStatusBarHeight(): Int {
-    val density = LocalDensity.current
-    val statusBar = WindowInsets.statusBars
-    return remember {
-        with(density) {
-            statusBar.getTop(density)
-        }
-    }
+    // Read live: insets are frequently 0 on the first frame under enforced edge-to-edge, and they
+    // change on rotation/config change. Caching this in a keyless remember() froze the wrong value.
+    return WindowInsets.statusBars.getTop(LocalDensity.current)
 }
 
 
@@ -100,7 +96,7 @@ fun BoxScope.PlayerArea(
     // Padding
     val statusBarPadding = rememberStatusBarHeight()
 
-    LaunchedEffect(playerSize) {
+    LaunchedEffect(playerSize, statusBarPadding) {
         onPlayerSizeChanged(playerSize - statusBarPadding)
     }
 

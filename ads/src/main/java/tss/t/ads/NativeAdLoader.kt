@@ -21,8 +21,8 @@ import com.applovin.mediation.MaxError
 import com.applovin.mediation.nativeAds.MaxNativeAdListener
 import com.applovin.mediation.nativeAds.MaxNativeAdLoader
 import com.applovin.mediation.nativeAds.MaxNativeAdView
-import com.google.firebase.crashlytics.ktx.crashlytics
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.crashlytics.crashlytics
+import com.google.firebase.Firebase
 import tss.t.securedtoken.NativeLib
 import tss.t.sharedfirebase.TSAnalytics
 import tss.t.sharedlibrary.utils.LocalRemoteConfig

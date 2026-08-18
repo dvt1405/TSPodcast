@@ -3,7 +3,7 @@ package tss.t.podcast.ui.theme
 import android.os.Build
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -54,11 +54,11 @@ fun PodcastThemePreview(
     content: @Composable () -> Unit
 ) {
     val scope = CoroutineScope(Dispatchers.Default)
-    SharedTransitionScope {
+    SharedTransitionLayout {
         AnimatedContent(true, label = "") {
             if (it) {
                 CompositionLocalProvider(
-                    LocalSharedTransitionScope provides this@SharedTransitionScope,
+                    LocalSharedTransitionScope provides this@SharedTransitionLayout,
                     LocalNavAnimatedVisibilityScope provides this,
                     LocalAnalyticsScope provides TSAnalytics(
                         context = LocalContext.current,

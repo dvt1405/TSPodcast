@@ -12,7 +12,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.PositionalThreshold
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
-import androidx.compose.material3.pulltorefresh.pullToRefreshIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.derivedStateOf
@@ -51,14 +50,12 @@ fun Indicator(
     color: Color = PullToRefreshDefaults.indicatorColor,
     threshold: Dp = PositionalThreshold,
 ) {
-    Box(
-        modifier = modifier.pullToRefreshIndicator(
-            state = state,
-            isRefreshing = isRefreshing,
-            containerColor = containerColor,
-            threshold = threshold,
-        ),
-        contentAlignment = Alignment.Center
+    PullToRefreshDefaults.IndicatorBox(
+        state = state,
+        isRefreshing = isRefreshing,
+        modifier = modifier,
+        maxDistance = threshold,
+        containerColor = containerColor,
     ) {
         Crossfade(
             targetState = isRefreshing,
