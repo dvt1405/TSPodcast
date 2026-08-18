@@ -221,7 +221,6 @@ fun EmptySearchWidget(
     modifier: Modifier = Modifier,
     searchText: String?
 ) {
-    val context = LocalContext.current
     Column(
         modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -233,7 +232,7 @@ fun EmptySearchWidget(
         )
         Text(
             buildAnnotatedString {
-                append(context.getString(R.string.empty_search_title))
+                append(stringResource(R.string.empty_search_title))
                 withStyle(TextStyles.Title5.toSpanStyle()) {
                     append(searchText)
                 }

@@ -21,3 +21,6 @@ local.properties
 /.idea/runConfigurations.xml
 /app/release
 /.env
+
+# Kotlin compiler session markers
+.kotlin/

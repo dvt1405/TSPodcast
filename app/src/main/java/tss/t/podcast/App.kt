@@ -1,8 +1,8 @@
 package tss.t.podcast
 
 import com.google.firebase.FirebaseApp
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.ktx.messaging
+import com.google.firebase.Firebase
+import com.google.firebase.messaging.messaging
 import dagger.hilt.android.HiltAndroidApp
 import tss.t.ads.ApplovinSdkWrapper
 import tss.t.core.CoreApp

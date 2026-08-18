@@ -2,8 +2,8 @@ package tss.t.sharedfirebase
 
 import android.content.Context
 import androidx.compose.runtime.staticCompositionLocalOf
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.remoteconfig.ktx.remoteConfig
+import com.google.firebase.Firebase
+import com.google.firebase.remoteconfig.remoteConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay

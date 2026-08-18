@@ -9,8 +9,8 @@ import android.os.Build
 import android.os.Bundle
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.core.os.bundleOf
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.analytics.analytics
+import com.google.firebase.Firebase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

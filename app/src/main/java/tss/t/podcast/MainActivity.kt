@@ -2,8 +2,11 @@
 
 package tss.t.podcast
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -11,6 +14,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -46,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -96,6 +101,7 @@ class MainActivity : ComponentActivity() {
 
     private var navHostController: NavHostController? = null
     private var homeInnerNavHostController: NavHostController? = null
+    private var onBackPressedCallback: OnBackPressedCallback? = null
 
     @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -104,9 +110,13 @@ class MainActivity : ComponentActivity() {
             statusBarStyle = SystemBarStyle.light(
                 scrim = Color.TRANSPARENT,
                 darkScrim = Color.TRANSPARENT
+            ),
+            navigationBarStyle = SystemBarStyle.light(
+                scrim = Color.TRANSPARENT,
+                darkScrim = Color.TRANSPARENT
             )
         )
-        val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        val backCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (navHostController?.currentBackStackEntry?.destination?.route == TSRouter.Main.route) {
                     if (homeInnerNavHostController?.currentBackStackEntry?.destination?.route == TSHomeRouter.Discover.route) {
@@ -119,8 +129,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        onBackPressedDispatcher.addCallback(onBackPressedCallback)
+        onBackPressedCallback = backCallback
+        onBackPressedDispatcher.addCallback(this, backCallback)
         handleIntent(intent)
+        requestNotificationPermissionIfNeeded()
         setContent {
             val listState = remember {
                 mutableStateMapOf<BottomBarTab, LazyListState>()
@@ -164,7 +176,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             mainViewModel.event.collect {
                 when (it) {
-                    HomeEvent.ExitApp -> finish()
+                    HomeEvent.ExitApp -> exitToHome()
                     HomeEvent.ToastDoubleClickToExit -> Toast.makeText(
                         this@MainActivity,
                         R.string.double_click_to_exit,
@@ -196,6 +208,34 @@ class MainActivity : ComponentActivity() {
                 playerViewModel.onRestoreFromNotification(mediaId)
             }
         }
+    }
+
+    private val requestNotificationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* no-op */ }
+
+    /**
+     * POST_NOTIFICATIONS is declared in the manifest but was never requested, so on API 33+ the
+     * media and FCM notifications were silently dropped on a fresh install.
+     */
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val granted = ActivityCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+        if (granted || shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+            return
+        }
+        requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    /**
+     * Hands the back press back to the system instead of calling finish(), so the platform can run
+     * its own back-to-home animation (predictive back is on by default from targetSdk 36).
+     */
+    private fun exitToHome() {
+        onBackPressedCallback?.isEnabled = false
+        onBackPressedDispatcher.onBackPressed()
     }
 
     private var _pendingExitApp = false

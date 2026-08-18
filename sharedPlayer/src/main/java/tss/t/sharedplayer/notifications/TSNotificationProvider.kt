@@ -52,7 +52,7 @@ class TSNotificationProvider @Inject constructor(
         onNotificationChangedCallback: MediaNotification.Provider.Callback
     ): MediaNotification {
         val currentMediaItem = mediaSession.player.currentMediaItem!!
-        val channelId = "123"
+        val channelId = CHANNEL_ID
         NotificationUtils.createChannelIfNeeded(context, channelId)
         val notificationBuilder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(context, channelId)
@@ -133,7 +133,7 @@ class TSNotificationProvider @Inject constructor(
             mediaStyle.setCancelButtonIntent(
                 actionFactory.createMediaActionPendingIntent(
                     mediaSession,
-                    Player.COMMAND_STOP.toLong()
+                    Player.COMMAND_STOP
                 )
             )
         }
@@ -165,7 +165,7 @@ class TSNotificationProvider @Inject constructor(
                 .setDeleteIntent(
                     actionFactory.createMediaActionPendingIntent(
                         mediaSession,
-                        Player.COMMAND_STOP.toLong()
+                        Player.COMMAND_STOP
                     )
                 )
                 .setOnlyAlertOnce(true)
@@ -403,8 +403,14 @@ class TSNotificationProvider @Inject constructor(
         return true
     }
 
+    override fun getNotificationChannelInfo(): MediaNotification.Provider.NotificationChannelInfo {
+        return MediaNotification.Provider.NotificationChannelInfo(CHANNEL_ID, CHANNEL_NAME)
+    }
+
     companion object {
         val mHandler by lazy { Handler(Looper.getMainLooper()) }
         const val TAG = "TuanDv"
+        const val CHANNEL_ID = "123"
+        const val CHANNEL_NAME = "TsPodcast"
     }
 }

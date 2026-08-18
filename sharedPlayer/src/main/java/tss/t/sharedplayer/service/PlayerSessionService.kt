@@ -44,10 +44,10 @@ class PlayerSessionService() : MediaSessionService() {
             .setShowPlayButtonIfPlaybackIsSuppressed(true)
             .build()
         val channel = NotificationChannelCompat.Builder(
-            "123",
+            TSNotificationProvider.CHANNEL_ID,
             NotificationManagerCompat.IMPORTANCE_DEFAULT
         )
-            .setName("TsPodcast")
+            .setName(TSNotificationProvider.CHANNEL_NAME)
             .setDescription("TsPodcast app")
             .setVibrationEnabled(false)
             .setShowBadge(true)

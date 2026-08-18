@@ -23,3 +23,7 @@
 -keep class tss.t.coreradio.models.** { *; }
 -keep class tss.t.coreapi.models.** { *; }
 -keep class tss.t.core.** { *; }
+# AppLovin bundles the IAB OMID SDK, which optionally calls into Amazon's PrivacyPass
+# attestation library. That library is not a dependency of this app, so R8 only needs to
+# stop warning about the unresolved references.
+-dontwarn com.amazon.privacypass.**
