@@ -62,7 +62,15 @@ class PlayerSessionService() : MediaSessionService() {
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
-        return mediaSession
+        // The service is exported (media3 requires it for system media controls)
+        // and the manifest only guards it with FOREGROUND_SERVICE, a normal
+        // permission auto-granted to every app. Hand the session to this app and
+        // to the platform media/notification controllers only.
+        val caller = controllerInfo.packageName
+        val allowed = caller == packageName ||
+            caller == "android" ||
+            caller == "com.android.systemui"
+        return if (allowed) mediaSession else null
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {

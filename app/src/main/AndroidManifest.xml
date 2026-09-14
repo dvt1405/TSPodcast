@@ -32,9 +32,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+            <!--
+                Fired only by this app's own PendingIntents (media notification
+                and MediaSession activity). BROWSABLE was removed: it is
+                meaningless on a non-VIEW action and only served to make this
+                entry point reachable from other apps' links.
+            -->
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
 
                 <action android:name="tss.t.action_from_notification" />
 

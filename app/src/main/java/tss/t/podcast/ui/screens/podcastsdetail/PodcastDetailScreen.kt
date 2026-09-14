@@ -496,18 +496,22 @@ private fun PodcastDetailBody(
                     }
                 }
             }) {
-                val item = if (renderItemList.isEmpty()) {
-                    null
-                } else {
-                    renderItemList[it]
-                }
+                val item = renderItemList.getOrNull(it)
                 if (item is MaxTemplateNativeAdViewComposableLoader) {
                     MaxTemplateNativeAdViewComposable(item)
                 } else {
+                    // `item` is null while the 20 shimmer placeholders are shown
+                    // for an empty list, and an Int for an ad slot that has no
+                    // loader yet. Both reached `item as Episode` on click, which
+                    // threw NullPointerException / ClassCastException. The
+                    // `episode` parameter below already used a safe cast.
+                    val episode = item as? Episode
                     EpisodeWidget(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onItemClick(item as Episode) }
+                            .clickable(enabled = episode != null) {
+                                episode?.let { ep -> onItemClick(ep) }
+                            }
                             .background(Color.White)
                             .padding(16.dp)
                             .drawWithContent {
@@ -527,7 +531,7 @@ private fun PodcastDetailBody(
                                     )
                                 )
                             },
-                        episode = item as? Episode,
+                        episode = episode,
                         isLoading = isLoading
                     )
                 }

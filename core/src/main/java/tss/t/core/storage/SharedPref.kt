@@ -162,6 +162,7 @@ internal const val Key_OnboardingFinished = "OnboardingFinished"
 internal const val Key_CategoryRes = "CategoryRes"
 internal const val Key_HasSelectFavouriteCategory = "HasSelectFavouriteCategory"
 internal const val Key_ListFavouriteCategory = "ListFavouriteCategory"
+internal const val Key_InstallId = "InstallId"
 
 fun SharedPref.isOnboardingFinished() = get<Boolean>(Key_OnboardingFinished) ?: false
 fun SharedPref.saveOnboardingFinished(isFinished: Boolean) {
@@ -187,3 +188,16 @@ fun SharedPref.getFavouriteCategory() =
     get<Set<CategoryRes.Category>>(Key_ListFavouriteCategory)
 
 fun SharedPref.hasSelectFavouriteCategory() = get<Boolean>(Key_HasSelectFavouriteCategory) ?: false
+
+/**
+ * Stable per-install identifier, generated on first read.
+ *
+ * Used as the Crashlytics user id. The app has no account system, so this is
+ * what makes "the same install crashed five times in a row" visible in the
+ * console. It is random, is not derived from any device identifier, and is
+ * discarded when the app is uninstalled.
+ */
+fun SharedPref.getOrCreateInstallId(): String {
+    get<String>(Key_InstallId)?.takeIf { it.isNotBlank() }?.let { return it }
+    return java.util.UUID.randomUUID().toString().also { save(Key_InstallId, it) }
+}

@@ -18,11 +18,15 @@ class GetRadioList @Inject constructor(
     suspend operator fun invoke(
         repoKey: String
     ): Flow<Result<List<RadioChannel>>> {
+        // assert() is disabled at runtime on Android (-ea is off), so the
+        // following !! was the real behaviour: an NPE for any unknown key.
         val repo = apis[repoKey]
-        assert(repo != null) {
-            "Not found repository for key: $repoKey"
-        }
-        return flowOf(repo!!.getRadioList())
+            ?: return flowOf(
+                Result.failure(
+                    IllegalStateException("No RadioApi bound for key: " + repoKey)
+                )
+            )
+        return flowOf(repo.getRadioList())
             .retry(2)
             .map {
                 if (it.isNotEmpty()) {

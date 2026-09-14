@@ -17,11 +17,14 @@ class GetPodcastByFeedID @Inject constructor(
 ) {
 
     suspend operator fun invoke(feedId: String): Flow<TSDataState<PodcastByFeedIdRes>> {
-        if (_lastCache[feedId] != null && _cache[feedId] != null) {
-            val time = _lastCache[feedId] ?: 0L
-            if (System.currentTimeMillis() - time < 15 * 60 * 1000) {
-                return flowOf(TSDataState.Success(_cache[feedId]!!))
-            }
+        // Single read of each map; `_cache[feedId]!!` after a separate
+        // containment check could NPE if another coroutine evicted the entry.
+        val cached = _cache[feedId]
+        val cachedAt = _lastCache[feedId]
+        if (cached != null && cachedAt != null &&
+            System.currentTimeMillis() - cachedAt < CACHE_TTL_MS
+        ) {
+            return flowOf(TSDataState.Success(cached))
         }
         return repository.getPodcastByFeedId(
             feedId,
@@ -42,5 +45,6 @@ class GetPodcastByFeedID @Inject constructor(
         private val _lastCache by lazy {
             ConcurrentHashMap<String, Long>()
         }
+        private const val CACHE_TTL_MS = 15 * 60 * 1000L
     }
 }

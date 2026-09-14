@@ -17,11 +17,7 @@ class GetPlayableLink @Inject constructor(
     private val vovRepo: RadioApi,
 ) {
     suspend operator fun invoke(radioChannel: RadioChannel) =
-        (
-                if (radioChannel.category.equals(RadioRepo.VOV, ignoreCase = true))
-                    flowOf(apis[RadioRepo.VOV]!!)
-                else flowOf(apis[RadioRepo.VOH]!!)
-                )
+        flowOf(getRepo(radioChannel.category))
             .map {
                 it.getPlayableLink(radioChannel = radioChannel)
             }
@@ -37,7 +33,7 @@ class GetPlayableLink @Inject constructor(
                 emit(Result.failure(it))
             }
 
-    suspend operator fun invoke(link: String) = apis[RadioRepo.VOV]!!.getPlayableLink(link)
+    suspend operator fun invoke(link: String) = getRepo(RadioRepo.VOV).getPlayableLink(link)
     suspend operator fun invoke(
         link: String,
         category: String,
@@ -46,12 +42,19 @@ class GetPlayableLink @Inject constructor(
             .getPlayableLink(link)
     }
 
+    /**
+     * Resolves a source from the Dagger multibinding. Previously `apis[key]!!`,
+     * which NPEs if a key is renamed or a channel carries an unknown source.
+     * Falls back to the VOV binding, which is also bound under @Named and so is
+     * always available.
+     */
     private fun getRepo(category: String): RadioApi {
-        return if (category.equals(RadioRepo.VOH, ignoreCase = true)) {
-            apis[RadioRepo.VOH]!!
+        val key = if (category.equals(RadioRepo.VOH, ignoreCase = true)) {
+            RadioRepo.VOH
         } else {
-            apis[RadioRepo.VOV]!!
+            RadioRepo.VOV
         }
+        return apis[key] ?: apis[RadioRepo.VOV] ?: vovRepo
     }
 
     companion object {

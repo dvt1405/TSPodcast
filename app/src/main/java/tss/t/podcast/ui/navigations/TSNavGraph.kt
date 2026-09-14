@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -101,9 +102,17 @@ fun TSNavGraph(
                 LocalNavAnimatedVisibilityScope provides this,
                 LocalViewModelStoreOwner provides viewModelStoreOwner
             ) {
+                // Null after process death, when the ViewModel state is back to
+                // its default and no podcast was passed through the nav args.
+                // Same failure shape the Player route was fixed for in 2cea6ee.
+                val podcast = navPodcast ?: podcastDetailUIState.podcast
+                if (podcast == null) {
+                    LaunchedEffect(Unit) { navHost.popBackStack() }
+                    return@CompositionLocalProvider
+                }
                 PodcastDetailScreen(
                     navHost = navHost,
-                    podcast = navPodcast ?: podcastDetailUIState.podcast!!,
+                    podcast = podcast,
                     playList = playlist,
                     sharedElementKey = dashboardUIState.from,
                     mainViewModel = mainViewModel,

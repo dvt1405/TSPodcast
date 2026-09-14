@@ -7,5 +7,6 @@ object Constants {
     const val MEDIA_TYPE_RADIO = "Radio"
     const val ACTION_START_FROM_NOTIFICATION = "tss.t.action_from_notification"
     const val DEEPLINK_CURRENT_PLAYING = "tss://ts.podcast/playing"
+    const val DEEPLINK_HOME = "tss://ts.podcast/home"
     const val QUERY_MEDIA_ITEM_NAME = "mediaId"
 }

@@ -2,6 +2,8 @@ package tss.t.sharedplayer.player
 
 import android.content.Context
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -34,12 +36,40 @@ class PlayerManager @Inject constructor(
             }
         }
 
-    init {
-        _player = createPlayer()
-    }
+    // No eager construction in init {}: ExoPlayer must be built on a thread with
+    // a Looper, and that made the player's thread depend on whichever thread
+    // Hilt happened to construct this singleton on. Built lazily on the main
+    // looper instead, on first access.
 
     @androidx.annotation.OptIn(UnstableApi::class)
     private fun createPlayer(): Player {
+        if (Looper.myLooper() == null) {
+            return runOnMainLooper { buildPlayer() }
+        }
+        return buildPlayer()
+    }
+
+    private fun <T> runOnMainLooper(block: () -> T): T {
+        val latch = java.util.concurrent.CountDownLatch(1)
+        var result: T? = null
+        var error: Throwable? = null
+        Handler(Looper.getMainLooper()).post {
+            try {
+                result = block()
+            } catch (t: Throwable) {
+                error = t
+            } finally {
+                latch.countDown()
+            }
+        }
+        latch.await()
+        error?.let { throw it }
+        @Suppress("UNCHECKED_CAST")
+        return result as T
+    }
+
+    @androidx.annotation.OptIn(UnstableApi::class)
+    private fun buildPlayer(): Player {
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()
         val mediaSourceFactory = DefaultMediaSourceFactory(httpDataSourceFactory)
         return ExoPlayer.Builder(context)
