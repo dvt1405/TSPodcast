@@ -19,8 +19,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -502,9 +502,14 @@ class PlayerViewModel @Inject constructor(
     private fun startTimerIfNeeded() {
         if (true == timerJob?.isActive) return
         timerJob = viewModelScope.launch(Dispatchers.Main) {
-            while (true) {
-                if (_playerControlState.value.currentMediaItem?.mediaId != currentPlayer.currentMediaItem?.mediaId) {
-                    cancel()
+            // Was `while (true)` with a cancel() whose CancellationException was
+            // thrown from the following delay(), so the loop exited through an
+            // exception on every track change. Break out explicitly instead.
+            while (isActive) {
+                if (_playerControlState.value.currentMediaItem?.mediaId !=
+                    currentPlayer.currentMediaItem?.mediaId
+                ) {
+                    break
                 }
                 delay(200)
                 updateProgress()

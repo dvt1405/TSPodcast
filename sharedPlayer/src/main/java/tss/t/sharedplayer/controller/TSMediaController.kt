@@ -8,11 +8,12 @@ import android.os.Bundle
 import androidx.media3.session.MediaBrowser
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import com.google.common.util.concurrent.MoreExecutors
+import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import tss.t.sharedlibrary.crash.safeCallOrNull
 import tss.t.sharedplayer.service.PlayerSessionService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,22 +36,26 @@ class TSMediaController @Inject constructor(
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         if (activity.getLocalClassName() == "MainActivity") {
             coroutineScope.launch {
-                if (sessionToken == null) {
-                    sessionToken = SessionToken(
-                        context,
-                        ComponentName(context, PlayerSessionService::class.java)
-                    )
+                if (sessionToken != null) return@launch
+                val token = SessionToken(
+                    context,
+                    ComponentName(context, PlayerSessionService::class.java)
+                )
+                sessionToken = token
 
-                    val controllerFuture = MediaController.Builder(context, sessionToken!!)
-                        .buildAsync()
-                    controllerFuture.addListener({
-                        _sessionController = controllerFuture.get()
-                    }, MoreExecutors.directExecutor())
-                    val browserFuture = MediaBrowser.Builder(context, sessionToken!!).buildAsync()
-                    browserFuture.addListener({
-                        mediaBrowser = browserFuture.get()
-                    }, MoreExecutors.directExecutor())
-                }
+                // Future.get() throws ExecutionException when the service fails
+                // to connect. On directExecutor that ran on whichever thread
+                // completed the future, uncaught. Hop to the main executor and
+                // report instead of crashing.
+                val mainExecutor = ContextCompat.getMainExecutor(context)
+                val controllerFuture = MediaController.Builder(context, token).buildAsync()
+                controllerFuture.addListener({
+                    _sessionController = safeCallOrNull(TAG) { controllerFuture.get() }
+                }, mainExecutor)
+                val browserFuture = MediaBrowser.Builder(context, token).buildAsync()
+                browserFuture.addListener({
+                    mediaBrowser = safeCallOrNull(TAG) { browserFuture.get() }
+                }, mainExecutor)
             }
         }
     }
@@ -71,5 +76,9 @@ class TSMediaController @Inject constructor(
     }
 
     override fun onActivityDestroyed(activity: Activity) {
+    }
+
+    companion object {
+        private const val TAG = "TSMediaController"
     }
 }

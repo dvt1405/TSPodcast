@@ -61,9 +61,13 @@ class SearchViewModel @Inject constructor(
         searchJob?.cancel()
         searchText ?: return
         viewModelScope.launch(Dispatchers.IO) {
-            searchJob = async { _searchPodcasts(query = searchText) }
+            // Keep the Deferred in a local: two rapid keystrokes could otherwise
+            // interleave so that `searchJob!!` read a job another coroutine had
+            // just replaced.
+            val job = async { _searchPodcasts(query = searchText) }
+            searchJob = job
             currentSearchText.value = searchText
-            val rs = searchJob!!.await()
+            val rs = job.await()
             if (rs.isSuccess()) {
                 val data = (rs as TSDataState.Success).data
                 _listSearch.value = data.feeds

@@ -74,13 +74,13 @@ class PodcastViewModel @Inject constructor(
         for (i in 0..(playList.size / 8).coerceAtLeast(1)) {
             val maxRandom = ((i + 1) * 8 + 1).coerceAtMost(playList.size)
             val minRandom = (i * 8 + 1).coerceAtMost(maxRandom - 1)
-            var nextInt = Random.nextInt(minRandom, maxRandom)
-            if (maxRandom - minRandom <= 1 && adsList.contains(minRandom)) {
-                continue
-            }
-            while (adsList.contains(nextInt)) {
-                nextInt = Random.nextInt(minRandom, maxRandom)
-            }
+            // Was a `while (adsList.contains(nextInt))` retry loop, which spins
+            // forever once every slot in the range is already taken (ANR on the
+            // calling thread). Pick from the remaining slots directly instead.
+            val nextInt = (minRandom until maxRandom)
+                .filterNot { it in adsList }
+                .randomOrNull()
+                ?: continue
             adsList.add(nextInt)
         }
 

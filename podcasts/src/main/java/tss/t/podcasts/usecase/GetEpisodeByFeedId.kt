@@ -15,11 +15,14 @@ class GetEpisodeByFeedId @Inject constructor(
     suspend operator fun invoke(
         id: String
     ): Flow<TSDataState<EpisodeResponse>> {
-        if (_lastCache[id] != null && _cache[id] != null) {
-            val time = _lastCache[id] ?: 0L
-            if (System.currentTimeMillis() - time < 15 * 60 * 1000) {
-                return flowOf(TSDataState.Success(_cache[id]!!))
-            }
+        // Single read of each map; `_cache[id]!!` after a separate containment
+        // check could NPE if another coroutine evicted the entry in between.
+        val cached = _cache[id]
+        val cachedAt = _lastCache[id]
+        if (cached != null && cachedAt != null &&
+            System.currentTimeMillis() - cachedAt < CACHE_TTL_MS
+        ) {
+            return flowOf(TSDataState.Success(cached))
         }
         return repository.getEpisodeByFeedId(
             id
@@ -39,5 +42,6 @@ class GetEpisodeByFeedId @Inject constructor(
         private val _lastCache by lazy {
             ConcurrentHashMap<String, Long>()
         }
+        private const val CACHE_TTL_MS = 15 * 60 * 1000L
     }
 }

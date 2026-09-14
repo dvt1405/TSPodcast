@@ -33,13 +33,17 @@ class GetTrendingPodcasts @Inject constructor(
                 lastUpdateFav = sharedPref.get("lastUpdateTrending_$cat") ?: 0L
             }
         }
+        // Read the mutable companion fields once each; the previous null check
+        // plus `!!` were separate reads reachable from several coroutines.
         if (cat.isNullOrEmpty()) {
-            if (cachedData != null && System.currentTimeMillis() - lastUpdate < 15 * A_MINUTES) {
-                return TSDataState.Success(cachedData!!)
+            val cached = cachedData
+            if (cached != null && System.currentTimeMillis() - lastUpdate < 15 * A_MINUTES) {
+                return TSDataState.Success(cached)
             }
         } else {
-            if (cachedDataFav != null && System.currentTimeMillis() - lastUpdateFav < 15 * A_MINUTES) {
-                return TSDataState.Success(cachedDataFav!!)
+            val cached = cachedDataFav
+            if (cached != null && System.currentTimeMillis() - lastUpdateFav < 15 * A_MINUTES) {
+                return TSDataState.Success(cached)
             }
         }
 
@@ -72,8 +76,12 @@ class GetTrendingPodcasts @Inject constructor(
                             count = result.size
                         )
                         lastUpdateFav = System.currentTimeMillis()
-                        sharedPref.save("lastUpdateTrending_$cat", cachedDataFav)
-                        sharedPref.save("cachedTrending_$cat", lastUpdateFav)
+                        // These two were transposed: the DTO was written under
+                        // the timestamp key and vice versa, so the per-category
+                        // disk cache never restored (the read at the top of this
+                        // function expects a TrendingPodcastRes, not a Long).
+                        sharedPref.save("lastUpdateTrending_$cat", lastUpdateFav)
+                        sharedPref.save("cachedTrending_$cat", cachedDataFav)
                     }
                 }
             }
@@ -82,10 +90,16 @@ class GetTrendingPodcasts @Inject constructor(
 
     companion object {
         private const val A_MINUTES = 60 * 1000
+        @Volatile
         var lastUpdate = 0L
+
+        @Volatile
         var cachedData: TrendingPodcastRes? = null
 
+        @Volatile
         var lastUpdateFav = 0L
+
+        @Volatile
         var cachedDataFav: TrendingPodcastRes? = null
         val lock = Any()
     }
