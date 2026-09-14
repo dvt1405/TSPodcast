@@ -1,8 +1,6 @@
 package tss.t.sharedfirebase
 
 import android.content.Context
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKeys
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import tss.t.sharedlibrary.utils.getAndroidDeviceId
@@ -27,10 +25,12 @@ class TSFirebaseSharedPref @Inject constructor(
             else _firebaseSharedPref.getString("DeviceId", null)
         }
         private set(value) {
-            _firebaseSharedPref.edit {
-                putString("DeviceId", field)
-            }
+            // Was persisting `field` (the previous value, always null on first
+            // write), so the device id was stored as null forever.
             field = value
+            _firebaseSharedPref.edit {
+                putString("DeviceId", value)
+            }
         }
 
     init {

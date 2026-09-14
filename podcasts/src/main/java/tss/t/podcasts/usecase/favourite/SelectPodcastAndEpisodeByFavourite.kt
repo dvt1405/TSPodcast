@@ -19,15 +19,18 @@ class SelectPodcastAndEpisodeByFavourite @Inject constructor(
         id: String,
         mediaType: MediaType
     ): PodcastAndEpisode? {
+        // FavouriteDTO.id is a String because radio channels key on a slug or a
+        // URL, not a numeric feed id. toLong() threw NumberFormatException on
+        // those rows; toLongOrNull() turns it into "not found".
         if (mediaType == MediaType.PodcastEpisode) {
-            val ep = episodeDao.selectById(id.toLong()) ?: return null
+            val ep = episodeDao.selectById(id.toLongOrNull() ?: return null) ?: return null
             return podcastDao.selectAllEpisodeById(ep.feedId)
         } else if (mediaType == MediaType.Podcast) {
-            val pc = podcastDao.selectById(id.toLong()) ?: return null
+            val pc = podcastDao.selectById(id.toLongOrNull() ?: return null) ?: return null
             return podcastDao.selectAllEpisodeById(pc.feedId)
         }
         val fav = repository.getFavouriteItem(id, mediaType) ?: return null
-        val items = podcastDao.selectAllEpisodeById(fav.id.toLong())
+        val items = podcastDao.selectAllEpisodeById(fav.id.toLongOrNull() ?: return null)
         return items
     }
 
@@ -36,13 +39,13 @@ class SelectPodcastAndEpisodeByFavourite @Inject constructor(
     ): PodcastAndEpisode? {
         val mediaType = fav.type
         if (mediaType == MediaType.PodcastEpisode) {
-            val ep = episodeDao.selectById(fav.id.toLong()) ?: return null
+            val ep = episodeDao.selectById(fav.id.toLongOrNull() ?: return null) ?: return null
             return podcastDao.selectAllEpisodeById(ep.feedId)
         } else if (mediaType == MediaType.Podcast) {
-            val pc = podcastDao.selectById(fav.id.toLong()) ?: return null
+            val pc = podcastDao.selectById(fav.id.toLongOrNull() ?: return null) ?: return null
             return podcastDao.selectAllEpisodeById(pc.feedId)
         }
-        return podcastDao.selectAllEpisodeById(fav.id.toLong())
+        return podcastDao.selectAllEpisodeById(fav.id.toLongOrNull() ?: return null)
     }
 
     suspend operator fun <T> invoke(

@@ -51,7 +51,12 @@ class TSNotificationProvider @Inject constructor(
         actionFactory: MediaNotification.ActionFactory,
         onNotificationChangedCallback: MediaNotification.Provider.Callback
     ): MediaNotification {
-        val currentMediaItem = mediaSession.player.currentMediaItem!!
+        // Nullable by design: media3 invokes this callback on session state
+        // changes, including after clearMediaItems()/stop, when there is no
+        // current item. This runs inside a foreground service, so throwing
+        // here kills the process and can cascade into a
+        // ForegroundServiceDidNotStartInTime.
+        val currentMediaItem = mediaSession.player.currentMediaItem
         val channelId = CHANNEL_ID
         NotificationUtils.createChannelIfNeeded(context, channelId)
         val notificationBuilder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -63,7 +68,8 @@ class TSNotificationProvider @Inject constructor(
             ImmutableList.Builder<CommandButton>()
         for (i in customLayout.indices) {
             val button = customLayout[i]
-            if (button.sessionCommand != null && button.sessionCommand!!.commandCode == SessionCommand.COMMAND_CODE_CUSTOM && button.isEnabled) {
+            val sessionCommand = button.sessionCommand
+            if (sessionCommand?.commandCode == SessionCommand.COMMAND_CODE_CUSTOM && button.isEnabled) {
                 customLayoutWithEnabledCommandButtonsOnly.add(customLayout[i])
             }
         }
@@ -113,16 +119,17 @@ class TSNotificationProvider @Inject constructor(
                         )
                     }
                 } else {
-                    pendingOnBitmapLoadedFutureCallback = OnBitmapLoadedFutureCallback(
+                    val callback = OnBitmapLoadedFutureCallback(
                         notificationId, builder, onNotificationChangedCallback
                     )
+                    pendingOnBitmapLoadedFutureCallback = callback
                     Futures.addCallback<Bitmap>(
                         bitmapFuture,
-                        pendingOnBitmapLoadedFutureCallback!!
+                        callback
                     )  // This callback must be executed on the next looper iteration, after this method has
                     // returned a media notification.
                     { r: Runnable? ->
-                        mHandler.post(r!!)
+                        r?.let(mHandler::post)
                     }
                 }
             }
@@ -148,15 +155,23 @@ class TSNotificationProvider @Inject constructor(
         if (Util.SDK_INT >= 31) {
             builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
         }
+        // Falls back to the home deep link when there is no current item.
+        val sessionActivityUri = currentMediaItem?.mediaId
+            ?.takeIf { it.isNotBlank() }
+            ?.let { "${Constants.DEEPLINK_CURRENT_PLAYING}?${Constants.QUERY_MEDIA_ITEM_NAME}=$it" }
+            ?: Constants.DEEPLINK_HOME
         mediaSession.setSessionActivity(
             PendingIntent.getActivity(
                 context,
                 1,
                 Intent(Constants.ACTION_START_FROM_NOTIFICATION).apply {
-                    data =
-                        Uri.parse("${Constants.DEEPLINK_CURRENT_PLAYING}?${Constants.QUERY_MEDIA_ITEM_NAME}=${currentMediaItem.mediaId}")
+                    data = Uri.parse(sessionActivityUri)
                 },
-                PendingIntent.FLAG_IMMUTABLE,
+                // FLAG_UPDATE_CURRENT is required: this request code is reused for
+                // every track, so without it the PendingIntent keeps the mediaId of
+                // the first track it was created with and the notification reopens
+                // the wrong episode.
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
             )
         )
         val notification: Notification =
@@ -207,7 +222,7 @@ class TSNotificationProvider @Inject constructor(
     }
 
     protected fun addNotificationActions(
-        mediaSession: MediaSession?,
+        mediaSession: MediaSession,
         mediaButtons: ImmutableList<CommandButton>,
         builder: NotificationCompat.Builder,
         actionFactory: MediaNotification.ActionFactory
@@ -222,7 +237,7 @@ class TSNotificationProvider @Inject constructor(
             if (commandButton.sessionCommand != null) {
                 builder.addAction(
                     actionFactory.createCustomActionFromCustomCommandButton(
-                        mediaSession!!,
+                        mediaSession,
                         commandButton
                     )
                 )
@@ -230,7 +245,7 @@ class TSNotificationProvider @Inject constructor(
                 Assertions.checkState(commandButton.playerCommand != Player.COMMAND_INVALID)
                 builder.addAction(
                     actionFactory.createMediaAction(
-                        mediaSession!!,
+                        mediaSession,
                         IconCompat.createWithResource(context, commandButton.iconResId),
                         commandButton.displayName,
                         commandButton.playerCommand
@@ -356,9 +371,7 @@ class TSNotificationProvider @Inject constructor(
         }
         for (i in customLayout.indices) {
             val button = customLayout[i]
-            if (button.sessionCommand != null
-                && button.sessionCommand!!.commandCode == SessionCommand.COMMAND_CODE_CUSTOM
-            ) {
+            if (button.sessionCommand?.commandCode == SessionCommand.COMMAND_CODE_CUSTOM) {
                 commandButtons.add(button)
             }
         }

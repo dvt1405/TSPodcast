@@ -43,6 +43,7 @@ import tss.t.podcasts.usecase.favourite.SaveFavouriteUseCase
 import tss.t.podcasts.usecase.history.GetEpisodeLocalUseCase
 import tss.t.podcasts.usecase.history.SaveCurrentPlayingUseCase
 import tss.t.sharedplayer.controller.TSMediaController
+import tss.t.sharedplayer.utils.progressOf
 import tss.t.sharedplayer.player.PlayerManager
 import tss.t.sharedplayer.utils.ext.album
 import tss.t.sharedplayer.utils.ext.mediaType
@@ -169,19 +170,24 @@ class PlayerViewModel @Inject constructor(
     }
 
     private suspend fun extractPlayerLink(mediaItem: MediaItem): Result<MediaItem> {
-        val link = getPlayableLink(
-            mediaItem.mediaId,
-            mediaItem.album!!
-        )
-        return if (link.isSuccess) {
-            Result.success(
-                mediaItem.buildUpon()
-                    .setUri(link.getOrDefault(emptyList()).first())
-                    .build()
+        // `album` carries the radio source (VOV/VOH). It is only set by
+        // RadioChannel.toMediaItem, so an item restored from the notification or
+        // the database can reach here without one.
+        val source = mediaItem.album
+            ?: return Result.failure(
+                IllegalStateException("No radio source for ${mediaItem.mediaId}")
             )
-        } else {
-            Result.failure(link.exceptionOrNull()!!)
-        }
+        val link = getPlayableLink(mediaItem.mediaId, source)
+        val resolved = link.getOrNull()?.firstOrNull()
+            ?: return Result.failure(
+                link.exceptionOrNull()
+                    ?: IllegalStateException("No playable link for ${mediaItem.mediaId}")
+            )
+        return Result.success(
+            mediaItem.buildUpon()
+                .setUri(resolved)
+                .build()
+        )
     }
 
     private fun setupPlayerListener() {
@@ -460,11 +466,10 @@ class PlayerViewModel @Inject constructor(
             it.copy(
                 currentDuration = currentPlayer.currentPosition,
                 totalDuration = currentPlayer.contentDuration,
-                currentProgress = runCatching {
-                    currentPlayer.currentPosition.toDouble() / currentPlayer.contentDuration
-                }
-                    .getOrDefault(0.0)
-                    .toFloat()
+                currentProgress = progressOf(
+                    currentPlayer.currentPosition,
+                    currentPlayer.contentDuration
+                )
             )
         }
     }
@@ -526,7 +531,10 @@ class PlayerViewModel @Inject constructor(
                         isPlaying = currentPlayer.isPlaying,
                         currentDuration = currentPlayer.contentPosition,
                         totalDuration = currentPlayer.contentDuration,
-                        currentProgress = (currentPlayer.contentPosition.toDouble() / currentPlayer.contentDuration).toFloat(),
+                        currentProgress = progressOf(
+                            currentPlayer.contentPosition,
+                            currentPlayer.contentDuration
+                        ),
                     )
                 }
                 viewModelScope.launch {

@@ -1,14 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample backup rules file; uncomment and customize as necessary.
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Auto-backup rules for API 30 and below.
    See https://developer.android.com/guide/topics/data/autobackup
-   for details.
-   Note: This file is ignored for devices older that api 31
-   See https://developer.android.com/about/versions/12/backup-restore
+   For API 31+, see data_extraction_rules.xml.
 -->
 <full-backup-content>
-    <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
     <include domain="sharedpref" path="."/>
+
+    <!--
+       Scraper cookie jar. Restoring another device's session cookies is
+       useless at best, and this store previously used
+       EncryptedSharedPreferences, whose backed-up ciphertext could not be
+       decrypted on the restoring device (AEADBadTagException on first read).
+    -->
+    <exclude domain="sharedpref" path="JsoupExt.xml"/>
 </full-backup-content>

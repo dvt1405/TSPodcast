@@ -8,6 +8,7 @@ import tss.t.coreradio.api.RadioApi
 import tss.t.coreradio.di.RadioRepo
 import tss.t.coreradio.models.RadioChannel
 import tss.t.coreradio.storage.dao.RadioChannelDao
+import tss.t.sharedlibrary.crash.Crash
 import tss.t.sharedlibrary.utils.JsoupExt
 import java.util.regex.Pattern
 import javax.inject.Inject
@@ -76,7 +77,10 @@ class RadioRepository @Inject constructor(
     }
 
     override suspend fun getPlayableLink(radioChannel: RadioChannel): RadioChannel.Link {
-        val radioLink = radioChannel.links.first()
+        val radioLink = radioChannel.links.firstOrNull()
+            ?: throw IllegalStateException(
+                "VOV: no link for channel ${radioChannel.channelId}"
+            )
         val link = radioLink.link
         val listUrl = mutableListOf<String>()
         val body = jsoupExt.connect(url = link, cookieReferer = baseUrl)
@@ -88,8 +92,23 @@ class RadioRepository @Inject constructor(
                 matcher.group(0)?.let { it1 -> listUrl.add(it1) }
             }
         }
+        // listUrl comes from a regex over inline <script> tags, so it is empty
+        // whenever vovmedia.vn changes its markup. Reported rather than thrown
+        // blind, so the parser breaking is visible in Crashlytics.
+        val playable = listUrl.firstOrNull()
+            ?: run {
+                Crash.record(
+                    NoSuchElementException("VOV: stream regex matched nothing"),
+                    TAG,
+                    mapOf(
+                        "radio_repo" to RadioRepo.VOV,
+                        "channel_id" to radioChannel.channelId
+                    )
+                )
+                throw IllegalStateException("VOV: could not resolve a stream for $link")
+            }
         return radioLink.copy(
-            link = listUrl.first(),
+            link = playable,
             type = RadioChannel.ItemLinkType.Playable
         )
     }
@@ -106,5 +125,9 @@ class RadioRepository @Inject constructor(
             }
         }
         return listUrl
+    }
+
+    companion object {
+        private const val TAG = "RadioRepository"
     }
 }

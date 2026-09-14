@@ -61,6 +61,7 @@ import kotlinx.coroutines.launch
 import tss.t.ads.ApplovinSdkWrapper
 import tss.t.ads.BannerAdsManager
 import tss.t.ads.LocalBannerAdsManagerScope
+import androidx.core.net.toUri
 import tss.t.coreapi.Constants
 import tss.t.featureonboarding.OnboardingViewModel
 import tss.t.podcast.ui.model.HomeEvent
@@ -200,14 +201,20 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleIntent(intent: Intent) {
-        val action = intent.action
-        if (action == Constants.ACTION_START_FROM_NOTIFICATION) {
-            val data = intent.data ?: return
-            if (data.toString().contains(Constants.DEEPLINK_CURRENT_PLAYING)) {
-                val mediaId = data.getQueryParameter(Constants.QUERY_MEDIA_ITEM_NAME)
-                playerViewModel.onRestoreFromNotification(mediaId)
-            }
-        }
+        if (intent.action != Constants.ACTION_START_FROM_NOTIFICATION) return
+        val data = intent.data ?: return
+        // This activity is exported, so any app can send this action. Match on
+        // the parsed scheme/host/path rather than a substring of the whole URI,
+        // which "http://evil.example/?x=tss://ts.podcast/playing" also satisfied.
+        val expected = Constants.DEEPLINK_CURRENT_PLAYING.toUri()
+        if (data.scheme != expected.scheme || data.host != expected.host) return
+        if (data.path?.trimEnd('/') != expected.path?.trimEnd('/')) return
+
+        val mediaId = runCatching { data.getQueryParameter(Constants.QUERY_MEDIA_ITEM_NAME) }
+            .getOrNull()
+            ?.takeIf { it.isNotBlank() }
+            ?: return
+        playerViewModel.onRestoreFromNotification(mediaId)
     }
 
     private val requestNotificationPermission =
@@ -223,9 +230,12 @@ class MainActivity : ComponentActivity() {
             this,
             Manifest.permission.POST_NOTIFICATIONS
         ) == PackageManager.PERMISSION_GRANTED
-        if (granted || shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
-            return
-        }
+        if (granted) return
+        // Previously this also returned when shouldShowRequestPermissionRationale
+        // was true, i.e. after the first denial the app neither asked again nor
+        // showed any rationale. Asking again is correct here: the system itself
+        // caps repeated prompts, and notifications are the app's primary surface
+        // for playback controls.
         requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 

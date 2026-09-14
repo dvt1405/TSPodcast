@@ -120,11 +120,14 @@ private suspend fun onFavouriteSelected(
     rootNavHost: NavHostController
 ) {
     if (related is PodcastAndEpisode) {
+        // A favourited podcast whose episode list came back empty used to throw
+        // NoSuchElementException here on tap.
+        val episode = related.episode.firstOrNull {
+            favouriteDTO.id == it.id.toString()
+        } ?: related.episode.firstOrNull() ?: return
         mainViewModel.setCurrentPodcast(related.podcast)
         playerViewModel.playerEpisode(
-            episode = related.episode.firstOrNull {
-                favouriteDTO.id == it.id.toString()
-            } ?: related.episode.first(),
+            episode = episode,
             podcast = related.podcast,
             listItem = related.episode
         )

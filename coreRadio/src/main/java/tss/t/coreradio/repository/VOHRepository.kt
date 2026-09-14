@@ -8,6 +8,7 @@ import tss.t.coreradio.api.RadioApi
 import tss.t.coreradio.di.RadioRepo
 import tss.t.coreradio.models.RadioChannel
 import tss.t.coreradio.storage.dao.RadioChannelDao
+import tss.t.sharedlibrary.crash.Crash
 import tss.t.sharedlibrary.utils.JsoupExt
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -53,9 +54,11 @@ class VOHRepository @Inject constructor(
     }
 
     private fun parseNextDataToDTO(body: Element): List<RadioChannel> {
-        println("parseNextDataToDTO")
+        // Absent whenever VOH changes its markup. Throwing here is intentional:
+        // getRadioList() wraps this call in runCatching and falls through to the
+        // element parsers below.
         val scripts = body.selectFirst("script#__NEXT_DATA__")
-        println(scripts!!.html())
+            ?: throw IllegalStateException("VOH: script#__NEXT_DATA__ not found")
         val js = JSONObject(scripts.html())
         val channelJsArr = js.optJSONObject("props")
             ?.optJSONObject("pageProps")
@@ -166,7 +169,35 @@ class VOHRepository @Inject constructor(
     }
 
     override suspend fun getPlayableLink(radioChannel: RadioChannel): RadioChannel.Link {
-        return radioChannel.links.first { it.type == RadioChannel.ItemLinkType.Playable }
+        radioChannel.links
+            .firstOrNull { it.type == RadioChannel.ItemLinkType.Playable }
+            ?.let { return it }
+
+        // Only parseNextDataToDTO emits a Playable link. When that tier fails and
+        // one of the element parsers supplied the channel, every link is Browsable
+        // and the old `first { Playable }` threw NoSuchElementException here.
+        val browsable = radioChannel.links
+            .firstOrNull { it.type == RadioChannel.ItemLinkType.Browsable }
+            ?: throw IllegalStateException(
+                "VOH: no link for channel ${radioChannel.channelId}"
+            )
+
+        Crash.record(
+            IllegalStateException("VOH: no Playable link, falling back to Browsable"),
+            TAG,
+            mapOf(
+                "radio_repo" to RadioRepo.VOH,
+                "channel_id" to radioChannel.channelId
+            )
+        )
+        val resolved = getPlayableLink(browsable.link).firstOrNull()
+            ?: throw IllegalStateException(
+                "VOH: could not resolve a stream for ${radioChannel.channelId}"
+            )
+        return browsable.copy(
+            link = resolved,
+            type = RadioChannel.ItemLinkType.Playable
+        )
     }
 
     override suspend fun getPlayableLink(link: String): List<String> {
@@ -175,5 +206,6 @@ class VOHRepository @Inject constructor(
 
     companion object {
         private const val BASE_URL = "https://voh.com.vn/radio"
+        private const val TAG = "VOHRepository"
     }
 }
