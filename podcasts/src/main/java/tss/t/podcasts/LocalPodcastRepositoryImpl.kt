@@ -60,7 +60,7 @@ class LocalPodcastRepositoryImpl @Inject constructor(
         TODO("Not yet implemented")
     }
 
-    override fun searchMusicPodcasts(
+    override suspend fun searchMusicPodcasts(
         query: String,
         type: String,
         max: Int,

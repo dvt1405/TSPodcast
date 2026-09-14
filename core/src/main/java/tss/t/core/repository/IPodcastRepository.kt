@@ -40,7 +40,7 @@ interface IPodcastRepository {
         pretty: Boolean = false
     ): TSDataState<SearchResponse>
 
-    fun searchMusicPodcasts(
+    suspend fun searchMusicPodcasts(
         query: String,
         type: String,
         max: Int, //min 1 max 100

@@ -10,6 +10,10 @@
     <string name="try_search_with_keyword_title">Thử tìm kiếm: %s</string>
     <string name="empty_search_title">Không có kết quả cho: </string>
     <string name="search_suggest_key_title">Radio hay</string>
+    <string name="search_mode_all">Tất cả</string>
+    <string name="search_mode_music">Nhạc</string>
+    <string name="search_music_result_title">Nhạc cho: %s</string>
+    <string name="search_music_empty_hint">Kho nhạc theo chuẩn podcast:medium còn ít, thử từ khoá tiếng Anh</string>
     <string name="empty_favourite_title">Không có chương trình yêu thích.</string>
     <string name="btn_discover_more_title">Khám phá thêm</string>
     <string name="double_click_to_exit">Nhấn nút quay lại để thoát</string>
