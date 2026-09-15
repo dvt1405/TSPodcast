@@ -56,7 +56,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.google.material)
-    implementation(libs.applovin.sdk)
     implementation(libs.hilt.android)
     implementation(libs.androidx.lifecycle.process)
     implementation(project(":sharedLibrary"))

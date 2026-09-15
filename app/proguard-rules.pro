@@ -33,8 +33,3 @@
 # Signature attribute above is confirmed sufficient; this currently also keeps
 # the network layer, DI modules and use cases from being shrunk.
 -keep class tss.t.core.** { *; }
-
-# AppLovin bundles the IAB OMID SDK, which optionally calls into Amazon's PrivacyPass
-# attestation library. That library is not a dependency of this app, so R8 only needs to
-# stop warning about the unresolved references.
--dontwarn com.amazon.privacypass.**
