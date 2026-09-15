@@ -37,7 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import tss.t.ads.MaxAdViewComposable
+import tss.t.ads.AdBannerSlot
 import tss.t.coreapi.models.LiveEpisode
 import tss.t.coreapi.models.Podcast
 import tss.t.hazeandroid.HazeDefaults
@@ -56,7 +56,6 @@ import tss.t.podcast.ui.screens.player.PlayerViewModel
 import tss.t.podcast.ui.screens.uimodels.main.HomepageDataPart
 import tss.t.podcast.ui.screens.uimodels.main.UIState
 import tss.t.podcast.ui.theme.PodcastThemePreview
-import tss.t.sharedfirebase.LocalAnalyticsScope
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 
@@ -222,9 +221,7 @@ fun DiscoverPodcastsScreen(
                 )
             }
             item(key = ITEM_AD_BANNER_1) {
-                MaxAdViewComposable(
-                    tsAnalytics = LocalAnalyticsScope.current!!
-                )
+                AdBannerSlot()
             }
             item(key = ITEM_LIVE_TITLE) {
                 Text(
@@ -303,9 +300,7 @@ fun DiscoverPodcastsScreen(
                 }
                 if (it == 1 && !isFavRefreshing) {
                     Spacer(Modifier.size(4.dp))
-                    MaxAdViewComposable(
-                        tsAnalytics = LocalAnalyticsScope.current!!
-                    )
+                    AdBannerSlot()
                 }
             }
 

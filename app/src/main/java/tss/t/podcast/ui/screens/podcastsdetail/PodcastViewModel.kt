@@ -13,20 +13,15 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
-import tss.t.ads.MaxTemplateNativeAdViewComposableLoader
-import tss.t.ads.NativeAd
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.EpisodeResponse
 import tss.t.coreapi.models.LiveEpisode
 import tss.t.coreapi.models.Podcast
 import tss.t.coreapi.models.PodcastByFeedIdRes
 import tss.t.coreapi.models.TSDataState
-import tss.t.podcast.App
 import tss.t.podcasts.usecase.GetEpisodeByFeedId
 import tss.t.podcasts.usecase.GetPodcastByFeedID
-import tss.t.securedtoken.NativeLib
 import javax.inject.Inject
-import kotlin.random.Random
 
 data class PodcastInteractors @Inject constructor(
     val getEpisodeByFeedId: GetEpisodeByFeedId,
@@ -49,9 +44,6 @@ class PodcastViewModel @Inject constructor(
         _uiState.update {
             val renderItemList: List<Any>
             if (it.podcast?.id != podcast.id) {
-                (it as? PodcastUIState.Success)?.listRenderItems?.forEach {
-                    (it as? MaxTemplateNativeAdViewComposableLoader)?.destroy()
-                }
                 renderItemList = generateItemList(playList)
             } else {
                 renderItemList = (it as? PodcastUIState.Success)?.listRenderItems
@@ -68,45 +60,17 @@ class PodcastViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Render list for the detail screen.
+     *
+     * This used to interleave AppLovin native-ad loaders at pseudo-random
+     * positions, which is why the list is typed `Any`. With the ad SDK removed
+     * it contains only episodes; the type is kept so the screen's existing
+     * safe-cast rendering keeps working and a future ad network can slot back
+     * in here alone.
+     */
     private fun generateItemList(playList: List<Episode>): MutableList<Any> {
-        val adsList = mutableListOf<Int>()
-        val renderItemList = mutableListOf<Any>()
-        for (i in 0..(playList.size / 8).coerceAtLeast(1)) {
-            val maxRandom = ((i + 1) * 8 + 1).coerceAtMost(playList.size)
-            val minRandom = (i * 8 + 1).coerceAtMost(maxRandom - 1)
-            // Was a `while (adsList.contains(nextInt))` retry loop, which spins
-            // forever once every slot in the range is already taken (ANR on the
-            // calling thread). Pick from the remaining slots directly instead.
-            val nextInt = (minRandom until maxRandom)
-                .filterNot { it in adsList }
-                .randomOrNull()
-                ?: continue
-            adsList.add(nextInt)
-        }
-
-        for (i in playList.indices) {
-            renderItemList.add(playList[i])
-            if (i in adsList) {
-                val randomAd = Random.nextInt(0, 2)
-                val adId = if (randomAd == 0) {
-                    NativeLib.getNativeMediumId()
-                } else {
-                    NativeLib.getNativeSmallId()
-                }
-                renderItemList.add(
-                    MaxTemplateNativeAdViewComposableLoader(
-                        adUnitIdentifier = adId,
-                        context = App.instance,
-                        format = if (randomAd == 0) {
-                            NativeAd.Medium
-                        } else {
-                            NativeAd.Small
-                        }
-                    )
-                )
-            }
-        }
-        return renderItemList
+        return playList.toMutableList()
     }
 
     fun getEpisodes(podcast: Podcast) {
@@ -114,11 +78,6 @@ class PodcastViewModel @Inject constructor(
             val data = (_uiState.value as PodcastUIState.Success).episodes
             if (data.isNotEmpty() && _uiState.value.podcast?.id == podcast.id) {
                 return
-            }
-        }
-        (_uiState.value as? PodcastUIState.Success)?.listRenderItems?.forEach {
-            if (it is MaxTemplateNativeAdViewComposableLoader) {
-                it.destroy()
             }
         }
         _uiState.update {
@@ -193,11 +152,6 @@ class PodcastViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        (_uiState.value as? PodcastUIState.Success)?.listRenderItems?.forEach {
-            if (it is MaxTemplateNativeAdViewComposableLoader) {
-                it.destroy()
-            }
-        }
     }
 
     fun clearTempListState() {

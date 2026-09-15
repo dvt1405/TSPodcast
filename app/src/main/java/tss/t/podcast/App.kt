@@ -7,7 +7,7 @@ import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import tss.t.ads.ApplovinSdkWrapper
+import tss.t.ads.AdsManager
 import tss.t.core.CoreApp
 import tss.t.core.storage.SharedPref
 import tss.t.core.storage.getOrCreateInstallId
@@ -25,7 +25,7 @@ class App : CoreApp() {
     @Inject
     lateinit var mediaController: TSMediaController
     @Inject
-    lateinit var applovinSdkWrapper: ApplovinSdkWrapper
+    lateinit var adsManager: AdsManager
     @Inject
     lateinit var remoteConfig: ConfigAPI
     @Inject
@@ -56,7 +56,7 @@ class App : CoreApp() {
 
             }
         registerActivityLifecycleCallbacks(mediaController)
-        applovinSdkWrapper.initSdk()
+        adsManager.initSdk()
         // Expire stale API rows once per launch; see PruneApiCache for why.
         CoroutineScope(Dispatchers.IO).launch { pruneApiCache() }
     }
