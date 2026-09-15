@@ -14,6 +14,9 @@
     <string name="search_mode_music">Nhạc</string>
     <string name="search_music_result_title">Nhạc cho: %s</string>
     <string name="search_music_empty_hint">Kho nhạc theo chuẩn podcast:medium còn ít, thử từ khoá tiếng Anh</string>
+    <string name="attribution_podcastindex">Dữ liệu podcast cung cấp bởi Podcast Index</string>
+    <string name="music_feeds_title">Kho nhạc</string>
+    <string name="music_feeds_subtitle">Feed nhạc theo chuẩn podcast:medium</string>
     <string name="empty_favourite_title">Không có chương trình yêu thích.</string>
     <string name="btn_discover_more_title">Khám phá thêm</string>
     <string name="double_click_to_exit">Nhấn nút quay lại để thoát</string>

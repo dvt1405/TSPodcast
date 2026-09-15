@@ -126,6 +126,20 @@ class PodcastsRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getPodcastsByMedium(
+        medium: String,
+        max: Int,
+        pretty: Boolean?
+    ): TSDataState<SearchResponse> {
+        return withContext(Dispatchers.IO) {
+            api.getPodcastsByMedium(
+                medium = medium,
+                max = max,
+                pretty = pretty
+            )
+        }
+    }
+
     override suspend fun getCategory(
         pretty: Boolean?
     ): Flow<TSDataState<CategoryRes>> = flow<TSDataState<CategoryRes>> {

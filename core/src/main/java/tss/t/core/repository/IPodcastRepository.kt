@@ -51,6 +51,13 @@ interface IPodcastRepository {
         pretty: Boolean = false
     ): TSDataState<SearchResponse>
 
+    /** Feeds tagged with a given `podcast:medium`. Unordered - not a chart. */
+    suspend fun getPodcastsByMedium(
+        medium: String,
+        max: Int = 40,
+        pretty: Boolean? = null
+    ): TSDataState<SearchResponse>
+
     suspend fun getCategory(pretty: Boolean? = null): Flow<TSDataState<CategoryRes>>
 
     fun getCurrent(pretty: Boolean? = null): TSDataState<StatCurrent>

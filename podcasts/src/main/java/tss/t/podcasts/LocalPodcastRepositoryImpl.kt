@@ -73,6 +73,14 @@ class LocalPodcastRepositoryImpl @Inject constructor(
         TODO("Not yet implemented")
     }
 
+    override suspend fun getPodcastsByMedium(
+        medium: String,
+        max: Int,
+        pretty: Boolean?
+    ): TSDataState<SearchResponse> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun getCategory(pretty: Boolean?): Flow<TSDataState<CategoryRes>> {
         TODO("Not yet implemented")
     }

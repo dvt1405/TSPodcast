@@ -1,6 +1,7 @@
 package tss.t.coreapi.models
 
 import android.os.Parcelable
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
@@ -75,7 +76,16 @@ data class Episode(
     //@SerializedName("transcripts")
     val transcripts: List<PodcastTranscript>?,
     //@SerializedName("value")
-    val value: Value?
+    val value: Value?,
+    /**
+     * When this row was written by the app, for cache expiry.
+     *
+     * PodcastIndex's terms forbid keeping cached copies longer than the cache
+     * header allows, and the API responds with `no-cache, must-revalidate`.
+     * Rows are pruned by [tss.t.core.storage.dao.ApiCacheDao].
+     */
+    @ColumnInfo("cachedAt", defaultValue = "0")
+    val cachedAt: Long = 0L,
 ) {
 
     fun getImageUrl(): String {
