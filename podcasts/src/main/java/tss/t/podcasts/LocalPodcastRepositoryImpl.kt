@@ -60,7 +60,7 @@ class LocalPodcastRepositoryImpl @Inject constructor(
         TODO("Not yet implemented")
     }
 
-    override fun searchMusicPodcasts(
+    override suspend fun searchMusicPodcasts(
         query: String,
         type: String,
         max: Int,
@@ -69,6 +69,14 @@ class LocalPodcastRepositoryImpl @Inject constructor(
         similar: Boolean?,
         fulltext: Boolean?,
         pretty: Boolean
+    ): TSDataState<SearchResponse> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getPodcastsByMedium(
+        medium: String,
+        max: Int,
+        pretty: Boolean?
     ): TSDataState<SearchResponse> {
         TODO("Not yet implemented")
     }

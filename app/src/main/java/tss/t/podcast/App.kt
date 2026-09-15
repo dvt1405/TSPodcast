@@ -4,10 +4,14 @@ import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.messaging
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import tss.t.ads.ApplovinSdkWrapper
 import tss.t.core.CoreApp
 import tss.t.core.storage.SharedPref
 import tss.t.core.storage.getOrCreateInstallId
+import tss.t.core.usecase.PruneApiCache
 import tss.t.sharedlibrary.crash.Crash
 import tss.t.sharedlibrary.crash.CrashReporter
 import tss.t.sharedlibrary.crash.safeCall
@@ -28,6 +32,8 @@ class App : CoreApp() {
     lateinit var crashReporter: CrashReporter
     @Inject
     lateinit var sharedPref: SharedPref
+    @Inject
+    lateinit var pruneApiCache: PruneApiCache
 
     override fun onCreate() {
         super.onCreate()
@@ -51,6 +57,8 @@ class App : CoreApp() {
             }
         registerActivityLifecycleCallbacks(mediaController)
         applovinSdkWrapper.initSdk()
+        // Expire stale API rows once per launch; see PruneApiCache for why.
+        CoroutineScope(Dispatchers.IO).launch { pruneApiCache() }
     }
 
     companion object {

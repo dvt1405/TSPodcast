@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tss.t.ads.MaxAdViewComposable
@@ -64,6 +66,9 @@ private const val ITEM_LIVE_ROW = "LiveRow"
 private const val ITEM_LIVE_TITLE = "LiveTitle"
 private const val ITEM_FAV_TITLE = "FavTitle"
 private const val ITEM_SPACE_BOTTOM = "SpaceBottom"
+private const val ITEM_KEY_ATTRIBUTION = "Attribution"
+private const val ITEM_MUSIC_TITLE = "MusicTitle"
+private const val ITEM_MUSIC_ROW = "MusicRow"
 private const val ITEM_AD_BANNER_1 = "AdBanner1"
 private const val ITEM_TRENDING_ROW = "TrendingRow"
 private const val ITEM_TRENDING_TITLE = "TrendingTitle"
@@ -91,6 +96,7 @@ fun DiscoverPodcastsScreen(
     val infiniteTransition = rememberInfiniteTransition(label = "InfiniteTransition")
     val parentListState = rememberLazyListState()
     val trendingRowState = rememberLazyListState()
+    val musicRowState = rememberLazyListState()
     val recentFeedState = rememberLazyListState()
     val pagerState = rememberPagerState { uiState.liveEpisode.size }
     val currentMediaItem = remember(playerControlState.currentMediaItem?.mediaId) {
@@ -182,6 +188,39 @@ fun DiscoverPodcastsScreen(
                     onTrendingClick = onTrendingClick
                 )
             }
+            item(key = ITEM_MUSIC_TITLE) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 12.dp)
+                ) {
+                    Text(
+                        stringResource(R.string.music_feeds_title),
+                        style = TextStyles.Title4
+                    )
+                    // podcasts/bymedium has no ordering parameter, so this row
+                    // is a library rather than a chart. The subtitle says so
+                    // instead of implying a ranking the API cannot provide.
+                    Text(
+                        stringResource(R.string.music_feeds_subtitle),
+                        style = TextStyles.Body5,
+                        color = Colors.Gray60
+                    )
+                }
+            }
+            item(key = ITEM_MUSIC_ROW) {
+                TrendingRow(
+                    trendingRowState = musicRowState,
+                    isRefreshing = uiState.isDataPartLoading[HomepageDataPart.MusicFeeds.value]
+                        ?: true,
+                    placeHolderColor = placeHolderColor,
+                    listTrending = uiState.musicFeeds,
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedContentScope = animatedContentScope,
+                    onTrendingClick = onTrendingClick
+                )
+            }
             item(key = ITEM_AD_BANNER_1) {
                 MaxAdViewComposable(
                     tsAnalytics = LocalAnalyticsScope.current!!
@@ -268,6 +307,22 @@ fun DiscoverPodcastsScreen(
                         tsAnalytics = LocalAnalyticsScope.current!!
                     )
                 }
+            }
+
+            item(key = ITEM_KEY_ATTRIBUTION) {
+                // Required by the Podcast Index terms of service (7.2):
+                // "You agree to display all attribution(s) required by Podcast
+                // Index as described in the documentation for the API."
+                Text(
+                    text = stringResource(R.string.attribution_podcastindex),
+                    style = TextStyles.Body5,
+                    color = Colors.Gray60,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 24.dp)
+                )
             }
 
             item(key = ITEM_SPACE_BOTTOM) {

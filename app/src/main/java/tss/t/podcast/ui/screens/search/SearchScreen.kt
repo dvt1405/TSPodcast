@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,6 +53,7 @@ import tss.t.hazeandroid.HazeDefaults
 import tss.t.hazeandroid.HazeState
 import tss.t.hazeandroid.haze
 import tss.t.podcast.R
+import tss.t.podcast.ui.screens.search.widgets.SearchModeFilter
 import tss.t.podcast.ui.screens.search.widgets.SearchPodcastItem
 import tss.t.podcast.ui.theme.PodcastTheme
 import tss.t.sharedfirebase.LocalAnalyticsScope
@@ -68,6 +70,8 @@ fun SearchScreen(
     onSearch: (String?) -> Unit = {},
     categories: List<CategoryRes.Category> = emptyList(),
     searchResult: List<Feed> = emptyList(),
+    searchMode: SearchMode = SearchMode.All,
+    onSearchModeSelected: (SearchMode) -> Unit = {},
     onSearchSelected: (Feed) -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
 ) {
@@ -159,6 +163,13 @@ fun SearchScreen(
             )
 
         }
+        SearchModeFilter(
+            selected = searchMode,
+            onModeSelected = onSearchModeSelected,
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .padding(top = 12.dp)
+        )
         MaxAdViewComposable(
             tsAnalytics = LocalAnalyticsScope.current!!
         )
@@ -190,13 +201,34 @@ fun SearchScreen(
                             .padding(horizontal = 40.dp),
                         searchText = searchText
                     )
+                    if (searchMode == SearchMode.Music) {
+                        // The medium=music catalogue is small and skews English,
+                        // so an empty result here is expected rather than a bug.
+                        Text(
+                            stringResource(R.string.search_music_empty_hint),
+                            style = TextStyles.Body4,
+                            color = Colors.Gray60,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 40.dp)
+                                .padding(top = 12.dp)
+                        )
+                    }
                 }
             } else {
                 items(searchResult.size) { index ->
                     val item = searchResult[index]
                     if (index == 0) {
                         Text(
-                            stringResource(R.string.search_result_title, (searchText ?: "")),
+                            stringResource(
+                                if (searchMode == SearchMode.Music) {
+                                    R.string.search_music_result_title
+                                } else {
+                                    R.string.search_result_title
+                                },
+                                (searchText ?: "")
+                            ),
                             style = TextStyles.Title5,
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)

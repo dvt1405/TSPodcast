@@ -114,7 +114,16 @@ data class Feed(
     val itunesType: String? = null,
     //@SerializedName("value")
     @ColumnInfo("value")
-    val value: Value? = null
+    val value: Value? = null,
+    /**
+     * When this row was written by the app, for cache expiry.
+     *
+     * PodcastIndex's terms forbid keeping cached copies longer than the cache
+     * header allows, and the API responds with `no-cache, must-revalidate`.
+     * Rows are pruned by [tss.t.core.storage.dao.ApiCacheDao].
+     */
+    @ColumnInfo("cachedAt", defaultValue = "0")
+    val cachedAt: Long = 0L,
 ) {
     companion object {
         @VisibleForTesting

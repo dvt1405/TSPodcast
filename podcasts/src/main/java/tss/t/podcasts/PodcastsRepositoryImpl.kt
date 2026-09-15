@@ -100,7 +100,7 @@ class PodcastsRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun searchMusicPodcasts(
+    override suspend fun searchMusicPodcasts(
         query: String,
         type: String,
         max: Int,
@@ -110,16 +110,34 @@ class PodcastsRepositoryImpl @Inject constructor(
         fulltext: Boolean?,
         pretty: Boolean
     ): TSDataState<SearchResponse> {
-        return api.searchMusicPodcasts(
-            query = query,
-            type = type,
-            max = max,
-            aponly = aponly,
-            clean = clean,
-            similar = similar,
-            fulltext = fulltext,
-            pretty = pretty
-        )
+        // This was the only repository method without withContext, so the
+        // blocking Retrofit call ran on whatever thread the caller was on.
+        return withContext(Dispatchers.IO) {
+            api.searchMusicPodcasts(
+                query = query,
+                type = type,
+                max = max,
+                aponly = aponly,
+                clean = clean,
+                similar = similar,
+                fulltext = fulltext,
+                pretty = pretty
+            )
+        }
+    }
+
+    override suspend fun getPodcastsByMedium(
+        medium: String,
+        max: Int,
+        pretty: Boolean?
+    ): TSDataState<SearchResponse> {
+        return withContext(Dispatchers.IO) {
+            api.getPodcastsByMedium(
+                medium = medium,
+                max = max,
+                pretty = pretty
+            )
+        }
     }
 
     override suspend fun getCategory(
