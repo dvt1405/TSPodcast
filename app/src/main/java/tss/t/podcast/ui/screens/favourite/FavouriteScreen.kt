@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
-import tss.t.ads.MaxAdViewComposable
+import tss.t.ads.AdBannerSlot
 import tss.t.core.models.FavouriteDTO
 import tss.t.coreapi.models.databaseview.PodcastAndEpisode
 import tss.t.coreradio.models.RadioChannel
@@ -35,7 +35,6 @@ import tss.t.podcast.ui.screens.MainViewModel
 import tss.t.podcast.ui.screens.favourite.widgets.EmptyFavouriteWidget
 import tss.t.podcast.ui.screens.favourite.widgets.FavouriteItemWidget
 import tss.t.podcast.ui.screens.player.PlayerViewModel
-import tss.t.sharedfirebase.LocalAnalyticsScope
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,9 +80,7 @@ fun FavouriteScreen(
             }
         } else {
             item {
-                MaxAdViewComposable(
-                    tsAnalytics = LocalAnalyticsScope.current!!
-                )
+                AdBannerSlot()
             }
             items(uiState.listFav) { favouriteDTO ->
                 FavouriteItemWidget(

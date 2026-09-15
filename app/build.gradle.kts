@@ -21,12 +21,8 @@ plugins {
     alias(libs.plugins.firebase.appdistribution)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.ksp)
-    id("applovin-quality-service")
 }
 
-applovin {
-    apiKey = "avJkJkTUhqmoZGJTcdqgylRVHN9sbc3ZSUbub3UL1fXR3fXOyqupneiTBSvfi8FT0iI060T6danq4i-z5ZaZJp"
-}
 
 android {
     namespace = "tss.t.podcast"
@@ -169,7 +165,6 @@ dependencies {
     implementation(libs.androidx.room.guava)
     testImplementation(libs.androidx.room.testing)
     implementation(libs.androidx.room.paging)
-    implementation(libs.applovin.sdk)
     implementation(libs.facebook.android.sdk)
     implementation(project(":samples"))
     implementation(project(":sharedLibrary"))

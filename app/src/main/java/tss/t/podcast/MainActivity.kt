@@ -70,7 +70,7 @@ import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import tss.t.ads.ApplovinSdkWrapper
+import tss.t.ads.AdsManager
 import tss.t.ads.BannerAdsManager
 import tss.t.ads.LocalBannerAdsManagerScope
 import androidx.core.net.toUri
@@ -102,7 +102,7 @@ class MainActivity : ComponentActivity() {
     private val podcastViewModel: PodcastViewModel by viewModels<PodcastViewModel>()
 
     @Inject
-    lateinit var applovinSdkWrapper: ApplovinSdkWrapper
+    lateinit var adsManager: AdsManager
 
     @Inject
     lateinit var tsAnalytics: TSAnalytics
@@ -216,7 +216,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        applovinSdkWrapper.loadOpenAds()
+        adsManager.loadOpenAds()
     }
 
     override fun onNewIntent(intent: Intent) {

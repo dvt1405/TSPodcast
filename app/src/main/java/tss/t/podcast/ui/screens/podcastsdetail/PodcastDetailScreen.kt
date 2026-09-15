@@ -101,9 +101,7 @@ import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.launch
-import tss.t.ads.MaxAdViewComposable
-import tss.t.ads.MaxTemplateNativeAdViewComposable
-import tss.t.ads.MaxTemplateNativeAdViewComposableLoader
+import tss.t.ads.AdBannerSlot
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.Podcast
 import tss.t.podcast.LocalNavAnimatedVisibilityScope
@@ -115,7 +113,6 @@ import tss.t.podcast.ui.screens.main.nonSpatialExpressiveSpring
 import tss.t.podcast.ui.screens.main.podcastDetailBoundsTransform
 import tss.t.podcast.ui.screens.player.PlayerViewModel
 import tss.t.podcast.ui.screens.podcastsdetail.widgets.EpisodeWidget
-import tss.t.sharedfirebase.LocalAnalyticsScope
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.ui.widget.TSPopup
@@ -416,11 +413,10 @@ private fun PodcastDetailBody(
             }
 
             item(key = ITEM_AD_BANNER) {
-                MaxAdViewComposable(
+                AdBannerSlot(
                     modifier = Modifier
                         .background(Colors.White)
-                        .padding(vertical = 4.dp),
-                    tsAnalytics = LocalAnalyticsScope.current!!
+                        .padding(vertical = 4.dp)
                 )
             }
 
@@ -483,10 +479,6 @@ private fun PodcastDetailBody(
                         it
                     }
 
-                    renderItemList[it] is Int || renderItemList[it] is MaxTemplateNativeAdViewComposableLoader -> {
-                        "NativeAd-$it"
-                    }
-
                     renderItemList[it] is Episode -> {
                         (renderItemList[it] as Episode).id
                     }
@@ -497,14 +489,12 @@ private fun PodcastDetailBody(
                 }
             }) {
                 val item = renderItemList.getOrNull(it)
-                if (item is MaxTemplateNativeAdViewComposableLoader) {
-                    MaxTemplateNativeAdViewComposable(item)
-                } else {
+                run {
                     // `item` is null while the 20 shimmer placeholders are shown
-                    // for an empty list, and an Int for an ad slot that has no
-                    // loader yet. Both reached `item as Episode` on click, which
-                    // threw NullPointerException / ClassCastException. The
-                    // `episode` parameter below already used a safe cast.
+                    // for an empty list. That reached `item as Episode` on click
+                    // and threw NullPointerException; the `episode` parameter
+                    // below already used a safe cast. The list is typed Any
+                    // because it used to interleave native-ad loaders.
                     val episode = item as? Episode
                     EpisodeWidget(
                         modifier = Modifier

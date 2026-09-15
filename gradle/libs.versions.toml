@@ -3,8 +3,6 @@ agp = "8.13.2"
 compileSdk = "36"
 minSdk = "24"
 targetSdk = "36"
-applovinqualityservicegradleplugin = "5.12.9"
-applovinSdk = "13.6.4"
 coil = "2.7.0"
 dotsindicatorVersion = "5.1.0"
 facebookAndroidSdk = "18.3.0"
@@ -62,8 +60,6 @@ androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "ro
 androidx-room-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomPaging" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomPaging" }
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomPaging" }
-applovin-sdk = { module = "com.applovin:applovin-sdk", version.ref = "applovinSdk" }
-applovinqualityservicegradleplugin = { module = "com.applovin.quality:AppLovinQualityServiceGradlePlugin", version.ref = "applovinqualityservicegradleplugin" }
 facebook-android-sdk = { module = "com.facebook.android:facebook-android-sdk", version.ref = "facebookAndroidSdk" }
 firebase-analytics-ktx = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }

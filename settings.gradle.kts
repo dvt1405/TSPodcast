@@ -9,7 +9,6 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
-        maven { url = uri("https://artifacts.applovin.com/android") }
         maven { url = uri("https://jitpack.io") }
     }
 }
