@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!--
+            The Next-Gen Mobile Ads SDK takes the app id in code
+            (InitializationConfig), but UMP still reads it from this tag.
+            The value comes from ads-admob/build.gradle.kts (Google's test id
+            unless ADMOB_APP_ID is set for a release build).
+        -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+    </application>
+</manifest>

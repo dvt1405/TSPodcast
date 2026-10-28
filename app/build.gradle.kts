@@ -107,6 +107,14 @@ composeCompiler {
     reportsDestination = layout.buildDirectory.dir("compose_compiler")
 }
 
+// The GMA Next-Gen SDK already contains every class of the legacy
+// play-services-ads SDK; anything pulling the legacy one in transitively would
+// produce duplicate classes (Google's Next-Gen setup guide).
+configurations.configureEach {
+    exclude(group = "com.google.android.gms", module = "play-services-ads")
+    exclude(group = "com.google.android.gms", module = "play-services-ads-lite")
+}
+
 dependencies {
 
     coreLibraryDesugaring(libs.desugar.jdk.libs)
@@ -178,6 +186,9 @@ dependencies {
     implementation(project(":hazeAndroid"))
     implementation(project(":sharedFirebase"))
     implementation(project(":ads"))
+    // AdMob (GMA Next-Gen SDK + UMP). :app only sees :ads types; drop this
+    // line for an ad-free build and the seam falls back to its no-ops.
+    implementation(project(":ads-admob"))
 }
 
 // Firebase App Distribution configuration

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Ad attribution label on native ads (AdMob native policy). The app's default locale is Vietnamese. -->
+    <string name="tss_ads_label">Quảng cáo</string>
+</resources>

@@ -33,6 +33,9 @@ jsoupVer = "1.21.1"
 dagger = "2.56.2"
 collection = "1.6.0"
 desugarJdkLibs = "2.1.5"
+# GMA Next-Gen SDK (AdMob) and Google UMP consent SDK. See docs/plans/admob-migration.md.
+gmaNextGen = "1.6.0"
+ump = "4.0.0"
 #kotlin
 kotlin = "2.2.0"
 #ksp
@@ -88,6 +91,8 @@ material-icons-extended = { group = "androidx.compose.material", name = "materia
 material = { group = "androidx.compose.material", name = "material" }
 google-material = { group = "com.google.android.material", name = "material", version.ref = "materialVersion" }
 androidx-collection = { group = "androidx.collection", name = "collection", version.ref = "collection" }
+google-ads-mobile-sdk = { module = "com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk", version.ref = "gmaNextGen" }
+google-ump = { module = "com.google.android.ump:user-messaging-platform", version.ref = "ump" }
 desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
