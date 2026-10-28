@@ -6,5 +6,6 @@ enum class HomepageDataPart(val value: Int) {
     LiveEpisode(2),
     RecentFeed(3),
     RecentNewFeeds(4),
-    RecentEpisode(5)
+    RecentEpisode(5),
+    MusicFeeds(6)
 }

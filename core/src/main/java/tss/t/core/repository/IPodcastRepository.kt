@@ -40,7 +40,7 @@ interface IPodcastRepository {
         pretty: Boolean = false
     ): TSDataState<SearchResponse>
 
-    fun searchMusicPodcasts(
+    suspend fun searchMusicPodcasts(
         query: String,
         type: String,
         max: Int, //min 1 max 100
@@ -49,6 +49,13 @@ interface IPodcastRepository {
         similar: Boolean? = true,
         fulltext: Boolean? = true,
         pretty: Boolean = false
+    ): TSDataState<SearchResponse>
+
+    /** Feeds tagged with a given `podcast:medium`. Unordered - not a chart. */
+    suspend fun getPodcastsByMedium(
+        medium: String,
+        max: Int = 40,
+        pretty: Boolean? = null
     ): TSDataState<SearchResponse>
 
     suspend fun getCategory(pretty: Boolean? = null): Flow<TSDataState<CategoryRes>>

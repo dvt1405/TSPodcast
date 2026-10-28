@@ -11,6 +11,8 @@ data class UIState(
     val liveEpisode: List<List<LiveEpisode>> = _dumpList,
     val recentFeeds: List<Podcast> = emptyList(),
     val recentNewFeeds: List<Podcast> = emptyList(),
+    /** Feeds with podcast:medium = music. Unordered - the API offers no ranking. */
+    val musicFeeds: List<Podcast> = emptyList(),
     val isDataPartLoading: MutableMap<Int, Boolean> = mutableMapOf(),
     val showLoadingView: Boolean = true,
     val error: Throwable? = null,

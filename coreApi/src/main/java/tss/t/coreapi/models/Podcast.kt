@@ -69,6 +69,15 @@ data class Podcast(
     //@SerializedName("description")
     @ColumnInfo("description")
     val description: String?,
+    /**
+     * When this row was written by the app, for cache expiry.
+     *
+     * PodcastIndex's terms forbid keeping cached copies longer than the cache
+     * header allows, and the API responds with `no-cache, must-revalidate`.
+     * Rows are pruned by [tss.t.core.storage.dao.ApiCacheDao].
+     */
+    @ColumnInfo("cachedAt", defaultValue = "0")
+    val cachedAt: Long = 0L,
 ) {
     @SuppressLint("SimpleDateFormat")
     companion object {

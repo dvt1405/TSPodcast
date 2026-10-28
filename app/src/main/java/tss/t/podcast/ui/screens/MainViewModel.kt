@@ -37,6 +37,7 @@ import tss.t.podcasts.usecase.GetEpisodeByFeedId
 import tss.t.podcasts.usecase.GetLiveEpisodes
 import tss.t.podcasts.usecase.GetPodcastByFeedID
 import tss.t.podcasts.usecase.GetRecentEpisodes
+import tss.t.podcasts.usecase.GetMusicFeeds
 import tss.t.podcasts.usecase.GetRecentFeeds
 import tss.t.podcasts.usecase.GetRecentNewFeeds
 import tss.t.podcasts.usecase.GetTrendingPodcasts
@@ -53,6 +54,7 @@ data class MainInteractors @Inject constructor(
     val getRecentEpisodes: GetRecentEpisodes,
     val getRecentNewFeeds: GetRecentNewFeeds,
     val getRecentFeeds: GetRecentFeeds,
+    val getMusicFeeds: GetMusicFeeds,
 )
 
 @HiltViewModel
@@ -153,6 +155,21 @@ class MainViewModel @Inject constructor(
                 } else if (rs is TSDataState.Error) {
                 }
             }
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            // Separate from the merge above so a music failure cannot take the
+            // rest of the home screen down with it.
+            val music = interactors.getMusicFeeds()
+            if (music is TSDataState.Success) {
+                _uiState.update {
+                    it.copy(
+                        renderCount = ++renderCount,
+                        musicFeeds = music.data
+                    )
+                }
+            }
+            _uiState.value.isDataPartLoading[HomepageDataPart.MusicFeeds.value] = false
         }
 
         viewModelScope.launch(Dispatchers.IO) {

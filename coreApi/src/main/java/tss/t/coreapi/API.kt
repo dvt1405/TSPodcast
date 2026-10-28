@@ -749,6 +749,25 @@ interface API {
      * ```
      * @see <a href="https://github.com/Podcastindex-org/podcast-namespace/blob/main/categories.json">Categories</a>
      * */
+    /**
+     * Returns every feed tagged with the given `podcast:medium` value.
+     *
+     * Note this endpoint has **no ordering, trending or category parameter** -
+     * only `medium`, `max` and `pretty`. It is a browse list, not a chart, so
+     * anything built on it must not be presented as a ranking.
+     *
+     * @param medium one of: audiobook, blog, film, music, newsletter, podcast, video
+     * @return [SearchResponse]. The entries are **feed-shaped**, so they bind to
+     *   [tss.t.coreapi.models.Feed], not [tss.t.coreapi.models.Podcast]: the two
+     *   disagree on `explicit` (boolean vs int) and Gson fails on the mismatch.
+     */
+    @GET("podcasts/bymedium")
+    fun getPodcastsByMedium(
+        @Query("medium") medium: String,
+        @Query("max") max: Int = 40,
+        @Query("pretty") pretty: Boolean? = null
+    ): TSDataState<SearchResponse>
+
     @GET("podcasts/trending")
     fun getTrending(
         @Query("max") max: Int = 100,

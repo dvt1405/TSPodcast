@@ -29,19 +29,23 @@ class SearchPodcasts @Inject constructor(
             similar = similar,
             fulltext = fulltext,
             pretty = pretty
-        ).let {
-            if (it is TSDataState.Success) {
-                val list = it.data.feeds.filter {
-                    !(blacklist.isInBlacklist(it.id.toString())
-                            || blacklist.isContainKeywordsBlacklist(it.title))
-                }
-                val data = it.data.copy(
+        ).let { state ->
+            // The blacklist result used to be computed and then dropped: the
+            // `if` block built a filtered TSDataState.Success but the last
+            // expression of this block was a bare `it`, so the unfiltered
+            // response was returned. Search was the only content surface not
+            // actually filtered.
+            if (state !is TSDataState.Success) return@let state
+            val list = state.data.feeds.filter { feed ->
+                !(blacklist.isInBlacklist(feed.id.toString())
+                        || blacklist.isContainKeywordsBlacklist(feed.title))
+            }
+            TSDataState.Success(
+                state.data.copy(
                     count = list.size,
                     feeds = list
                 )
-                TSDataState.Success(data)
-            }
-            it
+            )
         }
     }
 }

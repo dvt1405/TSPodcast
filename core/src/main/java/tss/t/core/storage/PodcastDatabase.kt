@@ -50,7 +50,7 @@ abstract class PodcastDatabase : RoomDatabase() {
     companion object {
         @Volatile
         private var db: PodcastDatabase? = null
-        const val DB_VERSION = 5
+        const val DB_VERSION = 6
 
         @Synchronized
         fun instance(context: Context): PodcastDatabase {
@@ -68,6 +68,17 @@ abstract class PodcastDatabase : RoomDatabase() {
                 .addMigrations(object : Migration(4, 5) {
                     override fun migrate(db: SupportSQLiteDatabase) {
                         db.execSQL("CREATE TABLE IF NOT EXISTS `RadioChannel` (`channelId` TEXT NOT NULL, `channelName` TEXT NOT NULL, `categories` TEXT NOT NULL, `category` TEXT NOT NULL, `logo` TEXT NOT NULL, `links` TEXT NOT NULL, PRIMARY KEY(`channelId`))")
+                    }
+                })
+                .addMigrations(object : Migration(5, 6) {
+                    // cachedAt lets API-derived rows expire. PodcastIndex's
+                    // terms forbid keeping cached copies longer than the cache
+                    // header allows, and it sends no-cache, must-revalidate.
+                    // Existing rows default to 0 so they expire on first prune.
+                    override fun migrate(db: SupportSQLiteDatabase) {
+                        db.execSQL("ALTER TABLE Podcast ADD COLUMN cachedAt INTEGER NOT NULL DEFAULT 0")
+                        db.execSQL("ALTER TABLE Feed ADD COLUMN cachedAt INTEGER NOT NULL DEFAULT 0")
+                        db.execSQL("ALTER TABLE Episode ADD COLUMN cachedAt INTEGER NOT NULL DEFAULT 0")
                     }
                 })
                 .build()

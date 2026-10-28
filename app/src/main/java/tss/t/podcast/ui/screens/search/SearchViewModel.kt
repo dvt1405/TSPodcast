@@ -20,14 +20,28 @@ import tss.t.coreapi.models.Feed
 import tss.t.coreapi.models.SearchResponse
 import tss.t.coreapi.models.TSDataState
 import tss.t.podcasts.usecase.GetCategories
+import tss.t.podcasts.usecase.SearchMusicFeeds
 import tss.t.podcasts.usecase.SearchPodcasts
 import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val _getCategory: GetCategories,
-    private val _searchPodcasts: SearchPodcasts
+    private val _searchPodcasts: SearchPodcasts,
+    private val _searchMusicFeeds: SearchMusicFeeds
 ) : ViewModel() {
+
+    private val _searchMode by lazy { MutableStateFlow(SearchMode.All) }
+    val searchMode: StateFlow<SearchMode>
+        get() = _searchMode.asStateFlow()
+
+    fun setSearchMode(mode: SearchMode) {
+        if (_searchMode.value == mode) return
+        _searchMode.value = mode
+        // Re-run the current query through the other endpoint rather than
+        // leaving the previous mode's results on screen.
+        performSearch(currentSearchText.value)
+    }
 
     private val _listCategory by lazy {
         MutableStateFlow<List<CategoryRes.Category>>(emptyList())
@@ -64,7 +78,13 @@ class SearchViewModel @Inject constructor(
             // Keep the Deferred in a local: two rapid keystrokes could otherwise
             // interleave so that `searchJob!!` read a job another coroutine had
             // just replaced.
-            val job = async { _searchPodcasts(query = searchText) }
+            val mode = _searchMode.value
+            val job = async {
+                when (mode) {
+                    SearchMode.All -> _searchPodcasts(query = searchText)
+                    SearchMode.Music -> _searchMusicFeeds(query = searchText)
+                }
+            }
             searchJob = job
             currentSearchText.value = searchText
             val rs = job.await()

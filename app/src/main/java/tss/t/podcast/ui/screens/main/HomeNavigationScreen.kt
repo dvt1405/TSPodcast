@@ -325,6 +325,7 @@ private fun HomeNavHost(
         composable(TSHomeRouter.Search.route) {
             val listCategory by searchViewModel.listCategory.collectAsState()
             val listSearch by searchViewModel.listSearch.collectAsState()
+            val searchMode by searchViewModel.searchMode.collectAsState()
             val searchText by rememberSaveable {
                 searchViewModel.currentSearchText
             }
@@ -335,6 +336,8 @@ private fun HomeNavHost(
                 },
                 categories = listCategory,
                 searchResult = listSearch,
+                searchMode = searchMode,
+                onSearchModeSelected = searchViewModel::setSearchMode,
                 hazeState = hazeState,
                 innerPadding = PaddingValues(
                     start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
