@@ -3,6 +3,7 @@
 package tss.t.podcast
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -27,15 +28,24 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -48,6 +58,8 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityCompat
@@ -74,6 +86,7 @@ import tss.t.podcast.ui.screens.player.PlayerViewModel
 import tss.t.podcast.ui.screens.player.widgets.PlayerWidgetMain
 import tss.t.podcast.ui.screens.podcastsdetail.PodcastViewModel
 import tss.t.podcast.ui.theme.PodcastTheme
+import tss.t.securedtoken.NativeLib
 import tss.t.sharedfirebase.LocalAnalyticsScope
 import tss.t.sharedfirebase.LocalRemoteConfigScope
 import tss.t.sharedfirebase.TSAnalytics
@@ -117,6 +130,17 @@ class MainActivity : ComponentActivity() {
                 darkScrim = Color.TRANSPARENT
             )
         )
+        if (!NativeLib.isAvailable) {
+            // Every API call and the ad SDK key need libsecuredtoken.so, and the
+            // view models below build the API on first access. Without the
+            // library the only useful thing to show is how to get a full install.
+            setContent {
+                PodcastTheme {
+                    BrokenInstallScreen(onOpenStore = ::openStoreListing)
+                }
+            }
+            return
+        }
         val backCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (navHostController?.currentBackStackEntry?.destination?.route == TSRouter.Main.route) {
@@ -200,7 +224,28 @@ class MainActivity : ComponentActivity() {
         handleIntent(intent)
     }
 
+    private fun openStoreListing() {
+        val market = Intent(Intent.ACTION_VIEW, "market://details?id=$packageName".toUri())
+        val web = Intent(
+            Intent.ACTION_VIEW,
+            "https://play.google.com/store/apps/details?id=$packageName".toUri()
+        )
+        try {
+            startActivity(market)
+        } catch (_: ActivityNotFoundException) {
+            // No Play Store app (e.g. a device without GMS): fall back to the web listing.
+            try {
+                startActivity(web)
+            } catch (_: ActivityNotFoundException) {
+                Toast.makeText(this, R.string.broken_install_message, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
     private fun handleIntent(intent: Intent) {
+        // Reached from onNewIntent too; playerViewModel needs the API, which
+        // needs libsecuredtoken.so. See the guard in onCreate.
+        if (!NativeLib.isAvailable) return
         if (intent.action != Constants.ACTION_START_FROM_NOTIFICATION) return
         val data = intent.data ?: return
         // This activity is exported, so any app can send this action. Match on
@@ -285,6 +330,35 @@ val LocalPullToRefreshState =
         mutableStateMapOf()
     }
 
+
+@Composable
+private fun BrokenInstallScreen(onOpenStore: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .systemBarsPadding()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(R.string.broken_install_title),
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(12.dp))
+        Text(
+            text = stringResource(R.string.broken_install_message),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(24.dp))
+        Button(onClick = onOpenStore) {
+            Text(text = stringResource(R.string.broken_install_action))
+        }
+    }
+}
 
 @Composable
 private fun MiniPlayer(

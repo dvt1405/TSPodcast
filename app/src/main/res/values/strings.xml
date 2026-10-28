@@ -25,4 +25,7 @@
     <string name="recent_podcast_title">Podcasts xu hướng gần đây</string>
     <string name="fav_podcast_title">Có thể bạn yêu thích</string>
     <string name="radio_screen_title">Radio</string>
+    <string name="broken_install_title">Bản cài đặt chưa đầy đủ</string>
+    <string name="broken_install_message">Ứng dụng thiếu thành phần cho thiết bị này, thường do được cài từ tệp APK thay vì Google Play. Vui lòng cài lại ứng dụng từ Google Play.</string>
+    <string name="broken_install_action">Mở Google Play</string>
 </resources>
