@@ -298,7 +298,10 @@ class PlayerViewModel @Inject constructor(
             _playerControlState.update {
                 it.copy(
                     isFavourite = isFav,
-                    currentMediaItem = currentMediaItem
+                    // The session controller is null until it connects (and stays
+                    // null if it never does). Overwriting with that null emptied the
+                    // Player screen and hid the mini player while audio kept playing.
+                    currentMediaItem = currentMediaItem ?: it.currentMediaItem
                 )
             }
         }
