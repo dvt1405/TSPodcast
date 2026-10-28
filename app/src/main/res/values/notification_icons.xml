@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        media3-session declares media3_notification_small_icon as an alias to its own
+        play-circle PNG. Redefining the alias here makes the media notification
+        (TSNotificationProvider and DefaultMediaNotificationProvider) use the brand silhouette.
+    -->
+    <drawable name="media3_notification_small_icon">@drawable/ic_stat_tspodcast</drawable>
+</resources>
