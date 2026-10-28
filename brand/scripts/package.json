@@ -1,0 +1,22 @@
+{
+  "name": "tspodcast-brand",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generators for the TSPodcast logo, Android icons, store, web and video assets",
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "scripts": {
+    "build": "node build.js",
+    "fonts": "node fetch-fonts.js",
+    "logo": "node logo.js",
+    "android": "node android.js",
+    "store": "node store.js",
+    "video": "node video.js",
+    "frame": "node frame.js"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "opentype.js": "^2.0.0",
+    "sharp": "^0.35.5"
+  }
+}
