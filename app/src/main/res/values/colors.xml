@@ -7,4 +7,11 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- TSPodcast brand palette (brand/BRAND.md) -->
+    <color name="ts_brand_blue">#FF184BB4</color>
+    <color name="ts_brand_bright">#FF3D7BFF</color>
+    <color name="ts_brand_night">#FF0B1A4A</color>
+    <color name="ts_brand_coral">#FFFF7A59</color>
+    <color name="ts_splash_background">@color/ts_brand_blue</color>
 </resources>
