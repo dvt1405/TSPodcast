@@ -47,6 +47,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import org.json.JSONObject
 import tss.t.ads.AdBannerSlot
+import tss.t.ads.AdPlacement
 import tss.t.coreapi.models.CategoryRes
 import tss.t.coreapi.models.Feed
 import tss.t.hazeandroid.HazeDefaults
@@ -169,7 +170,7 @@ fun SearchScreen(
                 .padding(horizontal = 16.dp)
                 .padding(top = 12.dp)
         )
-        AdBannerSlot()
+        AdBannerSlot(placement = AdPlacement.SearchResults)
         LazyColumn(
             modifier = Modifier
                 .haze(

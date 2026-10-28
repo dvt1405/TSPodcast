@@ -1,10 +1,16 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+/*
+ * :ads is the advertising SEAM. It holds the interfaces, the no-op defaults,
+ * the Remote Config reader and the pure-Kotlin frequency policy. It must never
+ * depend on an ad SDK: the AdMob implementation lives in :ads-admob and is
+ * bound through Hilt (see AdsModule). Drop :ads-admob from :app and every
+ * placement silently becomes a no-op.
+ */
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.kotlin.serilization)
     alias(libs.plugins.dagger.hilt)
     alias(libs.plugins.ksp)
 }
@@ -41,44 +47,22 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
-        viewBinding = true
     }
 }
 
 dependencies {
-
-    implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.google.material)
     implementation(libs.hilt.android)
-    implementation(libs.androidx.lifecycle.process)
-    implementation(project(":sharedLibrary"))
     ksp(libs.hilt.android.compiler)
-    implementation(libs.bundles.dagger)
-    ksp(libs.dagger.compiler)
-    ksp(libs.dagger.android.processor)
 
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.gson)
-    implementation(libs.okhttp)
-    implementation(libs.okhttp.logging.interceptor)
-    implementation(libs.androidx.security.crypto.ktx)
-    implementation(libs.androidx.room.runtime)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics.ktx)
-    implementation(libs.firebase.crashlytics.ktx)
-    implementation(libs.firebase.messaging.ktx)
-    implementation(libs.firebase.config)
+    // ConfigAPI (Remote Config abstraction) and TSAnalytics.
+    implementation(project(":sharedLibrary"))
+    implementation(project(":sharedFirebase"))
+
     testImplementation(libs.junit)
+    testImplementation(libs.org.json)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation(project(":securedToken"))
-    implementation(project(":sharedFirebase"))
-    implementation(project(":core"))
 }

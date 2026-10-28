@@ -102,6 +102,9 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.launch
 import tss.t.ads.AdBannerSlot
+import tss.t.ads.AdNativeSlot
+import tss.t.ads.AdPlacement
+import tss.t.ads.AdSlotRow
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.Podcast
 import tss.t.podcast.LocalNavAnimatedVisibilityScope
@@ -414,6 +417,7 @@ private fun PodcastDetailBody(
 
             item(key = ITEM_AD_BANNER) {
                 AdBannerSlot(
+                    placement = AdPlacement.PodcastDetailHeader,
                     modifier = Modifier
                         .background(Colors.White)
                         .padding(vertical = 4.dp)
@@ -483,12 +487,28 @@ private fun PodcastDetailBody(
                         (renderItemList[it] as Episode).id
                     }
 
+                    renderItemList[it] is AdSlotRow -> {
+                        (renderItemList[it] as AdSlotRow).lazyKey
+                    }
+
                     else -> {
                         it
                     }
                 }
             }) {
                 val item = renderItemList.getOrNull(it)
+                if (item is AdSlotRow) {
+                    // Native ad at a deterministic position (see PodcastViewModel).
+                    // Zero height when no ad loaded.
+                    AdNativeSlot(
+                        placement = item.placement,
+                        slotKey = item.slotKey,
+                        modifier = Modifier
+                            .background(Color.White)
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                    return@items
+                }
                 run {
                     // `item` is null while the 20 shimmer placeholders are shown
                     // for an empty list. That reached `item as Episode` on click

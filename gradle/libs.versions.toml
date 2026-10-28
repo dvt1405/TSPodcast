@@ -8,6 +8,7 @@ dotsindicatorVersion = "5.1.0"
 firebaseBom = "34.17.0"
 fragmentKtx = "1.8.8"
 gson = "2.13.1"
+orgJson = "20240303"
 coreKtx = "1.18.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -65,6 +66,8 @@ firebase-crashlytics-ktx = { module = "com.google.firebase:firebase-crashlytics"
 firebase-messaging-ktx = { module = "com.google.firebase:firebase-messaging" }
 firebase-remote-config = { module = "com.google.firebase:firebase-config" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+# JVM implementation of org.json for unit tests (android.jar only has stubs).
+org-json = { module = "org.json:json", version.ref = "orgJson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

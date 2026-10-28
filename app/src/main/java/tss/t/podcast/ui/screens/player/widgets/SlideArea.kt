@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import kotlinx.coroutines.launch
 import tss.t.ads.AdBannerSlot
+import tss.t.ads.AdPlacement
 import tss.t.podcast.ui.screens.podcastsdetail.widgets.EpisodeWidget
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
@@ -258,7 +259,10 @@ fun BoxScope.SlideArea(
         HorizontalDivider(
             color = Colors.NeutralDark.copy(0.3f),
         )
-        AdBannerSlot(modifier = Modifier.padding(vertical = 4.dp))
+        AdBannerSlot(
+            placement = AdPlacement.PlayerEpisodeList, // off by default (Remote Config)
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
         LazyColumn(
             modifier = Modifier
                 .statusBarsPadding()

@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import tss.t.ads.AdBannerSlot
+import tss.t.ads.AdPlacement
 import tss.t.core.models.FavouriteDTO
 import tss.t.coreapi.models.databaseview.PodcastAndEpisode
 import tss.t.coreradio.models.RadioChannel
@@ -80,7 +81,7 @@ fun FavouriteScreen(
             }
         } else {
             item {
-                AdBannerSlot()
+                AdBannerSlot(placement = AdPlacement.FavouriteTop)
             }
             items(uiState.listFav) { favouriteDTO ->
                 FavouriteItemWidget(

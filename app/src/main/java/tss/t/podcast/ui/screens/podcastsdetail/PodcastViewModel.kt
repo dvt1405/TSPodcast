@@ -13,6 +13,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
+import tss.t.ads.AdPlacement
+import tss.t.ads.AdsConfig
+import tss.t.ads.interleaveNativeSlots
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.EpisodeResponse
 import tss.t.coreapi.models.LiveEpisode
@@ -30,7 +33,8 @@ data class PodcastInteractors @Inject constructor(
 
 @HiltViewModel
 class PodcastViewModel @Inject constructor(
-    private val interactors: PodcastInteractors
+    private val interactors: PodcastInteractors,
+    private val adsConfig: AdsConfig,
 ) : ViewModel() {
 
     private val _uiState by lazy {
@@ -61,17 +65,16 @@ class PodcastViewModel @Inject constructor(
     }
 
     /**
-     * Render list for the detail screen.
+     * Render list for the detail screen: the episodes, with native-ad rows
+     * ([tss.t.ads.AdSlotRow]) at deterministic positions from Remote Config
+     * (`ads_native_first_index`, `ads_native_interval`, `ads_native_max_per_list`).
+     * When the placement is off this is the episode list unchanged.
      *
-     * This used to interleave AppLovin native-ad loaders at pseudo-random
-     * positions, which is why the list is typed `Any`. With the ad SDK removed
-     * it contains only episodes; the type is kept so the screen's existing
-     * safe-cast rendering keeps working and a future ad network can slot back
-     * in here alone.
+     * The AppLovin version inserted ad loaders at random positions, which is
+     * where the unbounded retry ANR and the `item as Episode` crash came from.
      */
-    private fun generateItemList(playList: List<Episode>): MutableList<Any> {
-        return playList.toMutableList()
-    }
+    private fun generateItemList(playList: List<Episode>): List<Any> =
+        interleaveNativeSlots(playList, AdPlacement.PodcastDetailEpisodes, adsConfig.current())
 
     fun getEpisodes(podcast: Podcast) {
         if (_uiState.value is PodcastUIState.Success) {
