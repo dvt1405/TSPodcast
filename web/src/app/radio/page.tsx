@@ -6,6 +6,7 @@ import { PlayButton } from "@/components/player/PlayButton";
 import { t } from "@/lib/i18n";
 import { getRadioChannels } from "@/lib/radio";
 import { breadcrumbJsonLd } from "@/lib/seo";
+import { OG_IMAGES } from "@/lib/site";
 import { radioToTrack } from "@/lib/tracks";
 import type { RadioChannel } from "@/lib/types";
 
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
   title: t.radio.title,
   description: t.radio.description,
   alternates: { canonical: "/radio" },
-  openGraph: { title: t.radio.title, description: t.radio.description, url: "/radio" },
+  openGraph: { title: t.radio.title, description: t.radio.description, url: "/radio", images: OG_IMAGES },
 };
 
 function ChannelGrid({ channels }: { channels: RadioChannel[] }) {

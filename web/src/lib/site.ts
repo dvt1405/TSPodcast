@@ -44,6 +44,9 @@ export function androidIntentUrl(fallback: string = playStoreUrl()): string {
 
 export const PODCASTINDEX_URL = "https://podcastindex.org";
 
+/** Default share image (brand/web/og-image.png). Next does not merge openGraph, so pages reuse this. */
+export const OG_IMAGES = [{ url: "/og-image.png", width: 1200, height: 630, alt: SITE_NAME }];
+
 export function absoluteUrl(path: string): string {
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }

@@ -4,7 +4,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { EmptyState, LoadFailure } from "@/components/notices";
 import { t } from "@/lib/i18n";
 import { getCategories, getTrending, load } from "@/lib/podcastindex";
-import { absoluteUrl } from "@/lib/site";
+import { OG_IMAGES, absoluteUrl } from "@/lib/site";
 import { podcastPath } from "@/lib/slug";
 
 export const revalidate = 900;
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   title: t.trending.title,
   description: t.trending.description,
   alternates: { canonical: "/trending" },
-  openGraph: { title: t.trending.title, description: t.trending.description, url: "/trending" },
+  openGraph: { title: t.trending.title, description: t.trending.description, url: "/trending", images: OG_IMAGES },
 };
 
 export default async function TrendingPage() {

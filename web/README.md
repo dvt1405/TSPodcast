@@ -61,8 +61,9 @@ src/
     search/                    ?q=&mode=podcast|music|ai (noindex)
     radio/                     VOV + VOH
     api/ai/{summary,chat,search}/route.ts
-    sitemap.ts, robots.ts, manifest.ts, opengraph-image.tsx, icon.svg
+    sitemap.ts, robots.ts, manifest.ts
     app-ads.txt/route.ts, .well-known/assetlinks.json/route.ts
+public/                        Favicon, icon PWA, og-image.png (copy từ brand/web, TSP-15)
   components/
     player/                    Trình phát (store ngoài React + useSyncExternalStore)
     ai/                        Tóm tắt, hỏi đáp, tìm kiếm AI (client)

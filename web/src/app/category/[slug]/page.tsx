@@ -7,6 +7,7 @@ import { breadcrumbJsonLd } from "@/lib/seo";
 import { EmptyState, LoadFailure } from "@/components/notices";
 import { categoryLabel, t } from "@/lib/i18n";
 import { getCategories, getTrending, load } from "@/lib/podcastindex";
+import { OG_IMAGES } from "@/lib/site";
 import { slugify } from "@/lib/slug";
 
 export const revalidate = 900;
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }: PageProps<"/category/[slug]">
     title: t.category.title(label),
     description: t.category.description(label),
     alternates: { canonical: path },
-    openGraph: { title: t.category.title(label), description: t.category.description(label), url: path },
+    openGraph: { title: t.category.title(label), description: t.category.description(label), url: path, images: OG_IMAGES },
   };
 }
 

@@ -7,7 +7,7 @@ export type Locale = "vi" | "en";
 
 const vi = {
   meta: {
-    tagline: "Nghe podcast, radio và nhạc — xu hướng mỗi ngày, tóm tắt bằng AI",
+    tagline: "Thế giới trong tai bạn",
     description:
       "TSPodcast: nghe podcast xu hướng, kho nhạc podcast và radio VOV, VOH trực tuyến. Tóm tắt tập podcast, hỏi đáp và tìm kiếm bằng AI.",
   },
@@ -179,7 +179,7 @@ export type Dictionary = typeof vi;
 
 const en: Dictionary = {
   meta: {
-    tagline: "Podcasts, radio and music — trending daily, summarized by AI",
+    tagline: "The world in your ears",
     description:
       "TSPodcast: listen to trending podcasts, podcast:medium music feeds and live VOV/VOH radio. AI episode summaries, Q&A and natural-language search.",
   },

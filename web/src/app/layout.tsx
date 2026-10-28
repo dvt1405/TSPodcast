@@ -8,7 +8,7 @@ import { themeInitScript } from "@/components/ThemeToggle";
 import { isAiEnabled } from "@/lib/ai";
 import { htmlLang, ogLocale, t } from "@/lib/i18n";
 import { JsonLd } from "@/components/JsonLd";
-import { ANDROID_PACKAGE, PLAY_STORE_URL, SITE_NAME, SITE_URL } from "@/lib/site";
+import { ANDROID_PACKAGE, OG_IMAGES, PLAY_STORE_URL, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 // The Android app's typeface (sharedLibrary Fonts.openSans), with the
@@ -24,16 +24,25 @@ export const metadata: Metadata = {
   title: { default: `${SITE_NAME} — ${t.meta.tagline}`, template: `%s · ${SITE_NAME}` },
   description: t.meta.description,
   applicationName: SITE_NAME,
-  alternates: { canonical: "/" },
+  // Icons and the share image come from brand/web (TSP-15), copied to public/.
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
     locale: ogLocale,
     title: `${SITE_NAME} — ${t.meta.tagline}`,
     description: t.meta.description,
-    url: "/",
+    images: OG_IMAGES,
   },
-  twitter: { card: "summary_large_image" },
+  twitter: { card: "summary_large_image", images: ["/og-image.png"] },
   appLinks: { android: { package: ANDROID_PACKAGE, app_name: SITE_NAME } },
   other: { "google-play-app": `app-id=${ANDROID_PACKAGE}` },
   formatDetection: { telephone: false },
@@ -44,7 +53,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f7f8" },
+    { media: "(prefers-color-scheme: light)", color: "#184BB4" },
     { media: "(prefers-color-scheme: dark)", color: "#121619" },
   ],
   width: "device-width",
@@ -74,7 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 "@id": `${SITE_URL}/#organization`,
                 name: SITE_NAME,
                 url: SITE_URL,
-                logo: `${SITE_URL}/icon.svg`,
+                logo: `${SITE_URL}/icon-512.png`,
                 sameAs: [PLAY_STORE_URL],
               },
               {

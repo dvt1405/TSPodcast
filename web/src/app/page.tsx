@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { CategoryChips, EpisodeList, PodcastShelf, SectionHeader } from "@/components/cards";
 import { RadioIcon } from "@/components/icons";
@@ -15,6 +16,8 @@ import {
 import type { PodcastSummary } from "@/lib/types";
 
 export const revalidate = 900;
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 /** Categories surfaced on the home page, in this order, when the API has them. */
 const FEATURED_CATEGORIES = [
