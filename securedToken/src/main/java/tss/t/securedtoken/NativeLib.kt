@@ -38,13 +38,6 @@ object NativeLib {
     external fun getTime(): String
     external fun getAuthHeader(): String
     external fun getUserAgent(): String
-    external fun getApplovinKey(): String
-    external fun getAdAppOpenId(): String
-    external fun getAdBannerId(): String
-    external fun getAdInterstitialId(): String
-    external fun getNativeId(): String
-    external fun getNativeSmallId(): String
-    external fun getNativeMediumId(): String
 
     private fun byteArrayToString(bytes: ByteArray): String {
         val buffer = StringBuilder()

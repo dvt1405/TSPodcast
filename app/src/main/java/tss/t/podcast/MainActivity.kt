@@ -131,7 +131,7 @@ class MainActivity : ComponentActivity() {
             )
         )
         if (!NativeLib.isAvailable) {
-            // Every API call and the ad SDK key need libsecuredtoken.so, and the
+            // Every API call needs libsecuredtoken.so, and the
             // view models below build the API on first access. Without the
             // library the only useful thing to show is how to get a full install.
             setContent {

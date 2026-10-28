@@ -74,7 +74,6 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer.hls)
     implementation(libs.androidx.media3.exoplayer.rtsp)
     implementation(libs.androidx.media3.exoplayer.smoothstreaming)
-    implementation(libs.androidx.media3.exoplayer.ima)
     implementation(libs.androidx.media3.datasource.cronet)
     implementation(project(":samples"))
     implementation(project(":sharedLibrary"))
