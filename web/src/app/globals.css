@@ -1,0 +1,160 @@
+@import "tailwindcss";
+
+/* Class-based dark mode: <html class="dark"> is set before paint by the inline
+   script in layout.tsx from the saved choice or prefers-color-scheme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Brand tokens from the Android app (sharedLibrary/.../theme/ColorsTheme.kt):
+   Primary #184BB4, Secondary #4A7DE7, TextColor #1F1F1F, Gray scale, Orange
+   accent #FE5F00. Typography: Open Sans (Fonts.openSans). */
+:root {
+  --background: #f6f7f8; /* SkyColor */
+  --surface: #ffffff;
+  --surface-2: #f2f4f8; /* Gray10 */
+  --border: #dde1e6; /* Gray20 */
+  --foreground: #1f1f1f; /* TextColor */
+  --muted: #4d5358; /* Gray60 */
+  --subtle: #697077; /* Gray50 */
+  --primary: #184bb4; /* Primary */
+  --primary-strong: #0e4174; /* Secondary50 */
+  --primary-soft: #e4f2ff; /* BlueLight */
+  --on-primary: #ffffff;
+  --secondary: #4a7de7; /* Secondary */
+  --accent: #ea5800; /* Primary60 (orange) - darker than #FE5F00 for text contrast */
+  --danger: #cf1322; /* Red50 */
+  --ring: #4a7de7;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 16px rgb(24 75 180 / 0.06);
+  color-scheme: light;
+}
+
+.dark {
+  --background: #121619; /* Gray90 */
+  --surface: #1a1f23;
+  --surface-2: #21272a; /* Gray80 */
+  --border: #343a3f; /* Gray70 */
+  --foreground: #f2f4f8; /* Gray10 */
+  --muted: #c1c7cd; /* Gray30 */
+  --subtle: #a2a9b0; /* Gray40 */
+  --primary: #8fb0f5;
+  --primary-strong: #b9cdf9;
+  --primary-soft: #1c2b4a;
+  --on-primary: #021237; /* Secondary90 */
+  --secondary: #4a7de7;
+  --accent: #ff8a3d;
+  --danger: #ff7875;
+  --ring: #8fb0f5;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-soft: var(--primary-soft);
+  --color-on-primary: var(--on-primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-open-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: 4.5rem;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Horizontal shelves: scroll-snap rows on small screens. */
+.shelf {
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+}
+.shelf > * {
+  scroll-snap-align: start;
+}
+
+/* Seek and volume sliders. */
+input[type="range"].seek {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 1.25rem;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"].seek::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    var(--primary) 0%,
+    var(--primary) var(--progress, 0%),
+    var(--border) var(--progress, 0%),
+    var(--border) 100%
+  );
+}
+input[type="range"].seek::-moz-range-track {
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--border);
+}
+input[type="range"].seek::-moz-range-progress {
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--primary);
+}
+input[type="range"].seek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  margin-top: -5px;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: var(--primary);
+  border: 2px solid var(--surface);
+}
+input[type="range"].seek::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  background: var(--primary);
+  border: 2px solid var(--surface);
+}
+
+/* Show notes / AI text. */
+.prose-notes p + p {
+  margin-top: 0.75rem;
+}
+.prose-notes a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-word;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
