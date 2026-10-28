@@ -45,6 +45,21 @@
 | `/gioi-thieu`, `/chinh-sach-bao-mat`, `/dieu-khoan`, `/lien-he` | Trang tĩnh. Privacy policy phải khớp Data safety (xem `admob-migration.md` §7) | SSG | Có |
 | `/app-ads.txt`, `/robots.txt`, `/sitemap.xml`, `/.well-known/assetlinks.json`, `/.well-known/apple-app-site-association` | File hạ tầng | static / route handler | — |
 
+**Route đã triển khai trong `web/` (TSP-14, 2026-10-29).** Bản đầu dùng route tiếng Anh theo brief của ticket, khác bảng đề xuất ở trên:
+
+| Đề xuất | Đã làm | Ghi chú |
+|---|---|---|
+| `/podcast/[feedId]-[slug]` | `/podcast/[feedId]-[slug]` | Giống đề xuất. Slug sai thì chuyển hướng **308** (Next `permanentRedirect`; Google xử lý như 301). Revalidate 1h, ngắn hơn đề xuất 6–24h, để bám PodcastIndex ToS 5.5(1). |
+| `/podcast/…/tap/[episodeId]-[slug]` | `/episode/[episodeId]-[slug]` | URL phẳng. Tập vẫn liên kết tới series qua `partOfSeries.@id`. |
+| `/danh-muc/[slug]` | `/category/[slug]` | |
+| `/thinh-hanh`, `/nhac` | `/trending`, Kho nhạc ở `/search?mode=music` | Kho nhạc là thư viện, không xếp hạng (commit `dddd818`), nên chưa có trang riêng để index. |
+| `/tim-kiem?q=` | `/search?q=&mode=podcast\|music\|ai` | `noindex, follow`. robots chặn `/search` và `/api/`. |
+| `/radio/[stationId]-[slug]` | Chỉ có `/radio` | Chưa có trang riêng cho từng đài. |
+| `/en/...` | Chưa có | Từ điển `en` đã sẵn. Hiện chọn ngôn ngữ theo deployment (`NEXT_PUBLIC_SITE_LOCALE`). |
+| `/tai-app`, trang tĩnh | Chưa có | |
+
+Muốn đổi sang slug tiếng Việt thì đổi tên thư mục route và thêm redirect 301 từ đường dẫn cũ.
+
 - Slug: chuyển tiếng Việt không dấu, chỉ `[a-z0-9-]`. **ID là nguồn chân lý**: nếu slug sai thì 301 về URL canonical.
 - Không dùng query string cho nội dung cần index (phân trang tập: `?page=2` để `index`, nhưng canonical trỏ về chính nó, không trỏ về trang 1).
 
@@ -144,6 +159,7 @@ Ngưỡng "Good" ở p75 (field data, tách mobile/desktop): **LCP ≤ 2.5s, INP
     <category android:name="android.intent.category.BROWSABLE" />
     <data android:scheme="https" android:host="<domain>" />
     <data android:pathPrefix="/podcast/" />
+    <data android:pathPrefix="/episode/" />   <!-- route tập thực tế của web/ (A.3) -->
     <data android:pathPrefix="/en/podcast/" />
 </intent-filter>
 ```
@@ -157,7 +173,7 @@ Ngưỡng "Good" ở p75 (field data, tách mobile/desktop): **LCP ≤ 2.5s, INP
 }]
 ```
 
-- App phải route `https://<domain>/podcast/{feedId}-…` → `TSRouter.PodcastDetail`, `/…/tap/{episodeId}` → Player (`app/src/main/java/tss/t/podcast/ui/navigations/TSNavGraph.kt`). Trên web và app nên dùng chung một parser ID.
+- App phải route `https://<domain>/podcast/{feedId}-…` → `TSRouter.PodcastDetail`, `/episode/{episodeId}-…` → Player (`app/src/main/java/tss/t/podcast/ui/navigations/TSNavGraph.kt`). Trên web và app nên dùng chung một parser ID.
 - Theo `admob-migration.md` §2.1: mở app từ deep link thì **không** hiện App Open ad.
 
 **iOS:** hiện **không có app iOS** (repo chỉ có Android, KMP còn đang là kế hoạch, xem `KMP_MIGRATION_PLAN.md`). Khi có iOS: thêm `/.well-known/apple-app-site-association` (`applinks.details[].appIDs`, `components`) và thẻ Smart App Banner của Safari `<meta name="apple-itunes-app" content="app-id=…, app-argument=…">`.
@@ -186,13 +202,15 @@ Khuyến nghị: **Vercel Pro** cho giai đoạn đầu để ra nhanh; cân nh�
 
 ### A.13 Checklist tương thích cho `web/` (agent khác)
 
-- [ ] Next.js **App Router** (16.x là bản stable hiện hành; kiểm tra bằng `npm view next version` trước khi pin), dữ liệu lấy trong Server Components / Route Handlers.
-- [ ] Route theo A.3. Nếu khác thì cập nhật bảng A.3 và intent-filter ở A.10 cho khớp.
-- [ ] `generateMetadata` có canonical, hreflang (A.4), OG (A.9). Có `sitemap.ts` (+ `generateSitemaps`) và `robots.ts`.
-- [ ] JSON-LD (A.6) render phía server.
-- [ ] `/app-ads.txt`, `/.well-known/assetlinks.json` phục vụ trực tiếp với HTTP 200, không redirect.
-- [ ] Attribution PodcastIndex trên mọi trang dữ liệu. Áp dụng blacklist.
-- [ ] Nút cài app có UTM + referrer theo A.10.
+Trạng thái sau TSP-14 (2026-10-29):
+
+- [x] Next.js **App Router** (16.x là bản stable hiện hành; kiểm tra bằng `npm view next version` trước khi pin), dữ liệu lấy trong Server Components / Route Handlers. *(Next 16.4.3.)*
+- [x] Route theo A.3. Nếu khác thì cập nhật bảng A.3 và intent-filter ở A.10 cho khớp. *(Khác: đã ghi bảng đối chiếu ở A.3 và thêm `/episode/` vào A.10.)*
+- [ ] `generateMetadata` có canonical, hreflang (A.4), OG (A.9). Có `sitemap.ts` (+ `generateSitemaps`) và `robots.ts`. *(Đã có canonical, OG, `sitemap.ts` (một file, chưa dùng `generateSitemaps`) và `robots.ts`. Còn thiếu hreflang và `/en`.)*
+- [x] JSON-LD (A.6) render phía server. *(PodcastSeries có `@id` và ListenAction; PodcastEpisode dùng AudioObject; BreadcrumbList; Organization và WebSite; không dùng SearchAction.)*
+- [x] `/app-ads.txt`, `/.well-known/assetlinks.json` phục vụ trực tiếp với HTTP 200, không redirect. *(Lấy từ env `APP_ADS_TXT` / `ANDROID_CERT_SHA256`. Chưa cấu hình thì trả 404.)*
+- [x] Attribution PodcastIndex trên mọi trang dữ liệu. Áp dụng blacklist.
+- [x] Nút cài app có UTM + referrer theo A.10. *(Có `deeplink=/podcast/<id>`. Banner overlay, ẩn 14 ngày sau khi đóng.)*
 - [ ] Lighthouse CI + `web-vitals` gửi lên GA4.
 - [ ] Route nội bộ `/internal/*` (nếu làm dashboard v2 trong cùng app) đặt sau auth (B.5) với `noindex`.
 
