@@ -47,6 +47,13 @@ class ApplovinSdkWrapper @Inject constructor(
         } else if (_isInitSdkInProcess) {
             _pendingCallback.add(callback)
             return
+        } else if (!NativeLib.isAvailable) {
+            // The SDK key and every ad unit id come from libsecuredtoken.so,
+            // which is missing on an install without its ABI split (see
+            // NativeLib.loadError; App reports it). Ads are optional, so stay
+            // off instead of throwing from Application.onCreate.
+            _state = SdkState.Failed
+            return
         }
         _state = SdkState.InitInProcess
         val initConfig = AppLovinSdkInitializationConfiguration
