@@ -1,0 +1,44 @@
+{
+  "outDir": "out",
+  "presets": ["play", "ios69"],
+  "theme": "brand",
+  "screens": [
+    {
+      "id": "kham-pha",
+      "screenshot": "raw/01-kham-pha.png",
+      "placeholderLabel": "Khám phá",
+      "headline": "Nghe podcast Việt hay nhất",
+      "sub": "Hàng nghìn chương trình, cập nhật mỗi ngày"
+    },
+    {
+      "id": "radio",
+      "screenshot": "raw/02-radio.png",
+      "placeholderLabel": "Radio",
+      "headline": "Radio trực tuyến,\nbật là nghe",
+      "sub": "Đài trong nước và quốc tế, phát trực tiếp"
+    },
+    {
+      "id": "kho-nhac",
+      "screenshot": "raw/03-kho-nhac.png",
+      "placeholderLabel": "Kho nhạc",
+      "theme": "light",
+      "headline": "Kho nhạc mở,\nnghe thả ga",
+      "sub": "Feed nhạc theo chuẩn Podcasting 2.0"
+    },
+    {
+      "id": "yeu-thich",
+      "screenshot": "raw/04-yeu-thich.png",
+      "placeholderLabel": "Yêu thích",
+      "headline": "Gom kênh yêu thích về một chỗ",
+      "sub": "Mở app là nghe ngay kênh bạn theo dõi"
+    },
+    {
+      "id": "trinh-phat",
+      "screenshot": "raw/05-trinh-phat.png",
+      "placeholderLabel": "Đang phát",
+      "theme": "light",
+      "headline": "Tắt màn hình vẫn nghe tiếp",
+      "sub": "Điều khiển ngay trên thanh thông báo"
+    }
+  ]
+}
