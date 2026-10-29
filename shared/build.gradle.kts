@@ -103,6 +103,8 @@ val generateTestFixtures by tasks.registering(GenerateJsonSourcesTask::class) {
         rootProject.file("podcasts/src/debug/assets/Episode.json"),
         rootProject.file("podcasts/src/debug/assets/LiveEpidsode.json"),
         rootProject.file("podcasts/src/debug/assets/RecentFeeds.json"),
+        // Android's browser User-Agent constant, so SharedConstantsTest compares against the source.
+        rootProject.file("sharedResources/src/main/java/tss/t/sharedresources/SharedConstants.kt"),
     )
     packageName.set("tss.t.shared.fixtures")
     objectName.set("Fixtures")
