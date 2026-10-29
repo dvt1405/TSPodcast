@@ -9,7 +9,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | ID | Tên | Kế hoạch | Trạng thái |
 |---|---|---|---|
 | M0 | Nền tảng: module `shared` KMP + project Xcode chạy được | [milestones/M0.md](milestones/M0.md) | Đã nghiệm thu (review round 1) |
-| M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đã có kế hoạch (T1–T5, M1-AC1..AC22), chờ dev |
+| M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đang làm: T1 xong, T2–T5 chưa |
 
 ## M0
 
@@ -294,3 +294,55 @@ Việc còn mở / giới hạn đã biết:
 ## M1
 
 Trạng thái: **PO đã viết kế hoạch** ([milestones/M1.md](milestones/M1.md)): 5 task (T1 shared: key-value store, start destination, cache đĩa E1/E9, `HomeFeed` + D6; T2 nền iOS: target unit/UI test, routing, String Catalog, ảnh/ATS, hook test; T3 Onboarding + chọn danh mục; T4 TabView + Home + tab Yêu thích/Tìm kiếm; T5 nghiệm thu nội bộ và tài liệu), 22 acceptance criteria. Các quyết định PO chọn thay owner ở §7 của kế hoạch đã được ghi vào [handoff.md](handoff.md).
+
+### T1 — Shared: kho key-value, cờ onboarding, cache đĩa, `HomeFeed`, D6 (xong)
+
+Thoả M1-AC1..AC6, chạy lại M1-AC20.
+
+**Kho key-value (M1-AC1): chọn DataStore Preferences KMP `1.2.1`.**
+
+| Bản | `kotlin-stdlib` trong `.module` (Google Maven) | Kết luận |
+|---|---|---|
+| `androidx.datastore:datastore-preferences-core:1.3.0` | `2.2.20` | Không dùng: cần Kotlin > 2.2.0 |
+| `…:1.2.1` | `2.0.21` | **Chọn**: build, link framework và test pass trên `iosSimulatorArm64` lẫn `testAndroidHostTest` với Kotlin 2.2.0 |
+
+- `KeyValueStore` (interface `suspend`: `get/putString`, `get/putBoolean`, `get/putLong`, `remove`, `clear`) + `DataStoreKeyValueStore(path)` trong `commonMain` (`shared/.../preferences/`). File `ts_prefs.preferences_pb` (DataStore bắt buộc đuôi `.preferences_pb`), DataStore tự ghi atomic (file tạm + rename) và tuần tự hoá mọi lần ghi. Không dùng `NSUserDefaults`/`multiplatform-settings`/`@AppStorage`, nên không phát sinh required-reason API của defaults trong `PrivacyInfo.xcprivacy`.
+- File hỏng → `ReplaceFileCorruptionHandler` thay bằng store rỗng, log một dòng `TSPodcast/KeyValueStore: store file is corrupt (CorruptionException), starting empty` (stdout, không có path). Lỗi I/O khi đọc/ghi được nuốt và log tên exception: store "best effort", không bao giờ ném ra ngoài (trừ `CancellationException`).
+- Đọc theo kiểu: key ghi bằng kiểu khác (vd. `String` mà đọc `Boolean`) trả `null`, không `ClassCastException` (`Preferences.get` cast không kiểm, nên tra map rồi `as?`).
+- DataStore chỉ cho **một** instance mở trên một file mỗi process. `SharedGraph` sở hữu store; `SharedGraph.close()` đóng nó. Swift vẫn tạo một graph mỗi process.
+- `AppPreferences` dùng đúng tên key Android: `OnboardingFinished`, `HasSelectFavouriteCategory`, `ListFavouriteCategory`, `CategoryRes`, `cachedTrending`, `lastUpdateTrending`, `cachedTrending_<cat>`, `lastUpdateTrending_<cat>`, cộng `AllowExplicitContent` (mặc định `false`). Object lưu dạng JSON string (kotlinx, giống Android lưu chuỗi Gson); JSON không parse được đọc ra `null`.
+- `SharedGraph(credentials, config, preferencesPath)` cho Swift; constructor test `SharedGraph(credentials, config, engine, clock, store)`. Swift (`TSPodcastApp.swift`, tạm thời tới T2) truyền `Application Support/ts_prefs.preferences_pb`, tạo thư mục nếu thiếu. Đã chạy trên simulator: file được tạo (≈ 92 KB sau một lần tải trending), app không crash.
+
+**Logic khác:**
+
+- `StartDestination` + `AppPreferences.startDestination()` (M1-AC2): xét `OnboardingFinished` trước rồi `HasSelectFavouriteCategory`, giống `TSNavGraph`.
+- `FavouriteCategories` (M1-AC3): `MIN_FAVOURITE_CATEGORIES = 3`; `save` bỏ trùng id, < 3 thì trả `false` và không ghi gì; đủ thì ghi `ListFavouriteCategory` (sắp theo id, `isFavourite = true`) **trước**, cờ `HasSelectFavouriteCategory` **sau** (Android ghi ngược lại; thứ tự này an toàn hơn nếu app chết giữa chừng). `favouriteCategoryIds()` = id tăng dần nối `","`, `null` khi chưa lưu.
+- `GetCategories` (M1-AC4): mạng OK → memory + đĩa `CategoryRes`; lỗi (kể cả thiếu credentials, không gửi request) → memory → đĩa → asset 112 mục. Asset không bao giờ được ghi xuống đĩa.
+- `GetTrendingPodcasts` (M1-AC5): memory → đĩa (chỉ khi còn < 15 phút; nạp lại memory với **timestamp gốc**, nên không kéo dài TTL) → mạng. Chỉ lưu `Success`, đã lọc blacklist, cả hai tầng. `InMemoryTtlCache.put` có thêm tham số `storedAtMillis`.
+- `HomeFeed` (`graph.homeFeed`, M1-AC6): `trendingSections(favouriteCatIds)` chạy song song E1 trending (`since = now − 604800`, không `cat`) và E1 forYou (`since = now − 864000`, `cat`), fallback 3 nhánh của `MainViewModel`, cả hai lỗi → cả hai `Error`; `music()` E6 `max=40`; `live()` E2 `max=100`; `recent(favouriteCatIds)` E5 `max=100`, `lang=vi`, không `notcat`. Trả `TSDataState<List<Podcast>>` / `TSDataState<List<LiveEpisode>>`. Lọc D6 sau blacklist: bỏ `explicit == 1` (E6 map `Feed.explicit=true` thành `1`) trừ khi `AllowExplicitContent`. Không gọi E3/E4.
+- `HtmlText.toPlainText`, `SharedConstants` (`USER_AGENT_WEB_VALUE`, `USER_AGENT_KEY`, `REFERER_KEY`), `AnalyticsTracker` (không có `device_id`).
+- `SharedConstantsTest` so với **chính file** `sharedResources/.../SharedConstants.kt`: file này được thêm vào task `generateTestFixtures` (đọc, không sửa) nên test hỏng ngay khi Android đổi hằng số.
+
+**Thư viện mới:** `gradle/libs.versions.toml` thêm `datastore = "1.2.1"` và `androidx-datastore-preferences-core` (chỉ thêm entry). Không đổi Kotlin/AGP.
+
+Kết quả tự kiểm:
+
+```bash
+./gradlew :shared:allTests :shared:linkDebugFrameworkIosSimulatorArm64   # BUILD SUCCESSFUL
+#   iosSimulatorArm64Test + testAndroidHostTest, failures="0" errors="0" cho cả 20 class:
+#   AppPreferencesTest 8, StartDestinationTest 4, FavouriteCategoriesTest 4, GetCategoriesTest 11 (+5),
+#   TrendingDiskCacheTest 6, HomeFeedTest 12, HtmlTextTest 6, SharedConstantsTest 2; các test M0 vẫn pass
+./gradlew :app:assembleDebug :shared:allTests                             # BUILD SUCCESSFUL
+grep -rnE "UserDefaults|NSUserDefaults|@AppStorage|multiplatform-settings" iosApp/TSPodcast shared/src shared/build.gradle.kts   # 0 dòng
+xcodebuild … -scheme TSPodcast -destination "id=$SIM" build              # ** BUILD SUCCEEDED ** (Swift dùng constructor mới)
+```
+
+- Test song song của `HomeFeedTest` để `MockEngine` treo request đầu tới khi request thứ hai tới; nếu hai request chạy tuần tự thì test treo và fail.
+- `AppPreferencesTest` dùng file thật trong thư mục tạm (`FileSystem.SYSTEM_TEMPORARY_DIRECTORY`), đóng instance đầu (`closeAndJoin`) trước khi mở instance mới trên cùng file.
+- Các test cache/HomeFeed dùng `InMemoryKeyValueStore` (commonTest); "graph mới trên cùng store" = hai `TestGraph` dùng chung một instance store.
+
+Giới hạn đã biết:
+
+- Dữ liệu `SharedPref` của app Android không được chuyển sang (hai app riêng, không cần).
+- D6 chỉ lọc được Live và Kho nhạc (E1/E5 không có field `explicit`), đã có trong handoff.
+- Log của store dùng `println` (Xcode console / logcat `System.out`), chưa đi qua `OSLog`.

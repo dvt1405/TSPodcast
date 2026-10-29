@@ -22,8 +22,8 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
 - **Kotlin giữ 2.2.0, không dùng SKIE**, tích hợp framework bằng cách A (`embedAndSignAppleFrameworkForXcode`). Hệ quả: mỗi lần build Xcode đều chạy lại bước Gradle, build tăng dần chậm hơn (M0 review).
 - **(M1) D6 chỉ lọc được một phần trên Home.**
   - Vì sao: E1 `podcasts/trending` và E5 `recent/feeds` không trả field `explicit`, nên chỉ lọc được Live (E2) và Kho nhạc (E6). Gọi E11 cho từng feed để biết cờ explicit thì quá tốn quota.
-  - Đã làm: lọc explicit sau blacklist khi cờ `AllowExplicitContent` (mặc định `false`) chưa bật. Chưa có toggle vì chưa có màn Settings.
-  - File: `docs/ios/milestones/M1.md` §4.2, §7.
+  - Đã làm (M1 T1): `HomeFeed` lọc explicit sau blacklist khi cờ `AllowExplicitContent` (mặc định `false`) chưa bật. Chưa có toggle vì chưa có màn Settings.
+  - File: `docs/ios/milestones/M1.md` §4.2, §7; `shared/src/commonMain/kotlin/tss/t/shared/home/HomeFeed.kt`.
 - **(M1) Nhãn tab và nút onboarding được localize.** Dùng "Yêu thích / Khám phá / Tìm kiếm" (en: "Favorites / Discover / Search") và "Tiếp tục" (en: "Continue"), thay vì chuỗi tiếng Anh hardcode của Android ("Favorite / TSPodcast / Search", "Continue"). File: `docs/ios/milestones/M1.md` §3, §4.5.
 - **(M1) Ảnh cover `http://`.**
   - Đã làm: nâng lên `https://`, lỗi thì hiện placeholder; không bật `NSAllowsArbitraryLoads`.
