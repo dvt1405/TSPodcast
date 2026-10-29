@@ -22,9 +22,9 @@ struct RootView: View {
             Color(.systemBackground)
                 .ignoresSafeArea()
         case .onboarding:
-            OnboardingView(onFinished: { route = .selectCategories })
+            OnboardingView(model: environment.makeOnboardingModel()) { route = .selectCategories }
         case .selectCategories:
-            CategorySelectionView(onSaved: { route = .main })
+            CategorySelectionView(model: environment.makeCategorySelectionModel()) { route = .main }
         case .main:
             MainTabView()
         }

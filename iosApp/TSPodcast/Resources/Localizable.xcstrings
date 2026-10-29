@@ -19,6 +19,24 @@
         }
       }
     },
+    "category.remove %@" : {
+      "comment" : "VoiceOver label of the x button on a selected-category badge; %@ is the category name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ chọn %@"
+          }
+        }
+      }
+    },
     "category.save" : {
       "comment" : "Save button of the category screen (select_favourite_category_screen_btn_confirm_title).",
       "extractionState" : "manual",

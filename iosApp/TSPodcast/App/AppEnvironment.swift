@@ -12,6 +12,8 @@ final class AppEnvironment {
     @ObservationIgnored let analytics: any AnalyticsTracker
     @ObservationIgnored let artworkLoader: ArtworkLoader
     @ObservationIgnored let launchOptions: LaunchOptions
+    /// E9 list of this process, prefetched by onboarding and read by the category screen.
+    @ObservationIgnored let categoryCatalog: CategoryCatalog
 
     var preferences: AppPreferences { graph.appPreferences }
     var favouriteCategories: FavouriteCategories { graph.favouriteCategories }
@@ -29,6 +31,26 @@ final class AppEnvironment {
             preferencesPath: Self.preferencesPath()
         )
         analytics = LogAnalyticsTracker()
+        categoryCatalog = CategoryCatalog(getCategories: graph.getCategories)
+    }
+
+    func makeOnboardingModel() -> OnboardingModel {
+        let preferences = preferences
+        return OnboardingModel(analytics: analytics) {
+            try await preferences.saveOnboardingFinished(isFinished: true)
+        }
+    }
+
+    func makeCategorySelectionModel() -> CategorySelectionModel {
+        let catalog = categoryCatalog
+        let favourites = favouriteCategories
+        return CategorySelectionModel(
+            minimumSelection: Int(FavouriteCategories.companion.MIN_FAVOURITE_CATEGORIES),
+            load: { await catalog.categories() },
+            save: { selection in
+                try await favourites.save(categories: selection.map(\.sharedCategory)).boolValue
+            }
+        )
     }
 
     /// First screen of this launch (`TSNavGraph` order, logic in shared). Debug builds apply the
