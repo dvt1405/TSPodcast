@@ -1,8 +1,82 @@
 # Kế hoạch: Gỡ toàn bộ ad SDK hiện tại và chuyển sang Google AdMob
 
-> Ticket: TSP-13 · Ngày lập: 2026-10-29 · Trạng thái: **Bản nháp chờ owner duyệt**
-> Phạm vi: chỉ là kế hoạch. Không có thay đổi code app trong commit này.
+> Ticket: TSP-13 · Ngày lập: 2026-10-29 · Trạng thái: **Owner đã duyệt, Phase 0 + Phase 1 đã code (TSP-16)**, xem mục "Trạng thái triển khai" ngay dưới.
 > Mốc code khảo sát: `main` @ `47fc4f4`. Có tham chiếu nhánh chưa merge `origin/tuandv/TSP-5-remove-applovin` (`806dbe2`).
+
+---
+
+## Trạng thái triển khai (Implementation status) — TSP-16, 2026-10-29
+
+Nhánh `tuandv/TSP-16-admob-nextgen` (tách từ `main` @ `c2e46d0`, đã có PR #19). Quyết định của owner: dùng **GMA Next-Gen SDK**; **chưa có** AdMob app id / ad unit id thật nên toàn bộ dùng **id TEST của Google**, đổi sang id thật không cần sửa code; bỏ hẳn AppLovin.
+
+### Đã làm
+
+| Hạng mục | Trạng thái | Ghi chú |
+|---|---|---|
+| Phase 0: gỡ AppLovin | Xong | Cherry-pick `806dbe2` (TSP-5). Conflict với #19: xoá `ApplovinSdkWrapper.kt`; phần xử lý thiếu `libsecuredtoken.so` trong `App`/`MainActivity` giữ nguyên. Block `applovin { apiKey }`, plugin quality-service, maven repo AppLovin đã đi cùng TSP-5. |
+| Phase 0: gỡ Facebook SDK, IMA, ad id trong NDK | Xong | Đã grep trước khi gỡ: không có `com.facebook`/`ImaAdsLoader`/`interactivemedia` nào được dùng. Gỡ `facebook-android-sdk`, meta-data `com.facebook.sdk.ApplicationId`, string `facebook_app_id` (không có client token), `media3-exoplayer-ima` ở `:app` và `:sharedPlayer`, và `getApplovinKey`/6 hàm ad unit trong `NativeLib` + `securedtoken.cpp`. Bản release (R8) không còn class `com.facebook`/`com.applovin`/IMA. |
+| Seam `:ads` (§3) | Xong | Không phụ thuộc ad SDK nào. `AdsApi.kt` (AdPlacement, AdsController, AdRenderer, AdsHostSignals, slot composable), `AdsModule.kt` (`@BindsOptionalOf @AdsImplementation` → không có `:ads-admob` thì tự về no-op), `AdsConfig.kt` (mọi key §6 + default in-app), `AdPolicy.kt` (§2.1/§2.3), `SharedPrefsAdCounterStore`, `interleaveNativeSlots`. 21 unit test JVM. |
+| `:ads-admob` | Xong | `ads-mobile-sdk:1.6.0` + `user-messaging-platform:4.0.0` khai báo `implementation`, nên `:app` không import được type AdMob. Loại `play-services-ads(-lite)` ở `:ads-admob` và `:app` theo hướng dẫn Next-Gen. Init trên `Dispatchers.IO`; callback nền chỉ ghi StateFlow/atomic/store có `@Synchronized`, thao tác View/Activity chạy trên main. |
+| Consent UMP (§5) | Xong | `requestConsentInfoUpdate` mỗi lần mở app, form nếu cần, privacy options. Debug ép debug geography (mặc định EEA). Link "Tùy chọn quyền riêng tư và quảng cáo" ở cuối màn Discover, chỉ hiện khi `privacyOptionsRequired` (app chưa có màn Settings). |
+| Banner / native | Xong | Inline adaptive banner (cao tối đa 100dp) và native template small/medium dựng bằng code, có nhãn "Quảng cáo"/"Ad", video mute. Ad đã load được cache theo placement+slot nên cuộn `LazyColumn` không tạo request mới; không có vòng retry (tối đa 1 lần/phút sau lỗi). |
+| App Open warm start | Xong | `ProcessLifecycleOwner` + quyết định ở `onResume` của `MainActivity` (sau `onNewIntent`). Chỉ show ad **đã preload**. Chặn khi đang phát/buffer/`playWhenReady`, khi ở màn Player, khi mở từ media notification hoặc deep link, khi chưa xong onboarding, cộng các cap §6. |
+| Interstitial / Rewarded | Scaffold | Có trong controller + policy + preloader, **tắt mặc định** và **chưa có call site** trong UI. Khi bật rewarded cần thêm nút opt-in và pause player trước khi show (§2.2). |
+| Analytics | Xong | `ads_request`, `ads_load_failed`, `ads_show`, `ads_impression`, `ads_click`, `ads_blocked` (sample 10%), `ads_paid`, `ads_rewarded_earned`, `consent_status`. |
+
+Vị trí placement (`AdPlacement`) trong app:
+
+| Placement | Màn hình | Format | Mặc định release |
+|---|---|---|---|
+| `discover_inline` | Discover, sau "Kho nhạc" | Native medium | bật |
+| `discover_fav_inline` | Discover, sau podcast yêu thích thứ 2 | Banner | **tắt** |
+| `favourite_top` | Yêu thích, đầu danh sách | Banner | bật |
+| `player_episode_list` | Player, panel danh sách tập | Banner | **tắt** |
+| `podcast_detail_header` | Podcast Detail, dưới header | Banner | bật |
+| `podcast_detail_episodes` | Podcast Detail, chèn vào danh sách tập (sau tập 3, rồi mỗi 8 tập, tối đa 3) | Native small | bật |
+| `search_results` | Search, dưới bộ lọc (giữ vị trí slot cũ) | Banner | bật |
+| `app_open_warm` | Quay lại app sau ≥ 30s ở nền | App Open | **tắt** |
+| `interstitial_nav`, `rewarded_ad_free`, `discover_collapsible`, `app_open_cold` | — | — | **tắt** |
+
+Toàn bộ release còn nằm sau kill switch: `ads_enabled` mặc định **`false`** ở release, **`true`** ở debug. Debug còn bật `app_open_warm`, bỏ grace period và bỏ "skip 2 session đầu" để test được.
+
+Khác với plan:
+- `search_results` vẫn là banner ở đúng slot cũ (dưới filter), chưa chuyển thành native sau kết quả thứ 5.
+- "Session" cho `ads_app_open_skip_first_sessions` được đếm **1 lần mỗi process** (cold start), không đếm warm start.
+- Không thêm `setDefaultsAsync`: `AdsConfig` đọc mọi key dưới dạng string rồi parse, key chưa set (Firebase trả `""`) sẽ rơi về default in-app. Kết quả tương đương, mà không phải đụng `TSFirebaseRemoteConfig`.
+- Key cũ `ads_enable` không còn được đọc (key mới là `ads_enabled`), nên giá trị cũ trên console không vô tình bật ad.
+
+### Kiểm tra đã chạy
+
+- `./gradlew :app:assembleDebug`: pass.
+- Unit test: `:ads` (21 test mới), `:securedToken`, `:sharedPlayer`, `:app`: pass.
+- `:app:assembleRelease`: compile + `minifyReleaseWithR8` + shrink resource pass. Dừng ở `packageRelease` vì máy local không có `KEYSTORE_PASSWORD` (đúng như dự kiến). Manifest release có `APPLICATION_ID` = test app id. Lưu ý: task `uploadCrashlyticsMappingFileRelease` có chạy và upload mapping file.
+- Thiết bị (Pixel 3 XL, `tss.t.podcast.debug`): UMP nhận debug geography EEA (`IABTCF_gdprApplies=1`) và load xong form consent (`load_complete ok`), không có crash. Phần xem form, banner/native và App Open trên màn hình **chưa kiểm tra được**: máy bị khoá PIN.
+
+### Cách đưa id thật vào (không sửa code)
+
+1. Gradle property, đặt trong `~/.gradle/gradle.properties` hoặc truyền `-P...`. Ở CI dùng biến môi trường `ORG_GRADLE_PROJECT_<TÊN>` lấy từ GitHub secret:
+   ```properties
+   ADMOB_APP_ID=ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY
+   ADMOB_UNIT_APP_OPEN=ca-app-pub-XXXXXXXXXXXXXXXX/NNNNNNNNNN
+   ADMOB_UNIT_BANNER=ca-app-pub-XXXXXXXXXXXXXXXX/NNNNNNNNNN
+   ADMOB_UNIT_NATIVE=ca-app-pub-XXXXXXXXXXXXXXXX/NNNNNNNNNN
+   ADMOB_UNIT_INTERSTITIAL=ca-app-pub-XXXXXXXXXXXXXXXX/NNNNNNNNNN
+   ADMOB_UNIT_REWARDED=ca-app-pub-XXXXXXXXXXXXXXXX/NNNNNNNNNN
+   ```
+   Chỉ bản **release** dùng các giá trị này. Bản debug luôn dùng test id. App id vừa được ghi vào manifest (UMP cần) vừa vào `InitializationConfig`.
+2. Muốn mỗi placement có unit riêng thì set Remote Config `ads_unit_ids` (JSON), ví dụ `{"favourite_top":"ca-app-pub-…/…","podcast_detail_episodes":"ca-app-pub-…/…"}`. Id sai định dạng bị bỏ qua. Bản debug bỏ qua key này.
+3. Bật dần bằng Remote Config: `ads_enabled=true`, rồi điều chỉnh `ads_placements_enabled` (JSON) và các cap ở §6.
+4. Test device cho debug (chỉ cần khi debug dùng id thật, hiện không có trường hợp này): `ADMOB_TEST_DEVICE_IDS`, `UMP_TEST_DEVICE_HASHED_IDS` (cách nhau bằng dấu phẩy; id được SDK in ra logcat). Đổi vùng consent khi debug: `UMP_DEBUG_GEOGRAPHY=EEA|US|OTHER|OFF`.
+
+### Việc owner cần làm
+
+1. **Tạo app trên AdMob** (link tới listing Play `tss.t.podcast`) và tạo ad unit: App Open, Banner (adaptive), Native, cùng Interstitial/Rewarded nếu định dùng. Đưa id vào CI theo hướng dẫn ở trên. **Không bật `ads_enabled` ở release khi chưa có id thật**, nếu bật thì user sẽ thấy quảng cáo "Test Ad".
+2. AdMob → **Privacy & messaging**: tạo message *European regulations* (GDPR) và *US state regulations*. Nếu không có message, UMP sẽ không hiện form ở EEA. Bật consent mode để Firebase Analytics đồng bộ.
+3. **Link app AdMob với Firebase** (để GA4 tự log `ad_impression` có doanh thu).
+4. **`app-ads.txt`**: khi đã có domain, khai báo domain ở mục Website của Play listing, rồi phục vụ `https://<domain>/app-ads.txt` bằng snippet lấy từ AdMob (§7.1).
+5. **Play Console → App content**: Ads = "Contains ads". Advertising ID = có dùng. **Data safety**: thêm phần dữ liệu AdMob thu và chia sẻ (Device or other IDs, Approximate location, App interactions, Diagnostics), **gỡ Meta/Facebook và AppLovin**. Cập nhật Privacy policy (§7.2).
+6. **Revoke AppLovin API key** đang nằm trong lịch sử git, và xem có cần xoá/thu hồi Meta app `1177427693996135` không.
+7. Quyết định các câu hỏi còn mở ở §11 (consent riêng cho user VN, rewarded, Remove-ads), trước khi sang Phase 3.
 
 ---
 
