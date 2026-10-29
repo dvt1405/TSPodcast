@@ -1,0 +1,7 @@
+// Build settings chung cho Debug và Release của target TSPodcast.
+
+// Giá trị mặc định rỗng: build vẫn chạy khi chưa có Secrets.xcconfig (app hiện lỗi thiếu cấu hình).
+PODCASTINDEX_API_KEY =
+PODCASTINDEX_API_SECRET =
+PODCASTINDEX_BASE_URL =
+PODCASTINDEX_USER_AGENT =

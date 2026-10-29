@@ -1,0 +1,5 @@
+// Configuration Debug của target TSPodcast.
+#include "Shared.xcconfig"
+
+// Secrets cục bộ (gitignored). Dấu "?" để build không lỗi khi file chưa có.
+#include? "Secrets.xcconfig"
