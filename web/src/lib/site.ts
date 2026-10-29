@@ -2,6 +2,13 @@
 
 export const SITE_NAME = "TSPodcast";
 
+/**
+ * Static export build (`npm run build:static`): pages are rendered once at build
+ * time for a plain static host, so there is no server for search or AI. Those
+ * routes are left out of the build and their links are hidden.
+ */
+export const STATIC_EXPORT = process.env.NEXT_PUBLIC_STATIC_EXPORT === "1";
+
 /** Canonical origin, no trailing slash. Set NEXT_PUBLIC_SITE_URL in production. */
 export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"

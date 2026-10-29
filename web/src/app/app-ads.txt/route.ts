@@ -3,6 +3,9 @@
 //   APP_ADS_TXT="google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0"
 // Several lines may be separated by "\n". Served with 200 and no redirect; this
 // domain must match the "Website" field of the Play listing.
+// Cached for an hour; a static export writes it once at build time.
+export const revalidate = 3600;
+
 export function GET() {
   const body = process.env.APP_ADS_TXT?.replace(/\\n/g, "\n").trim();
   if (!body) {

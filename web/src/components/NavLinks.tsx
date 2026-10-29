@@ -4,13 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HomeIcon, RadioIcon, SearchIcon, TrendIcon } from "@/components/icons";
 import { t } from "@/lib/i18n";
+import { STATIC_EXPORT } from "@/lib/site";
 
 const LINKS = [
   { href: "/", label: t.nav.home, Icon: HomeIcon },
   { href: "/trending", label: t.nav.trending, Icon: TrendIcon },
   { href: "/radio", label: t.nav.radio, Icon: RadioIcon },
   { href: "/search", label: t.nav.search, Icon: SearchIcon },
-];
+].filter((l) => !(STATIC_EXPORT && l.href === "/search"));
 
 export function NavLinks({ compact = false }: { compact?: boolean }) {
   const pathname = usePathname();

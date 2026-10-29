@@ -16,7 +16,8 @@ import { formatDate, formatDuration, isoDate, isoDuration } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { getEpisode, getEpisodesByFeed, load } from "@/lib/podcastindex";
 import { NOINDEX, breadcrumbJsonLd, httpsOnly, isEpisodeIndexable, seoTitle } from "@/lib/seo";
-import { absoluteUrl } from "@/lib/site";
+import { STATIC_EXPORT, absoluteUrl } from "@/lib/site";
+import { staticEpisode, staticEpisodeParams } from "@/lib/static-export";
 import { episodePath, parseIdSlug, podcastPath, slugify } from "@/lib/slug";
 import { htmlToParagraphs, htmlToText } from "@/lib/text";
 import { episodeToTrack, snippet } from "@/lib/tracks";
@@ -24,13 +25,19 @@ import { episodeToTrack, snippet } from "@/lib/tracks";
 export const revalidate = 3600;
 
 export function generateStaticParams() {
-  return [];
+  // Server build: no build-time list, pages render on first request and are cached (ISR).
+  return staticEpisodeParams();
+}
+
+/** A static export has no per-episode API call: see staticEpisode(). */
+function fetchEpisode(id: number) {
+  return STATIC_EXPORT ? staticEpisode(id) : getEpisode(id);
 }
 
 export async function generateMetadata({ params }: PageProps<"/episode/[idSlug]">): Promise<Metadata> {
   const parsed = parseIdSlug((await params).idSlug);
   if (!parsed) return {};
-  const res = await load(() => getEpisode(parsed.id));
+  const res = await load(() => fetchEpisode(parsed.id));
   if (!res.ok || !res.data) return { robots: NOINDEX };
   const e = res.data;
   const description = snippet(htmlToText(e.description), 155) || `${e.title} — ${e.feedTitle}`;
@@ -59,7 +66,7 @@ export default async function EpisodePage({ params }: PageProps<"/episode/[idSlu
   const parsed = parseIdSlug(idSlug);
   if (!parsed) notFound();
 
-  const res = await load(() => getEpisode(parsed.id));
+  const res = await load(() => fetchEpisode(parsed.id));
   if (!res.ok) return <LoadFailure reason={res.reason} />;
   const episode = res.data;
   if (!episode) notFound();

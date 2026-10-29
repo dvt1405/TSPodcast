@@ -23,7 +23,11 @@ function first(v: string | string[] | undefined): string {
   return (Array.isArray(v) ? v[0] : v)?.trim().slice(0, 300) ?? "";
 }
 
-export default async function SearchPage({ searchParams }: PageProps<"/search">) {
+// Not PageProps<"/search">: the static export build leaves this route out, so
+// "/search" is not in its generated route types.
+type SearchPageProps = { searchParams: Promise<Record<string, string | string[] | undefined>> };
+
+export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const q = first(params.q);
   const aiEnabled = isAiEnabled();

@@ -13,17 +13,13 @@ import {
   getTrending,
   load,
 } from "@/lib/podcastindex";
+import { STATIC_EXPORT } from "@/lib/site";
+import { FEATURED_CATEGORIES } from "@/lib/static-export";
 import type { PodcastSummary } from "@/lib/types";
 
 export const revalidate = 900;
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
-
-/** Categories surfaced on the home page, in this order, when the API has them. */
-const FEATURED_CATEGORIES = [
-  "News", "Business", "Technology", "Education", "Comedy", "Society", "Health",
-  "Sports", "History", "Science", "Music", "Arts", "Kids", "True Crime", "Religion", "Leisure",
-];
 
 async function getHomeTrending(): Promise<PodcastSummary[]> {
   const [vi, global] = await Promise.all([
@@ -59,9 +55,11 @@ export default async function HomePage() {
           {t.home.heroTitle}
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-white/90 sm:text-base">{t.home.heroSubtitle}</p>
-        <div className="mt-5 max-w-2xl text-foreground">
-          <SearchForm aiEnabled={aiEnabled} id="hero-q" />
-        </div>
+        {!STATIC_EXPORT && (
+          <div className="mt-5 max-w-2xl text-foreground">
+            <SearchForm aiEnabled={aiEnabled} id="hero-q" />
+          </div>
+        )}
       </section>
 
       {missingKeys ? (
@@ -90,7 +88,7 @@ export default async function HomePage() {
               id="music-title"
               title={t.home.music}
               subtitle={t.home.musicSubtitle}
-              href="/search?mode=music"
+              href={STATIC_EXPORT ? undefined : "/search?mode=music"}
             />
             {music.ok ? <PodcastShelf podcasts={music.data.slice(0, 18)} /> : <LoadFailure reason={music.reason} />}
           </section>

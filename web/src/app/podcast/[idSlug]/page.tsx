@@ -13,7 +13,8 @@ import { RichText } from "@/components/RichText";
 import { categoryLabel, t } from "@/lib/i18n";
 import { getEpisodesByFeed, getPodcast, load } from "@/lib/podcastindex";
 import { NOINDEX, breadcrumbJsonLd, isPodcastIndexable, seoTitle } from "@/lib/seo";
-import { absoluteUrl } from "@/lib/site";
+import { STATIC_EXPORT, absoluteUrl } from "@/lib/site";
+import { STATIC_EPISODES_MAX, staticPodcastParams } from "@/lib/static-export";
 import { categoryPath, episodePath, parseIdSlug, podcastPath, slugify } from "@/lib/slug";
 import { htmlToParagraphs, htmlToText } from "@/lib/text";
 import { episodeToTrack, snippet } from "@/lib/tracks";
@@ -21,11 +22,11 @@ import { episodeToTrack, snippet } from "@/lib/tracks";
 export const revalidate = 3600;
 
 /** Same arguments as the page so the cached call is shared. */
-const EPISODES_MAX = 50;
+const EPISODES_MAX = STATIC_EXPORT ? STATIC_EPISODES_MAX : 50;
 
 export function generateStaticParams() {
-  // No build-time list: pages render on first request, then are cached (ISR).
-  return [];
+  // Server build: no build-time list, pages render on first request and are cached (ISR).
+  return staticPodcastParams();
 }
 
 export async function generateMetadata({ params }: PageProps<"/podcast/[idSlug]">): Promise<Metadata> {

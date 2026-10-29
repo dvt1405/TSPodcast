@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { t } from "@/lib/i18n";
-import { PODCASTINDEX_URL, SITE_NAME, playStoreUrl } from "@/lib/site";
+import { PODCASTINDEX_URL, SITE_NAME, STATIC_EXPORT, playStoreUrl } from "@/lib/site";
 
 export function Footer({ aiEnabled }: { aiEnabled: boolean }) {
   return (
@@ -22,9 +22,11 @@ export function Footer({ aiEnabled }: { aiEnabled: boolean }) {
           <Link href="/radio" className="hover:text-primary">
             {t.nav.radio}
           </Link>
-          <Link href="/search" className="hover:text-primary">
-            {t.nav.search}
-          </Link>
+          {!STATIC_EXPORT && (
+            <Link href="/search" className="hover:text-primary">
+              {t.nav.search}
+            </Link>
+          )}
           <a href={playStoreUrl({ medium: "footer" })} rel="noopener" target="_blank" className="hover:text-primary">
             {t.app.getApp} (Android)
           </a>
