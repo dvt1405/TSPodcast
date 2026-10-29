@@ -4,6 +4,9 @@ import { ANDROID_PACKAGE } from "@/lib/site";
 // ANDROID_CERT_SHA256 to the Play App Signing key fingerprint, plus the upload
 // key for internal builds, comma-separated ("AA:BB:..."). The app still needs
 // an autoVerify VIEW intent-filter for these URLs before links open in it.
+// Cached for an hour; a static export writes it once at build time.
+export const revalidate = 3600;
+
 export function GET() {
   const fingerprints = (process.env.ANDROID_CERT_SHA256 ?? "")
     .split(",")

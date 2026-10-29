@@ -7,14 +7,15 @@ import { breadcrumbJsonLd } from "@/lib/seo";
 import { EmptyState, LoadFailure } from "@/components/notices";
 import { categoryLabel, t } from "@/lib/i18n";
 import { getCategories, getTrending, load } from "@/lib/podcastindex";
-import { OG_IMAGES } from "@/lib/site";
+import { OG_IMAGES, STATIC_EXPORT } from "@/lib/site";
+import { STATIC_CATEGORY_MAX, staticCategoryParams, visibleCategoryNames } from "@/lib/static-export";
 import { slugify } from "@/lib/slug";
 
 export const revalidate = 900;
 
 export function generateStaticParams() {
-  // Rendered on first request, then cached (ISR). Needs no keys at build time.
-  return [];
+  // Server build: rendered on first request, then cached (ISR); needs no keys at build time.
+  return staticCategoryParams();
 }
 
 async function findCategory(slug: string) {
@@ -50,7 +51,7 @@ export default async function CategoryPage({ params }: PageProps<"/category/[slu
   }
   if (!category) notFound();
 
-  const podcasts = await load(() => getTrending({ max: 48, cat: category.name }));
+  const podcasts = await load(() => getTrending({ max: STATIC_EXPORT ? STATIC_CATEGORY_MAX : 48, cat: category.name }));
   const label = categoryLabel(category.name);
   const crumbs = [
     { name: t.nav.home, path: "/" },
@@ -74,7 +75,7 @@ export default async function CategoryPage({ params }: PageProps<"/category/[slu
         <h2 id="all-cats" className="mb-3 text-lg font-bold">
           {t.category.all}
         </h2>
-        <CategoryChips names={res.data.map((c) => c.name)} current={category.name} />
+        <CategoryChips names={visibleCategoryNames(res.data.map((c) => c.name))} current={category.name} />
       </section>
     </div>
   );

@@ -4,6 +4,9 @@ import { ANDROID_PACKAGE, PLAY_STORE_URL, SITE_NAME } from "@/lib/site";
 
 // Mirrors brand/web/site.webmanifest (icons copied into public/), plus the
 // Play listing as a related application.
+// Built once (also required by the static export build).
+export const dynamic = "force-static";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: SITE_NAME,

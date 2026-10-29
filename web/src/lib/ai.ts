@@ -2,6 +2,7 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import type { BetaMessageStreamParams } from "@anthropic-ai/sdk/resources/beta/messages/messages";
 import { locale, t } from "./i18n";
+import { STATIC_EXPORT } from "./site";
 
 /** Model requested for this project. Override with ANTHROPIC_MODEL. */
 export const AI_MODEL = process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-5-5";
@@ -12,6 +13,7 @@ export const AI_MODEL = process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-5-
  * profile, but a deployed site should not depend on that implicitly.)
  */
 export function isAiEnabled(): boolean {
+  if (STATIC_EXPORT) return false; // no server for /api/ai/* in a static export
   return Boolean(process.env.ANTHROPIC_API_KEY?.trim());
 }
 

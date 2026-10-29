@@ -15,6 +15,24 @@ const API_BASE = "https://api.podcastindex.org/api/1.0/";
 const USER_AGENT = process.env.PODCASTINDEX_USER_AGENT?.trim() || "TSSPodcast/Web";
 const REQUEST_TIMEOUT_MS = 10_000;
 
+// A static export renders a few thousand pages back to back and PodcastIndex
+// answers bursts with 429. Each build worker spaces its calls out and retries a
+// 429 with backoff; on a server, requests come at visitor pace and are not delayed.
+const STATIC_BUILD = process.env.NEXT_PUBLIC_STATIC_EXPORT === "1";
+const MIN_INTERVAL_MS = STATIC_BUILD ? 500 : 0;
+const MAX_429_RETRIES = STATIC_BUILD ? 6 : 0;
+let nextSlot = 0;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function throttle(): Promise<void> {
+  if (!MIN_INTERVAL_MS) return;
+  const now = Date.now();
+  const wait = Math.max(0, nextSlot - now);
+  nextSlot = Math.max(now, nextSlot) + MIN_INTERVAL_MS;
+  if (wait) await sleep(wait);
+}
+
 // Cache lifetimes (seconds). PodcastIndex terms 5.5(1) forbid keeping copies
 // longer than the API allows; these are short, rolling caches, not an archive.
 export const REVALIDATE = {
@@ -54,28 +72,36 @@ async function apiGet<T>(path: string, params: Params = {}): Promise<T> {
   const secret = process.env.PODCASTINDEX_API_SECRET?.trim();
   if (!key || !secret) throw new MissingApiKeysError();
 
-  const date = Math.floor(Date.now() / 1000).toString();
-  const authorization = createHash("sha1").update(key + secret + date).digest("hex");
-
   const url = new URL(path, API_BASE);
   for (const [name, value] of Object.entries(params)) {
     if (value === undefined || value === null || value === false || value === "") continue;
     url.searchParams.set(name, String(value));
   }
 
-  const res = await fetch(url, {
-    headers: {
-      "X-Auth-Key": key,
-      "X-Auth-Date": date,
-      Authorization: authorization,
-      "User-Agent": USER_AGENT,
-      Accept: "application/json",
-    },
-    // Cached by unstable_cache below instead: the auth headers change every
-    // second and are part of Next's fetch-cache key.
-    cache: "no-store",
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  });
+  let res: Response;
+  for (let attempt = 0; ; attempt++) {
+    await throttle();
+    const date = Math.floor(Date.now() / 1000).toString();
+    const authorization = createHash("sha1").update(key + secret + date).digest("hex");
+    res = await fetch(url, {
+      headers: {
+        "X-Auth-Key": key,
+        "X-Auth-Date": date,
+        Authorization: authorization,
+        "User-Agent": USER_AGENT,
+        Accept: "application/json",
+      },
+      // Cached by unstable_cache below instead: the auth headers change every
+      // second and are part of Next's fetch-cache key.
+      cache: "no-store",
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+    if (res.status !== 429 || attempt >= MAX_429_RETRIES) break;
+    const retryAfter = Number(res.headers.get("retry-after"));
+    // A long Retry-After is an IP block (seen: ~34 min), not a burst limit: fail now.
+    if (retryAfter > 60) break;
+    await sleep(retryAfter > 0 ? retryAfter * 1000 : 1000 * 2 ** attempt);
+  }
   if (!res.ok) {
     throw new PodcastIndexError(`PodcastIndex ${path} responded ${res.status}`, res.status);
   }

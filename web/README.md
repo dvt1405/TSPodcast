@@ -122,7 +122,22 @@ Làm theo `docs/plans/seo-web-dashboard.md` §A:
 
 ## Deploy
 
-### Vercel (khuyến nghị)
+### Bản tĩnh trên Firebase Hosting (đang chạy tạm)
+
+Không cần server: trang được dựng một lần thành HTML trong `out/`, deploy lên site `tspodcast` (`https://tspodcast.web.app`) của project `podcast-25c93`. Site cũ `podcast-25c93.web.app` (landing + `privacy.html`) không bị đụng tới.
+
+```bash
+cd web
+npm run build:static          # NEXT_PUBLIC_STATIC_EXPORT=1 next build → out/
+cd .. && firebase deploy --only hosting:tspodcast
+```
+
+- Search và `/api/ai/*` cần server nên bị bỏ khỏi bản này. Chúng được đặt tên `page.dynamic.tsx` / `route.dynamic.ts` và chỉ build server mới nhận (`pageExtensions` trong `next.config.ts`). Các link tới search bị ẩn khi `STATIC_EXPORT` bật (`src/lib/site.ts`).
+- Chỉ trang chủ, thịnh hành, radio, 16 danh mục nổi bật, podcast xuất hiện ở các trang đó và 12 tập mới nhất của mỗi podcast được dựng sẵn (`src/lib/static-export.ts`).
+- Key PodcastIndex chỉ dùng lúc build. `scripts/build-static.mjs` quét toàn bộ `out/` tìm giá trị key/secret và dừng nếu thấy. Script cũng dừng nếu hơn 2% số trang dính lỗi tải dữ liệu (thường do PodcastIndex trả 429). Lúc build tĩnh, mỗi worker giãn cách lời gọi và thử lại khi gặp 429.
+- Dữ liệu cũ dần cho tới lần build sau. Theo điều khoản PodcastIndex, phải build lại ít nhất mỗi 7 ngày. Kế hoạch chuyển lên VPS: `docs/plans/web-vps-deploy.md`.
+
+### Vercel
 
 1. Import repo, đặt **Root Directory = `web`**. Framework sẽ tự nhận là Next.js.
 2. Thêm biến môi trường như bảng trên (Production và Preview). Ở Preview, đặt `SITE_NOINDEX=1`.

@@ -3,6 +3,7 @@ import { CategoryChips, PodcastGrid, SectionHeader } from "@/components/cards";
 import { JsonLd } from "@/components/JsonLd";
 import { EmptyState, LoadFailure } from "@/components/notices";
 import { t } from "@/lib/i18n";
+import { visibleCategoryNames } from "@/lib/static-export";
 import { getCategories, getTrending, load } from "@/lib/podcastindex";
 import { OG_IMAGES, absoluteUrl } from "@/lib/site";
 import { podcastPath } from "@/lib/slug";
@@ -70,7 +71,7 @@ export default async function TrendingPage() {
       {categories.ok && categories.data.length > 0 && (
         <section aria-labelledby="trend-cats">
           <SectionHeader id="trend-cats" title={t.trending.byCategory} />
-          <CategoryChips names={categories.data.map((c) => c.name)} />
+          <CategoryChips names={visibleCategoryNames(categories.data.map((c) => c.name))} />
         </section>
       )}
     </div>
