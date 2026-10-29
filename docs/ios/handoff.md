@@ -37,7 +37,7 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
   - File: `iosApp/TSPodcast/Home/HomeModel.swift`, `iosApp/TSPodcast/Home/HomeView.swift`, `docs/ios/progress.md` mục M1 T4.
 - **(M1) XCUITest gọi PodcastIndex thật** bằng key dùng chung với Android, nên tốn quota của key này. Đây thêm một lý do để cấp key riêng cho iOS (mục ở phần trên).
   - Mỗi lần launch có `-uitest-skip-onboarding` xoá store (kể cả cache trending), nên mỗi UI test mở Home gửi lại 5 request Home (E1 × 2, E2, E5, E6); test onboarding/danh mục gửi thêm E9. Test Home fail nếu API chậm hơn 30 s hoặc trả rỗng, dù app đúng.
-  - M2 thêm UI test cho Detail (E10 + E11 mỗi lần mở) và Search (E7, E8, E9, E1 theo danh mục), nên mỗi lần chạy suite tốn thêm vài chục request.
+  - M2 thêm UI test cho Detail (E10 + E11 mỗi lần mở) và Search (E7, E8, E9, E1 theo danh mục). Đo ở M2 T4 (30/10/2026, từ log app): một lần chạy toàn bộ suite (161 test, ~12 phút) gửi khoảng 550–600 request, phần lớn là Home (~430 lời gọi section), Detail 30 × 2, Search ~33, E9 ~50.
   - File: `iosApp/TSPodcastUITests/`, `docs/ios/progress.md` mục M1 "Giới hạn đã biết".
 - **(M2) D6 ở Podcast detail:** bỏ episode `explicit = 1`; nếu E11 `podcasts/byfeedid` cho biết cả feed `explicit = true` thì ẩn toàn bộ episode và hiện thông báo "Podcast này được đánh dấu có nội dung người lớn (explicit) nên các tập đã bị ẩn.".
   - Vì sao: E1/E5 ở Home không có field `explicit` (bullet D6 của M1), nên Detail là chỗ đầu tiên biết feed có explicit hay không. Android không lọc gì.
@@ -56,5 +56,6 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
 - **(M1) Chưa có simulator iOS 17/18 để chạy nhánh MiniPlayer cũ.**
   - Vì sao bị chặn: deployment target là iOS 17.0, nhưng máy dev chỉ có runtime iOS 26.3. Nhánh `safeAreaInset` (iOS 17–18) và nhánh iOS 26.0 của `MiniPlayerSlot` mới chỉ compile, chưa chạy. Tải runtime (vài GB) là việc của owner trên máy này.
   - Trong lúc chờ: nhánh iOS 26.1+ (`tabViewBottomAccessory(isEnabled:)`) đã qua `MainShellUITests.testMiniPlayerSlotSitsAboveTabBar` / `testNoMiniPlayerWhenNothingPlays` trên iOS 26.3.
-  - Owner chọn một trong hai: cài runtime iOS 17 hoặc 18 (Xcode › Settings › Components) rồi chạy lại `MainShellUITests` trên simulator đó; hoặc nâng deployment target lên 26 (bỏ nhánh cũ).
-  - File: `iosApp/TSPodcast/Main/MiniPlayerSlot.swift`, `iosApp/project.yml` (`deploymentTarget`).
+  - (M2) Cùng lý do: nhánh iOS 17 của zoom transition Home → Detail (push thường) và giao diện `.searchable` + hàng chip chế độ trên iOS 17–18 cũng mới compile, chưa chạy/chưa xem.
+  - Owner chọn một trong hai: cài runtime iOS 17 hoặc 18 (Xcode › Settings › Components) rồi chạy lại toàn bộ `xcodebuild test` trên simulator đó (ít nhất `MainShellUITests`, `PodcastDetailUITests`, `SearchUITests`); hoặc nâng deployment target lên 26 (bỏ nhánh cũ).
+  - File: `iosApp/TSPodcast/Main/MiniPlayerSlot.swift`, `iosApp/TSPodcast/Design/ZoomTransition.swift`, `iosApp/TSPodcast/Search/SearchView.swift`, `iosApp/project.yml` (`deploymentTarget`).

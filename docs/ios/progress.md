@@ -10,7 +10,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 |---|---|---|---|
 | M0 | Nền tảng: module `shared` KMP + project Xcode chạy được | [milestones/M0.md](milestones/M0.md) | Đã nghiệm thu (review round 1) |
 | M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đã nghiệm thu (review round 1) |
-| M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đang làm: T1 (shared), T2 (Detail + seam phát nhạc), T3 (Search) xong; T4 chưa làm |
+| M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Developer đã làm xong T1–T4, M2-AC1..AC21 đã tự kiểm; chờ PO nghiệm thu |
 
 ## M0
 
@@ -706,6 +706,51 @@ Screenshot trong `$OUT`:
 
 Kế hoạch: [milestones/M2.md](milestones/M2.md). Base `f370aa0`.
 
+Trạng thái: **developer đã làm xong T1–T4**, M2-AC1..AC21 đã tự kiểm (lần chạy cuối ở T4, bên dưới), chờ PO nghiệm thu. Các quyết định PO chọn thay owner ở §7 của kế hoạch đã có trong [handoff.md](handoff.md).
+
+### Tóm tắt M2 (M2-AC21)
+
+Việc đã làm theo task (chi tiết ở từng mục T1–T4 bên dưới):
+
+| Task | Việc chính | AC | Commit |
+|---|---|---|---|
+| T1 | `shared`: `PodcastDetailFeed` (E10 ‖ E11, E10 quyết định, retry + cache 15 phút theo `feedId`, D6), `SearchFeed` + `SearchMode` (E7/E8, query rỗng không gửi, blacklist, `clean=true` + lọc explicit, trending theo danh mục) | AC1–AC3 | `5249fd3` |
+| T2 | Seam phát nhạc (`PlaybackController`, `LoggingPlaybackController`), Podcast detail thật (header blur, mô tả có link, dòng episode có `Referer`, loading/rỗng/explicit/lỗi alert + inline retry), Home → Detail + zoom iOS 18+, hook `-uitest-fail-detail-once`/`-uitest-detail-empty`/`-uitest-detail-explicit`/`-uitest-playback-probe` | AC4–AC9 | `bf75ca5` |
+| T3 | Tab Tìm kiếm (`.searchable`, chip "Tất cả"/"Nhạc", gợi ý, chip danh mục E9, loading/kết quả/rỗng/lỗi), `SearchModel` (debounce 200 ms, submit, đổi chế độ, chống kết quả cũ), màn podcast thịnh hành theo danh mục, Search → Detail | AC10–AC15 | `112da75` |
+| T4 | `LocalizationUITests.testEnglishSearchAndDetail`, build sạch, chạy lại toàn bộ §6, screenshot, kiểm secrets/grep, tài liệu | AC16–AC21 | `482ab1a` + commit tài liệu |
+
+Quyết định chính:
+
+| Hạng mục | Quyết định | Lý do / chi tiết |
+|---|---|---|
+| Debounce + clock | `SearchModel` nhận `any Clock<Duration>` (mặc định `ContinuousClock`); mỗi lần gõ huỷ `Task` cũ và ngủ 200 ms trên clock đó; unit test dùng `TestClock` thủ công | Giống `debounce(200)` + `collectLatest` của Android; test không phụ thuộc thời gian thật. Submit và đổi chế độ gửi ngay; cùng cặp (query đã trim, mode) đang chạy/đang hiện thì không gửi lại; token chặn kết quả cũ ghi đè. (T3) |
+| Chip chế độ | Hàng chip "Tất cả"/"Nhạc" tự vẽ, luôn hiện, cố định giữa ô tìm kiếm và list; **không** dùng `.searchScopes` | `.searchScopes` chỉ hiện khi ô tìm kiếm đang active; Android luôn hiện `SearchModeFilter`. Chip chọn có trait `.isSelected`. (T3) |
+| Ảnh `ic_empty_search` | Chuyển vector XML Android sang SVG (giữ vector), đặt trong `Assets.xcassets`; `sharedResources` không đổi | Ảnh rỗng giống Android, không cần thư viện. (T3) |
+| Chuỗi thời lượng (ghim ở M2-AC6) | `Duration.UnitsFormatStyle` giờ + phút, `.abbreviated`; < 1 phút → 1 phút | vi: `45` s → "1 phút", `2700` → "45 phút", `3900` → "1 giờ, 5 phút"; en: "1 min", "45 min", "1 hr, 5 min", `3600` → "1 hr" (không "0 hr"/"0 phút"). (T2) |
+| D6 khi ẩn cả feed | `hiddenExplicitCount` = tổng số episode E10 trả về | Plan không ghi rõ; UI chỉ dùng cờ `isExplicitFeedHidden`. (T1) |
+| UI test cần danh sách tập | Helper `openDetailWithEpisodes` thử trending item 0, 1, 2… tới khi có tập | Trending #1 ngày 30/10/2026 là feed explicit, D6 ẩn hết tập (bullet D6 Detail trong handoff). (T2) |
+| Lỗi Search vs rỗng | Tách `.failed` ("Không tải được nội dung" + "Tải lại") khỏi `.empty`; mỗi request mới về `.loading` | Header luôn khớp kết quả đang hiện. (T3) |
+| Log Search | Chỉ log `length=` và `count=`, không log query | M2-AC18; kiểm lại ở T4: 0 dòng chứa query test. (T3, T4) |
+| Hook test | Mọi hook mới chỉ trong `#if DEBUG`; một adapter Detail cho cả process nên `-uitest-fail-detail-once` đúng là "lần load đầu" | Bản Release không có tên hook (`strings` = 0). (T2–T4) |
+
+Chạy lại toàn bộ M2 (từ gốc repo; `OUT` là thư mục tạm ngoài repo):
+
+```bash
+SIM=4FB8953E-F948-4CF1-9DB3-EE4F79CEC480
+./gradlew :app:assembleDebug :shared:allTests
+(cd iosApp && xcodegen generate && git status --porcelain .)
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcast -destination "id=$SIM" \
+  -derivedDataPath $OUT/DD-m2 -resultBundlePath $OUT/M2-tests.xcresult
+xcrun xcresulttool get test-results summary --path $OUT/M2-tests.xcresult
+xcrun xcresulttool export attachments --path $OUT/M2-tests.xcresult --output-path $OUT/M2-attachments
+xcodebuild -project iosApp/iosApp.xcodeproj -scheme TSPodcast -configuration Release \
+  -destination "id=$SIM" -derivedDataPath $OUT/DD-rel build
+strings $OUT/DD-rel/Build/Products/Release-iphonesimulator/TSPodcast.app/TSPodcast \
+  | grep -c -e "uitest-" -e "TSP_UITEST_BASE_URL" -e "playback.probe"      # 0
+```
+
+Giới hạn đã biết: xem "Giới hạn đã biết của M2 (tổng hợp)" ở cuối mục M2.
+
 ### T1 — Shared: `PodcastDetailFeed` và `SearchFeed` (D6) (xong)
 
 Thoả M2-AC1, M2-AC2, M2-AC3, chạy lại M2-AC19.
@@ -837,3 +882,62 @@ Giới hạn đã biết của T3:
 - Danh mục chưa tải xong (hoặc `CategoryCatalog` trả rỗng khi bị huỷ) thì hiện spinner nhỏ dưới "Danh mục"; `.task` chạy lại khi quay về tab sẽ thử lại.
 - Gõ thêm chữ khi đang có kết quả: kết quả cũ vẫn hiện trong 200 ms debounce, rồi chuyển sang loading (không giữ kết quả cũ trong lúc tải).
 - Chỉ chạy trên iOS 26.3 (runtime duy nhất); giao diện iOS 17 của `.searchable` + chip chưa xem.
+
+### T4 — Nghiệm thu nội bộ, localization, tài liệu, vệ sinh (xong)
+
+Thoả M2-AC16, M2-AC17, M2-AC18, M2-AC19, M2-AC20, M2-AC21 và chạy lại toàn bộ §6 trên HEAD sau commit test (`482ab1a`).
+
+Đã làm:
+
+- `LocalizationUITests.testEnglishSearchAndDetail` (`-AppleLanguages (en) -AppleLocale en_US`, `-uitest-skip-onboarding`, `-uitest-fail-detail-once`, một lần launch): tab "Search" → title "Search", placeholder "Search podcasts, artists", chip "All"/"Music", gợi ý "Try searching: great podcasts", header "Categories"; gõ "zzqxjvkwpt" → "No results for: zzqxjvkwpt"; bấm "Music" → gợi ý "The podcast:medium music catalogue is small, try English keywords"; Return, sang tab "Discover", mở trending item 0 → alert "Oops!" có nội dung "Couldn't load the episodes. Please try again.", nút "Retry" và "Cancel"; bấm "Cancel" → lỗi inline "Couldn't load episodes" + "Retry". Kiểm thêm gợi ý Nhạc và lỗi inline (ngoài chữ của AC16) để phủ hết chuỗi en của §4.8. Search không đi qua adapter Detail nên lần load Detail đầu tiên của process đúng là lần bị hook làm lỗi; test không cần item trending có tập.
+- Không đổi code app; chỉ thêm test và tài liệu.
+
+Kết quả (30/10/2026, `OUT` = scratch dir `…/scratchpad/ios`, không commit; `SIM` = NovaTest iPhone 17, iOS 26.3):
+
+```bash
+# Build sạch: xoá $OUT/DD-m2, $OUT/M2-tests.xcresult, $OUT/M2-attachments; xcodebuild clean
+cd iosApp && xcodegen generate && git status --porcelain .         # không có dòng nào (sau commit test)
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcast -destination "id=$SIM" \
+  -derivedDataPath $OUT/DD-m2 -resultBundlePath $OUT/M2-tests.xcresult
+#   ** TEST SUCCEEDED **; summary: 161 test, 161 passed, 0 failed, 0 skipped (119 unit + 42 UI, ~12 phút)
+#   M1: OnboardingUITests 3, CategorySelectionUITests 3, MainShellUITests 5, HomeUITests 4, HomeErrorUITests 2,
+#       LocalizationUITests 2 (testEnglishLocale + testEnglishSearchAndDetail), LaunchSmokeUITests 2, unit M1 — Passed
+#   M2: PodcastDetailUITests 7, PodcastDetailErrorUITests 2, SearchUITests 10, SearchErrorUITests 2,
+#       PodcastDetailModelTests 11, EpisodeRowTests 12, DescriptionTextTests 4, LoggingPlaybackControllerTests 4,
+#       ArtworkLoaderTests 12, SearchModelTests 19, CategoryPodcastsModelTests 4, SearchResultItemTests 7 — Passed
+xcrun xcresulttool export attachments --path $OUT/M2-tests.xcresult --output-path $OUT/M2-attachments   # 54 attachment
+./gradlew :shared:iosSimulatorArm64Test --rerun :shared:testAndroidHostTest --rerun :app:assembleDebug :shared:allTests
+#   BUILD SUCCESSFUL; iosSimulatorArm64Test + testAndroidHostTest: mỗi target 22 class, 171 test, failures=0 errors=0 skipped=0
+xcodebuild … -configuration Release -derivedDataPath $OUT/DD-rel build   # (DD-rel xoá trước) ** BUILD SUCCEEDED **
+strings $OUT/DD-rel/…/TSPodcast.app/TSPodcast | grep -c -e "uitest-" -e "TSP_UITEST_BASE_URL" -e "playback.probe"   # 0 (bản Debug: 10)
+```
+
+Kiểm tĩnh (đều đúng như §6):
+
+| AC | Lệnh | Kết quả |
+|---|---|---|
+| AC5 | `grep -rn "PodcastDetailStubView\|SearchRootView" iosApp`; `grep -rn "navigationTransition(.zoom"` / `"matchedTransitionSource" iosApp/TSPodcast` | 0; 1 và 2 dòng, đều trong `if #available(iOS 18.0, *)` (`Design/ZoomTransition.swift`) |
+| AC7 | `grep -rniE "lorem\|opps" iosApp/TSPodcast` | 0 |
+| AC16 | script M1-AC8 trên `Localizable.xcstrings`; vòng grep 10 chuỗi vi; `knownRegions` | `vi True`, `missing_en 0`; mọi chuỗi ≥ 1; `Base, en, vi` |
+| AC18 | `grep -rn "AllowExplicitContent\|allowExplicit" iosApp/TSPodcast`; `grep -rniE "radio\|vov\|voh" iosApp/TSPodcast`; grep ads/ATT/FB/`device_id`/`privacy_options` trên `iosApp shared/src`; `log show --last 30m` subsystem `tss.t.podcast` (1256 dòng) `\| grep -c -e zzqxjvkwpt -e q=vietnam` | 0; 0; 0; 0 (cũng 0 dòng chứa "vietnam" ở bất kỳ dạng nào) |
+| AC19 | `git diff --name-only f370aa0..HEAD` ngoài `shared/`, `iosApp/`, `docs/ios/`; `git status --porcelain sharedResources` | không có file nào (M2 không đổi `gradle/libs.versions.toml`); rỗng |
+| AC20 | `git check-ignore -v iosApp/Config/Secrets.xcconfig`; vòng đếm key/secret trong `git log main..HEAD -p`; đếm trong log app 30 phút, log `xcodebuild test`, `docs/ios` | `.gitignore:32:iosApp/Config/Secrets.xcconfig`; `0` và `0`; 0 ở mọi nơi (chỉ in số đếm) |
+| AC21 | subject conventional; số trailer `Co-Authored-By` so với `git rev-list --count f370aa0..HEAD`; `git ls-files \| grep -E '(^\|/)(build\|DerivedData\|xcuserdata)/\|\.xcresult\|\.xcframework\|Secrets\.xcconfig$'` | mọi subject đúng dạng (`docs`, `feat`, `test`); số trailer = số commit (kể cả commit tài liệu T4); 0 dòng |
+
+**Log của lần chạy suite** (`log show --last 30m`, subsystem `tss.t.podcast`): `detail_loaded` 30, `search_loaded` 33, `search_failed` 6 (base URL không truy cập được, cố ý), `category_podcasts_loaded` 2 / `_failed` 4, `playback_request` 10 (không dòng nào có `http`), `artwork_failed` 6 (cả 6 đều là host `img.example.com` của stub `ArtworkLoaderTests`, cố ý; 0 ảnh thật lỗi). Từ các số này ước tính một lần chạy toàn bộ suite gửi khoảng **550–600 request** tới PodcastIndex (Home ≈ 430 lời gọi section, Detail 30 × 2, Search ≈ 33, E9 ≈ 50, E1 theo danh mục 2), cùng key với Android (bullet quota trong handoff đã cập nhật).
+
+Screenshot (đã xem bằng mắt): `$OUT/M2-T4-shots/` có 54 attachment đổi tên dễ đọc, trong đó 23 của M2: `M2-detail`, `M2-detail-light`, `M2-detail-dark`, `M2-detail-forYou`, `M2-detail-loading`, `M2-detail-empty`, `M2-detail-explicit`, `M2-detail-error-alert`, `M2-detail-error-inline`, `M2-detail-playback-probe`, `M2-search-idle`, `M2-search-results`, `M2-search-music`, `M2-search-empty`, `M2-search-loading`, `M2-search-error`, `M2-search-detail`, `M2-category-arts`, `M2-category-error`, `M2-search-idle-en`, `M2-search-empty-en`, `M2-detail-error-alert-en` và `M2-search-casino-titles.txt`. Bản en: title lớn "Search", chip "All"/"Music", "Try searching: great podcasts", "Categories" + chip danh mục; rỗng có ảnh `ic_empty_search`, "No results for: **zzqxjvkwpt**" và gợi ý Nhạc; alert "Oops!" với "Cancel"/"Retry". Log: `M2-T4-app.log`, `m2-tests.log`, `M2-T4-release.log`, `M2-T4-gradle.log`.
+
+**handoff.md:** các bullet M2 ở §7 đã có từ T1–T3 và vẫn đúng với cách làm. T4 cập nhật bullet quota (số request đo được mỗi lần chạy suite) và bullet "Môi trường test" (thêm nhánh iOS 17 của zoom transition và giao diện `.searchable` + chip chưa chạy). Không có mục owner mới.
+
+### Giới hạn đã biết của M2 (tổng hợp)
+
+- **UI test gọi PodcastIndex thật** (key dùng chung với Android): khoảng 550–600 request mỗi lần chạy toàn bộ suite (~12 phút). Test fail nếu API chậm hơn 30 s, nếu dữ liệu đổi khác hẳn (ví dụ "vietnam" không còn kết quả, "zzqxjvkwpt" có kết quả) dù app đúng. Unit test dùng fake nên không phụ thuộc mạng.
+- **Trending #1 là feed explicit** (30/10/2026, feed 4201720): D6 ẩn hết tập ở Detail; UI test cần tập tự chọn item trending đầu tiên có tập (`openDetailWithEpisodes`), `PodcastDetailErrorUITests` launch thêm một lần để tìm index. Hệ quả sản phẩm ghi ở handoff.
+- **D6 ở Home và màn danh mục** chỉ lọc được khi API trả `explicit` (E1/E5 không trả); Detail và Search lọc được. Chưa có toggle vì chưa có Settings.
+- **Tap episode chỉ gửi sang seam phát nhạc** (log `playback_request`), chưa phát; Player là M3.
+- `testBlacklistedResultsHidden` chép danh sách từ khoá `blacklist.json`; Remote Config chưa có trên iOS (`NoOpConfig`).
+- Gõ thêm chữ khi đang có kết quả: kết quả cũ hiện thêm 200 ms rồi chuyển loading.
+- Nền blur của header Detail kéo lên 400 pt; kéo quá mạnh có thể lộ nền trống phía trên.
+- **Chỉ chạy trên iOS 26.3**: nhánh iOS 17 (push không zoom, giao diện `.searchable` + chip) mới compile, chưa chạy (bullet "Môi trường test" trong handoff).
+- Tên danh mục giữ tiếng Anh từ API (giống M1).
