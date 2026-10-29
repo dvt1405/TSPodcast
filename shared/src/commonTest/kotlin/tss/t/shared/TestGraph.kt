@@ -10,6 +10,8 @@ import tss.t.shared.network.CredentialsProvider
 import tss.t.shared.network.FakeCredentials
 import tss.t.shared.network.FixedClock
 import tss.t.shared.network.respondJson
+import tss.t.shared.preferences.InMemoryKeyValueStore
+import tss.t.shared.preferences.KeyValueStore
 import kotlin.time.Duration
 
 /** Remote Config stand-in; [values] can change between `reload()` calls. */
@@ -21,11 +23,15 @@ class FakeConfig(var values: Map<String, String?> = emptyMap()) : ConfigAPI {
     }
 }
 
-/** A real [SharedGraph] on a [MockEngine] and a fake clock; records every request. */
+/**
+ * A real [SharedGraph] on a [MockEngine], a fake clock and an in-memory store; records every
+ * request. Pass the [store] of another `TestGraph` to model a relaunch on the same file.
+ */
 class TestGraph(
     config: ConfigAPI = FakeConfig(),
     credentials: CredentialsProvider = FakeCredentials(),
     val clock: FixedClock = FixedClock(START_MILLIS),
+    val store: KeyValueStore = InMemoryKeyValueStore(),
     private val handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData = {
         respondJson("{}")
     },
@@ -37,7 +43,7 @@ class TestGraph(
         handler(request)
     }
 
-    val graph = SharedGraph(credentials, config, engine, clock)
+    val graph = SharedGraph(credentials, config, engine, clock, store)
 
     /** Requests whose path ends with [path], e.g. `"podcasts/trending"`. */
     fun requestsTo(path: String): Int = requests.count { it.url.encodedPath.endsWith("/$path") }

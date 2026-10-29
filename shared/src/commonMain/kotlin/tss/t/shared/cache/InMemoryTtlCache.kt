@@ -34,8 +34,12 @@ class InMemoryTtlCache<K : Any, V : Any>(
         }
     }
 
-    suspend fun put(key: K, value: V) {
-        mutex.withLock { entries[key] = Entry(value, clock.nowMillis()) }
+    /**
+     * Stores [value] under [key]. [storedAtMillis] defaults to now; a value restored from
+     * disk passes its original time so it expires when the disk copy would.
+     */
+    suspend fun put(key: K, value: V, storedAtMillis: Long = clock.nowMillis()) {
+        mutex.withLock { entries[key] = Entry(value, storedAtMillis) }
     }
 
     suspend fun remove(key: K) {

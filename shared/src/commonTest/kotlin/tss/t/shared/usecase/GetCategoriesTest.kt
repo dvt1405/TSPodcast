@@ -7,9 +7,12 @@ import tss.t.shared.model.CategoryRes
 import tss.t.shared.model.TSDataState
 import tss.t.shared.network.FakeCredentials
 import tss.t.shared.network.respondJson
+import tss.t.shared.preferences.AppPreferences
+import tss.t.shared.preferences.InMemoryKeyValueStore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 
 class GetCategoriesTest {
 
@@ -78,5 +81,64 @@ class GetCategoriesTest {
 
         assertEquals(2, result.count, "the network is asked again once it works")
         assertEquals(2, test.requests.size)
+    }
+
+    // M1-AC4: disk tier (`CategoryRes`), like PodcastsRepositoryImpl.getCategory.
+
+    private val three = """{"count":3,"feeds":[{"id":1,"name":"Arts"},{"id":2,"name":"Books"},{"id":3,"name":"Design"}]}"""
+
+    @Test
+    fun networkSuccessIsPersisted() = runTest {
+        val test = TestGraph(handler = { respondJson(three) })
+
+        test.graph.getCategories()
+
+        val raw = assertNotNull(test.store.getString(AppPreferences.KEY_CATEGORY_RES))
+        assertEquals(listOf("Arts", "Books", "Design"), test.graph.appPreferences.categoryRes()?.feeds?.map { it.name })
+        assertEquals(true, raw.contains("Design"))
+    }
+
+    @Test
+    fun aNewGraphOnTheSameStoreFallsBackToThePersistedList() = runTest {
+        val store = InMemoryKeyValueStore()
+        TestGraph(store = store, handler = { respondJson(three) }).graph.getCategories()
+
+        val relaunched = TestGraph(store = store, handler = { respondJson("{}", HttpStatusCode.InternalServerError) })
+        val result = relaunched.graph.getCategories().data()
+
+        assertEquals(3, result.count)
+        assertEquals(listOf(1, 2, 3), result.feeds.map { it.id })
+        assertEquals(1, relaunched.requests.size)
+    }
+
+    @Test
+    fun emptyStoreAndServerErrorFallBackToTheAsset() = runTest {
+        val test = TestGraph(store = InMemoryKeyValueStore(), handler = {
+            respondJson("{}", HttpStatusCode.InternalServerError)
+        })
+
+        assertEquals(112, test.graph.getCategories().data().feeds.size)
+        assertEquals(null, test.store.getString(AppPreferences.KEY_CATEGORY_RES), "the asset is never persisted")
+    }
+
+    @Test
+    fun missingCredentialsReturnThePersistedListWithoutRequest() = runTest {
+        val store = InMemoryKeyValueStore()
+        TestGraph(store = store, handler = { respondJson(three) }).graph.getCategories()
+
+        val noCredentials = TestGraph(store = store, credentials = FakeCredentials(apiKey = ""))
+        val result = noCredentials.graph.getCategories().data()
+
+        assertEquals(listOf("Arts", "Books", "Design"), result.feeds.map { it.name })
+        assertEquals(0, noCredentials.requests.size)
+    }
+
+    @Test
+    fun corruptPersistedListFallsBackToTheAsset() = runTest {
+        val store = InMemoryKeyValueStore()
+        store.putString(AppPreferences.KEY_CATEGORY_RES, "{broken")
+        val test = TestGraph(store = store, handler = { respondJson("{}", HttpStatusCode.InternalServerError) })
+
+        assertEquals(112, test.graph.getCategories().data().count)
     }
 }
