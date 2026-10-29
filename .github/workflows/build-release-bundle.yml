@@ -1,0 +1,51 @@
+name: Build signed release bundle
+
+# Builds the signed Play Store AAB with the repository's signing secrets and
+# keeps it (plus the R8 mapping) as a workflow artifact. Nothing is uploaded to
+# Google Play: download the artifact and upload it in Play Console, or use
+# "Release to Google Play Console" to push it to the internal track.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build App Bundle
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          # Real AdMob ids, once they exist (app/build.gradle.kts falls back to Google's test ids).
+          ORG_GRADLE_PROJECT_ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
+          ORG_GRADLE_PROJECT_ADMOB_UNIT_APP_OPEN: ${{ secrets.ADMOB_UNIT_APP_OPEN }}
+          ORG_GRADLE_PROJECT_ADMOB_UNIT_BANNER: ${{ secrets.ADMOB_UNIT_BANNER }}
+          ORG_GRADLE_PROJECT_ADMOB_UNIT_NATIVE: ${{ secrets.ADMOB_UNIT_NATIVE }}
+          ORG_GRADLE_PROJECT_ADMOB_UNIT_INTERSTITIAL: ${{ secrets.ADMOB_UNIT_INTERSTITIAL }}
+          ORG_GRADLE_PROJECT_ADMOB_UNIT_REWARDED: ${{ secrets.ADMOB_UNIT_REWARDED }}
+        run: ./gradlew :app:bundleRelease
+
+      - name: Verify bundle signature
+        run: jarsigner -verify app/build/outputs/bundle/release/*.aab | tail -1
+
+      - name: Upload AAB and mapping
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-bundle
+          path: |
+            app/build/outputs/bundle/release/*.aab
+            app/build/outputs/mapping/release/mapping.txt
+          retention-days: 14

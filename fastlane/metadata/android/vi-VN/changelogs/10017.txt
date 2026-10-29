@@ -1,0 +1,5 @@
+• Logo và biểu tượng ứng dụng mới, màn hình khởi động mới
+• Sửa lỗi màn hình phát nhạc bị trống, mất trình phát thu nhỏ
+• Sửa lỗi ứng dụng thoát ngay khi mở trên một số máy
+• Chuyển sang quảng cáo Google AdMob, có hỏi ý kiến bạn về quyền riêng tư
+• Không hiện quảng cáo toàn màn hình khi đang nghe

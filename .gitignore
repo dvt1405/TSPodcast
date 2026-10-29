@@ -24,3 +24,6 @@ local.properties
 
 # Kotlin compiler session markers
 .kotlin/
+
+# Rendered demo videos (large; regenerate from brand/video)
+brand/video/out/

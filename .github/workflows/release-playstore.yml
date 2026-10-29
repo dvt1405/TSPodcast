@@ -62,7 +62,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew generateReleaseBundle
+        run: ./gradlew bundleRelease
 
       # Upload AAB as artifact
       - name: Upload AAB as artifact
