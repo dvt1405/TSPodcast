@@ -31,4 +31,8 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
   - Owner cần quyết chỉ khi tỷ lệ lỗi về sau vượt 10 %: dựng image proxy HTTPS (cloud resource, agent không tạo).
   - File: `docs/ios/milestones/M1.md` §4.4, `iosApp/TSPodcast/Images/ArtworkLoader.swift`, số liệu trong `progress.md` mục M1 T2.
 - **(M1) Analytics onboarding chỉ ghi log** (`trackScreen("Onboarding", CurrentPage=1..4)` và event `OnboardingFinished`, cùng tên với Android) cho tới khi có Firebase iOS app. Seam `AnalyticsTracker` nằm trong `shared`; khi có Firebase chỉ cần thay `LogAnalyticsTracker`. File: `docs/ios/milestones/M1.md` §4.2–§4.3, `iosApp/TSPodcast/App/LogAnalyticsTracker.swift`, `iosApp/TSPodcast/Onboarding/OnboardingModel.swift`.
+- **(M1) Home: section rỗng/lỗi đều có "Tải lại"; pull-to-refresh lỗi thì giữ nội dung cũ.**
+  - Vì sao: features-spec §3.4 [Sửa] chỉ yêu cầu empty/error state có "Tải lại". Android khi refresh xoá trắng mọi section rồi tải lại; nếu lỗi thì list rỗng (Live/Recent shimmer mãi).
+  - Đã làm (M1 T4): trong lúc refresh, section đang có nội dung giữ nguyên; refresh lỗi thì vẫn giữ nội dung cũ, không hiện lỗi; section chưa có nội dung thì shimmer rồi ra nội dung / "Chưa có nội dung" / "Không tải được nội dung", cả hai trường hợp sau đều có "Tải lại". Owner muốn báo lỗi khi refresh thất bại (ví dụ toast) thì đổi `HomeModel.next`.
+  - File: `iosApp/TSPodcast/Home/HomeModel.swift`, `iosApp/TSPodcast/Home/HomeView.swift`, `docs/ios/progress.md` mục M1 T4.
 - **(M1) XCUITest gọi PodcastIndex thật** bằng key dùng chung với Android, nên tốn quota của key này. Đây thêm một lý do để cấp key riêng cho iOS (mục ở phần trên).

@@ -9,7 +9,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | ID | Tên | Kế hoạch | Trạng thái |
 |---|---|---|---|
 | M0 | Nền tảng: module `shared` KMP + project Xcode chạy được | [milestones/M0.md](milestones/M0.md) | Đã nghiệm thu (review round 1) |
-| M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đang làm: T1, T2, T3 xong; T4, T5 chưa |
+| M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đang làm: T1, T2, T3, T4 xong; T5 chưa |
 
 ## M0
 
@@ -508,3 +508,88 @@ Giới hạn đã biết:
 - Màn danh mục không có analytics, giống Android (Android không gọi `trackScreen` ở `SelectFavouriteCategoryScreen`).
 - Nếu E9 lỗi mạng ngay lúc onboarding, catalog giữ kết quả fallback (đĩa/bundled) suốt process; Android cũng chỉ tải một lần trong ViewModel. Mở lại app thì gọi mạng lại.
 - `home.root` ở các test trên vẫn là khung tab của T2; T4 thay nội dung. Test tìm `home.root` theo identifier với mọi loại element, nên không phụ thuộc kiểu view.
+
+### T4 — Khung tab, Home/Discover, tab Yêu thích/Tìm kiếm, stub Detail (xong)
+
+Thoả M1-AC14, M1-AC15, M1-AC16, M1-AC17, M1-AC18, M1-AC19, và phần `LocalizationUITests.testEnglishLocale` còn lại của M1-AC8. Không đổi logic `shared` hay Android (chỉ sửa một dòng comment trong `shared/.../AnalyticsTracker.kt`, xem dưới).
+
+**Khung tab (`iosApp/TSPodcast/Main/`):**
+
+- `MainTabView.swift`: `TabView(selection:)` + `.tabItem`/`.tag(AppTab)` (chạy từ iOS 17; build bằng SDK 26 tự có Liquid Glass). Thứ tự `favourite` (icon `heart`), `home` (`house`, như icon nhà của Android, thay `safari` của khung T2), `search` (`magnifyingglass`); mặc định `home`; không có Radio. Mỗi tab một `NavigationStack` riêng (Home có `path: [PodcastCard]`), `navigationTitle` + `.toolbarTitleDisplayMode(.inlineLarge)`. `HomeModel` do `AppEnvironment.makeHomeModel()` tạo, `MainTabView` giữ bằng `@State` nên đổi tab không tải lại.
+- `MiniPlayerSlot.swift` (quyết định MiniPlayer slot):
+  - iOS 26.1+: `.tabViewBottomAccessory(isEnabled:)` trên `TabView`; `isEnabled = false` thì không có capsule rỗng.
+  - iOS 26.0: chỉ gắn `.tabViewBottomAccessory` khi có nội dung (API `isEnabled:` cần 26.1).
+  - iOS 17–18: `safeAreaInset(edge: .bottom)` trên `NavigationStack` của từng tab, nền `.bar`.
+  - M1 không phát gì nên slot rỗng; chỉ hook Debug `-uitest-miniplayer-placeholder` hiện thanh giả `miniplayer.slot` (view giả nằm trong `#if DEBUG`). Milestone Player thay `MiniPlayerSlot` bằng MiniPlayer thật.
+- `Favourite/FavouriteRootView.swift`: empty state của `EmptyFavouriteWidget`: hình `empty_favourite` (vector XML Android chuyển sang SVG, 170 `path` fill + stroke, `preserves-vector-representation`), "Không có chương trình yêu thích." (`favourite.empty`), nút "Khám phá thêm" (`favourite.discoverMore`, `GradientButtonStyle` = `TSButton`) chuyển sang tab Khám phá. Id gốc `favourite.root`.
+- `Search/SearchRootView.swift`: màn gốc rỗng, tiêu đề "Tìm kiếm", id `search.root`.
+- `Detail/PodcastDetailStubView.swift`: ảnh 240 pt, tiêu đề (`detail.title`), mô tả plain text; id `detail.root`, title bar inline. Không có chữ "coming soon".
+
+**Home (`iosApp/TSPodcast/Home/`):**
+
+- `HomeDataSource.swift`: struct Swift `PodcastCard` (id, title, `summary` = mô tả đã qua `HtmlText.toPlainText`, `imageURL` = `image`, rỗng thì `artwork`), `LiveRowItem` (title, `datePublishedPretty`, `feedImage`), `HomeLoadError` (chỉ giữ tên type để log), `protocol HomeDataSource` với 4 loader: `trendingSections()`, `music()`, `live()`, `recent()`. View không giữ object Kotlin.
+- `HomeFeedDataSource.swift`: adapter thật trên `graph.homeFeed`. Đọc `favouriteCategoryIds()` của shared cho trending/forYou và recent. `Success` → map; `Error` → `failure` + log `home_section_failed section=<s> type=<KotlinType>` (không log message vì có thể chứa URL). Hook `-uitest-slow-network` chờ `slowNetworkDelay` trước mỗi lời gọi shared.
+- `HomeModel.swift` (`@MainActor @Observable`):
+  - `SectionState<T> { loading, loaded([T]), empty, failed }`; Live giữ `[[LiveRowItem]]` qua `LivePaging.pages` (`chunked(3)`), list rỗng → `.empty`.
+  - `loadIfNeeded()` chạy 4 loader song song (`async let`), chỉ một lần mỗi model. `generation` +1 sau mỗi lần tải đủ (lần đầu = 1).
+  - **Trending và forYou dùng chung một loader** (`HomeFeed.trendingSections`), vì fallback 3 nhánh của `MainViewModel` cần cả hai kết quả. Nên "5 section" = 4 lời gọi; `retry(.trending)` hay `retry(.forYou)` đều gọi lại lời gọi chung (cả hai chỉ cùng lỗi khi cả hai E1 lỗi).
+  - `retry(section)` chỉ gọi loader của section đó, section về `.loading` rồi theo kết quả mới.
+  - `refresh()` (pull-to-refresh) gọi lại cả 4 loader. Section đang có nội dung **giữ nội dung cũ** trong lúc chờ; section chưa có nội dung hiện shimmer. **Quyết định:** refresh lỗi thì giữ nội dung đang hiện (dữ liệu cũ tốt hơn màn lỗi); kết quả rỗng thành công thì vẫn thay bằng `.empty`. Cache 15 phút của trending nằm trong shared nên vẫn áp dụng.
+  - Mỗi loader có số thứ tự request; kết quả về muộn của request cũ bị bỏ (retry trong lúc refresh không bị ghi đè).
+- `HomeView.swift`: thứ tự trending → Kho nhạc (+ phụ đề) → Live → Recent → "Có thể bạn yêu thích" → attribution, không ad, không link Privacy options.
+  - Carousel (trending/music/recent): card 250 pt, ảnh vuông bo 10, tiêu đề 1 dòng, mô tả 3 dòng (`reservesSpace`), cuộn ngang có snap (`scrollTargetBehavior(.viewAligned)`), lề 16, khoảng cách 12.
+  - Live: pager ngang, mỗi trang rộng 90 % (`containerRelativeFrame`), 3 dòng/trang (ảnh 60 pt, tiêu đề 1 dòng, `datePublishedPretty`). Tap chỉ ghi log `live_tap id=<id>` (Player ở milestone sau).
+  - "Có thể bạn yêu thích": danh sách dọc (ảnh 60 pt, tiêu đề, mô tả 3 dòng) trong một `LazyVStack` riêng vì có tới 100 dòng.
+  - Mỗi section: shimmer (`.shimmer()`, 3 card / 3 dòng / 5 dòng) gói thành một element `home.section.<s>.loading` (label VoiceOver "Đang tải", key mới `home.loading`, en "Loading"); `empty` và `failed` đều có thông báo + nút "Tải lại" (`.empty`/`.error`, `.retry`), đúng [Sửa] "empty/error state kèm nút Tải lại" của features-spec §3.4.
+  - Tap podcast (trending/music/recent/forYou) → `NavigationLink(value: PodcastCard)` → `PodcastDetailStubView` trên stack của tab Khám phá. Label VoiceOver của card = tiêu đề.
+  - `.refreshable` gọi `refresh()`; `.task` gọi `loadIfNeeded()`.
+  - Id: `home.list` (ScrollView, Debug có `accessibilityValue` `generation=N`), `home.root` (container nội dung bên trong list), `home.section.<s>` (header, có trait header), `home.section.music.subtitle`, `.loading`, `.empty`, `.error`, `.retry`, `.item.<i>` (Live đánh số liên tục qua các trang), `home.live.page.<n>`, `home.attribution`.
+- **Quyết định bố cục:** ngăn xếp ngoài cùng của Home là `VStack` thường (11 view con), chỉ list forYou là lazy. Với `LazyVStack` ở ngoài, sau khi các section lỗi hoặc dòng forYou được đo lại, ScrollView tính thiếu chiều cao nội dung và ở cuối trang footer attribution nằm dưới tab bar nổi (thấy trong `HomeErrorUITests`, footer y = 778–796 trong khi tab bar bắt đầu ở 791). Với `VStack` ngoài thì footer luôn nằm trên tab bar.
+- **Vì sao `home.root` nằm trong `home.list`:** bọc ScrollView bằng một container `.contain` thì SwiftUI gộp hai element làm một và id ngoài đè id `home.list`.
+
+**Khác:**
+
+- `AppEnvironment.makeHomeModel()`; `RootView` truyền model vào `MainTabView`.
+- **Lệch so với M1 §4.7:** `-uitest-slow-network` chờ **10 s** (không phải 3 s) trước mỗi lời gọi shared (`HomeFeedDataSource.slowNetworkDelay`). Với 3 s, test không tới kịp section dưới: sau mỗi lần launch/vuốt, XCUITest chờ app "idle" trong khi shimmer đang chạy animation, mất khoảng 2 s mỗi thao tác. 10 s vẫn xong trong 30 s.
+- Comment `device_id` trong `LogAnalyticsTracker.swift` và `shared/.../analytics/AnalyticsTracker.kt` (có từ T1/T2) đổi thành "device identifier", để lệnh grep của M1-AC19 không ra dòng nào. Không đổi code.
+- `LaunchSmokeUITests.testSkipOnboardingOpensMainOnDiscover` tìm `home.root` theo identifier với mọi loại element (không còn là ScrollView).
+
+**Test:**
+
+- Unit (`TSPodcastTests`), fake `FakeHomeDataSource` (đếm lời gọi từng loader, có thể giữ lời gọi tới khi `releaseAll`):
+  - `HomeModelTests` (12): 5 section bắt đầu `.loading`; tải 1 lần, `loadIfNeeded` lần 2 không gọi lại; rỗng → `.empty`; lỗi → `.failed`; music lỗi không ảnh hưởng 4 section kia; trending + forYou cùng lỗi → cả hai `.failed`; `retry(.live)` chỉ gọi loader live, đang chờ thì `.loading`, sau đó 4 item thành trang `[3, 1]`; `retry(.forYou)` gọi lại lời gọi chung; `refreshReloadsAllSections` (`testRefreshReloadsAllSections`): mỗi loader thêm đúng 1 lần, trong lúc chờ section đã có nội dung giữ nguyên, section lỗi thành `.loading`, `generation` 1 → 2; refresh lỗi giữ nội dung; kết quả muộn của request cũ bị bỏ; thứ tự section và map section → loader.
+  - `LivePagingTests` (4): 7 item → `[3, 3, 1]`; 6 → `[3, 3]`; 1 → `[1]`; 0 → `[]` và state `.empty`; model với 7 item live → 3 trang.
+- XCUITest (`TSPodcastUITests`, helper mới trong `TSPodcastUITestCase`: `launchMain`, `tabButton`, `dragHomeUp` (kéo chậm, không fling, để không bỏ sót view lazy), `isVisibleInHome` (chỉ tính vùng giữa navigation bar và tab bar), `scrollHome(to:)`, `scrollHomeToBottom` (footer phải còn thấy sau 0,5 s), `waitForSectionContent`, `waitForValue`):
+  - `MainShellUITests`: `testThreeTabsInOrderHomeSelected` (đúng 3 nút theo `minX`: "Yêu thích", "Khám phá", "Tìm kiếm"; Khám phá `isSelected`; navigation bar "Khám phá"; không element nào chứa "Radio" trong tab bar và navigation bar. Không quét cả màn vì tiêu đề podcast thật có chữ "RADIO NÔNG DÂN"), `testFavouriteEmptyStateDiscoverMore`, `testEachTabKeepsItsNavigationStack`, `testMiniPlayerSlotSitsAboveTabBar` (cả 3 tab, `slot.maxY <= tabBar.minY + 1`, screenshot mỗi tab), `testNoMiniPlayerWhenNothingPlays`.
+  - `HomeUITests`: `testSectionsRenderInAndroidOrder` (header đúng chữ và thứ tự, header sau nằm dưới header trước; trong 30 s mỗi section có `.item.0` hoặc `.empty`, không còn `.loading`; trending/music/forYou có item; screenshot từng section), `testAttributionFooterIsLast`, `testTapTrendingOpensDetailStub`, `testPullToRefreshReloads` (`generation=1` → kéo xuống → `generation=2`, trending/music/forYou vẫn có item).
+  - `HomeErrorUITests`: `testUnreachableApiShowsErrorAndRetryPerSection` (env `TSP_UITEST_BASE_URL=https://nonexistent.invalid/api/1.0/`; 5 section có "Không tải được nội dung" + "Tải lại"; footer vẫn hiện; bấm `home.section.live.retry` → live lỗi lại, app vẫn `runningForeground`), `testLoadingPlaceholdersShown` (trending/music `.loading` trong 2 s, live/recent/forYou `.loading` khi cuộn tới; sau đó `generation=1` và không còn element `.loading` nào).
+  - `LocalizationUITests.testEnglishLocale` (M1-AC8): tab "Favorites", "Discover", "Search"; navigation bar "Discover"; header "Trending podcasts"; footer "Podcast data provided by Podcast Index".
+
+Kết quả tự kiểm (`OUT` = scratch dir `…/scratchpad/ios`, không commit; `SIM` = NovaTest iPhone 17, iOS 26.3):
+
+```bash
+cd iosApp && xcodegen generate                                      # chạy lại không đổi gì
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcast -destination "id=$SIM" \
+  -derivedDataPath $OUT/DD-m1 -resultBundlePath $OUT/M1-tests.xcresult
+#   ** TEST SUCCEEDED **; xcresulttool summary: 75 test, 75 passed, 0 failed, 0 skipped
+grep -rniE 'radio|vov|voh' iosApp/TSPodcast | wc -l                                  # 0
+grep -rn 'AllowExplicitContent\|allowExplicit' iosApp/TSPodcast | wc -l              # 0
+grep -rniE 'admob|applovin|GoogleMobileAds|ATTrackingManager|AppTrackingTransparency|FBSDK|FacebookCore|device_id|privacy_options' iosApp shared/src | wc -l   # 0
+xcodebuild … -derivedDataPath $OUT/DD-nocreds build PODCASTINDEX_API_KEY= PODCASTINDEX_API_SECRET=
+#   cài + launch -uitest-skip-onboarding: 5 section lỗi + "Tải lại", launchctl vẫn có tss.t.podcast,
+#   log: missing_credentials, home_section_failed section=<5 section> type=MissingCredentialsException, home_loaded generation=1
+xcodebuild … -configuration Release -derivedDataPath $OUT/DD-rel build            # ** BUILD SUCCEEDED **
+strings …/Release-iphonesimulator/TSPodcast.app/TSPodcast | grep -c -e "uitest-" -e "TSP_UITEST_BASE_URL"   # 0
+./gradlew :shared:allTests :app:assembleDebug                                     # BUILD SUCCESSFUL (sau khi sửa comment trong shared)
+```
+
+- Screenshot trong `$OUT`: `M1-AC16-home-light.png`, `M1-AC16-home-dark.png` (`simctl io` sau 20 s: title lớn "Khám phá", ảnh cover thật, chữ đọc được ở cả hai chế độ, tab bar 3 tab), `M1-AC17-missing-creds.png`. Attachment XCUITest chép ra `M1-T4-*.png`: `main-three-tabs`, `favourite-empty`, `miniplayer-slot-{Yêu_thích,Khám_phá,Tìm_kiếm}`, `home-stack-kept`, `home-section-{trending,music,live,recent,forYou}`, `home-footer`, `detail-stub`, `home-after-refresh`, `home-errors-{top,bottom}`, `home-live-retried`, `home-loading`, `home-loading-lower`, `home-en`.
+
+Giới hạn đã biết:
+
+- Nhánh iOS 17–18 (`safeAreaInset`) và iOS 26.0 (gắn accessory có điều kiện) của `MiniPlayerSlot` có compile nhưng **chưa chạy**: máy chỉ có runtime iOS 26.3. Cần chạy lại `MainShellUITests` trên simulator iOS 17/18 khi có runtime.
+- UI test Home gọi PodcastIndex thật. Nếu API trả rỗng cho trending/music/forYou hoặc mạng chậm hơn 30 s thì `HomeUITests` fail dù app đúng.
+- Kiểm "không có Radio" ở UI test chỉ quét tab bar và navigation bar; nội dung podcast từ API có thể chứa chữ "Radio". Code thì đã sạch (`grep` = 0).
+- Tap Live chỉ ghi log; Detail mới là stub; tab Tìm kiếm rỗng; Yêu thích luôn rỗng (đúng phạm vi M1 §2).
+- Home không gửi analytics màn hình, giống Android (Android chỉ track Onboarding).
+- Sau refresh lỗi, section giữ dữ liệu cũ và không báo lỗi (người dùng có thể kéo lại).
