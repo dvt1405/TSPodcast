@@ -20,3 +20,14 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
 
 - **Search gửi ít tham số hơn Android:** E7/E8 không gửi `pretty=false`, E8 không gửi `aponly=false`; E11 không retry `SerializationException`. PO M0 đánh giá không đổi dữ liệu trả về (progress.md, M0 T2).
 - **Kotlin giữ 2.2.0, không dùng SKIE**, tích hợp framework bằng cách A (`embedAndSignAppleFrameworkForXcode`). Hệ quả: mỗi lần build Xcode đều chạy lại bước Gradle, build tăng dần chậm hơn (M0 review).
+- **(M1) D6 chỉ lọc được một phần trên Home.**
+  - Vì sao: E1 `podcasts/trending` và E5 `recent/feeds` không trả field `explicit`, nên chỉ lọc được Live (E2) và Kho nhạc (E6). Gọi E11 cho từng feed để biết cờ explicit thì quá tốn quota.
+  - Đã làm: lọc explicit sau blacklist khi cờ `AllowExplicitContent` (mặc định `false`) chưa bật. Chưa có toggle vì chưa có màn Settings.
+  - File: `docs/ios/milestones/M1.md` §4.2, §7.
+- **(M1) Nhãn tab và nút onboarding được localize.** Dùng "Yêu thích / Khám phá / Tìm kiếm" (en: "Favorites / Discover / Search") và "Tiếp tục" (en: "Continue"), thay vì chuỗi tiếng Anh hardcode của Android ("Favorite / TSPodcast / Search", "Continue"). File: `docs/ios/milestones/M1.md` §3, §4.5.
+- **(M1) Ảnh cover `http://`.**
+  - Đã làm: nâng lên `https://`, lỗi thì hiện placeholder; không bật `NSAllowsArbitraryLoads`.
+  - Owner cần quyết: nếu tỷ lệ lỗi đo ở M1 cao (> 10%) thì cần dựng image proxy HTTPS. Proxy là cloud resource nên agent không tạo.
+  - File: `docs/ios/milestones/M1.md` §4.4, số liệu trong `progress.md` mục M1.
+- **(M1) Analytics onboarding chỉ ghi log** (`onboarding_screen`, `OnboardingFinished`) cho tới khi có Firebase iOS app. Seam `AnalyticsTracker` nằm trong `shared`. File: `docs/ios/milestones/M1.md` §4.2–§4.3.
+- **(M1) XCUITest gọi PodcastIndex thật** bằng key dùng chung với Android, nên tốn quota của key này. Đây thêm một lý do để cấp key riêng cho iOS (mục ở phần trên).

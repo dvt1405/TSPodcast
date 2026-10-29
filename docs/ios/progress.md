@@ -8,7 +8,8 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 
 | ID | Tên | Kế hoạch | Trạng thái |
 |---|---|---|---|
-| M0 | Nền tảng: module `shared` KMP + project Xcode chạy được | [milestones/M0.md](milestones/M0.md) | Dev xong (T1–T4), chờ PO nghiệm thu |
+| M0 | Nền tảng: module `shared` KMP + project Xcode chạy được | [milestones/M0.md](milestones/M0.md) | Đã nghiệm thu (review round 1) |
+| M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đã có kế hoạch (T1–T5, M1-AC1..AC22), chờ dev |
 
 ## M0
 
@@ -290,3 +291,6 @@ Việc còn mở / giới hạn đã biết:
 - Màn debug sẽ bị thay bằng Home ở M1; chưa có localization (`Localizable.xcstrings`), AppIcon, ATS, background audio.
 - Ảnh cover chưa hiển thị (M0 chỉ cần tiêu đề).
 
+## M1
+
+Trạng thái: **PO đã viết kế hoạch** ([milestones/M1.md](milestones/M1.md)): 5 task (T1 shared: key-value store, start destination, cache đĩa E1/E9, `HomeFeed` + D6; T2 nền iOS: target unit/UI test, routing, String Catalog, ảnh/ATS, hook test; T3 Onboarding + chọn danh mục; T4 TabView + Home + tab Yêu thích/Tìm kiếm; T5 nghiệm thu nội bộ và tài liệu), 22 acceptance criteria. Các quyết định PO chọn thay owner ở §7 của kế hoạch đã được ghi vào [handoff.md](handoff.md).
