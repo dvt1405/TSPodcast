@@ -6,6 +6,7 @@ import kotlinx.serialization.json.Json
 import tss.t.shared.blacklist.BlacklistRepository
 import tss.t.shared.cache.InMemoryTtlCache
 import tss.t.shared.config.ConfigAPI
+import tss.t.shared.detail.PodcastDetailFeed
 import tss.t.shared.home.HomeFeed
 import tss.t.shared.model.CategoryRes
 import tss.t.shared.model.EpisodeResponse
@@ -21,6 +22,7 @@ import tss.t.shared.preferences.AppPreferences
 import tss.t.shared.preferences.DataStoreKeyValueStore
 import tss.t.shared.preferences.FavouriteCategories
 import tss.t.shared.preferences.KeyValueStore
+import tss.t.shared.search.SearchFeed
 import tss.t.shared.usecase.GetCategories
 import tss.t.shared.usecase.GetEpisodeByFeedId
 import tss.t.shared.usecase.GetLiveEpisodes
@@ -96,6 +98,22 @@ class SharedGraph(
         getMusicFeeds = getMusicFeeds,
         getLiveEpisodes = getLiveEpisodes,
         getRecentFeeds = getRecentFeeds,
+        preferences = appPreferences,
+        clock = clock,
+    )
+
+    /** Podcast detail: E10 ‖ E11, E10 decides, D6 (M2 §4.1). */
+    val podcastDetailFeed = PodcastDetailFeed(
+        getEpisodeByFeedId = getEpisodeByFeedId,
+        getPodcastByFeedID = getPodcastByFeedID,
+        preferences = appPreferences,
+    )
+
+    /** Search tab: E7/E8 with D6, and trending per category (M2 §4.1). */
+    val searchFeed = SearchFeed(
+        searchPodcasts = searchPodcasts,
+        searchMusicFeeds = searchMusicFeeds,
+        getTrendingPodcasts = getTrendingPodcasts,
         preferences = appPreferences,
         clock = clock,
     )
