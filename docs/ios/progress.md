@@ -10,7 +10,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 |---|---|---|---|
 | M0 | Nền tảng: module `shared` KMP + project Xcode chạy được | [milestones/M0.md](milestones/M0.md) | Đã nghiệm thu (review round 1) |
 | M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đã nghiệm thu (review round 1) |
-| M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đang làm: T1 (shared), T2 (Detail + seam phát nhạc) xong; T3–T4 chưa làm |
+| M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đang làm: T1 (shared), T2 (Detail + seam phát nhạc), T3 (Search) xong; T4 chưa làm |
 
 ## M0
 
@@ -783,3 +783,57 @@ Giới hạn đã biết của T2:
 - Zoom transition chỉ chạy được trên iOS 26.3 (runtime duy nhất trên máy); nhánh iOS 17 (push mặc định) mới compile, chưa chạy (cùng lý do với bullet MiniPlayer trong handoff).
 - Header dùng `padding(.top, -400)` cho nền blur để phủ cả vùng navigation bar và khi kéo quá đầu trang; khi kéo xuống rất mạnh (> 400 pt) sẽ lộ nền trống phía trên.
 
+### T3 — iOS: Search, chip chế độ, chip danh mục, Search → Detail (xong)
+
+Thoả M2-AC10, M2-AC11, M2-AC12, M2-AC13, M2-AC14, M2-AC15 (và phần `SearchRootView` của M2-AC5).
+
+Đã làm (`iosApp/TSPodcast/Search/`, `SearchRootView` đã xoá):
+
+- `SearchDataSource.swift`: `enum SearchScope { all, music }` (đặt tên khác `SearchMode` của Kotlin), `SearchResultItem` (`subtitle` = "author · tối đa 3 danh mục", `imageURL` = `feed.image` rồi `artwork`, `summary` plain text, `route: PodcastRoute`), `SearchLoadError`, `protocol SearchDataSource` (`search(query:scope:)`, `categoryPodcasts(categoryId:)`).
+- `SharedSearchDataSource.swift`: adapter `SearchFeed`; hook `-uitest-slow-network` (10 s như Home/Detail, chỉ Debug qua `LaunchOptions`). Route Detail đi qua `Podcast.fromFeed` của shared (cover = `feed.artwork`, rồi `feed.image`), giống `HomeNavigationScreen`. Log `search_loaded mode= length= count=` / `search_failed mode= type=` / `category_podcasts_*` ở category `M2`, **không** log query thô.
+- `SearchModel.swift` (`@MainActor @Observable`, `MainTabView` sở hữu qua `AppEnvironment.makeSearchModel()`): `queryChanged`, `submit`, `select(mode:)`, `retry`; `phase` `.idle/.loading/.results/.empty/.failed` kèm `shownQuery`/`shownMode` của kết quả đang hiện. Clock inject (`any Clock<Duration>`, mặc định `ContinuousClock`), debounce 200 ms.
+- `SearchView.swift`: `.searchable(placement: .navigationBarDrawer(displayMode: .always), prompt: "Tìm podcast, nghệ sĩ")` + `.onSubmit(of: .search)`; hàng chip "Tất cả"/"Nhạc" tự vẽ, cố định phía trên vùng cuộn, chip chọn có trait `.isSelected`; idle: "Thử tìm kiếm: Podcast hay", "Danh mục" + chip E9 (`FlowLayout`, từ `CategoryCatalog`); loading (`ProgressView`), kết quả (header "Kết quả hàng đầu cho: %@"/"Nhạc cho: %@" + `SearchResultRow`), rỗng (ảnh `ic_empty_search` + "Không có kết quả cho: **q**" + gợi ý Nhạc), lỗi (`LoadErrorMessage`: "Không tải được nội dung" + "Tải lại"). `navigationDestination` cho `PodcastRoute` (dùng lại `PodcastDetailDestination` của T2, push thường, không zoom) và `CategoryPodcastsRoute`.
+- `SearchResultRow.swift`: ảnh 70 pt bo 8, tiêu đề, dòng phụ, mô tả 3 dòng; dùng cho cả kết quả tìm kiếm và màn danh mục.
+- `CategoryPodcastsModel.swift` / `CategoryPodcastsView.swift`: E1 theo danh mục qua `SearchFeed.categoryPodcasts`, title = tên danh mục (inline), loading (8 dòng shimmer) / loaded / rỗng ("Chưa có nội dung" + "Tải lại") / lỗi + "Tải lại", tải một lần mỗi màn, token bỏ kết quả cũ; tap → Detail trên stack Search.
+- `MainTabView`: `@State searchModel`, `@State searchPath = NavigationPath()` (hai kiểu route). `RootView` truyền `makeSearchModel()`. `AppEnvironment` giữ một `searchDataSource` cho cả process.
+- Ảnh `ic_empty_search`: vector XML Android (7 `path`, chỉ `fillColor`) chuyển sang SVG bằng script một lần, `preserves-vector-representation`; `sharedResources` không đổi.
+- Chuỗi §4.8 phần Search (vi + en): `search.prompt`, `search.mode.all/music`, `search.suggestion %@` + `search.suggestion.keyword`, `search.categories`, `search.results.all/music %@`, `search.empty %@`, `search.empty.musicHint`, `search.loading` (nhãn VoiceOver). `LocalizationTests` kiểm cả hai ngôn ngữ.
+- `String.trimmedNonBlank` chuyển thành extension internal (trước là private trong adapter Detail) để Search dùng chung.
+
+Quyết định:
+
+| Hạng mục | Chọn | Lý do |
+|---|---|---|
+| Debounce | `Task` ngủ `debounce` trên clock inject, huỷ ở mỗi lần gõ; test dùng `TestClock` (clock thủ công, sleeper bị huỷ ném `CancellationError`) | Unit test không phụ thuộc thời gian thật; giống `debounce(200)` + `collectLatest` |
+| Không gửi trùng | Giữ cặp (query đã trim, mode) của request đang chạy hoặc đang hiện; lỗi và idle xoá cặp này | Đúng §3.2/§4.3; sau lỗi người dùng Return lại vẫn gửi được, "Tải lại" luôn gửi lại đúng cặp lỗi |
+| Loading | Mỗi request mới chuyển `phase = .loading` (kết quả cũ biến mất) | Header luôn khớp kết quả đang hiện; tránh header "Nhạc cho" trên list của "Tất cả" |
+| Xoá query | Về `.idle` ngay (không chờ debounce), huỷ request đang chạy | Android hiện gợi ý ngay khi ô rỗng |
+| Chip chế độ | Hàng chip tự vẽ, cố định giữa ô tìm kiếm và vùng cuộn | `.searchScopes` chỉ hiện khi ô tìm kiếm active; Android luôn hiện chip ở trên list |
+| Dòng phụ khi < 3 danh mục | Không có " · " thừa ở cuối; author rỗng thì bỏ | Android để thừa dấu " · " khi thiếu danh mục (lỗi nhỏ, không chép) |
+| Thứ tự danh mục | Sắp theo id số | Dictionary Kotlin → Swift mất thứ tự; id tăng dần là thứ tự API gửi |
+| Dòng kết quả trong XCUITest | `NavigationLink` + `.accessibilityElement(children: .contain)`; test đọc `app.staticTexts["search.result.<i>.title"]` | SwiftUI chép id của Text đầu tiên lên nút gộp của link (nhãn = cả dòng), nên phải truy vấn đúng `StaticText` |
+| Bàn phím trong UI test | Gõ Return (`"\n"`) trước khi đổi tab hoặc chụp màn hình | Bàn phím che tab bar; Return không gửi lại cặp đã có kết quả |
+
+Kết quả tự kiểm:
+
+```bash
+SIM=4FB8953E-F948-4CF1-9DB3-EE4F79CEC480
+OUT=/private/tmp/claude-501/-Users-ts1258-Tun-AndroidStudioProjects-Podcast/0ab9c047-6c8f-4a69-a21f-5d5076696848/scratchpad/ios
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcast -destination "id=$SIM" \
+  -derivedDataPath $OUT/DD-m2 -resultBundlePath $OUT/M2-tests.xcresult      # ** TEST SUCCEEDED **: 160 test Passed, 0 fail, 0 skip (unit + toàn bộ XCUITest M1, M2 T2, M2 T3)
+```
+
+- Unit (mới): `SearchModelTests` 19, `CategoryPodcastsModelTests` 4, `SearchResultItemTests` 7; `LocalizationTests` thêm chuỗi Search. Kiểm ngược: tắt tạm kiểm token và kiểm trùng trong `SearchModel` → 5 test fail (stale, xoá khi đang chạy, gửi trùng ×2), rồi khôi phục.
+- XCUITest (mới): `SearchUITests` 10 test (`testIdleShowsSuggestionModesAndCategories`, `testClearingQueryReturnsToIdle`, `testTypingShowsTopResults`, `testMusicModeResearchesImmediately`, `testEmptyResultsAndMusicHint`, `testBlacklistedResultsHidden`, `testLoadingIndicatorShown`, `testCategoryOpensTrendingByCategory`, `testResultOpensDetailAndStatePersists`, `testSearchStatePersistsAcrossTabs`), `SearchErrorUITests` 2 test. Screenshot `M2-search-idle`, `M2-search-results`, `M2-search-music`, `M2-search-empty`, `M2-search-loading`, `M2-search-error`, `M2-search-detail`, `M2-category-arts`, `M2-category-error` đã xem bằng mắt: đúng mô tả AC11–AC14. "casino" ngày 30/10/2026: 8 tiêu đề hiện, không tiêu đề nào chứa từ khoá blacklist (attachment `M2-search-casino-titles`).
+- `grep -rn "PodcastDetailStubView\|SearchRootView" iosApp` → 0; `grep -rniE "radio|vov|voh" iosApp/TSPodcast` → 0; `grep -rn "AllowExplicitContent\|allowExplicit" iosApp/TSPodcast` → 0; 10 chuỗi vi của M2-AC16 đều có trong catalog, `missing_en 0`; `git status --porcelain sharedResources` rỗng; `cd iosApp && xcodegen generate` không đổi project sau commit.
+- Log sau suite: `xcrun simctl spawn $SIM log show --last 60m --predicate 'subsystem == "tss.t.podcast"'` → 0 dòng chứa "zzqxjvkwpt"/"vietnam" (chỉ có `length=`), 0 lần key/secret.
+- Release: `xcodebuild … -configuration Release … build` → `** BUILD SUCCEEDED **`; `strings … | grep -c -e "uitest-" -e "TSP_UITEST_BASE_URL" -e "playback.probe"` → 0.
+- Không đổi file nào ngoài `iosApp/` và `docs/ios/` (không chạy lại Gradle; shared không đổi từ T1).
+
+Giới hạn đã biết của T3:
+
+- UI test gọi API thật: mỗi lần chạy `SearchUITests` tốn khoảng 15–20 request (E7, E8, E9, E1 theo danh mục, E10/E11 của Detail). Số lượng kết quả có thể đổi theo ngày; test chỉ dựa vào kết quả có/không, không dựa vào số lượng.
+- `testBlacklistedResultsHidden` chép danh sách từ khoá `blacklist.json` vào test; nếu Remote Config thay blacklist thì phải cập nhật test (iOS M2 dùng `NoOpConfig` nên hiện chỉ có asset).
+- Danh mục chưa tải xong (hoặc `CategoryCatalog` trả rỗng khi bị huỷ) thì hiện spinner nhỏ dưới "Danh mục"; `.task` chạy lại khi quay về tab sẽ thử lại.
+- Gõ thêm chữ khi đang có kết quả: kết quả cũ vẫn hiện trong 200 ms debounce, rồi chuyển sang loading (không giữ kết quả cũ trong lúc tải).
+- Chỉ chạy trên iOS 26.3 (runtime duy nhất); giao diện iOS 17 của `.searchable` + chip chưa xem.
