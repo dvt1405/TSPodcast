@@ -10,7 +10,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 |---|---|---|---|
 | M0 | Nền tảng: module `shared` KMP + project Xcode chạy được | [milestones/M0.md](milestones/M0.md) | Đã nghiệm thu (review round 1) |
 | M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đã nghiệm thu (review round 1) |
-| M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đang làm: T1 xong (shared); T2–T4 chưa làm |
+| M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đang làm: T1 (shared), T2 (Detail + seam phát nhạc) xong; T3–T4 chưa làm |
 
 ## M0
 
@@ -731,3 +731,55 @@ git status --porcelain sharedResources  # rỗng
 - `SearchFeedTest`: path + mọi query param cho `All`/`Music`; trim; `""`/`"   "` × 2 chế độ → 0 request; blacklist theo id và từ khoá tiêu đề; explicit bị bỏ khi D6 bật, giữ khi tắt và không có `clean`; 500 → `Error` sau 1 request (cả hai chế độ); `categoryPodcasts(55)` với `now = 1_700_000_000` → `since=1699395200`, `cat=55`, không `notcat`, item blacklist bị bỏ; +14:59 → 0 request; store có `cachedTrending_55`; graph mới trên cùng store đọc từ đĩa (0 request); +15:01 → request mới; mỗi danh mục một entry; 500 → `Error`, không ghi đĩa.
 
 Giới hạn đã biết của T1: chưa có UI dùng hai API này (T2/T3); D6 cho E1 theo danh mục không lọc được gì vì API không trả `explicit` (đã có bullet D6 trong handoff).
+
+### T2 — iOS: Podcast detail, seam phát nhạc, Home → Detail (xong)
+
+Thoả M2-AC4, M2-AC5 (trừ phần `SearchRootView`, xem giới hạn), M2-AC6, M2-AC7, M2-AC8, M2-AC9.
+
+Đã làm:
+
+- `Playback/`: `PlaybackRequest(podcast, episodes, startIndex)`, `@MainActor protocol PlaybackController`, `LoggingPlaybackController` (`@Observable`, giữ `lastRequest`, log `Logger(category: "Playback")` dạng `playback_request feedId= episodeId= index= count=`, không có URL). `AppEnvironment.playback` là instance duy nhất (`any PlaybackController`), M3 thay bằng player thật.
+- `Detail/`:
+  - `PodcastRoute` (`feedId`, `title`, `summary`, `imageURL`, `transitionSourceID`): giá trị duy nhất cho `navigationDestination(for: PodcastRoute.self)`. `PodcastDetailDestination(route:)` dựng model từ `AppEnvironment`, T3 dùng lại cho stack Search.
+  - `EpisodeRow` (map từ Kotlin `Episode` trong adapter): `imageURL = getImageUrl()` (ảnh tập, rỗng thì `feedImage`), `referer = link` (rỗng → `nil`), `summary` qua `HtmlText.toPlainText`, `publishedAt` (`0` → `nil`), `durationSeconds`, `enclosureURL/Type` cho M3. `meta(locale:timeZone:)` = ngày · thời lượng.
+  - `DescriptionText.attributed(_:)`: `NSDataDetector(.link)` → `AttributedString` có `.link` + gạch chân (thay `linkify`).
+  - `PodcastDetailDataSource` + `SharedPodcastDetailDataSource` (adapter `PodcastDetailFeed`, log `detail_loaded`/`detail_failed type=` ở category `M2`). `AppEnvironment` giữ **một** adapter cho cả process nên `-uitest-fail-detail-once` đúng là "lần load đầu của process". Hook `-uitest-detail-empty`, `-uitest-detail-explicit`, `-uitest-slow-network` (10 s như Home); code hook nằm trong `#if DEBUG`.
+  - `PodcastDetailModel` (`@MainActor @Observable`): `.loading → .loaded/.empty/.explicitHidden/.failed`; lỗi bật `isShowingErrorAlert`; `dismissError()` giữ `.failed`; `retry()`; `loadIfNeeded()` chỉ tải một lần mỗi màn; `play(index:)` gửi cả list đang hiện + `startIndex`, không làm gì khi chưa `.loaded`; kết quả cũ về muộn bị bỏ (token).
+  - `PodcastDetailView`: header nền artwork blur (opacity 0.7, gradient về nền trang, chạy lên dưới navigation bar), cover 150 pt bo 20, tiêu đề đậm, mô tả đầy đủ có link; `navigationTitle` inline. Danh sách `LazyVStack`, divider gradient. Loading = 8 dòng shimmer (`detail.episodes.loading`). Alert "Rất tiếc!" + "Tải lại"/"Huỷ"; lỗi inline + "Tải lại"; empty "Chưa có tập nào"; thông báo explicit. `EpisodeRowView`: ảnh 60 pt có `Referer`, tiêu đề không giới hạn dòng, dòng ngày · thời lượng (`.meta`), mô tả 3 dòng.
+- `ArtworkLoader.image(for:referer:)` và `ArtworkImage(url:referer:…)`: gửi `Referer` khi có (cùng `User-Agent` M1), cache vẫn theo URL. `ArtworkImage` có thêm `accessibilityLabel` tuỳ chọn (cover của Detail là phần tử `detail.cover`; mặc định vẫn ẩn với VoiceOver).
+- Home: `NavigationLink(value: PodcastRoute)`; `homePath: [PodcastRoute]`; zoom transition qua `Design/ZoomTransition.swift` (`matchedTransitionSource` trên artwork của card/dòng forYou, `navigationTransition(.zoom)` trên Detail, cả hai trong `if #available(iOS 18.0, *)`, iOS 17 push mặc định). Id nguồn zoom là `<section>.<index>` vì một podcast có thể nằm ở hai section. `PodcastCard.imageURL` thêm fallback `feedImage` trước `artwork`. Xoá `PodcastDetailStubView`.
+- `MainTabView`: overlay `playback.probe` (chỉ Debug + `-uitest-playback-probe`).
+- Chuỗi §4.8 phần Detail (vi + en): `detail.error.title/message`, `action.cancel`, `detail.episodes.error/empty`, `detail.explicitHidden`, `detail.loading` (nhãn VoiceOver của shimmer). `LocalizationTests` kiểm cả hai ngôn ngữ.
+
+Quyết định:
+
+| Hạng mục | Chọn | Lý do |
+|---|---|---|
+| Chuỗi thời lượng (ghim trong `EpisodeRowTests`) | `Duration.UnitsFormatStyle` giờ + phút, `.abbreviated`; dưới 1 phút → 1 phút, còn lại làm tròn tới phút gần nhất | vi: `45` s → "1 phút", `2700` → "45 phút", `3900` → "1 giờ, 5 phút"; en: "1 min", "45 min", "1 hr, 5 min", `3600` → "1 hr" (không có "0 hr"/"0 phút"). Ngày: vi "30 thg 10, 2025", en "Oct 30, 2025" |
+| Dòng episode trong XCUITest | `Button` + `.accessibilityElement(children: .contain)` | Giữ trait nút cho cả dòng mà `detail.episode.<i>.title`/`.meta` vẫn truy cập được |
+| `detail.episodes` value `count=N` | Chỉ Debug | Giống `generation=` của Home, Release không có |
+| Hook explicit | Trả `isExplicitFeedHidden = true`, `hiddenExplicitCount = 3` | Số đếm chỉ dùng cho log |
+
+Kết quả tự kiểm:
+
+```bash
+SIM=4FB8953E-F948-4CF1-9DB3-EE4F79CEC480
+OUT=/private/tmp/claude-501/-Users-ts1258-Tun-AndroidStudioProjects-Podcast/0ab9c047-6c8f-4a69-a21f-5d5076696848/scratchpad/ios
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcast -destination "id=$SIM" \
+  -derivedDataPath $OUT/DD-m2 -resultBundlePath $OUT/M2-tests.xcresult      # ** TEST SUCCEEDED **: 118 test Passed, 0 fail, 0 skip (unit + toàn bộ XCUITest M1 và M2 T2)
+```
+
+- Unit (mới): `PodcastDetailModelTests` 11, `EpisodeRowTests` 12, `DescriptionTextTests` 4, `LoggingPlaybackControllerTests` 4, `ArtworkLoaderTests` +3 (12 tổng) — Passed.
+- XCUITest (mới/sửa): `PodcastDetailUITests` (7 test), `PodcastDetailErrorUITests` (2), `HomeUITests.testTapTrendingOpensDetail`, `MainShellUITests.testEachTabKeepsItsNavigationStack` — Passed. Screenshot `M2-detail`, `M2-detail-light`, `M2-detail-dark`, `M2-detail-loading`, `M2-detail-empty`, `M2-detail-explicit`, `M2-detail-error-alert`, `M2-detail-error-inline`, `M2-detail-playback-probe` đã xem: đúng mô tả AC6/AC7, không có "Lorem"/"Opps".
+- `grep -rn "navigationTransition(.zoom\|matchedTransitionSource" iosApp/TSPodcast` → 1 dòng mỗi lệnh (`Design/ZoomTransition.swift`, trong `#available(iOS 18.0, *)`); `grep -rniE "lorem|opps" iosApp/TSPodcast` → 0; `grep -rniE "radio|vov|voh" iosApp/TSPodcast` → 0.
+- Log `Playback` sau suite: `xcrun simctl spawn $SIM log show --last 30m --predicate 'subsystem == "tss.t.podcast" AND category == "Playback"' | grep -c playback_request` → 10, số dòng chứa `http` → 0 (ví dụ `playback_request feedId=7444596 episodeId=61817210846 index=1 count=61`).
+- Release: `xcodebuild … -configuration Release … build` → `** BUILD SUCCEEDED **`; `strings …/TSPodcast | grep -c -e "uitest-" -e "TSP_UITEST_BASE_URL" -e "playback.probe"` → 0. `cd iosApp && xcodegen generate` không đổi `project.pbxproj`.
+- Không đổi file nào ngoài `iosApp/` và `docs/ios/` (shared và Android giữ nguyên từ T1, nên không chạy lại Gradle).
+
+Giới hạn đã biết của T2:
+
+- **Trending #1 hiện là feed explicit.** Ngày 30/10/2026 `home.section.trending.item.0` là "RADIO NÔNG DÂN" (feed 4201720); E11 trả `explicit = true` nên D6 ẩn cả 100 tập và Detail hiện thông báo explicit (đúng §4.1/§7 mục 1). Vì vậy UI test cần danh sách tập dùng helper `openDetailWithEpisodes` (thử trending item 0, 1, 2… tới khi có tập); `testHomeTrendingOpensDetailWithEpisodes` và `testLoadingPlaceholdersShown` vẫn bấm item 0 trước (kiểm tiêu đề, cover, shimmer, không treo), rồi mới sang item kế nếu item 0 bị ẩn. `PodcastDetailErrorUITests` launch một lần không hook để tìm index có tập, rồi launch lại với `-uitest-fail-detail-once` và mở đúng index đó (mỗi test thêm ~10 s). Khác với chữ của AC5/AC7 ("bấm trending item 0") — ghi vào handoff để owner/PO biết hệ quả sản phẩm.
+- `grep -rn "PodcastDetailStubView\|SearchRootView" iosApp` chưa về 0: `PodcastDetailStubView` đã xoá, còn `SearchRootView` thuộc T3 (thay bằng `SearchView`).
+- Zoom transition chỉ chạy được trên iOS 26.3 (runtime duy nhất trên máy); nhánh iOS 17 (push mặc định) mới compile, chưa chạy (cùng lý do với bullet MiniPlayer trong handoff).
+- Header dùng `padding(.top, -400)` cho nền blur để phủ cả vùng navigation bar và khi kéo quá đầu trang; khi kéo xuống rất mạnh (> 400 pt) sẽ lộ nền trống phía trên.
+
