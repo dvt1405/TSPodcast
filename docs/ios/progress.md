@@ -9,7 +9,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | ID | Tên | Kế hoạch | Trạng thái |
 |---|---|---|---|
 | M0 | Nền tảng: module `shared` KMP + project Xcode chạy được | [milestones/M0.md](milestones/M0.md) | Đã nghiệm thu (review round 1) |
-| M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đang làm: T1, T2 xong; T3–T5 chưa |
+| M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đang làm: T1, T2, T3 xong; T4, T5 chưa |
 
 ## M0
 
@@ -426,6 +426,85 @@ Giới hạn đã biết / chuyển sang task sau:
 
 - `LocalizationUITests.testEnglishLocale` (M1-AC8) cần header Home và footer attribution, nên viết ở T4; bản en của catalog đã được `LocalizationTests` kiểm.
 - **E6 bỏ qua `max`:** `podcasts/bymedium?medium=music&max=40` trả về 8520 feed (đo 30/10/2026; Android cũng nhận cả danh sách và vẽ hết trong `LazyRow`). `HomeFeed.music()` hiện trả nguyên danh sách. T4 cần cắt còn 40 (ở `HomeFeed` của shared hoặc adapter `HomeDataSource`) trước khi vẽ section Kho nhạc, nếu không section này có hàng nghìn card. Số liệu ảnh ở trên tính 40 item đầu của Kho nhạc.
-- Màn Onboarding / chọn danh mục / tab hiện là khung cho routing; T3/T4 thay nội dung.
+- Màn Onboarding / chọn danh mục / tab hiện là khung cho routing; T3/T4 thay nội dung. (Onboarding và chọn danh mục: xong ở T3.)
 - Không chạy được trên simulator x86_64 (xem `EXCLUDED_ARCHS`).
 
+### T3 — Onboarding và chọn danh mục (xong)
+
+Thoả M1-AC11, M1-AC12, M1-AC13. Không đổi `shared` và Android (không cần chạy lại Gradle ngoài bước "Compile Kotlin" của Xcode).
+
+**Onboarding (`iosApp/TSPodcast/Onboarding/`):**
+
+- `OnboardingPage.swift`: 4 trang như `OnboardingViewModel.defaultItems`: `onboarding_slide_2/3/5/6`, nền `#EAF0E4`, gradient `#88BCCF→#C8EAEE`, gradient `#EF8C77→#EE8D78`, `#E0F8F8`. Android lặp màu (3 × trên, 2 × dưới), nên gradient iOS dùng stop 0 / 0,5 / 0,75 / 1 cho cùng vùng chuyển màu. Tiêu đề `#39375B`, cụm highlight `#184BB4`. Tiêu đề dựng bằng `AttributedString`: lấy tiêu đề + từng key highlight từ catalog, tô màu range tìm được. Cụm không có trong tiêu đề thì bỏ qua; Android khi đó tô sai range vì `indexOf == -1`. Màu nền và chữ của trang onboarding cố định ở cả Light/Dark (ảnh minh hoạ vẽ trên nền này).
+- `OnboardingModel.swift` (`@MainActor @Observable`):
+  - `pageDidChange(to:)` gọi `trackScreen("Onboarding", ["CurrentPage": page + 1])`. Mỗi lần đổi trang ghi một lần, kể cả trang đầu lúc pager hiện (giống `snapshotFlow` của Android); cùng trang lặp lại liên tiếp thì không ghi.
+  - `finish()` lưu `OnboardingFinished = true` qua `AppPreferences.saveOnboardingFinished` của shared **rồi** `trackEvent("OnboardingFinished", "Onboarding")`. Bấm lần hai trong lúc đang lưu thì không làm gì, nên mỗi lần bấm có đúng một event. Lưu lỗi (chỉ khi bị huỷ) thì ở lại màn, không track.
+- `OnboardingView.swift`:
+  - `TabView(.page(indexDisplayMode: .never))` phủ cả màn: `ignoresSafeArea` đặt trên cả `TabView` lẫn từng trang, nếu chỉ đặt ở container cha thì nền không tràn lên status bar.
+  - Dot indicator tự vẽ: 4 capsule màu Primary, dot hiện tại dài hơn (kiểu `ShiftIndicatorType`), ẩn với VoiceOver.
+  - Nút "Tiếp tục" (`GradientButtonStyle` dạng capsule = `TSRoundedButton`) chỉ có trong cây view khi ở trang cuối, trượt vào từ cạnh phải.
+  - Id: `onboarding.page.<0-3>`, `onboarding.continue`.
+  - `.task` gọi `categoryCatalog.prefetch()` (log `categories_prefetch`).
+
+**Chọn danh mục (`iosApp/TSPodcast/Categories/`):**
+
+- `CategoryCatalog.swift`:
+  - `CategoryItem` (struct Swift; view không giữ object Kotlin) và catalog E9 của process. Onboarding `prefetch()`, màn danh mục `await categories()` **cùng một** `Task`, nên E9 chỉ gửi một lần dù người dùng nhanh hơn mạng (unit test kiểm 1 request).
+  - Dùng `GetCategories.invoke(useCache: true)` của shared: mạng → memory → `CategoryRes` trên đĩa → `categories.json` bundled.
+  - Kết quả rỗng (chỉ xảy ra khi bị huỷ) không giữ lại, lần sau hỏi lại.
+- `CategorySelectionModel.swift`:
+  - State `.loading` / `.loaded([CategoryItem])`. Danh sách chọn giữ thứ tự bấm, cũng là thứ tự badge (như `listSelected` của Android).
+  - `canSave` khi số mục chọn ≥ `FavouriteCategories.companion.MIN_FAVOURITE_CATEGORIES` (3, lấy từ shared).
+  - `save()` gọi `FavouriteCategories.save` của shared, trả `true` thì `RootView` chuyển sang Main. Shared từ chối (< 3) hoặc lỗi thì ở lại màn và nút vẫn bấm được.
+- `CategorySelectionView.swift`:
+  - Header căn giữa: "Danh mục yêu thích của bạn" + "(Ít nhất 3 danh mục)".
+  - Lưới `LazyVGrid(.adaptive(minimum: 150), spacing: 16)` (2 cột trên iPhone 17). Ô vuông bo 20, viền 2 pt `Stroke`, icon 48 pt theo `CategoryIcon` (103 id, id lạ → `ic_anonymous`) và tên. Ô đã chọn có nền Primary 10 % như Android, thêm viền Primary 60 % cho dễ nhận ra (khác nhỏ, chỉ về hình). Có trait `.isSelected` cho VoiceOver.
+  - Đang tải: 20 ô shimmer (`Color.stroke` = `PlaceHolder` của Android).
+  - Thanh dưới (`safeAreaInset`, nền `.bar`): badge `Secondary` có nút "x" (label VoiceOver "Bỏ chọn <tên>", key mới `category.remove %@`, có en "Remove %@"), xếp bằng `Design/FlowLayout.swift` (tương đương `FlowRow`). Vùng badge cao tối đa ~3 dòng rồi cuộn; Android để `FlowRow` lớn dần và che lưới. Bên dưới là nút "Lưu và tiếp tục" (`GradientButtonStyle` bo 8 = `TSButton`).
+  - Id: `category.grid` (ScrollView), `category.cell.<id>`, `category.selected.<id>`, `category.selected.<id>.remove`, `category.save`.
+- `Design/GradientButtonStyle.swift`: gradient Primary → Secondary, chữ trắng, cao 50. Disabled dùng `#DDE1E6` / `#343A3F` như Android; ở Dark Mode dùng `systemGray5` / `secondaryLabel`, vì Android không có dark theme và màu sáng cố định bị chói.
+- `AppEnvironment` có thêm `categoryCatalog`, `makeOnboardingModel()`, `makeCategorySelectionModel()`. `RootView` truyền model vào màn, chuyển route khi `finish()`/`save()` trả `true`, tức là chỉ sau khi cờ đã ghi xong vào DataStore.
+
+**Test:**
+
+- Unit (`TSPodcastTests`):
+  - `OnboardingModelTests` (7): ảnh/nền 4 trang; tiêu đề vi + cụm highlight đúng như `strings.xml`; cụm thiếu bị bỏ qua; analytics `CurrentPage` 1..4, không lặp; nút chỉ ở trang cuối; lưu cờ trước rồi mới track, bấm 2 lần chỉ 1 event; lưu lỗi thì không track.
+  - `CategorySelectionModelTests` (9): loading → loaded; nút lưu ở 0/1/2/3 mục, bỏ badge thì tắt lại; thứ tự badge; lưu gửi đúng danh sách; < 3 thì không gọi shared; shared từ chối hoặc lỗi thì ở lại màn; catalog: prefetch + load = 1 request, kết quả rỗng thì hỏi lại.
+- XCUITest (`TSPodcastUITests`):
+  - Helper trong `TSPodcastUITestCase`:
+    - `waitForOnboardingPage` xác định trang đang hiện bằng `frame.minX ≈ 0`, vì pager giữ cả trang bên cạnh trong cây accessibility nên chỉ kiểm tồn tại là không đủ.
+    - `swipeToOnboardingPage` vuốt lại tối đa 3 lần nếu trang trước vẫn còn hiện. Lần chạy đầu, một cú vuốt gửi lúc màn đầu còn đang fade-in bị bỏ qua; helper không bao giờ vuốt quá trang đích.
+    - `finishOnboarding`, `categoryCell` (chờ 30 s cho E9 thật).
+  - `OnboardingUITests`:
+    - `testPagesAndContinueOnlyOnLastPage`: đi qua 4 trang, mỗi trang kiểm đúng tiêu đề; trang 0–2 không có `onboarding.continue`; trang 3 có "Tiếp tục"; bấm thì thấy `category.grid` + tiêu đề/mô tả. Attach screenshot 4 trang.
+    - `testSwipingBackHidesContinue`: vuốt lùi từ trang 3 thì nút biến mất.
+    - `testRelaunchAfterOnboardingOpensCategorySelection`.
+  - `CategorySelectionUITests`:
+    - `testSaveEnabledFromThreeCategories`: `category.cell.1` = "Arts"; nút lưu tắt ở 0/1/2 mục, bật ở 3; bấm `category.selected.2.remove` thì tắt và ô 2 hết `isSelected`; chọn lại → lưu → `home.root`, tab "Khám phá" được chọn.
+    - `testFallsBackToBundledCategoriesWhenApiUnreachable`: env `TSP_UITEST_BASE_URL=https://nonexistent.invalid/api/1.0/`; thấy `category.cell.1` "Arts", `category.cell.3` "Design", không có alert.
+    - `testRelaunchGoesStraightToHome`: terminate rồi launch không hook thì thấy `home.root` trong 10 s, không có onboarding hay lưới.
+
+Kết quả tự kiểm (`OUT` = scratch dir `…/scratchpad/ios`, không commit; `SIM` = NovaTest iPhone 17):
+
+```bash
+cd iosApp && xcodegen generate                                      # project nhận file mới; chạy lại không đổi gì
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcast -destination "id=$SIM" \
+  -derivedDataPath $OUT/DD-m1 -resultBundlePath $OUT/M1-T3-tests.xcresult
+#   ** TEST SUCCEEDED **; xcresulttool summary: 47 test, 47 passed, 0 failed, 0 skipped
+xcodebuild test-without-building … -only-testing:TSPodcastUITests/OnboardingUITests/testPagesAndContinueOnlyOnLastPage
+xcrun simctl spawn $SIM log show --start "<lúc bắt đầu test>" --predicate 'subsystem == "tss.t.podcast" AND category == "Analytics"'
+#   analytics screen=Onboarding CurrentPage=1 / =2 / =3 / =4, analytics event=OnboardingFinished screen=Onboarding (đúng 1 dòng); 0 dòng device_id
+ls iosApp/TSPodcast/Resources/Assets.xcassets | grep -c onboarding_slide          # 4
+grep -rniE "radio|vov|voh" iosApp/TSPodcast | wc -l                               # 0
+xcodebuild … -configuration Release -derivedDataPath $OUT/DD-rel build            # ** BUILD SUCCEEDED **
+strings …/Release-iphonesimulator/TSPodcast.app/TSPodcast | grep -c -e "uitest-" -e "TSP_UITEST_BASE_URL"   # 0
+```
+
+- Screenshot (attachment XCUITest, chép ra `$OUT`): `M1-T3-onboarding-page-{0,1,2,3}.png` (nền/gradient Android tràn cả status bar, cụm highlight xanh, dot ở đáy, "Tiếp tục" chỉ ở trang 3), `M1-T3-categories-none-selected.png`, `M1-T3-categories-three-selected.png` (3 ô nền Primary 10 %, 3 badge, nút bật), `M1-T3-categories-bundled-fallback.png`, `M1-T3-categories-saved-home.png`, `M1-T3-relaunch-home.png`, `M1-T3-relaunch-after-onboarding.png`. Thêm bằng `simctl io`: `M1-T3-categories-dark-simctl.png` (Dark Mode), `M1-T3-onboarding-en-dark-simctl.png` (en: "Discover **Your** Favourite **Podcasts**"). Log analytics: `M1-T3-AC11-analytics.log`.
+
+Giới hạn đã biết:
+
+- Tên danh mục giữ tiếng Anh từ API (đúng M1 §4.5; dịch là [iOS+]).
+- Màn danh mục không có analytics, giống Android (Android không gọi `trackScreen` ở `SelectFavouriteCategoryScreen`).
+- Nếu E9 lỗi mạng ngay lúc onboarding, catalog giữ kết quả fallback (đĩa/bundled) suốt process; Android cũng chỉ tải một lần trong ViewModel. Mở lại app thì gọi mạng lại.
+- `home.root` ở các test trên vẫn là khung tab của T2; T4 thay nội dung. Test tìm `home.root` theo identifier với mọi loại element, nên không phụ thuộc kiểu view.

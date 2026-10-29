@@ -30,5 +30,5 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
   - Số liệu M1 T2 (30/10/2026): một lần tải Home có 179 URL ảnh khác nhau, 0 % `http://`, 0 lỗi; trên mẫu 269 ảnh có cả 17 URL `http://` của Kho nhạc, lỗi 1,9 % (1/17 ảnh `http://` lỗi sau khi nâng lên https). Dưới ngưỡng 10 %, nên **chưa cần** image proxy.
   - Owner cần quyết chỉ khi tỷ lệ lỗi về sau vượt 10 %: dựng image proxy HTTPS (cloud resource, agent không tạo).
   - File: `docs/ios/milestones/M1.md` §4.4, `iosApp/TSPodcast/Images/ArtworkLoader.swift`, số liệu trong `progress.md` mục M1 T2.
-- **(M1) Analytics onboarding chỉ ghi log** (`onboarding_screen`, `OnboardingFinished`) cho tới khi có Firebase iOS app. Seam `AnalyticsTracker` nằm trong `shared`. File: `docs/ios/milestones/M1.md` §4.2–§4.3.
+- **(M1) Analytics onboarding chỉ ghi log** (`trackScreen("Onboarding", CurrentPage=1..4)` và event `OnboardingFinished`, cùng tên với Android) cho tới khi có Firebase iOS app. Seam `AnalyticsTracker` nằm trong `shared`; khi có Firebase chỉ cần thay `LogAnalyticsTracker`. File: `docs/ios/milestones/M1.md` §4.2–§4.3, `iosApp/TSPodcast/App/LogAnalyticsTracker.swift`, `iosApp/TSPodcast/Onboarding/OnboardingModel.swift`.
 - **(M1) XCUITest gọi PodcastIndex thật** bằng key dùng chung với Android, nên tốn quota của key này. Đây thêm một lý do để cấp key riêng cho iOS (mục ở phần trên).
