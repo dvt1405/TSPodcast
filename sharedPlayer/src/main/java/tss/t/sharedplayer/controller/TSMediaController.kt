@@ -34,7 +34,10 @@ class TSMediaController @Inject constructor(
         get() = _sessionController
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-        if (activity.getLocalClassName() == "MainActivity") {
+        // Not getLocalClassName(): it only drops the package prefix when the
+        // class lives under the applicationId, so any applicationIdSuffix build
+        // got "tss.t.podcast.MainActivity" here and never built a controller.
+        if (activity.javaClass.simpleName == "MainActivity") {
             coroutineScope.launch {
                 if (sessionToken != null) return@launch
                 val token = SessionToken(

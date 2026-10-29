@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+        Android 12+ system splash screen. The app has no core-splashscreen dependency,
+        so the platform attributes are set directly on the launcher activity's theme.
+        Keep the parent in sync with values/themes.xml.
+    -->
+    <style name="Theme.Podcast" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowSplashScreenBackground">@color/ts_splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_icon</item>
+    </style>
+</resources>
