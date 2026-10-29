@@ -8,11 +8,51 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 
 | ID | Tên | Kế hoạch | Trạng thái |
 |---|---|---|---|
-| M0 | Nền tảng: module `shared` KMP + project Xcode chạy được | [milestones/M0.md](milestones/M0.md) | Đang làm (T1, T2, T3 xong) |
+| M0 | Nền tảng: module `shared` KMP + project Xcode chạy được | [milestones/M0.md](milestones/M0.md) | Dev xong (T1–T4), chờ PO nghiệm thu |
 
 ## M0
 
-Trạng thái: đang làm. T1, T2, T3 xong; T4 chưa làm.
+Trạng thái: **developer đã làm xong T1–T4**, M0-AC1..AC15 đã tự kiểm (chi tiết ở từng task bên dưới), chờ PO nghiệm thu.
+
+### Tóm tắt M0 (M0-AC15)
+
+| Hạng mục | Quyết định | Lý do / chi tiết |
+|---|---|---|
+| Kotlin | `2.2.0` (KSP `2.2.0-2.0.2`), không đổi | Kotlin/Native 2.2.0 build, link framework và chạy test trên simulator với Xcode 26.3. Cảnh báo "Xcode chưa được test" tắt bằng `kotlin.apple.xcodeCompatibility.nowarn=true` trong `shared/gradle.properties` (T1). |
+| Target Android của `shared` | Plugin `com.android.kotlin.multiplatform.library` (AGP 8.13.2) | Không cần fallback `androidTarget()` + `com.android.library` (T1). |
+| SKIE | Không dùng | Swift gọi `suspend fun` qua bridge `async` có sẵn của Kotlin/Native (completion handler → `async throws`); M0 không cần Flow/sealed class phía Swift. Cân nhắc lại ở M1 khi có state stream. |
+| Tích hợp framework | **Cách A — direct integration** (`./gradlew :shared:embedAndSignAppleFrameworkForXcode` trong Build Phase "Compile Kotlin" chạy trước "Compile Sources") | Monorepo, máy dev có JDK 17/21, Xcode build một lần là có cả Kotlin lẫn Swift; không có bước sinh XCFramework thủ công (cách B) và không phải publish ra dịch vụ ngoài (cách C, KMMBridge). Framework static nên không phải embed. |
+| Composition root | `SharedGraph` viết tay, không Koin | M0 §3.6 (T3). |
+| Thay đổi ngoài `shared/`, `iosApp/`, `docs/ios/` | `settings.gradle.kts` (`include(":shared")`), `gradle/libs.versions.toml` (thêm entry), `.gitignore`, và **2 dòng `apply false`** trong `build.gradle.kts` gốc | Dòng `apply false` là ngoại lệ được phép: thiếu chúng Gradle báo "plugin is already on the classpath with an unknown version" (T1). Không module Android nào phụ thuộc `:shared`. |
+
+Chạy mọi thứ (từ gốc repo):
+
+```bash
+# Test + framework của shared
+./gradlew :shared:allTests                                  # iosSimulatorArm64Test + testAndroidHostTest
+./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
+
+# Android vẫn build như cũ
+./gradlew :app:assembleDebug
+
+# App iOS: tạo secrets cục bộ (gitignored) rồi sinh project, build, chạy
+cp iosApp/Config/Secrets.example.xcconfig iosApp/Config/Secrets.xcconfig   # điền 4 key PODCASTINDEX_*
+(cd iosApp && xcodegen generate)                            # chỉ khi sửa project.yml
+SIM=4FB8953E-F948-4CF1-9DB3-EE4F79CEC480                    # "NovaTest iPhone 17"
+xcodebuild -project iosApp/iosApp.xcodeproj -scheme TSPodcast -configuration Debug \
+  -destination "id=$SIM" -derivedDataPath build/ios-dd build
+xcrun simctl boot $SIM; xcrun simctl install $SIM build/ios-dd/Build/Products/Debug-iphonesimulator/TSPodcast.app
+xcrun simctl launch $SIM tss.t.podcast
+xcrun simctl spawn $SIM log show --last 2m --predicate 'subsystem == "tss.t.podcast"'
+```
+
+Hoặc mở `iosApp/iosApp.xcodeproj` bằng Xcode, chọn scheme `TSPodcast` và Run. (`build/` ở gốc đã nằm trong `.gitignore`.)
+
+Việc còn mở cho owner (agent không được tạo cloud resource):
+
+- **Firebase iOS app** (bundle `tss.t.podcast`) trong project Firebase debug/release và file `GoogleService-Info.plist` (setup-and-build §4). Chưa có thì chưa có Remote Config (blacklist dùng asset), Analytics, Crashlytics, FCM trên iOS.
+- **Key PodcastIndex riêng cho iOS** (architecture §5 mục 3): hiện `Secrets.xcconfig` dùng chung key/secret với Android (chép từ `securedtoken.cpp`). Nên cấp key riêng để thu hồi độc lập và tách quota.
+- Apple Developer Team / signing: project để `DEVELOPMENT_TEAM` trống, chỉ build cho simulator. Cần team trước khi chạy trên máy thật hoặc archive.
 
 ### T1 — Module `:shared` và toolchain (xong)
 
@@ -194,4 +234,59 @@ Việc còn mở:
 - Cache đĩa của trending (`cachedTrending*`) và `CategoryRes` thuộc milestone persistence; hiện cache chỉ sống trong process.
 - `ConfigAPI` chỉ có `getString`. `getBoolean`/`getLong` thêm khi có feature flag cần đến.
 
-<!-- Developer điền khi làm M0, theo M0-AC15: Kotlin version và lý do, plugin target Android, SKIE, cách tích hợp framework và lý do, thay đổi ngoài danh sách được phép, lệnh test/build/chạy app, việc còn mở cho owner. -->
+### T4 — Project Xcode, tích hợp framework, màn debug trending (xong)
+
+Thoả M0-AC12, M0-AC13, M0-AC14, M0-AC15; chạy lại M0-AC3.
+
+Đã làm:
+
+- `iosApp/project.yml` (XcodeGen 2.46.0) → `iosApp/iosApp.xcodeproj` (commit cả hai; sinh lại cho kết quả giống hệt). Target + scheme `TSPodcast`, `PRODUCT_BUNDLE_IDENTIFIER = tss.t.podcast`, `IPHONEOS_DEPLOYMENT_TARGET = 17.0`, `SWIFT_VERSION = 6.0`, `TARGETED_DEVICE_FAMILY = 1`, `ENABLE_USER_SCRIPT_SANDBOXING = NO`, `MARKETING_VERSION = 1.0.0`, `CURRENT_PROJECT_VERSION = 1`, `DEBUG_INFORMATION_FORMAT = dwarf-with-dsym`. Các key này đặt ở **tầng target**: preset của XcodeGen cho app iOS ghi `TARGETED_DEVICE_FAMILY = "1,2"` ở target, nên đặt ở tầng project sẽ bị ghi đè (đã gặp và sửa).
+- Build Phase "Compile Kotlin" (pre-build, luôn chạy) gọi `iosApp/scripts/compile-kotlin.sh`: `cd "$SRCROOT/.." && ./gradlew :shared:embedAndSignAppleFrameworkForXcode`. Script tự lấy `JAVA_HOME` từ `/usr/libexec/java_home` khi Xcode mở từ Finder (không kế thừa biến môi trường của shell), và tôn trọng `OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED=YES`. `FRAMEWORK_SEARCH_PATHS = $(inherited) $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)`, `OTHER_LDFLAGS = $(inherited) -framework Shared`.
+- `iosApp/Config/`: `Shared.xcconfig` (4 key `PODCASTINDEX_*` mặc định rỗng), `Debug.xcconfig` / `Release.xcconfig` (`#include "Shared.xcconfig"` + `#include? "Secrets.xcconfig"`), `Secrets.example.xcconfig` (commit, 4 key rỗng, ghi chú bẫy `//` và cách viết `https:/$()/`). `Secrets.xcconfig` thật được tạo cục bộ bằng script đọc `securedtoken.cpp` (chỉ in độ dài giá trị), nằm trong `.gitignore` (`git check-ignore -v` → `.gitignore:32`). Đã so khớp 4 giá trị trong `Info.plist` của app đã build với nguồn mà không in ra: cả 4 khớp, kể cả secret có ký tự `$` (không theo sau bởi `(`/`{` nên xcconfig không expand).
+- `iosApp/TSPodcast/Info.plist` viết tay (`GENERATE_INFOPLIST_FILE = NO`): `CFBundleDevelopmentRegion = vi`, `ITSAppUsesNonExemptEncryption = false`, `UILaunchScreen`, 4 key `PODCASTINDEX_*` = `$(PODCASTINDEX_*)`. Chưa có `UIBackgroundModes`/ATS (thuộc milestone player).
+- Swift (`iosApp/TSPodcast/`):
+  - `App/TSPodcastApp.swift`: tạo **một** `SharedGraph(credentials: BundleCredentialsProvider(), config: NoOpConfig())` và `TrendingDebugModel` giữ trong `@State`.
+  - `App/AppLog.swift`: `Logger(subsystem: "tss.t.podcast", category: "M0")`.
+  - `Config/BundleCredentialsProvider.swift`: `NSObject` + `CredentialsProvider` (protocol Kotlin), đọc 4 key từ `Bundle.main` một lần lúc init; giá trị không có, blank, hoặc còn `$(` → `""`, để `shared` trả `MissingCredentialsException` thay vì ký request bằng placeholder.
+  - `Config/NoOpConfig.swift`: `ConfigAPI` luôn trả `nil` (blacklist dùng asset) tới khi có Firebase Remote Config.
+  - `Debug/TrendingDebugModel.swift`: `@MainActor @Observable final class`, gọi `graph.getTrendingPodcasts.invoke(max: 100, since: now − 7 ngày (giây), lang: "vi", cat: nil, notcat: nil)` như section 1 của Home (features-spec §3.4). State `loading` / `loaded([Row])` / `missingCredentials` / `failed`. Map sang struct `Row` của Swift để View không giữ object Kotlin. Log `trending_loaded count=<N>`, `missing_credentials`, `trending_error type=<tên class Kotlin>`; không log header, URL hay credentials.
+  - `Debug/TrendingDebugView.swift`: `NavigationStack` title `Trending (debug)`; `ProgressView` khi tải; `List` với header `N podcasts`, mỗi dòng `title` + `author`; pull-to-refresh; lỗi dùng `ContentUnavailableView` + nút `Tải lại`; thiếu credentials hiện "Thiếu cấu hình PodcastIndex (Secrets.xcconfig)" kèm hướng dẫn chép file mẫu.
+- `shared`: thêm `val Throwable.typeName` (`util/Throwables.kt`, test `ThrowablesTest`). Lý do: exception Kotlin không được export (Ktor/Darwin) hiện trong Swift dưới tên `Shared_kobjcc1`; log cần tên thật (vd. `DarwinHttpRequestException`), và không dùng `message` vì có thể chứa URL.
+- Swift 6 language mode build sạch, không warning Swift (dùng `@preconcurrency import Shared`; `BundleCredentialsProvider` và `NoOpConfig` là `final` + chỉ có `let` nên khai báo `Sendable`).
+
+Quyết định:
+
+| Hạng mục | Chọn | Lý do |
+|---|---|---|
+| Info.plist | File viết tay, không generate | Cần 4 key `$(PODCASTINDEX_*)` ở file nguồn để kiểm bằng `PlistBuddy` (M0-AC13). |
+| Default rỗng trong `Shared.xcconfig` | Có | Khi chưa có `Secrets.xcconfig`, `Info.plist` nhận chuỗi rỗng (không phải `$(...)` lạ) và build không lỗi; app hiện màn thiếu cấu hình. |
+| Build phase | Luôn chạy (`basedOnDependencyAnalysis: false`) | Gradle tự quyết up-to-date; tránh cảnh báo "will be run during every build" vì không khai output. |
+| Hướng màn hình | Portrait + landscape trên iPhone | Android không khoá `screenOrientation`. |
+| `DEVELOPMENT_TEAM` | Trống | Chưa có team; chỉ build simulator ở M0. |
+| SKIE | Không | Xem tóm tắt M0. |
+
+Kết quả tự kiểm (screenshot và log trong scratch dir `…/scratchpad/ios/`, không commit):
+
+| AC | Lệnh | Kết quả |
+|---|---|---|
+| M0-AC12 | `cd iosApp && xcodegen generate && git status --porcelain .` | Không có dòng nào (sau khi commit) |
+| | `xcodebuild … -showBuildSettings` | `tss.t.podcast`, `17.0`, `6.0`, `1`, `NO` |
+| | Build sạch `-derivedDataPath $OUT/DD` | `** BUILD SUCCEEDED **`; `embedAndSignAppleFrameworkForXcode` xuất hiện 1 lần trong log |
+| | `git ls-files \| grep -E '(^\|/)(build\|DerivedData\|xcuserdata)/\|\.xcframework\|\.konan'` | 0 dòng |
+| M0-AC13 | `git check-ignore -v iosApp/Config/Secrets.xcconfig` | `.gitignore:32:iosApp/Config/Secrets.xcconfig` |
+| | `git ls-files iosApp/Config` | `Debug.xcconfig`, `Release.xcconfig`, `Secrets.example.xcconfig`, `Shared.xcconfig` (không có `Secrets.xcconfig`) |
+| | `grep -cE '^PODCASTINDEX_…' Secrets.example.xcconfig` | `4`, giá trị đều rỗng |
+| | `PlistBuddy` trên `Info.plist` nguồn | 4 key = `$(PODCASTINDEX_…)` |
+| | Đếm API key / secret trong `git log main..HEAD -p` | `0` và `0` |
+| M0-AC14 | Cài `$OUT/DD/…/TSPodcast.app`, launch | Sau ~1 s: title `Trending (debug)`, `99 podcasts`, các dòng có tiêu đề + tác giả (`M0-AC14-trending.png`); log `trending_loaded count=99`; số lần key/secret/User-Agent xuất hiện trong log: 0 |
+| | Build `PODCASTINDEX_API_KEY= PODCASTINDEX_API_SECRET=` vào `$OUT/DD-nocreds`, cài, launch | Màn "Thiếu cấu hình PodcastIndex (Secrets.xcconfig)" + nút `Tải lại` (`M0-AC14-missing-creds.png`); process vẫn có trong `launchctl list`; log `missing_credentials`. Đã cài lại bản thường. |
+| (thêm) | Build với `PODCASTINDEX_BASE_URL=https://nonexistent.invalid/api/1.0/` | Màn `Lỗi` + "Không tải được danh sách trending (DarwinHttpRequestException)." + `Tải lại` (`M0-network-error.png`); log `trending_error type=DarwinHttpRequestException` |
+| M0-AC3 | `./gradlew :app:assembleDebug` | `BUILD SUCCESSFUL`; `git diff --name-only main...HEAD` chỉ có `shared/`, `iosApp/`, `docs/ios/`, `sharedKmp/` (xoá), `settings.gradle.kts`, `gradle/libs.versions.toml`, `.gitignore`, `build.gradle.kts` (2 dòng `apply false`); không module Android nào phụ thuộc `:shared` |
+| (shared) | `./gradlew :shared:allTests` | 99 test mỗi target (thêm `ThrowablesTest`), `failures="0" errors="0"` |
+
+Việc còn mở / giới hạn đã biết:
+
+- Nút `Tải lại` và pull-to-refresh chưa được bấm thử tự động (simulator không có công cụ tap trong môi trường này); code path giống lần tải đầu (`reload()`).
+- Màn debug sẽ bị thay bằng Home ở M1; chưa có localization (`Localizable.xcstrings`), AppIcon, ATS, background audio.
+- Ảnh cover chưa hiển thị (M0 chỉ cần tiêu đề).
+
