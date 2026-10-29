@@ -9,7 +9,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | ID | Tên | Kế hoạch | Trạng thái |
 |---|---|---|---|
 | M0 | Nền tảng: module `shared` KMP + project Xcode chạy được | [milestones/M0.md](milestones/M0.md) | Đã nghiệm thu (review round 1) |
-| M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đang làm: T1 xong, T2–T5 chưa |
+| M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đang làm: T1, T2 xong; T3–T5 chưa |
 
 ## M0
 
@@ -346,3 +346,86 @@ Giới hạn đã biết:
 - Dữ liệu `SharedPref` của app Android không được chuyển sang (hai app riêng, không cần).
 - D6 chỉ lọc được Live và Kho nhạc (E1/E5 không có field `explicit`), đã có trong handoff.
 - Log của store dùng `println` (Xcode console / logcat `System.out`), chưa đi qua `OSLog`.
+
+### T2 — Nền app iOS: target test, routing, String Catalog, design, ảnh/ATS, hook (xong)
+
+Thoả M1-AC7, M1-AC8 (phần catalog + `knownRegions`; `LocalizationUITests.testEnglishLocale` thuộc T4), M1-AC9, M1-AC10.
+
+**Project (`iosApp/project.yml`, đã `xcodegen generate` và commit `.xcodeproj`):**
+
+- Target `TSPodcastTests` (`bundle.unit-test`, host = app) và `TSPodcastUITests` (`bundle.ui-testing`); scheme `TSPodcast` chạy cả hai ở action test (Debug).
+- Unit test **không** link `Shared` lần nữa (framework static, link 2 lần sẽ có 2 runtime Kotlin): symbol lấy từ app qua `BUNDLE_LOADER`/`TEST_HOST` (XcodeGen tự đặt), test target chỉ có `FRAMEWORK_SEARCH_PATHS` để `import Shared`.
+- `knownRegions` = `Base, en, vi`: XcodeGen 2.46 tự đọc ngôn ngữ trong `Localizable.xcstrings`, không cần khai báo thêm.
+- `EXCLUDED_ARCHS[sdk=iphonesimulator*] = x86_64` (mức project): `shared` chỉ có `iosArm64` + `iosSimulatorArm64`, nên build Release (`ONLY_ACTIVE_ARCH = NO`) cho simulator trước đây link thiếu symbol Kotlin ở x86_64. Hệ quả: không chạy được trên simulator của Mac Intel (máy dev là Apple Silicon).
+- `ASSETCATALOG_COMPILER_APPICON_NAME = ""` (chưa có AppIcon, để milestone phát hành), `ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO` (color set `Primary`/`Secondary` trùng `Color.primary`/`.secondary`), `LOCALIZATION_PREFERS_STRING_CATALOGS = YES`.
+
+**App (`iosApp/TSPodcast/`):**
+
+- `App/AppEnvironment.swift`: `@MainActor @Observable`, tạo **một** `SharedGraph` mỗi process (`Application Support/ts_prefs.preferences_pb`, tạo thư mục nếu thiếu), `LogAnalyticsTracker`, `ArtworkLoader.shared`. Inject bằng `.environment(_:)`. `resolveStartRoute()` gọi `AppPreferences.startDestination()` của shared (bridge `async`), log `start_destination=<Onboarding|SelectFavouriteCategory|Main>`. Thiếu credentials thì log `missing_credentials` lúc khởi tạo.
+- `App/RootView.swift` + `AppRoute.swift`: đọc start destination một lần trong `.task`; lúc chờ chỉ hiện nền `systemBackground`, không spinner. Chuyển màn bằng `@State route` (không back stack), giống NavHost của Android.
+- `App/LaunchOptions.swift`: hook §4.7 chỉ đọc trong `#if DEBUG` (`-uitest-reset`, `-uitest-skip-onboarding`, `-uitest-miniplayer-placeholder`, `-uitest-slow-network`, env `TSP_UITEST_BASE_URL`). Bản Release mọi cờ = `false`, binary không chứa tên hook. **Quyết định:** `-uitest-skip-onboarding` tự kéo theo reset (store + cache ảnh sạch rồi mới ghi `OnboardingFinished = true` và lưu danh mục 1 Arts, 2 Books, 3 Design qua `FavouriteCategories.save`), để mọi test bắt đầu từ cùng một trạng thái. `TSP_UITEST_BASE_URL` đi vào `BundleCredentialsProvider(baseUrlOverride:)`. `-uitest-miniplayer-placeholder` và `-uitest-slow-network` đã parse, nơi dùng là T4 (MiniPlayerSlot, adapter `HomeDataSource`).
+- `App/LogAnalyticsTracker.swift`: implement `AnalyticsTracker` của shared, ghi `Logger(subsystem: "tss.t.podcast", category: "Analytics")` dạng `analytics screen=Onboarding CurrentPage=2` (param sắp theo tên) và `analytics event=OnboardingFinished screen=Onboarding`. Không có `device_id`.
+- `App/AppLog.swift`: category `M1` (luồng app), `Analytics`, `Artwork`. Category `M0` bỏ cùng màn debug.
+- Đã xoá `Debug/TrendingDebugModel.swift`, `Debug/TrendingDebugView.swift`.
+- `Design/AppColors.swift` (`Color.brandPrimary`, `.brandSecondary`, `.textTitle`, `.stroke`) và `Design/Shimmer.swift` (`.shimmer()` = `.redacted(.placeholder)` + dải sáng chạy ngang, tắt khi bật Reduce Motion).
+- Màn khung cho routing, T3/T4 sẽ thay: `Onboarding/OnboardingView` (chỉ trang 1, id `onboarding.page.0`), `Categories/CategorySelectionView` (tiêu đề + mô tả, id `category.grid`), `Main/MainTabView` (3 tab `favourite`/`home`/`search`, mặc định `home`, mỗi tab một `NavigationStack`, id `favourite.root`/`home.root`/`search.root`, `.toolbarTitleDisplayMode(.inlineLarge)`).
+
+**String Catalog (`Resources/Localizable.xcstrings`, M1-AC8):** `sourceLanguage = vi`, 28 key ngữ nghĩa (`tab.home`, `home.section.trending`, `onboarding.title.1.highlight.2`…), mỗi key có `vi` (nguyên văn `strings.xml` của Android / bảng §4.5) và `en` ở trạng thái `translated`. Highlight onboarding là key riêng (trang 1 có 2 cụm "Podcast", "Của Bạn" như `onboarding_title1_highlight`); bản en tự dịch: "Discover Your Favourite Podcasts" (highlight "Podcasts", "Your"), "Content Made Just For You" ("Just For You"), "Listen Anytime, Anywhere" ("Anytime, Anywhere"), "Organize And Update Continuously" ("Organize And Update"). `LocalizationTests` kiểm bảng vi/en trong `vi.lproj`/`en.lproj` của app và kiểm mỗi highlight nằm trong tiêu đề của nó.
+
+**Assets (`Resources/Assets.xcassets`, chép, không sửa file gốc):**
+
+- `Colors/`: `Primary` `#184BB4` (dark `#6E97F0`), `Secondary` `#4A7DE7` (dark `#8AABF2`), `TextTitle` `#39375B` (dark `#E4E3F5`), `Stroke` `#007AFF` 15 % (dark `#8AABF2` 30 %). Android chỉ có theme sáng; màu dark do iOS tự chọn cho đủ tương phản.
+- `onboarding_slide_2/3/5/6` (jpg 1024², ở mức gốc của catalog) từ `sharedResources/src/main/res/drawable/`.
+- `CategoryIcons/`: 101 asset cho 103 id của `_mapIcon` (2 id dùng chung ảnh) + `ic_anonymous`. PNG 100 px đánh dấu `2x` (cỡ tự nhiên 50 pt, gần 48 dp của Android). **Vector XML:** 10 file được map dùng (`ic_anonymous`, `ic_comedy`, `ic_design`, `ic_food`, `ic_idea`, `ic_linkedin`, `ic_my_space`, `ic_social`, `ic_stories`, `ic_visual`) chuyển sang **SVG** (chỉ có `path` + `fillColor`; `<group><clip-path/></group>` rỗng của `ic_stories` bỏ qua), `preserves-vector-representation`. 2 vector còn lại (`ic_fashion`, `ic_news`) không id nào dùng nên không chép. **Không icon nào phải thay bằng SF Symbol.**
+- Asset `ic_radioactive_100` (id 82 Philosophy) đổi tên thành `ic_atom_hazard_100` để `grep -rniE "radio|vov|voh" iosApp/TSPodcast` (M1-AC14) sạch; nội dung ảnh giữ nguyên.
+- `Categories/CategoryIconMap.swift` (bảng id → asset) sinh cùng lúc với asset từ `SelectFavouriteCategoryScreen._mapIcon`; `CategoryIcon.assetName(for:)` trả `ic_anonymous` cho id lạ. Script sinh nằm ngoài repo (scratch); nếu cần chạy lại thì đọc lại map Android, không sửa tay hai nơi.
+
+**Ảnh và ATS (`Images/`, M1-AC9):**
+
+- `ArtworkLoader` (actor, không thư viện ngoài): `URLSession` riêng, `URLCache` 50 MB memory / 200 MB disk ở `Caches/Artwork`, `NSCache` ảnh đã decode (giới hạn 64 MB), gộp các lần tải cùng URL đang chạy thành 1 request. Mỗi `URLRequest` đặt `SharedConstants.USER_AGENT_KEY: SharedConstants.USER_AGENT_WEB_VALUE` (Swift không chứa chuỗi `Mozilla/5.0`). `http://` → `https://` trước khi gửi; lỗi mạng, status ngoài 2xx hoặc không decode được → `nil` (placeholder), không thử lại bằng `http`; URL `nil`/blank/không phải http(s)/không có host → `nil`, 0 request. Decode bằng ImageIO, downsample cạnh dài tối đa 750 px. Mỗi lần lỗi log `artwork_failed host=<host> upgraded=<bool>` (chỉ host). Có `stats` (requests, upgradedFromHTTP, failures, failuresFromHTTP) để đo.
+- `ArtworkImage(url:)`: lấp khung do caller đặt (`scaledToFill`, bo góc), placeholder `.quaternary` + SF Symbol `waveform`; đọc đồng bộ `NSCache` để ảnh đã có không nháy placeholder. Loader lấy từ `EnvironmentValues.artworkLoader`.
+- `Info.plist`: không có `NSAppTransportSecurity` (nên không có `NSAllowsArbitraryLoads`, `NSExceptionDomains`).
+
+**Số liệu ảnh (M1-AC9), đo 30/10/2026 bằng một XCTest tạm (không commit) chạy trong app: `graph.homeFeed` thật (cat `1,2,3`) rồi tải mọi URL qua `ArtworkLoader` thật, 8 request song song:**
+
+| Tập ảnh | Số item | URL khác nhau | `http://` | Lỗi |
+|---|---|---|---|---|
+| Một lần tải Home (trending 99, forYou 20, Kho nhạc 40 item đầu, live 40, recent 20) | 219 (1 URL rỗng) | 179 | 0 (0 %) | 0 (0 %) |
+| Toàn bộ URL `http://` của Kho nhạc + 200 URL https ngẫu nhiên của Kho nhạc + live + recent | 283 | 269 | 17 URL khác nhau (23 item) | 5 (1,9 %): 3 × HTTP 410, 1 × không phân giải được host, 1 × `-1022` (https chuyển hướng về http, ATS chặn) |
+
+- Tỷ lệ `http://` trên toàn bộ Kho nhạc: 23 / 8520 item (0,27 %); các section khác 0 %. Ảnh `http://` lỗi sau khi nâng lên https: 1 / 17 (5,9 %).
+- Tỷ lệ lỗi < 10 %, nên **chưa cần image proxy**; bullet trong handoff được cập nhật kèm số liệu.
+
+**Test (`iosApp/TSPodcastTests`, `iosApp/TSPodcastUITests`):**
+
+- `ArtworkLoaderTests` (9 test, `StubURLProtocol` gắn vào `protocolClasses` của session): User-Agent bằng `SharedConstants.shared.USER_AGENT_WEB_VALUE`; `http://img.example.com/a.jpg` → stub chỉ nhận `https://img.example.com/a.jpg`; lỗi TLS → `nil`, 0 request http; 404 và body không phải ảnh → `nil`; `nil`/`""`/`"  "`/`ftp:`/đường dẫn tương đối → 0 request; tải 2 lần → 1 request (và URL http cùng ảnh trúng cùng cache); 3 lần tải song song → 1 request; `removeAll()` → tải lại; chuẩn hoá URL (khoảng trắng được escape).
+- `CategoryIconTests` (4): đủ 103 id, mọi id có `UIImage(named:)`, id 9999 và 11 → `ic_anonymous`, 10 icon SVG vẽ ra có nội dung.
+- `LaunchOptionsTests` (5), `LogAnalyticsTrackerTests` (2), `LocalizationTests` (4).
+- XCUITest: `TSPodcastUITestCase` (base: launch với `-AppleLanguages (vi) -AppleLocale vi_VN` đặt **trước** các hook để hook không bị đọc thành giá trị của `-AppleLanguages`, helper chờ và attach screenshot); `LaunchSmokeUITests.testLaunchWithResetShowsOnboarding` (thấy `onboarding.page.0` + "Khám Phá Podcast Yêu Thích Của Bạn", không có tab bar) và `testSkipOnboardingOpensMainOnDiscover` (thấy `home.root`, tab "Khám phá" được chọn).
+
+Kết quả tự kiểm (`OUT` = scratch dir `…/scratchpad/ios`, không commit):
+
+```bash
+cd iosApp && xcodegen generate && git status --porcelain .        # không có dòng nào (sau commit)
+grep -nE "TSPodcastTests:|TSPodcastUITests:|type: bundle.ui-testing|type: bundle.unit-test" iosApp/project.yml   # 4 dòng
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcast -destination "id=$SIM" \
+  -derivedDataPath $OUT/DD-m1 -resultBundlePath $OUT/M1-tests.xcresult
+#   ** TEST SUCCEEDED **; xcresulttool summary: 26 test, 26 passed, 0 failed, 0 skipped
+grep -rn TrendingDebug iosApp                                       # 0 dòng
+python3 -I -c '…' iosApp/TSPodcast/Resources/Localizable.xcstrings  # "vi True", "missing_en 0"
+grep -n knownRegions -A4 iosApp/iosApp.xcodeproj/project.pbxproj    # Base, en, vi
+/usr/libexec/PlistBuddy -c "Print :NSAppTransportSecurity:NSAllowsArbitraryLoads" iosApp/TSPodcast/Info.plist   # Does Not Exist
+grep -rn "Mozilla/5.0" iosApp                                       # 0 dòng
+xcodebuild … -configuration Release -derivedDataPath $OUT/DD-rel build   # ** BUILD SUCCEEDED **
+strings $OUT/DD-rel/Build/Products/Release-iphonesimulator/TSPodcast.app/TSPodcast | grep -c -e "uitest-" -e "TSP_UITEST_BASE_URL"   # 0 (bản Debug: 5)
+```
+
+- Screenshot: `M1-T2-launch-reset-onboarding.png`, `M1-T2-skip-onboarding-main.png` (attachment XCUITest), `M1-T2-main-en-simctl.png` (`simctl launch … -AppleLanguages (en) -uitest-skip-onboarding`: title "Discover", tab "Favorites / Discover / Search"). Log: `test_hook skip_onboarding saved=true`, `start_destination=Main`; số lần API key/secret xuất hiện trong log 30 phút gần nhất: 0 và 0.
+
+Giới hạn đã biết / chuyển sang task sau:
+
+- `LocalizationUITests.testEnglishLocale` (M1-AC8) cần header Home và footer attribution, nên viết ở T4; bản en của catalog đã được `LocalizationTests` kiểm.
+- **E6 bỏ qua `max`:** `podcasts/bymedium?medium=music&max=40` trả về 8520 feed (đo 30/10/2026; Android cũng nhận cả danh sách và vẽ hết trong `LazyRow`). `HomeFeed.music()` hiện trả nguyên danh sách. T4 cần cắt còn 40 (ở `HomeFeed` của shared hoặc adapter `HomeDataSource`) trước khi vẽ section Kho nhạc, nếu không section này có hàng nghìn card. Số liệu ảnh ở trên tính 40 item đầu của Kho nhạc.
+- Màn Onboarding / chọn danh mục / tab hiện là khung cho routing; T3/T4 thay nội dung.
+- Không chạy được trên simulator x86_64 (xem `EXCLUDED_ARCHS`).
+
