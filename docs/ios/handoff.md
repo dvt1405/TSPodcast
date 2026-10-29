@@ -37,7 +37,17 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
   - File: `iosApp/TSPodcast/Home/HomeModel.swift`, `iosApp/TSPodcast/Home/HomeView.swift`, `docs/ios/progress.md` mục M1 T4.
 - **(M1) XCUITest gọi PodcastIndex thật** bằng key dùng chung với Android, nên tốn quota của key này. Đây thêm một lý do để cấp key riêng cho iOS (mục ở phần trên).
   - Mỗi lần launch có `-uitest-skip-onboarding` xoá store (kể cả cache trending), nên mỗi UI test mở Home gửi lại 5 request Home (E1 × 2, E2, E5, E6); test onboarding/danh mục gửi thêm E9. Test Home fail nếu API chậm hơn 30 s hoặc trả rỗng, dù app đúng.
+  - M2 thêm UI test cho Detail (E10 + E11 mỗi lần mở) và Search (E7, E8, E9, E1 theo danh mục), nên mỗi lần chạy suite tốn thêm vài chục request.
   - File: `iosApp/TSPodcastUITests/`, `docs/ios/progress.md` mục M1 "Giới hạn đã biết".
+- **(M2) D6 ở Podcast detail:** bỏ episode `explicit = 1`; nếu E11 `podcasts/byfeedid` cho biết cả feed `explicit = true` thì ẩn toàn bộ episode và hiện thông báo "Podcast này được đánh dấu có nội dung người lớn (explicit) nên các tập đã bị ẩn.".
+  - Vì sao: E1/E5 ở Home không có field `explicit` (bullet D6 của M1), nên Detail là chỗ đầu tiên biết feed có explicit hay không. Android không lọc gì.
+  - Owner muốn chỉ ẩn từng episode (không ẩn cả feed) thì bỏ nhánh `isExplicitFeedHidden` trong `PodcastDetailFeed`.
+  - File: `docs/ios/milestones/M2.md` §4.1, §7; `shared/src/commonMain/kotlin/tss/t/shared/detail/PodcastDetailFeed.kt` (M2 T1).
+- **(M2) D6 ở Search:** E7/E8 gửi `clean=true` và bỏ feed `explicit = true` sau blacklist (Android không gửi `clean`). Đo 30/10/2026: "radio hay" 60 → 57 kết quả khi có `clean=true`. File: `docs/ios/milestones/M2.md` §4.1; `shared/.../search/SearchFeed.kt`.
+- **(M2) Search có chip danh mục, tap mở podcast thịnh hành của danh mục** (E1 `cat=<id>`, `lang=vi`, 7 ngày). Android tải E9 ở Search nhưng không hiện, và tap danh mục chưa có hành động (features-spec §3.9 [Sửa]). Owner muốn kiểu khác (ví dụ tìm theo tên danh mục bằng E7) thì đổi `SearchFeed.categoryPodcasts`. File: `docs/ios/milestones/M2.md` §3.2, §7.
+- **(M2) Gợi ý tìm kiếm "Podcast hay" thay cho "Radio hay"** của Android, vì iOS v1 không có Radio và chữ "Radio" trong UI dễ khiến reviewer đi tìm tính năng radio. File: `docs/ios/milestones/M2.md` §4.8, §7.
+- **(M2) Lỗi ở Detail và Search:** Detail dùng alert "Rất tiếc!" (en "Oops!") với nội dung đã localize, nút "Tải lại" + "Huỷ", huỷ thì có lỗi inline + "Tải lại" (Android: "Opps!", message thô, shimmer mãi); episode rỗng có empty state. Search tách lỗi khỏi "không có kết quả", có loading, query rỗng không gửi request. File: `docs/ios/milestones/M2.md` §3, §7.
+- **(M2) Tap episode chỉ gửi sang seam phát nhạc (`PlaybackController`, bản stub ghi log)**, ở lại Detail cho tới khi có Player ở M3. File: `docs/ios/milestones/M2.md` §4.5.
 
 ### Môi trường test
 

@@ -9,7 +9,8 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | ID | Tên | Kế hoạch | Trạng thái |
 |---|---|---|---|
 | M0 | Nền tảng: module `shared` KMP + project Xcode chạy được | [milestones/M0.md](milestones/M0.md) | Đã nghiệm thu (review round 1) |
-| M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Developer xong T1–T5, M1-AC1..AC22 đã tự kiểm; chờ PO nghiệm thu |
+| M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đã nghiệm thu (review round 1) |
+| M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đã có kế hoạch (4 task, M2-AC1..AC21); chờ developer |
 
 ## M0
 
