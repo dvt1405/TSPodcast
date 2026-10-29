@@ -10,7 +10,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 |---|---|---|---|
 | M0 | Nền tảng: module `shared` KMP + project Xcode chạy được | [milestones/M0.md](milestones/M0.md) | Đã nghiệm thu (review round 1) |
 | M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đã nghiệm thu (review round 1) |
-| M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đã có kế hoạch (4 task, M2-AC1..AC21); chờ developer |
+| M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đang làm: T1 xong (shared); T2–T4 chưa làm |
 
 ## M0
 
@@ -701,3 +701,33 @@ Screenshot trong `$OUT`:
 - Không chạy trên simulator x86_64 (`EXCLUDED_ARCHS`).
 - Log của key-value store dùng `println`, chưa qua `OSLog`.
 - Tên danh mục giữ tiếng Anh từ API.
+
+## M2
+
+Kế hoạch: [milestones/M2.md](milestones/M2.md). Base `f370aa0`.
+
+### T1 — Shared: `PodcastDetailFeed` và `SearchFeed` (D6) (xong)
+
+Thoả M2-AC1, M2-AC2, M2-AC3, chạy lại M2-AC19.
+
+- `tss.t.shared.detail.PodcastDetailFeed` (`graph.podcastDetailFeed`): `load(feedId: Long)` chạy `GetEpisodeByFeedId` (E10) ‖ `GetPodcastByFeedID` (E11) trong `coroutineScope { async … }`, như `PodcastViewModel.getEpisodes` (`zip`). Chỉ E10 quyết định: E10 `Error` → `Error` với exception của E10; E10 `Success` → `Success(PodcastDetail)`, E11 lỗi thì `feed = null`. Retry + cache 15 phút theo `feedId` lấy nguyên từ hai use case M0 (E10 `AnyError` 3 lần; E11 `NetworkErrors`, không retry lỗi parse); lỗi không bị cache. Không lọc blacklist (giống Android).
+- `PodcastDetail(episodes, feed, hiddenExplicitCount, isExplicitFeedHidden)`. D6 khi `AllowExplicitContent == false`: bỏ episode `explicit == 1` (đếm vào `hiddenExplicitCount`); E11 `Success` với `feed.explicit == true` → `episodes` rỗng, `isExplicitFeedHidden = true`. **Quyết định nhỏ:** khi cả feed bị ẩn, `hiddenExplicitCount` = tổng số episode E10 trả về (plan không ghi rõ; UI M2 chỉ dùng cờ `isExplicitFeedHidden`). Cờ `true` → không bỏ gì.
+- `tss.t.shared.search.SearchFeed` (`graph.searchFeed`) + `enum class SearchMode { All, Music }` (export sang Swift, đã thấy trong `Shared.h`):
+  - `search(query, mode)`: trim; rỗng → `Success(emptyList())`, 0 request ([Sửa]: Android gửi `q=""`). `All` → E7 `search/byterm` (`max=100`, `similar=true`, `fulltext=true`, `aponly=false`); `Music` → E8 `search/music/byterm` (`val=music`, `max=60`, `similar=true`, `fulltext=true`). Blacklist theo `feed.id` + `title` (use case M0). D6 bật: gửi `clean=true` và bỏ `feed.explicit == true` sau blacklist; D6 tắt: **không** gửi `clean`. Không retry, không cache (giống Android).
+  - `categoryPodcasts(categoryId: Int)`: `GetTrendingPodcasts(max=100, since=now−604800, lang="vi", cat="<id>", notcat=null)` → blacklist, cache memory + đĩa 15 phút (`cachedTrending_<id>` / `lastUpdateTrending_<id>`). D6 bỏ `explicit == 1` (E1 không trả field nên thực tế không bỏ gì, như M1). Key cache không đụng với section "Có thể bạn yêu thích" của Home vì `favouriteCatIds` luôn có ≥ 3 id nối bằng `,`.
+- Không đổi `PodcastIndexApi`, `RetryPolicy`, use case M0, `gradle/libs.versions.toml` hay file Android nào.
+
+Kết quả tự kiểm:
+
+```bash
+./gradlew :shared:allTests :shared:linkDebugFrameworkIosSimulatorArm64 :app:assembleDebug   # BUILD SUCCESSFUL
+#   iosSimulatorArm64Test + testAndroidHostTest: mỗi target 22 class, 171 test, failures="0" errors="0"
+#   PodcastDetailFeedTest 14, SearchFeedTest 11 (mới); toàn bộ test M0/M1 vẫn pass
+git diff --name-only f370aa0..HEAD    # chỉ shared/ và docs/ios/
+git status --porcelain sharedResources  # rỗng
+```
+
+- `PodcastDetailFeedTest`: tham số E10 (`id`, `max=100`, không `since`) và E11 (`id`, `pretty=true`); song song (`MockEngine` treo E10 tới khi E11 tới — đã thử đổi `load` sang tuần tự thì test này fail, rồi khôi phục); (OK, OK), (OK, 500), (500, OK); E10 500 → 4 request; E11 body hỏng → 1 request, vẫn `Success`; cache +14:59 → 0 request, +15:01 → thêm 1 E10 + 1 E11; `load(43)` không dùng cache của 42; lỗi không bị cache; D6 tắt/bật, feed explicit, E11 lỗi không ẩn feed.
+- `SearchFeedTest`: path + mọi query param cho `All`/`Music`; trim; `""`/`"   "` × 2 chế độ → 0 request; blacklist theo id và từ khoá tiêu đề; explicit bị bỏ khi D6 bật, giữ khi tắt và không có `clean`; 500 → `Error` sau 1 request (cả hai chế độ); `categoryPodcasts(55)` với `now = 1_700_000_000` → `since=1699395200`, `cat=55`, không `notcat`, item blacklist bị bỏ; +14:59 → 0 request; store có `cachedTrending_55`; graph mới trên cùng store đọc từ đĩa (0 request); +15:01 → request mới; mỗi danh mục một entry; 500 → `Error`, không ghi đĩa.
+
+Giới hạn đã biết của T1: chưa có UI dùng hai API này (T2/T3); D6 cho E1 theo danh mục không lọc được gì vì API không trả `explicit` (đã có bullet D6 trong handoff).
