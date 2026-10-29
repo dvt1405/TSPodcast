@@ -40,6 +40,11 @@ ump = "4.0.0"
 kotlin = "2.2.0"
 #ksp
 ksp = "2.2.0-2.0.2"
+# Kotlin Multiplatform :shared module (iOS). Versions pinned to libraries built with Kotlin <= 2.2.0.
+ktor = "3.2.3"
+kotlinxSerializationJson = "1.9.0"
+kotlinxCoroutinesCore = "1.10.2"
+okio = "3.15.0"
 [bundles]
 dagger = ["dagger-android", "dagger-android-support"]
 
@@ -119,6 +124,18 @@ androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-p
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoupVer" }
 androidx-ui-graphics-android = { group = "androidx.compose.ui", name = "ui-graphics-android" }
 
+# Kotlin Multiplatform (:shared)
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
@@ -132,3 +149,5 @@ firebase-appdistribution = { id = "com.google.firebase.appdistribution", version
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "roomPaging" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }

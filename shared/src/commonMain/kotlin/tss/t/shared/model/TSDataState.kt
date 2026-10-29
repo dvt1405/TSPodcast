@@ -1,4 +1,4 @@
-package tss.t.sharedkmp.models
+package tss.t.shared.model
 
 /**
  * A generic class that holds a value with its loading status.
@@ -13,13 +13,13 @@ sealed class TSDataState<T : Any>(
      * @param data The loaded data.
      */
     data class Success<T : Any>(override val data: T) : TSDataState<T>(data)
-    
+
     /**
      * Represents a data loading operation in progress.
      * @param data Optional data that might be available while loading.
      */
     data class Loading<T : Any>(override val data: T? = null) : TSDataState<T>(data)
-    
+
     /**
      * Represents a failed data loading operation.
      * @param exception The exception that caused the failure.
@@ -40,10 +40,9 @@ sealed class TSDataState<T : Any>(
 
     /**
      * Gets the exception from an [Error] state.
-     * @return The exception that caused the error.
-     * @throws ClassCastException if the state is not [Error].
+     * @return The exception that caused the error, or null if the state is not [Error].
      */
-    fun exception(): Throwable {
-        return (this as Error).exception
+    fun exceptionOrNull(): Throwable? {
+        return (this as? Error)?.exception
     }
 }
