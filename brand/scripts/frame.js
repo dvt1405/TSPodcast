@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Store screenshot framer: wraps a raw device screenshot in brand artwork with a headline.
 //
-//   node frame.js --preset play  --headline "Nghe podcast Việt hay nhất" --sub "..." in.png out.png
+//   node frame.js --preset play  --headline "Nghe podcast Việt\nmỗi ngày" --sub "..." in.png out.png
 //   node frame.js --preset ios69 --theme light --headline "..." in.png out.png
 //   node frame.js --batch ../store/screenshots/examples.json      (see that file for the format)
 //   node frame.js --templates                                     (re-writes brand/store/templates/*.svg)
@@ -119,7 +119,7 @@ function writeTemplates() {
     ['ios69', 'appstore-6.9in-1320x2868.svg'],
   ];
   for (const [preset, name] of examples) {
-    const svg = frameSvg({ preset, headline: 'Nghe podcast Việt hay nhất', sub: 'Hàng nghìn chương trình, cập nhật mỗi ngày', href: 'screenshot.png', shotW: 1080, shotH: 2340, outline: false });
+    const svg = frameSvg({ preset, headline: 'Nghe podcast Việt\nmỗi ngày', sub: 'Chương trình thịnh hành, cập nhật liên tục', href: 'screenshot.png', shotW: 1080, shotH: 2340, outline: false });
     L.writeText(path.join(dir, name), svg);
   }
 }
