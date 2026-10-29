@@ -13,4 +13,10 @@ enum AppLog {
 
     /// Cover images (`ArtworkLoader`).
     static let artwork = Logger(subsystem: subsystem, category: "Artwork")
+
+    /// App flow of M2: Podcast detail and Search. Never logs a raw search query (length only).
+    static let browse = Logger(subsystem: subsystem, category: "M2")
+
+    /// Requests handed to the `PlaybackController` seam (ids and counts, never URLs).
+    static let playback = Logger(subsystem: subsystem, category: "Playback")
 }

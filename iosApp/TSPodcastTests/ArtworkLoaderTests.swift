@@ -4,6 +4,7 @@ import XCTest
 @testable import TSPodcast
 
 /// M1-AC9: User-Agent, http → https, placeholder on failure, no request for empty URLs, cache.
+/// M2-AC9: optional `Referer`, still cached by URL.
 final class ArtworkLoaderTests: XCTestCase {
     private static let png: Data = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).pngData { context in
         UIColor.systemBlue.setFill()
@@ -126,6 +127,44 @@ final class ArtworkLoaderTests: XCTestCase {
         _ = await loader.image(for: "https://img.example.com/reset.jpg")
 
         XCTAssertEqual(StubURLProtocol.requests.count, 2)
+    }
+
+    // MARK: - Referer (M2-AC9)
+
+    func testRefererIsSentWithTheUserAgent() async {
+        respondWithImage()
+        let image = await makeLoader().image(for: "https://img.example.com/episode.jpg", referer: "https://site/ep")
+
+        XCTAssertNotNil(image)
+        let request = StubURLProtocol.requests.first
+        XCTAssertEqual(StubURLProtocol.requests.count, 1)
+        XCTAssertEqual(request?.value(forHTTPHeaderField: "Referer"), "https://site/ep")
+        XCTAssertEqual(request?.value(forHTTPHeaderField: "User-Agent"), SharedConstants.shared.USER_AGENT_WEB_VALUE)
+    }
+
+    func testNoRefererHeaderWithoutReferer() async {
+        respondWithImage()
+        let loader = makeLoader()
+
+        _ = await loader.image(for: "https://img.example.com/none.jpg")
+        _ = await loader.image(for: "https://img.example.com/blank.jpg", referer: "  ")
+
+        let requests = StubURLProtocol.requests
+        XCTAssertEqual(requests.count, 2)
+        XCTAssertTrue(requests.allSatisfy { $0.value(forHTTPHeaderField: "Referer") == nil })
+    }
+
+    func testCacheIsByURLWhateverTheReferer() async {
+        respondWithImage()
+        let loader = makeLoader()
+
+        let first = await loader.image(for: "https://img.example.com/shared.jpg", referer: "https://site/ep1")
+        let second = await loader.image(for: "https://img.example.com/shared.jpg", referer: "https://site/ep2")
+        let third = await loader.image(for: "https://img.example.com/shared.jpg")
+
+        XCTAssertNotNil(first)
+        XCTAssertTrue(first === second && second === third)
+        XCTAssertEqual(StubURLProtocol.requests.count, 1)
     }
 
     func testRequestURLNormalisation() {

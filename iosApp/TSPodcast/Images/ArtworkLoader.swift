@@ -12,6 +12,8 @@ import UIKit
 /// - `http://` is upgraded to `https://` before sending, since ATS stays strict (no
 ///   `NSAllowsArbitraryLoads`). A failure gives `nil` (the view shows a placeholder) and is
 ///   never retried over `http`;
+/// - an optional `Referer` (episode artwork sends `episode.link`, like Android's
+///   `EpisodeWidget` `addHeader(REFERER_KEY, episode.link)`); it does not change the cache key;
 /// - nil, blank or non-http(s) URLs give `nil` without a request;
 /// - responses go through a dedicated `URLCache` (memory 50 MB, disk 200 MB in
 ///   `Caches/Artwork`), decoded images through an `NSCache`, and concurrent loads of one URL
@@ -41,6 +43,7 @@ actor ArtworkLoader {
     private let maxPixelSize: CGFloat
     private let userAgent: String
     private let userAgentHeader: String
+    private let refererHeader: String
     private var inFlight: [URL: Task<UIImage?, Never>] = [:]
 
     /// `NSCache` is thread-safe, which lets views read it synchronously (`cachedImage(for:)`) to
@@ -66,6 +69,7 @@ actor ArtworkLoader {
         self.maxPixelSize = maxPixelSize
         self.userAgent = SharedConstants.shared.USER_AGENT_WEB_VALUE
         self.userAgentHeader = SharedConstants.shared.USER_AGENT_KEY
+        self.refererHeader = SharedConstants.shared.REFERER_KEY
         images.totalCostLimit = 64 * 1024 * 1024
     }
 
@@ -99,7 +103,9 @@ actor ArtworkLoader {
     }
 
     /// Image for `raw`, or nil (placeholder) when the URL is unusable or the load fails.
-    func image(for raw: String?) async -> UIImage? {
+    /// `referer`, when not blank, is sent as the `Referer` header. Images are cached by URL only,
+    /// so a second load of the same URL is served from memory whatever its referer.
+    func image(for raw: String?, referer: String? = nil) async -> UIImage? {
         guard let url = Self.requestURL(for: raw) else { return nil }
         if let cached = images.object(forKey: url as NSURL) {
             return cached
@@ -108,14 +114,12 @@ actor ArtworkLoader {
             return await running.value
         }
         let wasHTTP = raw?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased().hasPrefix("http:") ?? false
-        let task = Task.detached(priority: .utility) { [session, userAgent, userAgentHeader, maxPixelSize] in
-            await Self.download(
-                url,
-                session: session,
-                userAgentHeader: userAgentHeader,
-                userAgent: userAgent,
-                maxPixelSize: maxPixelSize
-            )
+        var headers = [userAgentHeader: userAgent]
+        if let referer = referer?.trimmingCharacters(in: .whitespacesAndNewlines), !referer.isEmpty {
+            headers[refererHeader] = referer
+        }
+        let task = Task.detached(priority: .utility) { [session, headers, maxPixelSize] in
+            await Self.download(url, session: session, headers: headers, maxPixelSize: maxPixelSize)
         }
         inFlight[url] = task
         let image = await task.value
@@ -146,12 +150,13 @@ actor ArtworkLoader {
     private static func download(
         _ url: URL,
         session: URLSession,
-        userAgentHeader: String,
-        userAgent: String,
+        headers: [String: String],
         maxPixelSize: CGFloat
     ) async -> UIImage? {
         var request = URLRequest(url: url)
-        request.setValue(userAgent, forHTTPHeaderField: userAgentHeader)
+        for (field, value) in headers {
+            request.setValue(value, forHTTPHeaderField: field)
+        }
         do {
             let (data, response) = try await session.data(for: request)
             if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {

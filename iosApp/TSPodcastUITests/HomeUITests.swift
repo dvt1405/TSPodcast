@@ -1,7 +1,7 @@
 import XCTest
 
 /// M1-AC16, M1-AC18: Home/Discover against the real PodcastIndex API (Android
-/// `DiscoverPodcastsScreen`): section order, content, attribution, detail navigation and
+/// `DiscoverPodcastsScreen`): section order, content, attribution, Detail navigation and
 /// pull-to-refresh.
 final class HomeUITests: TSPodcastUITestCase {
     @MainActor
@@ -56,7 +56,7 @@ final class HomeUITests: TSPodcastUITestCase {
     }
 
     @MainActor
-    func testTapTrendingOpensDetailStub() {
+    func testTapTrendingOpensDetail() {
         let app = launchMain()
         let item = app.buttons["home.section.trending.item.0"]
         item.waitToExist(timeout: Self.networkTimeout, "trending needs an item")
@@ -66,9 +66,9 @@ final class HomeUITests: TSPodcastUITestCase {
         item.tap()
 
         let detail = element(app, "detail.root")
-        detail.waitToExist(timeout: 5, "tap must push the detail stub")
-        XCTAssertEqual(detail.staticTexts["detail.title"].label, title)
-        attachScreenshot("detail-stub")
+        detail.waitToExist(timeout: 5, "tap must push Podcast detail")
+        XCTAssertEqual(element(app, "detail.title").label, title)
+        attachScreenshot("home-detail")
 
         app.navigationBars.buttons.element(boundBy: 0).tap()
         element(app, "home.root").waitToExist(timeout: 5)

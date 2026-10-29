@@ -12,8 +12,17 @@ struct LaunchOptions: Equatable, Sendable {
     var skipOnboarding = false
     /// `-uitest-miniplayer-placeholder`: show a fake bar in the MiniPlayer slot.
     var miniPlayerPlaceholder = false
-    /// `-uitest-slow-network`: Home's data source waits (`HomeFeedDataSource.slowNetworkDelay`) before every shared call.
+    /// `-uitest-slow-network`: the Home and Detail data sources wait
+    /// (`HomeFeedDataSource.slowNetworkDelay`) before every shared call.
     var slowNetwork = false
+    /// `-uitest-fail-detail-once`: the first Detail load of the process fails without a request.
+    var failDetailOnce = false
+    /// `-uitest-detail-empty`: Detail loads succeed with no episode, without a request.
+    var detailEmpty = false
+    /// `-uitest-detail-explicit`: Detail loads report the feed hidden by D6, without a request.
+    var detailExplicit = false
+    /// `-uitest-playback-probe`: `MainTabView` shows the last `PlaybackRequest` as text.
+    var playbackProbe = false
     /// Env `TSP_UITEST_BASE_URL`: PodcastIndex base URL used instead of the one in Info.plist.
     var baseURLOverride: String?
 
@@ -36,6 +45,10 @@ struct LaunchOptions: Equatable, Sendable {
         skipOnboarding = arguments.contains("-uitest-skip-onboarding")
         miniPlayerPlaceholder = arguments.contains("-uitest-miniplayer-placeholder")
         slowNetwork = arguments.contains("-uitest-slow-network")
+        failDetailOnce = arguments.contains("-uitest-fail-detail-once")
+        detailEmpty = arguments.contains("-uitest-detail-empty")
+        detailExplicit = arguments.contains("-uitest-detail-explicit")
+        playbackProbe = arguments.contains("-uitest-playback-probe")
         let baseURL = environment["TSP_UITEST_BASE_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
         baseURLOverride = (baseURL?.isEmpty ?? true) ? nil : baseURL
         #endif

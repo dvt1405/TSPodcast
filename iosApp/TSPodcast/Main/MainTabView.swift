@@ -16,7 +16,7 @@ enum AppTab: Hashable, Sendable {
 struct MainTabView: View {
     @Environment(AppEnvironment.self) private var environment
     @State private var selection: AppTab = .home
-    @State private var homePath: [PodcastCard] = []
+    @State private var homePath: [PodcastRoute] = []
     @State private var homeModel: HomeModel
 
     init(homeModel: HomeModel) {
@@ -53,8 +53,40 @@ struct MainTabView: View {
             .tag(AppTab.search)
         }
         .miniPlayerAccessory(isPresented: showsMiniPlayer)
+        #if DEBUG
+        .overlay(alignment: .topLeading) {
+            if environment.launchOptions.playbackProbe {
+                PlaybackProbe(playback: environment.playback)
+            }
+        }
+        #endif
     }
 }
+
+#if DEBUG
+/// `-uitest-playback-probe` (M2 §4.6): the last `PlaybackRequest` as
+/// `feedId=…;episodeId=…;index=…;count=…`, empty before the first tap, so XCUITest can read
+/// what the seam received.
+private struct PlaybackProbe: View {
+    let playback: any PlaybackController
+
+    private var label: String {
+        guard let request = (playback as? LoggingPlaybackController)?.lastRequest else { return "" }
+        let episodeID = request.startEpisode.map { String($0.id) } ?? "-"
+        return "feedId=\(request.podcast.feedId);episodeId=\(episodeID);index=\(request.startIndex);count=\(request.episodes.count)"
+    }
+
+    var body: some View {
+        Text(verbatim: label.isEmpty ? " " : label)
+            .font(.system(size: 8, design: .monospaced))
+            .foregroundStyle(.secondary)
+            .padding(.leading, 4)
+            .allowsHitTesting(false)
+            .accessibilityLabel(Text(verbatim: label))
+            .accessibilityIdentifier("playback.probe")
+    }
+}
+#endif
 
 private extension View {
     func tabRoot(title: LocalizedStringKey) -> some View {

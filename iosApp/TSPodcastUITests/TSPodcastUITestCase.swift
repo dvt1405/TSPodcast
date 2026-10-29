@@ -11,6 +11,10 @@ class TSPodcastUITestCase: XCTestCase {
         case skipOnboarding = "-uitest-skip-onboarding"
         case miniPlayerPlaceholder = "-uitest-miniplayer-placeholder"
         case slowNetwork = "-uitest-slow-network"
+        case failDetailOnce = "-uitest-fail-detail-once"
+        case detailEmpty = "-uitest-detail-empty"
+        case detailExplicit = "-uitest-detail-explicit"
+        case playbackProbe = "-uitest-playback-probe"
     }
 
     override func setUp() {
@@ -231,5 +235,125 @@ extension TSPodcastUITestCase {
     @MainActor
     func waitForValue(_ element: XCUIElement, _ value: String, timeout: TimeInterval) -> Bool {
         poll(timeout: timeout) { element.exists && (element.value as? String) == value }
+    }
+}
+
+// MARK: - Podcast detail (M2 T2)
+
+extension TSPodcastUITestCase {
+    /// Waits for Home item `identifier` (a button labelled with the podcast title), taps it and
+    /// waits for `detail.root`. Returns the title.
+    @MainActor
+    @discardableResult
+    func openDetail(_ app: XCUIApplication, from identifier: String = "home.section.trending.item.0", file: StaticString = #filePath, line: UInt = #line) -> String {
+        let item = app.buttons[identifier]
+        XCTAssertTrue(item.waitForExistence(timeout: Self.networkTimeout), "\(identifier) not found", file: file, line: line)
+        let title = item.label
+        XCTAssertFalse(title.isEmpty, "\(identifier) has no title", file: file, line: line)
+        item.tap()
+        XCTAssertTrue(element(app, "detail.root").waitForExistence(timeout: 10), "tap must push Detail", file: file, line: line)
+        return title
+    }
+
+    /// Waits until Detail leaves the shimmer and returns what it shows: "episode" (row 0 is in
+    /// the hierarchy), "empty", "explicit" or "error". Drags the page up when the list loaded
+    /// below a long description (rows are lazy).
+    @MainActor
+    func waitForDetailContent(_ app: XCUIApplication, timeout: TimeInterval = networkTimeout) -> String? {
+        var outcome: String?
+        var drags = 0
+        _ = poll(timeout: timeout) {
+            if self.element(app, "detail.episodes.loading").exists { return false }
+            if self.element(app, "detail.episode.0").exists { outcome = "episode"; return true }
+            if self.element(app, "detail.episodes.empty").exists { outcome = "empty"; return true }
+            if self.element(app, "detail.explicitHidden").exists { outcome = "explicit"; return true }
+            if self.element(app, "detail.episodes.error").exists { outcome = "error"; return true }
+            if app.alerts.firstMatch.exists { outcome = "error"; return true }
+            if drags < 8, self.element(app, "detail.root").exists {
+                drags += 1
+                self.dragDetailUp(app)
+            }
+            return false
+        }
+        return outcome
+    }
+
+    /// Drags the Detail page up by about `fraction` of its height, slowly.
+    @MainActor
+    func dragDetailUp(_ app: XCUIApplication, fraction: CGFloat = 0.4) {
+        let root = element(app, "detail.root")
+        let start = root.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+        let end = root.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75 - fraction))
+        start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.1)
+    }
+
+    /// Drags Detail up until `element` exists and can be tapped above the tab bar.
+    @MainActor
+    @discardableResult
+    func revealInDetail(_ app: XCUIApplication, _ element: XCUIElement, maxDrags: Int = 10) -> Bool {
+        func isReachable() -> Bool {
+            guard element.exists, element.isHittable else { return false }
+            let tabBar = app.tabBars.firstMatch
+            let bottom = tabBar.exists ? tabBar.frame.minY : app.frame.maxY
+            return element.frame.maxY <= bottom && element.frame.minY >= app.navigationBars.firstMatch.frame.maxY
+        }
+        for _ in 0..<maxDrags {
+            if isReachable() { return true }
+            dragDetailUp(app, fraction: 0.3)
+        }
+        return isReachable()
+    }
+
+    /// Taps trending item `index`, swiping the carousel when the card is off screen, and waits
+    /// for Detail. Returns the title, or nil when the item does not exist.
+    @MainActor
+    func openTrendingDetail(_ app: XCUIApplication, _ index: Int) -> String? {
+        let item = app.buttons["home.section.trending.item.\(index)"]
+        guard item.waitForExistence(timeout: Self.networkTimeout) else { return nil }
+        for _ in 0..<index {
+            if item.frame.minX < app.frame.maxX - 80 { break }
+            app.buttons["home.section.trending.item.\(max(0, index - 1))"].swipeLeft(velocity: .slow)
+        }
+        let frame = item.frame
+        let visibleMinX = max(frame.minX, app.frame.minX)
+        let visibleMaxX = min(frame.maxX, app.frame.maxX)
+        guard visibleMaxX - visibleMinX > 40 else { return nil }
+        let title = item.label
+        item.coordinate(withNormalizedOffset: .zero)
+            .withOffset(CGVector(dx: (visibleMinX + visibleMaxX) / 2 - frame.minX, dy: frame.width * 0.4))
+            .tap()
+        guard element(app, "detail.root").waitForExistence(timeout: 10) else { return nil }
+        return title
+    }
+
+    /// Back from Detail to Home.
+    @MainActor
+    func backToHome(_ app: XCUIApplication) {
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        let detail = element(app, "detail.root")
+        XCTAssertTrue(poll(timeout: 5) { !detail.exists }, "Back returns to Home")
+    }
+
+    /// Opens the first trending item, from `start`, whose Detail lists episodes. Trending items
+    /// can be explicit feeds that D6 hides on Detail (30/10/2026: item 0, feed 4201720), so
+    /// tests that need episodes cannot rely on item 0. Returns the index and title.
+    @MainActor
+    func openDetailWithEpisodes(_ app: XCUIApplication, start: Int = 0, maxItems: Int = 6) -> (index: Int, title: String)? {
+        for index in start..<(start + maxItems) {
+            guard let title = openTrendingDetail(app, index) else { return nil }
+            if waitForDetailContent(app) == "episode" { return (index, title) }
+            backToHome(app)
+        }
+        return nil
+    }
+
+    /// N of the `count=N` value of `detail.episodes` (Debug), or nil.
+    @MainActor
+    func detailEpisodeCount(_ app: XCUIApplication) -> Int? {
+        let list = element(app, "detail.episodes")
+        guard list.waitForExistence(timeout: 5), let value = list.value as? String, value.hasPrefix("count=") else {
+            return nil
+        }
+        return Int(value.dropFirst("count=".count))
     }
 }

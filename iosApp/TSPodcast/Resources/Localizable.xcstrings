@@ -1,6 +1,24 @@
 {
   "sourceLanguage" : "vi",
   "strings" : {
+    "action.cancel" : {
+      "comment" : "Cancel button of an alert.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Huỷ"
+          }
+        }
+      }
+    },
     "action.retry" : {
       "comment" : "Retry button of a failed section (popup_btn_reload_title).",
       "extractionState" : "manual",
@@ -87,6 +105,114 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Danh mục yêu thích của bạn"
+          }
+        }
+      }
+    },
+    "detail.episodes.empty" : {
+      "comment" : "Podcast detail when the podcast has no episode.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No episodes yet"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa có tập nào"
+          }
+        }
+      }
+    },
+    "detail.episodes.error" : {
+      "comment" : "Inline error of Podcast detail after the alert was dismissed.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load episodes"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tải được danh sách tập"
+          }
+        }
+      }
+    },
+    "detail.error.message" : {
+      "comment" : "Message of the episode load error alert; never the raw error.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load the episodes. Please try again."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tải được danh sách tập. Vui lòng thử lại."
+          }
+        }
+      }
+    },
+    "detail.error.title" : {
+      "comment" : "Title of the alert shown when the episodes of a podcast fail to load; replaces Android's misspelled dialog title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oops!"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rất tiếc!"
+          }
+        }
+      }
+    },
+    "detail.explicitHidden" : {
+      "comment" : "Podcast detail when the feed is explicit and explicit content is filtered (D6).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This podcast is marked explicit, so its episodes are hidden."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcast này được đánh dấu có nội dung người lớn (explicit) nên các tập đã bị ẩn."
+          }
+        }
+      }
+    },
+    "detail.loading" : {
+      "comment" : "VoiceOver label of the episode list placeholders while loading.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading episodes"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tải danh sách tập"
           }
         }
       }

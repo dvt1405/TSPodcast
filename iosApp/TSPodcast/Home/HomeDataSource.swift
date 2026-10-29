@@ -7,7 +7,7 @@ struct PodcastCard: Identifiable, Hashable, Sendable {
     let title: String
     /// `description` as plain text (`HtmlText.toPlainText`, Android `HtmlCompat.fromHtml`).
     let summary: String
-    /// `podcast.image` (cover art), `nil` when blank.
+    /// `podcast.image` (cover art), else `feedImage`, else `artwork`; `nil` when all are blank.
     let imageURL: String?
 }
 

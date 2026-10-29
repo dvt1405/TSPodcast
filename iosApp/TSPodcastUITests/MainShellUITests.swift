@@ -55,7 +55,7 @@ final class MainShellUITests: TSPodcastUITestCase {
 
         firstTrending.tap()
         let detail = element(app, "detail.root")
-        detail.waitToExist(timeout: 5, "a trending tap must push the detail stub")
+        detail.waitToExist(timeout: 5, "a trending tap must push Podcast detail")
 
         tabButton(app, "Tìm kiếm").tap()
         element(app, "search.root").waitToExist(timeout: 5)

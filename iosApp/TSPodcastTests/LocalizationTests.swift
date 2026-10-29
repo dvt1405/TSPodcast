@@ -1,7 +1,8 @@
 import XCTest
 @testable import TSPodcast
 
-/// M1-AC8: the String Catalog compiles into vi and en tables with the §4.5 texts.
+/// M1-AC8: the String Catalog compiles into vi and en tables with the §4.5 texts; M2 §4.8
+/// adds the Podcast detail texts.
 final class LocalizationTests: XCTestCase {
     private func bundle(_ language: String) throws -> Bundle {
         let path = try XCTUnwrap(Bundle.main.path(forResource: language, ofType: "lproj"), "\(language).lproj missing")
@@ -41,6 +42,12 @@ final class LocalizationTests: XCTestCase {
             "category.save": "Lưu và tiếp tục",
             "favourite.empty": "Không có chương trình yêu thích.",
             "favourite.discoverMore": "Khám phá thêm",
+            "detail.error.title": "Rất tiếc!",
+            "detail.error.message": "Không tải được danh sách tập. Vui lòng thử lại.",
+            "action.cancel": "Huỷ",
+            "detail.episodes.error": "Không tải được danh sách tập",
+            "detail.episodes.empty": "Chưa có tập nào",
+            "detail.explicitHidden": "Podcast này được đánh dấu có nội dung người lớn (explicit) nên các tập đã bị ẩn.",
         ]
         for (key, value) in expected {
             XCTAssertEqual(try text(key, "vi"), value, key)
@@ -68,6 +75,12 @@ final class LocalizationTests: XCTestCase {
             "category.save": "Save and continue",
             "favourite.empty": "No favourite shows yet.",
             "favourite.discoverMore": "Discover more",
+            "detail.error.title": "Oops!",
+            "detail.error.message": "Couldn't load the episodes. Please try again.",
+            "action.cancel": "Cancel",
+            "detail.episodes.error": "Couldn't load episodes",
+            "detail.episodes.empty": "No episodes yet",
+            "detail.explicitHidden": "This podcast is marked explicit, so its episodes are hidden.",
         ]
         for (key, value) in expected {
             XCTAssertEqual(try text(key, "en"), value, key)

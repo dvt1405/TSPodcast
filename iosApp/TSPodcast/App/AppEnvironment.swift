@@ -14,6 +14,11 @@ final class AppEnvironment {
     @ObservationIgnored let launchOptions: LaunchOptions
     /// E9 list of this process, prefetched by onboarding and read by the category screen.
     @ObservationIgnored let categoryCatalog: CategoryCatalog
+    /// The one player seam of the app. M2: `LoggingPlaybackController`; M3 swaps in the
+    /// AVFoundation player without touching the screens.
+    @ObservationIgnored let playback: any PlaybackController
+    /// Shared by every Detail screen of the process (the fail-once hook counts per process).
+    @ObservationIgnored let podcastDetailDataSource: any PodcastDetailDataSource
 
     var preferences: AppPreferences { graph.appPreferences }
     var favouriteCategories: FavouriteCategories { graph.favouriteCategories }
@@ -32,6 +37,11 @@ final class AppEnvironment {
         )
         analytics = LogAnalyticsTracker()
         categoryCatalog = CategoryCatalog(getCategories: graph.getCategories)
+        playback = LoggingPlaybackController()
+        podcastDetailDataSource = SharedPodcastDetailDataSource(
+            feed: graph.podcastDetailFeed,
+            hooks: Self.detailHooks(launchOptions)
+        )
     }
 
     func makeOnboardingModel() -> OnboardingModel {
@@ -61,6 +71,20 @@ final class AppEnvironment {
             delay: launchOptions.slowNetwork ? HomeFeedDataSource.slowNetworkDelay : nil
         )
         return HomeModel(dataSource: dataSource)
+    }
+
+    /// Podcast detail of `route`, over shared `PodcastDetailFeed` and the app's player seam.
+    func makePodcastDetailModel(for route: PodcastRoute) -> PodcastDetailModel {
+        PodcastDetailModel(podcast: route, dataSource: podcastDetailDataSource, playback: playback)
+    }
+
+    private static func detailHooks(_ options: LaunchOptions) -> SharedPodcastDetailDataSource.TestHooks {
+        SharedPodcastDetailDataSource.TestHooks(
+            delay: options.slowNetwork ? HomeFeedDataSource.slowNetworkDelay : nil,
+            failFirstLoad: options.failDetailOnce,
+            empty: options.detailEmpty,
+            explicitFeed: options.detailExplicit
+        )
     }
 
     /// First screen of this launch (`TSNavGraph` order, logic in shared). Debug builds apply the

@@ -4,10 +4,12 @@ import SwiftUI
 /// and "Có thể bạn yêu thích", then the Podcast Index attribution required by its terms (7.2).
 /// No ad slots and no "Privacy options" link (owner decision D1/D2).
 ///
-/// Podcast taps push `PodcastDetailStubView` on this tab's stack; a Live tap only logs until the
-/// Player milestone.
+/// Podcast taps push Podcast detail (`PodcastRoute`) on this tab's stack, zooming out of the
+/// tapped cover on iOS 18+; a Live tap only logs until the Player milestone.
 struct HomeView: View {
     let model: HomeModel
+
+    @Namespace private var zoomNamespace
 
     var body: some View {
         ScrollView {
@@ -17,19 +19,19 @@ struct HomeView: View {
             // left the footer under the tab bar. Only the long forYou list is lazy.
             VStack(alignment: .leading, spacing: 0) {
                 SectionHeader(section: .trending, title: "home.section.trending")
-                PodcastCarousel(section: .trending, state: model.trending, retry: retry(.trending))
+                PodcastCarousel(section: .trending, state: model.trending, zoomNamespace: zoomNamespace, retry: retry(.trending))
 
                 SectionHeader(section: .music, title: "home.section.music", subtitle: "home.section.music.subtitle")
-                PodcastCarousel(section: .music, state: model.music, retry: retry(.music))
+                PodcastCarousel(section: .music, state: model.music, zoomNamespace: zoomNamespace, retry: retry(.music))
 
                 SectionHeader(section: .live, title: "home.section.live")
                 LivePager(state: model.live, retry: retry(.live))
 
                 SectionHeader(section: .recent, title: "home.section.recent")
-                PodcastCarousel(section: .recent, state: model.recent, retry: retry(.recent))
+                PodcastCarousel(section: .recent, state: model.recent, zoomNamespace: zoomNamespace, retry: retry(.recent))
 
                 SectionHeader(section: .forYou, title: "home.section.forYou")
-                ForYouList(state: model.forYou, retry: retry(.forYou))
+                ForYouList(state: model.forYou, zoomNamespace: zoomNamespace, retry: retry(.forYou))
 
                 AttributionFooter()
             }
@@ -42,8 +44,9 @@ struct HomeView: View {
         #endif
         .refreshable { await model.refresh() }
         .task { await model.loadIfNeeded() }
-        .navigationDestination(for: PodcastCard.self) { podcast in
-            PodcastDetailStubView(podcast: podcast)
+        .navigationDestination(for: PodcastRoute.self) { route in
+            PodcastDetailDestination(route: route)
+                .zoomTransition(sourceID: route.transitionSourceID, in: zoomNamespace)
         }
     }
 
@@ -87,6 +90,7 @@ private struct SectionHeader: View {
 private struct PodcastCarousel: View {
     let section: HomeSection
     let state: SectionState<PodcastCard>
+    let zoomNamespace: Namespace.ID
     let retry: () -> Void
 
     var body: some View {
@@ -100,8 +104,9 @@ private struct PodcastCarousel: View {
         case .loaded(let cards):
             HorizontalRow {
                 ForEach(Array(cards.enumerated()), id: \.offset) { index, card in
-                    NavigationLink(value: card) {
-                        PodcastCardView(card: card)
+                    let sourceID = "\(section.rawValue).\(index)"
+                    NavigationLink(value: PodcastRoute(card, transitionSourceID: sourceID)) {
+                        PodcastCardView(card: card, zoomSourceID: sourceID, zoomNamespace: zoomNamespace)
                     }
                     .buttonStyle(PressableStyle())
                     .accessibilityLabel(Text(card.title))
@@ -165,6 +170,7 @@ private struct LivePager: View {
 /// to 100 rows.
 private struct ForYouList: View {
     let state: SectionState<PodcastCard>
+    let zoomNamespace: Namespace.ID
     let retry: () -> Void
 
     var body: some View {
@@ -179,8 +185,15 @@ private struct ForYouList: View {
         case .loaded(let cards):
             LazyVStack(alignment: .leading, spacing: 16) {
                 ForEach(Array(cards.enumerated()), id: \.offset) { index, card in
-                    NavigationLink(value: card) {
-                        ListRow(imageURL: card.imageURL, title: card.title, subtitle: card.summary)
+                    let sourceID = "\(HomeSection.forYou.rawValue).\(index)"
+                    NavigationLink(value: PodcastRoute(card, transitionSourceID: sourceID)) {
+                        ListRow(
+                            imageURL: card.imageURL,
+                            title: card.title,
+                            subtitle: card.summary,
+                            zoomSourceID: sourceID,
+                            zoomNamespace: zoomNamespace
+                        )
                     }
                     .buttonStyle(PressableStyle())
                     .accessibilityLabel(Text(card.title))
@@ -265,11 +278,14 @@ private struct HorizontalRow<Content: View>: View {
 private struct PodcastCardView: View {
     static let width: CGFloat = 250
     let card: PodcastCard
+    let zoomSourceID: String
+    let zoomNamespace: Namespace.ID
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ArtworkImage(url: card.imageURL, cornerRadius: 10)
                 .frame(width: Self.width, height: Self.width)
+                .zoomTransitionSource(id: zoomSourceID, in: zoomNamespace)
             Text(card.title)
                 .font(.headline)
                 .foregroundStyle(.primary)
@@ -312,11 +328,15 @@ private struct ListRow: View {
     let imageURL: String?
     let title: String
     let subtitle: String
+    /// Zoom source of a row that opens Detail (forYou); Live rows have none.
+    var zoomSourceID: String?
+    var zoomNamespace: Namespace.ID?
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             ArtworkImage(url: imageURL, cornerRadius: 12)
                 .frame(width: 60, height: 60)
+                .optionalZoomSource(id: zoomSourceID, in: zoomNamespace)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.headline)
@@ -361,6 +381,15 @@ private struct PressableStyle: ButtonStyle {
 }
 
 private extension View {
+    @ViewBuilder
+    func optionalZoomSource(id: String?, in namespace: Namespace.ID?) -> some View {
+        if let namespace {
+            zoomTransitionSource(id: id, in: namespace)
+        } else {
+            self
+        }
+    }
+
     /// One accessibility element `home.section.<name>.loading` over a shimmering placeholder
     /// (the shimmer hides its own content from VoiceOver).
     func sectionLoading(_ section: HomeSection) -> some View {

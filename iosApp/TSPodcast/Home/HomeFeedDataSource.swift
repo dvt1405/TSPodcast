@@ -112,7 +112,7 @@ extension PodcastCard {
             id: podcast.id,
             title: podcast.title ?? "",
             summary: HtmlText.shared.toPlainText(html: podcast.description_),
-            imageURL: podcast.image.nonBlank ?? podcast.artwork?.nonBlank
+            imageURL: podcast.image.nonBlank ?? podcast.feedImage?.nonBlank ?? podcast.artwork?.nonBlank
         )
     }
 }
