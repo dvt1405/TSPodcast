@@ -3,7 +3,7 @@ import Foundation
 
 /// `AnalyticsTracker` that writes each call to OSLog (category `Analytics`) until a Firebase iOS
 /// app exists. Lines look like `analytics screen=Onboarding CurrentPage=2` and
-/// `analytics event=OnboardingFinished screen=Onboarding`. No `device_id`, ever.
+/// `analytics event=OnboardingFinished screen=Onboarding`. No device identifier, ever.
 final class LogAnalyticsTracker: NSObject, AnalyticsTracker, Sendable {
     func trackScreen(screen: String, params: [String: String]) {
         let line = Self.screenLine(screen: screen, params: params)
