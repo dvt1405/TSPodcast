@@ -36,3 +36,13 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
   - Đã làm (M1 T4): trong lúc refresh, section đang có nội dung giữ nguyên; refresh lỗi thì vẫn giữ nội dung cũ, không hiện lỗi; section chưa có nội dung thì shimmer rồi ra nội dung / "Chưa có nội dung" / "Không tải được nội dung", cả hai trường hợp sau đều có "Tải lại". Owner muốn báo lỗi khi refresh thất bại (ví dụ toast) thì đổi `HomeModel.next`.
   - File: `iosApp/TSPodcast/Home/HomeModel.swift`, `iosApp/TSPodcast/Home/HomeView.swift`, `docs/ios/progress.md` mục M1 T4.
 - **(M1) XCUITest gọi PodcastIndex thật** bằng key dùng chung với Android, nên tốn quota của key này. Đây thêm một lý do để cấp key riêng cho iOS (mục ở phần trên).
+  - Mỗi lần launch có `-uitest-skip-onboarding` xoá store (kể cả cache trending), nên mỗi UI test mở Home gửi lại 5 request Home (E1 × 2, E2, E5, E6); test onboarding/danh mục gửi thêm E9. Test Home fail nếu API chậm hơn 30 s hoặc trả rỗng, dù app đúng.
+  - File: `iosApp/TSPodcastUITests/`, `docs/ios/progress.md` mục M1 "Giới hạn đã biết".
+
+### Môi trường test
+
+- **(M1) Chưa có simulator iOS 17/18 để chạy nhánh MiniPlayer cũ.**
+  - Vì sao bị chặn: deployment target là iOS 17.0, nhưng máy dev chỉ có runtime iOS 26.3. Nhánh `safeAreaInset` (iOS 17–18) và nhánh iOS 26.0 của `MiniPlayerSlot` mới chỉ compile, chưa chạy. Tải runtime (vài GB) là việc của owner trên máy này.
+  - Trong lúc chờ: nhánh iOS 26.1+ (`tabViewBottomAccessory(isEnabled:)`) đã qua `MainShellUITests.testMiniPlayerSlotSitsAboveTabBar` / `testNoMiniPlayerWhenNothingPlays` trên iOS 26.3.
+  - Owner chọn một trong hai: cài runtime iOS 17 hoặc 18 (Xcode › Settings › Components) rồi chạy lại `MainShellUITests` trên simulator đó; hoặc nâng deployment target lên 26 (bỏ nhánh cũ).
+  - File: `iosApp/TSPodcast/Main/MiniPlayerSlot.swift`, `iosApp/project.yml` (`deploymentTarget`).

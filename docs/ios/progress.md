@@ -9,7 +9,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | ID | Tên | Kế hoạch | Trạng thái |
 |---|---|---|---|
 | M0 | Nền tảng: module `shared` KMP + project Xcode chạy được | [milestones/M0.md](milestones/M0.md) | Đã nghiệm thu (review round 1) |
-| M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đang làm: T1, T2, T3, T4 xong; T5 chưa |
+| M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Developer xong T1–T5, M1-AC1..AC22 đã tự kiểm; chờ PO nghiệm thu |
 
 ## M0
 
@@ -293,7 +293,53 @@ Việc còn mở / giới hạn đã biết:
 
 ## M1
 
-Trạng thái: **PO đã viết kế hoạch** ([milestones/M1.md](milestones/M1.md)): 5 task (T1 shared: key-value store, start destination, cache đĩa E1/E9, `HomeFeed` + D6; T2 nền iOS: target unit/UI test, routing, String Catalog, ảnh/ATS, hook test; T3 Onboarding + chọn danh mục; T4 TabView + Home + tab Yêu thích/Tìm kiếm; T5 nghiệm thu nội bộ và tài liệu), 22 acceptance criteria. Các quyết định PO chọn thay owner ở §7 của kế hoạch đã được ghi vào [handoff.md](handoff.md).
+Trạng thái: **developer đã làm xong T1–T5**, M1-AC1..AC22 đã tự kiểm (lần chạy cuối ở T5, bên dưới), chờ PO nghiệm thu. Kế hoạch ([milestones/M1.md](milestones/M1.md)): 5 task (T1 shared: key-value store, start destination, cache đĩa E1/E9, `HomeFeed` + D6; T2 nền iOS: target unit/UI test, routing, String Catalog, ảnh/ATS, hook test; T3 Onboarding + chọn danh mục; T4 TabView + Home + tab Yêu thích/Tìm kiếm; T5 nghiệm thu nội bộ và tài liệu), 22 acceptance criteria. Các quyết định PO chọn thay owner ở §7 của kế hoạch đã được ghi vào [handoff.md](handoff.md).
+
+### Tóm tắt M1 (M1-AC22)
+
+Việc đã làm theo task (chi tiết ở từng mục T1–T5 bên dưới):
+
+| Task | Việc chính | AC |
+|---|---|---|
+| T1 | `shared`: `KeyValueStore` (DataStore), `AppPreferences` (key Android), `StartDestination`, `FavouriteCategories` (≥ 3), tầng đĩa của E9 (`CategoryRes`) và E1 (`cachedTrending*`, 15 phút), `HomeFeed` (fallback `MainViewModel`, D6), `HtmlText`, `SharedConstants`, `AnalyticsTracker` | AC1–AC6 |
+| T2 | Target `TSPodcastTests`/`TSPodcastUITests`, `AppEnvironment` + `RootView` (routing theo start destination), hook Debug §4.7, String Catalog vi/en, màu + icon danh mục, `ArtworkLoader` (User-Agent, http → https, không ATS exception), xoá màn debug M0 | AC7–AC10 |
+| T3 | Onboarding 4 trang + analytics log, chọn danh mục (lưới, badge, ≥ 3, lưu qua shared), relaunch đúng màn | AC11–AC13 |
+| T4 | `TabView` 3 tab (không Radio), `NavigationStack` riêng mỗi tab, `MiniPlayerSlot`, Home 5 section + attribution (loading/empty/error + "Tải lại", pull-to-refresh), tab Yêu thích (empty state), tab Tìm kiếm (rỗng), stub Detail | AC8 (phần en), AC14–AC19 |
+| T5 | Build sạch, chạy lại toàn bộ §6, screenshot, kiểm secrets, tài liệu | AC20–AC22 |
+
+Quyết định chính:
+
+| Hạng mục | Quyết định | Lý do / chi tiết |
+|---|---|---|
+| Kho key-value | **DataStore Preferences KMP `1.2.1`** (`androidx.datastore:datastore-preferences-core`), file `Application Support/ts_prefs.preferences_pb`, một instance mỗi process do `SharedGraph` sở hữu | Ghi atomic + tuần tự sẵn có, chạy trên `iosSimulatorArm64` và Android host test với Kotlin 2.2.0. `1.3.0` cần `kotlin-stdlib 2.2.20`. Không dùng `UserDefaults`/`multiplatform-settings` (không thêm required-reason API). File hỏng → store rỗng; lỗi I/O bị nuốt, store không ném. (T1) |
+| Tên key | Giữ đúng tên `SharedPref` Android + `AllowExplicitContent` (mặc định `false`) | Một nguồn quy ước cho hai app; D6 mặc định lọc. (T1) |
+| Thứ tự lưu danh mục | Ghi `ListFavouriteCategory` **trước**, cờ `HasSelectFavouriteCategory` **sau** | Android ghi ngược lại; app chết giữa chừng thì không có cờ mà thiếu danh sách. (T1) |
+| Trending + forYou | Một loader chung (`HomeFeed.trendingSections`), hai E1 chạy song song | Fallback 3 nhánh của `MainViewModel` cần cả hai kết quả; "5 section" = 4 lời gọi. (T1, T4) |
+| MiniPlayer slot | iOS 26.1+: `tabViewBottomAccessory(isEnabled:)`; iOS 26.0: chỉ gắn `tabViewBottomAccessory` khi có nội dung; iOS 17–18: `safeAreaInset(edge: .bottom)` trên `NavigationStack` của từng tab, nền `.bar` | Đặt MiniPlayer ngay trên tab bar như `BottomAppBarBlur` của Android, dùng API hệ thống của từng đời iOS; không phát gì thì không có capsule rỗng. Thanh giả chỉ có trong Debug (`-uitest-miniplayer-placeholder`). Nhánh 17–18 và 26.0 chưa chạy được (máy chỉ có runtime 26.3). (T4) |
+| Icon thay bằng SF Symbol | Icon danh mục: **không** icon nào (101 asset chép từ `sharedResources`, 10 vector XML → SVG). Material icon của Android → SF Symbol: tab `Icons.Rounded.Favorite` → `heart`, `Icons.Rounded.Home` → `house`, `Icons.Rounded.Search` → `magnifyingglass`; badge `Icons.Rounded.Clear` → `xmark`; `Icons.Rounded.PlayArrow` (thanh MiniPlayer giả, Debug) → `play.fill`; placeholder ảnh `image_loader_place_holder_*` → nền `.quaternary` + `waveform`. Thêm mới (Android không có): `tray` (section rỗng), `wifi.exclamationmark` (section lỗi) | Material Icons không có trên iOS; SF Symbol tự theo Dynamic Type và Dark Mode. Ảnh minh hoạ (`onboarding_slide_*`, `empty_favourite`) giữ ảnh Android. (T2, T4) |
+| Ảnh `http://` | Nâng lên `https://`, lỗi → placeholder, không thử lại http; `Info.plist` không có `NSAppTransportSecurity` | Số liệu đo ở dưới (dòng "Ảnh"); dưới 10 % nên chưa cần image proxy. (T2) |
+| Localization | `sourceLanguage = vi`, 30 key, đủ bản `en`; nhãn tab + nút onboarding được localize | Quyết định §7 mục 2 (handoff). (T2–T4) |
+| Hook test | Chỉ trong `#if DEBUG`; `-uitest-skip-onboarding` tự reset trước; `-uitest-slow-network` chờ 10 s (kế hoạch ghi 3 s) | Mọi UI test bắt đầu từ cùng trạng thái; 3 s không đủ để test cuộn tới section dưới khi shimmer đang chạy. Bản Release không chứa tên hook (`strings` = 0). (T2, T4) |
+| Refresh lỗi | Giữ nội dung đang hiện, không báo lỗi | Quyết định thay owner, đã ghi handoff. (T4) |
+| Simulator | `EXCLUDED_ARCHS[sdk=iphonesimulator*] = x86_64` | `shared` không có `iosX64`; máy dev là Apple Silicon. (T2) |
+
+**Ảnh (M1-AC9), đo 30/10/2026 (T2):** một lần tải Home = 219 item / 179 URL khác nhau, `http://` 0 %, lỗi 0 %. Mẫu 269 URL gồm toàn bộ 17 URL `http://` của Kho nhạc: lỗi 1,9 % (5/269); ảnh `http://` lỗi sau khi nâng lên https 1/17 (5,9 %). `http://` chiếm 0,27 % Kho nhạc (23/8520), các section khác 0 %. T5 đếm thêm `artwork_failed` trong log của toàn bộ lần chạy test (mục T5).
+
+Chạy lại toàn bộ M1 (từ gốc repo; `OUT` là thư mục tạm bất kỳ ngoài repo):
+
+```bash
+SIM=4FB8953E-F948-4CF1-9DB3-EE4F79CEC480
+./gradlew :app:assembleDebug :shared:allTests
+(cd iosApp && xcodegen generate)
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcast -destination "id=$SIM" \
+  -derivedDataPath $OUT/DD-m1 -resultBundlePath $OUT/M1-tests.xcresult
+xcrun xcresulttool get test-results summary --path $OUT/M1-tests.xcresult
+xcrun xcresulttool export attachments --path $OUT/M1-tests.xcresult --output-path $OUT/M1-attachments
+xcodebuild -project iosApp/iosApp.xcodeproj -scheme TSPodcast -configuration Release \
+  -destination "id=$SIM" -derivedDataPath $OUT/DD-rel build
+```
+
+Giới hạn đã biết: xem "Giới hạn đã biết của M1 (tổng hợp)" ở cuối mục M1.
 
 ### T1 — Shared: kho key-value, cờ onboarding, cache đĩa, `HomeFeed`, D6 (xong)
 
@@ -593,3 +639,64 @@ Giới hạn đã biết:
 - Tap Live chỉ ghi log; Detail mới là stub; tab Tìm kiếm rỗng; Yêu thích luôn rỗng (đúng phạm vi M1 §2).
 - Home không gửi analytics màn hình, giống Android (Android chỉ track Onboarding).
 - Sau refresh lỗi, section giữ dữ liệu cũ và không báo lỗi (người dùng có thể kéo lại).
+
+### T5 — Nghiệm thu nội bộ, tài liệu, vệ sinh (xong)
+
+Thoả M1-AC20, M1-AC21, M1-AC22 và chạy lại toàn bộ §6 trên HEAD của T4 (`727553c`). Không đổi code, chỉ tài liệu.
+
+Kết quả (30/10/2026, `OUT` = scratch dir `…/scratchpad/ios`, không commit; `SIM` = NovaTest iPhone 17, iOS 26.3):
+
+```bash
+# Build sạch: xoá $OUT/DD-m1, $OUT/M1-tests.xcresult trước khi chạy
+cd iosApp && xcodegen generate && git status --porcelain .         # không có dòng nào
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcast -destination "id=$SIM" \
+  -derivedDataPath $OUT/DD-m1 -resultBundlePath $OUT/M1-tests.xcresult
+#   ** TEST SUCCEEDED **; summary: 75 test, 75 passed, 0 failed, 0 skipped (55 unit + 20 UI, ~5 phút)
+#   mọi test được nêu trong §6 (AC8, AC9, AC11–AC18) đều Passed trong `xcresulttool get test-results tests`
+xcrun xcresulttool export attachments --path $OUT/M1-tests.xcresult --output-path $OUT/M1-attachments   # 32 screenshot
+./gradlew :shared:iosSimulatorArm64Test --rerun :shared:testAndroidHostTest --rerun :app:assembleDebug :shared:allTests
+#   BUILD SUCCESSFUL; iosSimulatorArm64Test + testAndroidHostTest: mỗi target 20 class, 146 test, failures=0 errors=0
+xcodebuild … -configuration Release -derivedDataPath $OUT/DD-rel build    # (DD-rel xoá trước) ** BUILD SUCCEEDED **
+strings $OUT/DD-rel/…/TSPodcast.app/TSPodcast | grep -c -e "uitest-" -e "TSP_UITEST_BASE_URL"   # 0 (bản Debug: 5)
+xcodebuild … -derivedDataPath $OUT/DD-nocreds build PODCASTINDEX_API_KEY= PODCASTINDEX_API_SECRET=   # ** BUILD SUCCEEDED **
+#   launch -uitest-skip-onboarding: 5 section "Không tải được nội dung" + "Tải lại", launchctl có tss.t.podcast,
+#   log: missing_credentials, home_section_failed section=<5 section> type=MissingCredentialsException; đã cài lại bản thường
+```
+
+Kiểm tĩnh (đều đúng như §6):
+
+| AC | Lệnh | Kết quả |
+|---|---|---|
+| AC1 | `grep -rnE "UserDefaults\|NSUserDefaults\|@AppStorage\|multiplatform-settings" iosApp/TSPodcast shared/src shared/build.gradle.kts` | 0 dòng |
+| AC7 | `grep -nE "TSPodcastTests:\|TSPodcastUITests:\|type: bundle.ui-testing\|type: bundle.unit-test" iosApp/project.yml`; `grep -rn TrendingDebug iosApp` | đủ 4 mẫu; 0 dòng |
+| AC8 | script `python3 -I -c …` trên `Localizable.xcstrings`; `knownRegions` | `vi True`, `missing_en 0` (30 key); `Base, en, vi` |
+| AC9 | `PlistBuddy … NSAllowsArbitraryLoads`; `grep -rn "Mozilla/5.0" iosApp` | `Does Not Exist`, không có `NSExceptionDomains`; 0 dòng |
+| AC11 | `ls Assets.xcassets \| grep -c onboarding_slide`; log Analytics của lần chạy test | 4; `CurrentPage=1..4` đủ, 5 dòng `analytics event=OnboardingFinished screen=Onboarding` = 5 lần bấm "Tiếp tục" trong suite; 0 dòng `device_id` |
+| AC14 | `grep -rniE "radio\|vov\|voh" iosApp/TSPodcast` | 0 dòng |
+| AC19 | `grep -rn "AllowExplicitContent\|allowExplicit" iosApp/TSPodcast`; grep ads/ATT/FB/`device_id`/`privacy_options` trên `iosApp shared/src` | 0; 0 |
+| AC20 | `git diff --name-only 6fdd86b..HEAD` ngoài `shared/`, `iosApp/`, `docs/ios/` | chỉ `gradle/libs.versions.toml` (thêm `datastore = "1.2.1"` và `androidx-datastore-preferences-core`, không đổi version cũ); `git diff 6fdd86b..HEAD -- sharedResources featureOnboarding` rỗng (ảnh chỉ được chép) |
+| AC21 | `git check-ignore -v iosApp/Config/Secrets.xcconfig`; vòng lặp đếm key/secret trong `git log main..HEAD -p`; đếm trong `log show --last 30m` subsystem `tss.t.podcast` (632 dòng) | `.gitignore:32:iosApp/Config/Secrets.xcconfig`; `0` và `0`; `0` và `0` (cũng 0 trong log `xcodebuild test`/Release và trong `docs/ios`) |
+| AC22 | subject conventional; số trailer `Co-Authored-By` so với `git rev-list --count 6fdd86b..HEAD`; `git ls-files \| grep -E '(^\|/)(build\|DerivedData\|xcuserdata)/\|\.xcresult\|\.xcframework\|Secrets\.xcconfig$'` | mọi subject đúng dạng; số trailer = số commit (kể cả commit T5); 0 dòng |
+
+**Ảnh trong lần chạy suite:** log của toàn bộ suite có 5 dòng `artwork_failed`: 3 dòng từ stub của `ArtworkLoaderTests` (`img.example.com`, cố ý) và 2 dòng ảnh thật (cùng một host, URL `https` gốc, không phải ảnh nâng từ http). Loader không log request thành công nên không tính được tỷ lệ từ log; số đo tỷ lệ vẫn là của T2 (1,9 %, dưới 10 %), nên **không** thêm bullet image proxy vào handoff.
+
+Screenshot trong `$OUT`:
+
+- `M1-AC16-home-light.png`, `M1-AC16-home-dark.png` (`simctl io` sau 20 s, `-uitest-skip-onboarding`; appearance đặt lại `light`): title lớn "Khám phá", carousel trending và Kho nhạc có ảnh cover thật, chữ đọc được ở cả hai chế độ, tab bar 3 tab "Yêu thích / Khám phá / Tìm kiếm".
+- `M1-AC17-missing-creds.png`: các section đều "Không tải được nội dung" + "Tải lại".
+- `M1-T5-shots/M1-T5-*.png`: 32 attachment XCUITest đổi tên dễ đọc (onboarding 4 trang, danh mục, tab, MiniPlayer slot trên 3 tab, 5 section Home, footer, detail stub, refresh, lỗi, loading, en). Log: `M1-T5-test.log`, `M1-T5-app.log`, `M1-T5-gradle-rerun.log`, `M1-T5-release.log`, `M1-T5-nocreds.log`.
+
+**handoff.md:** 5 bullet của M1 §7 đã có (D6 một phần, nhãn localize, ảnh http, analytics chỉ log, XCUITest gọi API thật). T5 bổ sung chi tiết quota của bullet cuối và một bullet mới "Môi trường test": chưa có runtime iOS 17/18 để chạy nhánh cũ của `MiniPlayerSlot`.
+
+### Giới hạn đã biết của M1 (tổng hợp)
+
+- **UI test gọi PodcastIndex thật** (key dùng chung với Android): `HomeUITests`, `MainShellUITests`, `CategorySelectionUITests.testSaveEnabledFromThreeCategories` fail nếu API chậm hơn 30 s hoặc trả rỗng, dù app đúng; mỗi lần mở Home trong test gửi lại 5 request. Unit test (`HomeModelTests`, `CategorySelectionModelTests`, …) dùng fake nên không phụ thuộc mạng.
+- **MiniPlayer slot iOS 17–18 và 26.0 chưa chạy**, chỉ compile (máy chỉ có runtime iOS 26.3). Ghi trong handoff.
+- **D6 chỉ lọc Live và Kho nhạc** (E1/E5 không có field `explicit`); chưa có toggle vì chưa có Settings.
+- Analytics chỉ ghi `OSLog` (chưa có Firebase iOS); Home không track màn hình, giống Android.
+- Pull-to-refresh lỗi giữ nội dung cũ, không báo lỗi.
+- Tap Live chỉ ghi log; Detail là stub; tab Tìm kiếm rỗng; Yêu thích luôn rỗng (đúng phạm vi M1).
+- `-uitest-slow-network` chờ 10 s, không phải 3 s như kế hoạch §4.7.
+- Không chạy trên simulator x86_64 (`EXCLUDED_ARCHS`).
+- Log của key-value store dùng `println`, chưa qua `OSLog`.
+- Tên danh mục giữ tiếng Anh từ API.
