@@ -1,0 +1,5 @@
+• New logo, app icon and splash screen
+• Fixed a blank player screen and missing mini player
+• Fixed a crash on launch on some devices
+• Moved to Google AdMob ads with a privacy consent prompt
+• No full-screen ads while you are listening
