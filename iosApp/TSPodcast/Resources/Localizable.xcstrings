@@ -1,0 +1,510 @@
+{
+  "sourceLanguage" : "vi",
+  "strings" : {
+    "action.retry" : {
+      "comment" : "Retry button of a failed section (popup_btn_reload_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tải lại"
+          }
+        }
+      }
+    },
+    "category.save" : {
+      "comment" : "Save button of the category screen (select_favourite_category_screen_btn_confirm_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save and continue"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lưu và tiếp tục"
+          }
+        }
+      }
+    },
+    "category.subtitle" : {
+      "comment" : "Description under the category screen title (select_favourite_category_screen_description).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(Choose at least 3)"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(Ít nhất 3 danh mục)"
+          }
+        }
+      }
+    },
+    "category.title" : {
+      "comment" : "Title of the favourite category screen (select_favourite_category_screen_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your favourite categories"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Danh mục yêu thích của bạn"
+          }
+        }
+      }
+    },
+    "favourite.discoverMore" : {
+      "comment" : "Button of the empty Favourite tab that opens Discover (btn_discover_more_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discover more"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khám phá thêm"
+          }
+        }
+      }
+    },
+    "favourite.empty" : {
+      "comment" : "Empty state of the Favourite tab.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No favourite shows yet."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có chương trình yêu thích."
+          }
+        }
+      }
+    },
+    "home.attribution" : {
+      "comment" : "Home footer, required by the PodcastIndex terms (attribution_podcastindex).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcast data provided by Podcast Index"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dữ liệu podcast cung cấp bởi Podcast Index"
+          }
+        }
+      }
+    },
+    "home.section.forYou" : {
+      "comment" : "Home section 5 header: podcasts in the favourite categories.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You might like"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Có thể bạn yêu thích"
+          }
+        }
+      }
+    },
+    "home.section.live" : {
+      "comment" : "Home section 3 header (live_podcast_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live podcasts"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live Podcasts"
+          }
+        }
+      }
+    },
+    "home.section.music" : {
+      "comment" : "Home section 2 header (music_feeds_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music library"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kho nhạc"
+          }
+        }
+      }
+    },
+    "home.section.music.subtitle" : {
+      "comment" : "Home section 2 subtitle (music_feeds_subtitle).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music feeds using podcast:medium"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feed nhạc theo chuẩn podcast:medium"
+          }
+        }
+      }
+    },
+    "home.section.recent" : {
+      "comment" : "Home section 4 header (recent_podcast_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recently trending podcasts"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcasts xu hướng gần đây"
+          }
+        }
+      }
+    },
+    "home.section.trending" : {
+      "comment" : "Home section 1 header (trending_podcast_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trending podcasts"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcasts thịnh hành"
+          }
+        }
+      }
+    },
+    "onboarding.continue" : {
+      "comment" : "Button on the last onboarding page.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiếp tục"
+          }
+        }
+      }
+    },
+    "onboarding.title.1" : {
+      "comment" : "Onboarding page 1 title (onboarding_title1).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discover Your Favourite Podcasts"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khám Phá Podcast Yêu Thích Của Bạn"
+          }
+        }
+      }
+    },
+    "onboarding.title.1.highlight.1" : {
+      "comment" : "Part of onboarding.title.1 drawn in the primary colour; must appear in that title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcasts"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcast"
+          }
+        }
+      }
+    },
+    "onboarding.title.1.highlight.2" : {
+      "comment" : "Part of onboarding.title.1 drawn in the primary colour; must appear in that title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Của Bạn"
+          }
+        }
+      }
+    },
+    "onboarding.title.2" : {
+      "comment" : "Onboarding page 2 title (onboarding_title2).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Content Made Just For You"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nội Dung Dành Riêng Cho Bạn"
+          }
+        }
+      }
+    },
+    "onboarding.title.2.highlight.1" : {
+      "comment" : "Part of onboarding.title.2 drawn in the primary colour; must appear in that title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just For You"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riêng Cho Bạn"
+          }
+        }
+      }
+    },
+    "onboarding.title.3" : {
+      "comment" : "Onboarding page 3 title (onboarding_title3).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listen Anytime, Anywhere"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nghe Mọi Lúc, Mọi Nơi"
+          }
+        }
+      }
+    },
+    "onboarding.title.3.highlight.1" : {
+      "comment" : "Part of onboarding.title.3 drawn in the primary colour; must appear in that title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anytime, Anywhere"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mọi Lúc, Mọi Nơi"
+          }
+        }
+      }
+    },
+    "onboarding.title.4" : {
+      "comment" : "Onboarding page 4 title (onboarding_title4).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organize And Update Continuously"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sắp Xếp Và Cập Nhật Liên Tục"
+          }
+        }
+      }
+    },
+    "onboarding.title.4.highlight.1" : {
+      "comment" : "Part of onboarding.title.4 drawn in the primary colour; must appear in that title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organize And Update"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sắp Xếp Và Cập Nhật"
+          }
+        }
+      }
+    },
+    "section.empty" : {
+      "comment" : "A Home section loaded with no items.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing here yet"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa có nội dung"
+          }
+        }
+      }
+    },
+    "section.error" : {
+      "comment" : "A Home section failed to load.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load content"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tải được nội dung"
+          }
+        }
+      }
+    },
+    "tab.favourite" : {
+      "comment" : "Tab label and title of the Favourite tab (favourite_screen_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorites"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yêu thích"
+          }
+        }
+      }
+    },
+    "tab.home" : {
+      "comment" : "Tab label and title of the Home/Discover tab (discorver_screen_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discover"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khám phá"
+          }
+        }
+      }
+    },
+    "tab.search" : {
+      "comment" : "Tab label and title of the Search tab (search_screen_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm kiếm"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

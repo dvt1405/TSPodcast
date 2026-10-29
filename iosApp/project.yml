@@ -13,6 +13,9 @@ options:
 settings:
   base:
     SWIFT_VERSION: "6.0"
+    # shared chỉ có iosArm64 + iosSimulatorArm64 (không iosX64): simulator chỉ build arm64, nếu không
+    # bản Release (ONLY_ACTIVE_ARCH = NO) link thiếu symbol Kotlin cho x86_64.
+    EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
     DEVELOPMENT_TEAM: ""
 
@@ -45,6 +48,13 @@ targets:
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: NO
         CODE_SIGN_STYLE: Automatic
         DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
+        # Màu trong Assets.xcassets tên Primary/Secondary trùng Color.primary/.secondary của SwiftUI:
+        # tắt extension sinh tự động, code dùng Color("Primary") qua Design/AppColors.swift.
+        ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: NO
+        # Chưa có AppIcon (milestone phát hành); preset của XcodeGen mặc định đòi set "AppIcon".
+        ASSETCATALOG_COMPILER_APPICON_NAME: ""
+        LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
         # Cách tích hợp A: framework static Shared do Gradle build ở phase "Compile Kotlin".
         FRAMEWORK_SEARCH_PATHS:
           - "$(inherited)"
@@ -59,12 +69,58 @@ targets:
         basedOnDependencyAnalysis: false
         showEnvVars: false
 
+  # Unit test, chạy trong app (host = TSPodcast). Không link Shared lần nữa: symbol Kotlin lấy từ app
+  # qua BUNDLE_LOADER, chỉ cần FRAMEWORK_SEARCH_PATHS để `import Shared`.
+  TSPodcastTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: TSPodcastTests
+    dependencies:
+      - target: TSPodcast
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: tss.t.podcast.tests
+        GENERATE_INFOPLIST_FILE: YES
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+        SWIFT_VERSION: "6.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        FRAMEWORK_SEARCH_PATHS:
+          - "$(inherited)"
+          - "$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"
+
+  # XCUITest: bộ regression cho mọi luồng tương tác (quy tắc UI test của owner).
+  TSPodcastUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: TSPodcastUITests
+    dependencies:
+      - target: TSPodcast
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: tss.t.podcast.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+        SWIFT_VERSION: "6.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+
 schemes:
   TSPodcast:
     build:
       targets:
         TSPodcast: all
+        TSPodcastTests: [test]
+        TSPodcastUITests: [test]
     run:
       config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: false
+      targets:
+        - name: TSPodcastTests
+        - name: TSPodcastUITests
     archive:
       config: Release
