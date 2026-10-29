@@ -577,6 +577,204 @@
         }
       }
     },
+    "search.categories" : {
+      "comment" : "Header above the category chips of the idle Search tab.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Categories"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Danh mục"
+          }
+        }
+      }
+    },
+    "search.empty %@" : {
+      "comment" : "Search without results (empty_search_title); %@ is the query, shown in bold.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No results for: %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có kết quả cho: %@"
+          }
+        }
+      }
+    },
+    "search.empty.musicHint" : {
+      "comment" : "Extra line under an empty Music search (search_music_empty_hint).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The podcast:medium music catalogue is small, try English keywords"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kho nhạc theo chuẩn podcast:medium còn ít, thử từ khoá tiếng Anh"
+          }
+        }
+      }
+    },
+    "search.loading" : {
+      "comment" : "VoiceOver label of the search spinner and of the category list placeholders.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tải"
+          }
+        }
+      }
+    },
+    "search.mode.all" : {
+      "comment" : "Search mode chip that searches every podcast (E7).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tất cả"
+          }
+        }
+      }
+    },
+    "search.mode.music" : {
+      "comment" : "Search mode chip that searches music feeds only (E8).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhạc"
+          }
+        }
+      }
+    },
+    "search.prompt" : {
+      "comment" : "Placeholder of the search field (search_hint_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search podcasts, artists"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm podcast, nghệ sĩ"
+          }
+        }
+      }
+    },
+    "search.results.all %@" : {
+      "comment" : "Header above the results of mode All (search_result_title, typo fixed); %@ is the query.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Top results for: %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết quả hàng đầu cho: %@"
+          }
+        }
+      }
+    },
+    "search.results.music %@" : {
+      "comment" : "Header above the results of mode Music (search_music_result_title); %@ is the query.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music for: %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhạc cho: %@"
+          }
+        }
+      }
+    },
+    "search.suggestion %@" : {
+      "comment" : "Idle Search suggestion (try_search_with_keyword_title); %@ is search.suggestion.keyword.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try searching: %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thử tìm kiếm: %@"
+          }
+        }
+      }
+    },
+    "search.suggestion.keyword" : {
+      "comment" : "Keyword shown in the idle Search suggestion (M2 plan §7 item 4 picks a podcast keyword).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "great podcasts"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcast hay"
+          }
+        }
+      }
+    },
     "section.empty" : {
       "comment" : "A Home section loaded with no items.",
       "extractionState" : "manual",

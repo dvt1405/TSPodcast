@@ -107,10 +107,3 @@ extension EpisodeRow {
         )
     }
 }
-
-private extension String {
-    var trimmedNonBlank: String? {
-        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? nil : trimmed
-    }
-}

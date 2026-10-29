@@ -357,3 +357,60 @@ extension TSPodcastUITestCase {
         return Int(value.dropFirst("count=".count))
     }
 }
+
+// MARK: - Search (M2 T3)
+
+extension TSPodcastUITestCase {
+    /// Words of `coreApi/src/main/assets/blacklist.json` `filterText` (copied on 30/10/2026).
+    static let blacklistWords = ["bet", "keonhacai", "casino", "nhacai", "gamebai", "cado", "cacuoc", "cakhiatv", "cá cược", "nhà cái"]
+
+    /// Taps the "Tìm kiếm" tab (or `label`) and waits for the Search root.
+    @MainActor
+    func openSearchTab(_ app: XCUIApplication, label: String = "Tìm kiếm", file: StaticString = #filePath, line: UInt = #line) {
+        tabButton(app, label).tap()
+        XCTAssertTrue(element(app, "search.root").waitForExistence(timeout: 10), "Search tab", file: file, line: line)
+    }
+
+    /// The `.searchable` field of the Search tab.
+    @MainActor
+    func searchField(_ app: XCUIApplication) -> XCUIElement {
+        app.searchFields.firstMatch
+    }
+
+    /// Focuses the search field and types `text` (no Return: the debounce sends the request).
+    @MainActor
+    func typeSearch(_ app: XCUIApplication, _ text: String, file: StaticString = #filePath, line: UInt = #line) {
+        let field = searchField(app)
+        XCTAssertTrue(field.waitForExistence(timeout: 5), "search field", file: file, line: line)
+        field.tap()
+        field.typeText(text)
+    }
+
+    /// Waits until Search shows results, the empty state or the error (no spinner); returns
+    /// "results", "empty" or "error".
+    @MainActor
+    func waitForSearchOutcome(_ app: XCUIApplication, timeout: TimeInterval = networkTimeout) -> String? {
+        var outcome: String?
+        _ = poll(timeout: timeout) {
+            if self.element(app, "search.loading").exists { return false }
+            if self.element(app, "search.results.header").exists { outcome = "results"; return true }
+            if self.element(app, "search.empty").exists { outcome = "empty"; return true }
+            if self.element(app, "search.error").exists { outcome = "error"; return true }
+            return false
+        }
+        return outcome
+    }
+
+    /// Waits until the results header reads `label`.
+    @MainActor
+    func waitForResultsHeader(_ app: XCUIApplication, _ label: String, timeout: TimeInterval = networkTimeout) -> Bool {
+        let header = element(app, "search.results.header")
+        return poll(timeout: timeout) { header.exists && header.label == label }
+    }
+
+    /// Back button of the navigation bar on top.
+    @MainActor
+    func tapBack(_ app: XCUIApplication) {
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+    }
+}

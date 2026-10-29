@@ -18,9 +18,13 @@ struct MainTabView: View {
     @State private var selection: AppTab = .home
     @State private var homePath: [PodcastRoute] = []
     @State private var homeModel: HomeModel
+    /// Search stack: Podcast detail and category lists (two value types).
+    @State private var searchPath = NavigationPath()
+    @State private var searchModel: SearchModel
 
-    init(homeModel: HomeModel) {
+    init(homeModel: HomeModel, searchModel: SearchModel) {
         _homeModel = State(initialValue: homeModel)
+        _searchModel = State(initialValue: searchModel)
     }
 
     /// M1 never plays anything; only the Debug hook shows the placeholder bar.
@@ -44,8 +48,8 @@ struct MainTabView: View {
             .tabItem { Label("tab.home", systemImage: "house") }
             .tag(AppTab.home)
 
-            NavigationStack {
-                SearchRootView()
+            NavigationStack(path: $searchPath) {
+                SearchView(model: searchModel)
                     .tabRoot(title: "tab.search")
             }
             .miniPlayerInset(isPresented: showsMiniPlayer)

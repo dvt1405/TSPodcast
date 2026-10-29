@@ -2,7 +2,7 @@ import XCTest
 @testable import TSPodcast
 
 /// M1-AC8: the String Catalog compiles into vi and en tables with the §4.5 texts; M2 §4.8
-/// adds the Podcast detail texts.
+/// adds the Podcast detail and Search texts.
 final class LocalizationTests: XCTestCase {
     private func bundle(_ language: String) throws -> Bundle {
         let path = try XCTUnwrap(Bundle.main.path(forResource: language, ofType: "lproj"), "\(language).lproj missing")
@@ -48,6 +48,16 @@ final class LocalizationTests: XCTestCase {
             "detail.episodes.error": "Không tải được danh sách tập",
             "detail.episodes.empty": "Chưa có tập nào",
             "detail.explicitHidden": "Podcast này được đánh dấu có nội dung người lớn (explicit) nên các tập đã bị ẩn.",
+            "search.prompt": "Tìm podcast, nghệ sĩ",
+            "search.mode.all": "Tất cả",
+            "search.mode.music": "Nhạc",
+            "search.suggestion %@": "Thử tìm kiếm: %@",
+            "search.suggestion.keyword": "Podcast hay",
+            "search.categories": "Danh mục",
+            "search.results.all %@": "Kết quả hàng đầu cho: %@",
+            "search.results.music %@": "Nhạc cho: %@",
+            "search.empty %@": "Không có kết quả cho: %@",
+            "search.empty.musicHint": "Kho nhạc theo chuẩn podcast:medium còn ít, thử từ khoá tiếng Anh",
         ]
         for (key, value) in expected {
             XCTAssertEqual(try text(key, "vi"), value, key)
@@ -81,6 +91,16 @@ final class LocalizationTests: XCTestCase {
             "detail.episodes.error": "Couldn't load episodes",
             "detail.episodes.empty": "No episodes yet",
             "detail.explicitHidden": "This podcast is marked explicit, so its episodes are hidden.",
+            "search.prompt": "Search podcasts, artists",
+            "search.mode.all": "All",
+            "search.mode.music": "Music",
+            "search.suggestion %@": "Try searching: %@",
+            "search.suggestion.keyword": "great podcasts",
+            "search.categories": "Categories",
+            "search.results.all %@": "Top results for: %@",
+            "search.results.music %@": "Music for: %@",
+            "search.empty %@": "No results for: %@",
+            "search.empty.musicHint": "The podcast:medium music catalogue is small, try English keywords",
         ]
         for (key, value) in expected {
             XCTAssertEqual(try text(key, "en"), value, key)

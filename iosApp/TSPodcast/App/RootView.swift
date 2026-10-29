@@ -26,7 +26,7 @@ struct RootView: View {
         case .selectCategories:
             CategorySelectionView(model: environment.makeCategorySelectionModel()) { route = .main }
         case .main:
-            MainTabView(homeModel: environment.makeHomeModel())
+            MainTabView(homeModel: environment.makeHomeModel(), searchModel: environment.makeSearchModel())
         }
     }
 }

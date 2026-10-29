@@ -19,6 +19,8 @@ final class AppEnvironment {
     @ObservationIgnored let playback: any PlaybackController
     /// Shared by every Detail screen of the process (the fail-once hook counts per process).
     @ObservationIgnored let podcastDetailDataSource: any PodcastDetailDataSource
+    /// Search and category lists over shared `SearchFeed`.
+    @ObservationIgnored let searchDataSource: any SearchDataSource
 
     var preferences: AppPreferences { graph.appPreferences }
     var favouriteCategories: FavouriteCategories { graph.favouriteCategories }
@@ -41,6 +43,10 @@ final class AppEnvironment {
         podcastDetailDataSource = SharedPodcastDetailDataSource(
             feed: graph.podcastDetailFeed,
             hooks: Self.detailHooks(launchOptions)
+        )
+        searchDataSource = SharedSearchDataSource(
+            feed: graph.searchFeed,
+            delay: launchOptions.slowNetwork ? HomeFeedDataSource.slowNetworkDelay : nil
         )
     }
 
@@ -76,6 +82,17 @@ final class AppEnvironment {
     /// Podcast detail of `route`, over shared `PodcastDetailFeed` and the app's player seam.
     func makePodcastDetailModel(for route: PodcastRoute) -> PodcastDetailModel {
         PodcastDetailModel(podcast: route, dataSource: podcastDetailDataSource, playback: playback)
+    }
+
+    /// The Search tab (debounce 200 ms on the continuous clock). `MainTabView` keeps it, so the
+    /// query, the mode and the results survive tab switches.
+    func makeSearchModel() -> SearchModel {
+        SearchModel(dataSource: searchDataSource)
+    }
+
+    /// Podcasts trending in `category`, pushed from a Search category chip.
+    func makeCategoryPodcastsModel(for category: CategoryItem) -> CategoryPodcastsModel {
+        CategoryPodcastsModel(category: category, dataSource: searchDataSource)
     }
 
     private static func detailHooks(_ options: LaunchOptions) -> SharedPodcastDetailDataSource.TestHooks {

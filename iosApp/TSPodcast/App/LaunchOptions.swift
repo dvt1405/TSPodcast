@@ -12,7 +12,7 @@ struct LaunchOptions: Equatable, Sendable {
     var skipOnboarding = false
     /// `-uitest-miniplayer-placeholder`: show a fake bar in the MiniPlayer slot.
     var miniPlayerPlaceholder = false
-    /// `-uitest-slow-network`: the Home and Detail data sources wait
+    /// `-uitest-slow-network`: the Home, Detail and Search data sources wait
     /// (`HomeFeedDataSource.slowNetworkDelay`) before every shared call.
     var slowNetwork = false
     /// `-uitest-fail-detail-once`: the first Detail load of the process fails without a request.
