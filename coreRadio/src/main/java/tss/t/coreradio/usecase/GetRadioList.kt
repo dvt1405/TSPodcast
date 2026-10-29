@@ -9,6 +9,7 @@ import tss.t.coreradio.api.RadioApi
 import tss.t.coreradio.di.RadioRepo
 import tss.t.coreradio.models.RadioChannel
 import tss.t.coreradio.storage.dao.RadioChannelDao
+import tss.t.sharedlibrary.crash.safeCallOr
 import javax.inject.Inject
 
 class GetRadioList @Inject constructor(
@@ -40,8 +41,12 @@ class GetRadioList @Inject constructor(
             }
     }
 
-    suspend operator fun invoke() = apis.values.map {
-        it.getRadioList()
+    // Each source is fetched on its own: one site changing its markup used to
+    // throw out of this map and blank the whole Radio tab, the other source too.
+    suspend operator fun invoke() = apis.entries.map { (key, api) ->
+        safeCallOr(TAG, emptyList(), mapOf("radio_repo" to key)) {
+            api.getRadioList()
+        }
     }
         .flatten()
         .let {
@@ -59,4 +64,7 @@ class GetRadioList @Inject constructor(
             emit(Result.success(radioChannelDao.getAll()))
         }
 
+    companion object {
+        private const val TAG = "GetRadioList"
+    }
 }

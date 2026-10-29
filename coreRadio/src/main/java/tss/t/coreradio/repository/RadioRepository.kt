@@ -2,7 +2,6 @@ package tss.t.coreradio.repository
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import tss.t.coreradio.RadioConstants
 import tss.t.coreradio.api.RadioApi
 import tss.t.coreradio.di.RadioRepo
@@ -26,57 +25,61 @@ class RadioRepository @Inject constructor(
     }
 
     override suspend fun getRadioList(): List<RadioChannel> {
-        val doc = jsoupExt.safeConnect(baseUrl)
+        // vovmedia.vn no longer renders `.row .col` cards (checked 2026-10-29).
+        // /radio now ships every channel as an Alpine.js `x-data` blob holding
+        // JSON.parse('...') with the title, artwork and a direct HLS url.
+        val doc = jsoupExt.safeConnect(RadioConstants.VOV_RADIO_URL, cookieReferer = baseUrl)
             ?: return radioChannelDao.getAllByCategory(RadioRepo.VOV)
-        val body = doc.body()
-        val rows = body.select(".row .col")
-        val listChannel = rows.mapNotNull {
-            val link = it.getElementsByTag("a")
-                .getOrNull(0)
-                ?.attr("href")
-                .takeIf {
-                    !it.isNullOrEmpty()
-                } ?: return@mapNotNull null
-            val name = link.toHttpUrl()
-                .pathSegments
-                .lastOrNull()
-                ?.split("-")
-                ?.joinToString(" ") { word ->
-                    if (word.contains("vov")) {
-                        word.uppercase()
-                    } else {
-                        word.replaceFirstChar { ch -> ch.uppercase() }
-                    }
-                }
-                ?: return@mapNotNull null
-            val logo = it.getElementsByTag("source")
-                .getOrNull(0)
-                ?.attr("srcset")
-                .takeIf {
-                    !it.isNullOrEmpty()
-                } ?: return@mapNotNull null
-
-            RadioChannel(
-                channelId = link,
-                channelName = name,
-                logo = logo,
-                categories = listOf(RadioRepo.VOV),
-                links = listOf(
-                    RadioChannel.Link(
-                        RadioChannel.ItemLinkType.Browsable,
-                        link = link,
-                        id = link,
-                        source = baseUrl
-                    )
-                ),
-                category = RadioRepo.VOV
+        val seen = mutableSetOf<String>()
+        val listChannel = doc.select("[x-data]").flatMap { element ->
+            val data = element.attr("x-data")
+                .replace("\\u0022", "\"")
+                .replace("\\\\\\/", "/")
+                .replace("\\/", "/")
+            CHANNEL_REGEX.findAll(data).mapNotNull { match ->
+                val (title, _, artwork, seed, stream) = match.destructured
+                if (!stream.startsWith("https://") || !seen.add(seed)) return@mapNotNull null
+                val page = RadioConstants.VOV_RADIO_URL + "/" + seed
+                RadioChannel(
+                    channelId = page,
+                    channelName = title,
+                    logo = artwork,
+                    categories = listOf(RadioRepo.VOV),
+                    links = listOf(
+                        RadioChannel.Link(
+                            RadioChannel.ItemLinkType.Playable,
+                            link = stream,
+                            id = page,
+                            source = baseUrl
+                        ),
+                        RadioChannel.Link(
+                            RadioChannel.ItemLinkType.Browsable,
+                            link = page,
+                            id = page,
+                            source = baseUrl
+                        )
+                    ),
+                    category = RadioRepo.VOV
+                )
+            }.toList()
+        }
+        if (listChannel.isEmpty()) {
+            // The markup moved again: report it and keep whatever was cached.
+            Crash.record(
+                NoSuchElementException("VOV: no channel matched on /radio"),
+                TAG,
+                mapOf("radio_repo" to RadioRepo.VOV)
             )
+            return radioChannelDao.getAllByCategory(RadioRepo.VOV)
         }
         radioChannelDao.inserts(listChannel)
         return listChannel
     }
 
     override suspend fun getPlayableLink(radioChannel: RadioChannel): RadioChannel.Link {
+        radioChannel.links
+            .firstOrNull { it.type == RadioChannel.ItemLinkType.Playable }
+            ?.let { return it }
         val radioLink = radioChannel.links.firstOrNull()
             ?: throw IllegalStateException(
                 "VOV: no link for channel ${radioChannel.channelId}"
@@ -129,5 +132,12 @@ class RadioRepository @Inject constructor(
 
     companion object {
         private const val TAG = "RadioRepository"
+
+        /** One live channel inside a decoded `x-data` blob on vovmedia.vn/radio. */
+        private val CHANNEL_REGEX = Regex(
+            "\"title\":\"([^\"]+)\",\"subtitle\":\"([^\"]*)\",\"label\":\"[^\"]*\"," +
+                "\"artwork\":\"([^\"]*)\",\"seed\":\"([^\"]+)\",\"isLive\":true," +
+                "\"sources\":\\[\\{\"url\":\"([^\"]+)\""
+        )
     }
 }
