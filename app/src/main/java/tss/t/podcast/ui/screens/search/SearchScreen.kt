@@ -46,7 +46,8 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import org.json.JSONObject
-import tss.t.ads.MaxAdViewComposable
+import tss.t.ads.AdBannerSlot
+import tss.t.ads.AdPlacement
 import tss.t.coreapi.models.CategoryRes
 import tss.t.coreapi.models.Feed
 import tss.t.hazeandroid.HazeDefaults
@@ -56,7 +57,6 @@ import tss.t.podcast.R
 import tss.t.podcast.ui.screens.search.widgets.SearchModeFilter
 import tss.t.podcast.ui.screens.search.widgets.SearchPodcastItem
 import tss.t.podcast.ui.theme.PodcastTheme
-import tss.t.sharedfirebase.LocalAnalyticsScope
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.ui.widget.TSOutlinedTextField
@@ -170,9 +170,7 @@ fun SearchScreen(
                 .padding(horizontal = 16.dp)
                 .padding(top = 12.dp)
         )
-        MaxAdViewComposable(
-            tsAnalytics = LocalAnalyticsScope.current!!
-        )
+        AdBannerSlot(placement = AdPlacement.SearchResults)
         LazyColumn(
             modifier = Modifier
                 .haze(

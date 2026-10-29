@@ -21,12 +21,8 @@ plugins {
     alias(libs.plugins.firebase.appdistribution)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.ksp)
-    id("applovin-quality-service")
 }
 
-applovin {
-    apiKey = "avJkJkTUhqmoZGJTcdqgylRVHN9sbc3ZSUbub3UL1fXR3fXOyqupneiTBSvfi8FT0iI060T6danq4i-z5ZaZJp"
-}
 
 android {
     namespace = "tss.t.podcast"
@@ -111,6 +107,14 @@ composeCompiler {
     reportsDestination = layout.buildDirectory.dir("compose_compiler")
 }
 
+// The GMA Next-Gen SDK already contains every class of the legacy
+// play-services-ads SDK; anything pulling the legacy one in transitively would
+// produce duplicate classes (Google's Next-Gen setup guide).
+configurations.configureEach {
+    exclude(group = "com.google.android.gms", module = "play-services-ads")
+    exclude(group = "com.google.android.gms", module = "play-services-ads-lite")
+}
+
 dependencies {
 
     coreLibraryDesugaring(libs.desugar.jdk.libs)
@@ -135,7 +139,6 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer.hls)
     implementation(libs.androidx.media3.exoplayer.rtsp)
     implementation(libs.androidx.media3.exoplayer.smoothstreaming)
-    implementation(libs.androidx.media3.exoplayer.ima)
     implementation(libs.androidx.media3.datasource.cronet)
     implementation(libs.androidx.ui.graphics.android)
     testImplementation(libs.junit)
@@ -169,8 +172,6 @@ dependencies {
     implementation(libs.androidx.room.guava)
     testImplementation(libs.androidx.room.testing)
     implementation(libs.androidx.room.paging)
-    implementation(libs.applovin.sdk)
-    implementation(libs.facebook.android.sdk)
     implementation(project(":samples"))
     implementation(project(":sharedLibrary"))
     implementation(project(":sharedPlayer"))
@@ -185,6 +186,9 @@ dependencies {
     implementation(project(":hazeAndroid"))
     implementation(project(":sharedFirebase"))
     implementation(project(":ads"))
+    // AdMob (GMA Next-Gen SDK + UMP). :app only sees :ads types; drop this
+    // line for an ad-free build and the seam falls back to its no-ops.
+    implementation(project(":ads-admob"))
 }
 
 // Firebase App Distribution configuration

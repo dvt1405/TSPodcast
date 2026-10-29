@@ -64,9 +64,6 @@
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_stat_tspodcast"
             tools:replace="android:resource" />
-        <meta-data
-            android:name="com.facebook.sdk.ApplicationId"
-            android:value="@string/facebook_app_id" />
     </application>
 
 </manifest>

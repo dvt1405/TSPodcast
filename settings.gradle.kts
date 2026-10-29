@@ -9,7 +9,6 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
-        maven { url = uri("https://artifacts.applovin.com/android") }
         maven { url = uri("https://jitpack.io") }
     }
 }
@@ -35,6 +34,7 @@ include(":hazeAndroid")
 include(":sharedPlayer")
 include(":sharedFirebase")
 include(":ads")
+include(":ads-admob")
 include(":coreRadio")
 include(":featureRadio")
 //include(":app_traffic")

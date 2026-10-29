@@ -50,6 +50,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -64,15 +65,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import tss.t.ads.ApplovinSdkWrapper
-import tss.t.ads.BannerAdsManager
-import tss.t.ads.LocalBannerAdsManagerScope
+import tss.t.ads.AdRenderer
+import tss.t.ads.AdsController
+import tss.t.ads.LocalAdRenderer
+import tss.t.ads.LocalAdsController
+import tss.t.podcast.ads.AppAdsHostSignals
 import androidx.core.net.toUri
 import tss.t.coreapi.Constants
 import tss.t.featureonboarding.OnboardingViewModel
@@ -102,13 +106,16 @@ class MainActivity : ComponentActivity() {
     private val podcastViewModel: PodcastViewModel by viewModels<PodcastViewModel>()
 
     @Inject
-    lateinit var applovinSdkWrapper: ApplovinSdkWrapper
+    lateinit var adsController: AdsController
+
+    @Inject
+    lateinit var adRenderer: AdRenderer
+
+    @Inject
+    lateinit var adsHostSignals: AppAdsHostSignals
 
     @Inject
     lateinit var tsAnalytics: TSAnalytics
-
-    @Inject
-    lateinit var bannerAdsManager: BannerAdsManager
 
     @Inject
     lateinit var tsRemoteConfig: TSFirebaseRemoteConfig
@@ -131,7 +138,7 @@ class MainActivity : ComponentActivity() {
             )
         )
         if (!NativeLib.isAvailable) {
-            // Every API call and the ad SDK key need libsecuredtoken.so, and the
+            // Every API call needs libsecuredtoken.so, and the
             // view models below build the API on first access. Without the
             // library the only useful thing to show is how to get a full install.
             setContent {
@@ -158,6 +165,10 @@ class MainActivity : ComponentActivity() {
         onBackPressedDispatcher.addCallback(this, backCallback)
         handleIntent(intent)
         requestNotificationPermissionIfNeeded()
+        // UMP consent (form if required) -> Mobile Ads SDK init -> preload.
+        // Inside the NativeLib guard on purpose: the broken-install screen
+        // above has nothing to monetise.
+        adsController.start(this)
         setContent {
             val listState = remember {
                 mutableStateMapOf<BottomBarTab, LazyListState>()
@@ -167,6 +178,14 @@ class MainActivity : ComponentActivity() {
             }
             val navGraph = rememberNavController()
             navHostController = navGraph
+            DisposableEffect(navGraph) {
+                // Lets the ad policy know when the full-screen Player is visible.
+                val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
+                    adsHostSignals.currentRoute = destination.route
+                }
+                navGraph.addOnDestinationChangedListener(listener)
+                onDispose { navGraph.removeOnDestinationChangedListener(listener) }
+            }
             val innerNavGraph = rememberNavController()
             homeInnerNavHostController = innerNavGraph
             PodcastTheme {
@@ -178,7 +197,8 @@ class MainActivity : ComponentActivity() {
                         LocalListStateScope provides listState,
                         LocalPullToRefreshState provides pullRefreshState,
                         LocalAnalyticsScope provides tsAnalytics,
-                        LocalBannerAdsManagerScope provides bannerAdsManager,
+                        LocalAdRenderer provides adRenderer,
+                        LocalAdsController provides adsController,
                         LocalRemoteConfigScope provides tsRemoteConfig,
                         LocalRemoteConfig provides tsRemoteConfig
                     ) {
@@ -214,11 +234,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        applovinSdkWrapper.loadOpenAds()
-    }
-
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleIntent(intent)
@@ -246,6 +261,12 @@ class MainActivity : ComponentActivity() {
         // Reached from onNewIntent too; playerViewModel needs the API, which
         // needs libsecuredtoken.so. See the guard in onCreate.
         if (!NativeLib.isAvailable) return
+        // Opened from the media notification or a link: the user came to
+        // listen, so no App Open ad for this foreground (audio-first rule).
+        // onNewIntent runs before onResume, where the App Open decision is made.
+        if (intent.action == Constants.ACTION_START_FROM_NOTIFICATION || intent.data != null) {
+            adsController.onExternalLaunch()
+        }
         if (intent.action != Constants.ACTION_START_FROM_NOTIFICATION) return
         val data = intent.data ?: return
         // This activity is exported, so any app can send this action. Match on

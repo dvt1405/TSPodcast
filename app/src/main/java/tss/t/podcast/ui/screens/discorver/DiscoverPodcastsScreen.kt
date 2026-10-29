@@ -35,9 +35,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.foundation.clickable
+import androidx.compose.runtime.collectAsState
+import androidx.activity.compose.LocalActivity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import tss.t.ads.MaxAdViewComposable
+import tss.t.ads.AdBannerSlot
+import tss.t.ads.AdNativeSlot
+import tss.t.ads.AdPlacement
+import tss.t.ads.LocalAdsController
 import tss.t.coreapi.models.LiveEpisode
 import tss.t.coreapi.models.Podcast
 import tss.t.hazeandroid.HazeDefaults
@@ -56,7 +63,6 @@ import tss.t.podcast.ui.screens.player.PlayerViewModel
 import tss.t.podcast.ui.screens.uimodels.main.HomepageDataPart
 import tss.t.podcast.ui.screens.uimodels.main.UIState
 import tss.t.podcast.ui.theme.PodcastThemePreview
-import tss.t.sharedfirebase.LocalAnalyticsScope
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 
@@ -67,6 +73,7 @@ private const val ITEM_LIVE_TITLE = "LiveTitle"
 private const val ITEM_FAV_TITLE = "FavTitle"
 private const val ITEM_SPACE_BOTTOM = "SpaceBottom"
 private const val ITEM_KEY_ATTRIBUTION = "Attribution"
+private const val ITEM_PRIVACY_OPTIONS = "PrivacyOptions"
 private const val ITEM_MUSIC_TITLE = "MusicTitle"
 private const val ITEM_MUSIC_ROW = "MusicRow"
 private const val ITEM_AD_BANNER_1 = "AdBanner1"
@@ -222,8 +229,9 @@ fun DiscoverPodcastsScreen(
                 )
             }
             item(key = ITEM_AD_BANNER_1) {
-                MaxAdViewComposable(
-                    tsAnalytics = LocalAnalyticsScope.current!!
+                AdNativeSlot(
+                    placement = AdPlacement.DiscoverInline,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
             item(key = ITEM_LIVE_TITLE) {
@@ -303,9 +311,8 @@ fun DiscoverPodcastsScreen(
                 }
                 if (it == 1 && !isFavRefreshing) {
                     Spacer(Modifier.size(4.dp))
-                    MaxAdViewComposable(
-                        tsAnalytics = LocalAnalyticsScope.current!!
-                    )
+                    // Off by default (two ads on one screen); Remote Config can enable it.
+                    AdBannerSlot(placement = AdPlacement.DiscoverFavInline)
                 }
             }
 
@@ -325,6 +332,10 @@ fun DiscoverPodcastsScreen(
                 )
             }
 
+            item(key = ITEM_PRIVACY_OPTIONS) {
+                PrivacyOptionsLink()
+            }
+
             item(key = ITEM_SPACE_BOTTOM) {
                 Spacer(modifier = Modifier.size(innerPadding.calculateBottomPadding()))
                 if (currentMediaItem != null) {
@@ -333,6 +344,30 @@ fun DiscoverPodcastsScreen(
             }
         }
     }
+}
+
+/**
+ * UMP privacy options entry point. Shown only where consent regulations
+ * require one (e.g. EEA/UK under GDPR, regulated US states); lets the user
+ * change or withdraw ad consent. The app has no settings screen yet, so it
+ * lives in the Discover footer next to the attribution.
+ */
+@Composable
+private fun PrivacyOptionsLink() {
+    val adsController = LocalAdsController.current
+    val required by adsController.privacyOptionsRequired.collectAsState()
+    if (!required) return
+    val activity = LocalActivity.current ?: return
+    Text(
+        text = stringResource(R.string.privacy_options_ads),
+        style = TextStyles.Body5.copy(textDecoration = TextDecoration.Underline),
+        color = Colors.Gray60,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { adsController.showPrivacyOptions(activity) }
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    )
 }
 
 @Composable
