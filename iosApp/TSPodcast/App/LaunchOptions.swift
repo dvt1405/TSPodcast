@@ -12,7 +12,7 @@ struct LaunchOptions: Equatable, Sendable {
     var skipOnboarding = false
     /// `-uitest-miniplayer-placeholder`: show a fake bar in the MiniPlayer slot.
     var miniPlayerPlaceholder = false
-    /// `-uitest-slow-network`: Home's data source waits 3 s before every shared call.
+    /// `-uitest-slow-network`: Home's data source waits (`HomeFeedDataSource.slowNetworkDelay`) before every shared call.
     var slowNetwork = false
     /// Env `TSP_UITEST_BASE_URL`: PodcastIndex base URL used instead of the one in Info.plist.
     var baseURLOverride: String?

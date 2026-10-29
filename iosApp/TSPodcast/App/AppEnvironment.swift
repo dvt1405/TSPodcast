@@ -53,6 +53,16 @@ final class AppEnvironment {
         )
     }
 
+    /// Home/Discover over shared `HomeFeed`. `-uitest-slow-network` (Debug) delays every call.
+    func makeHomeModel() -> HomeModel {
+        let dataSource = HomeFeedDataSource(
+            feed: graph.homeFeed,
+            favourites: favouriteCategories,
+            delay: launchOptions.slowNetwork ? HomeFeedDataSource.slowNetworkDelay : nil
+        )
+        return HomeModel(dataSource: dataSource)
+    }
+
     /// First screen of this launch (`TSNavGraph` order, logic in shared). Debug builds apply the
     /// XCUITest hooks first.
     func resolveStartRoute() async -> AppRoute {

@@ -17,7 +17,7 @@ final class LaunchSmokeUITests: TSPodcastUITestCase {
     func testSkipOnboardingOpensMainOnDiscover() {
         let app = launch([.skipOnboarding])
 
-        app.scrollViews["home.root"].waitToExist(timeout: 10, "skip-onboarding must open Main")
+        element(app, "home.root").waitToExist(timeout: 10, "skip-onboarding must open Main")
         XCTAssertFalse(app.otherElements["onboarding.page.0"].exists)
         let discover = app.tabBars.buttons["Khám phá"]
         XCTAssertTrue(discover.exists)

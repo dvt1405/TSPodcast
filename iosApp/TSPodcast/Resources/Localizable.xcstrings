@@ -145,6 +145,24 @@
         }
       }
     },
+    "home.loading" : {
+      "comment" : "VoiceOver label of a Home section that is still loading (shimmer placeholder).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tải"
+          }
+        }
+      }
+    },
     "home.section.forYou" : {
       "comment" : "Home section 5 header: podcasts in the favourite categories.",
       "extractionState" : "manual",

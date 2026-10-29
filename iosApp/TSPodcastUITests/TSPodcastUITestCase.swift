@@ -128,3 +128,108 @@ extension TSPodcastUITestCase {
         return cell
     }
 }
+
+// MARK: - Main shell and Home (M1 T4)
+
+extension TSPodcastUITestCase {
+    /// The 5 Home sections in Android's order, with their vi headers.
+    static let homeSections: [(id: String, title: String)] = [
+        ("trending", "Podcasts thịnh hành"),
+        ("music", "Kho nhạc"),
+        ("live", "Live Podcasts"),
+        ("recent", "Podcasts xu hướng gần đây"),
+        ("forYou", "Có thể bạn yêu thích"),
+    ]
+
+    /// Launches on Main (`-uitest-skip-onboarding` + `hooks`) and waits for Home.
+    @MainActor
+    @discardableResult
+    func launchMain(
+        _ hooks: [Hook] = [],
+        language: String = "vi",
+        locale: String = "vi_VN",
+        environment: [String: String] = [:]
+    ) -> XCUIApplication {
+        let app = launch([.skipOnboarding] + hooks, language: language, locale: locale, environment: environment)
+        element(app, "home.root").waitToExist(timeout: 10, "skip-onboarding must open Home")
+        return app
+    }
+
+    /// Tab bar button, by its localized label.
+    @MainActor
+    func tabButton(_ app: XCUIApplication, _ label: String) -> XCUIElement {
+        app.tabBars.firstMatch.buttons[label]
+    }
+
+    /// Drags the Home list up by about `fraction` of its height, without a fling, so lazily
+    /// created rows are not skipped.
+    @MainActor
+    func dragHomeUp(_ app: XCUIApplication, fraction: CGFloat = 0.45) {
+        let list = element(app, "home.list")
+        let start = list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+        let end = list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75 - fraction))
+        start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.1)
+    }
+
+    /// Whether `element` is laid out inside the visible part of the Home list.
+    @MainActor
+    func isVisibleInHome(_ app: XCUIApplication, _ element: XCUIElement) -> Bool {
+        guard element.exists else { return false }
+        // The list runs under the navigation bar and the floating tab bar: only the band
+        // between them counts, so a visible element can also be tapped.
+        let list = self.element(app, "home.list").frame
+        let top = max(list.minY, app.navigationBars.firstMatch.frame.maxY)
+        let tabBar = app.tabBars.firstMatch
+        let bottom = min(list.maxY, tabBar.exists ? tabBar.frame.minY : list.maxY)
+        let frame = element.frame
+        return !frame.isEmpty && frame.minY >= top && frame.maxY <= bottom
+    }
+
+    /// Drags Home up until `element` is fully visible (at most `maxDrags` drags).
+    @MainActor
+    @discardableResult
+    func scrollHome(_ app: XCUIApplication, to element: XCUIElement, maxDrags: Int = 12) -> Bool {
+        for _ in 0..<maxDrags {
+            if isVisibleInHome(app, element) { return true }
+            dragHomeUp(app)
+        }
+        return isVisibleInHome(app, element)
+    }
+
+    /// Flings Home to its end (the attribution footer).
+    @MainActor
+    func scrollHomeToBottom(_ app: XCUIApplication, maxSwipes: Int = 40) -> XCUIElement {
+        let footer = element(app, "home.attribution")
+        for _ in 0..<maxSwipes {
+            // The lazy stack re-measures rows as they appear, which can push the footer down
+            // again: it counts as reached only when it is still visible after a short settle.
+            if isVisibleInHome(app, footer) {
+                RunLoop.current.run(until: Date().addingTimeInterval(0.5))
+                if isVisibleInHome(app, footer) { break }
+            }
+            element(app, "home.list").swipeUp(velocity: .fast)
+        }
+        return footer
+    }
+
+    /// Waits until section `id` has `.item.0` or `.empty` and no `.loading`; returns which one.
+    @MainActor
+    func waitForSectionContent(_ app: XCUIApplication, _ id: String, timeout: TimeInterval = networkTimeout) -> String? {
+        let prefix = "home.section.\(id)"
+        var outcome: String?
+        _ = poll(timeout: timeout) {
+            guard !self.element(app, "\(prefix).loading").exists else { return false }
+            if self.element(app, "\(prefix).item.0").exists { outcome = "item"; return true }
+            if self.element(app, "\(prefix).empty").exists { outcome = "empty"; return true }
+            if self.element(app, "\(prefix).error").exists { outcome = "error"; return true }
+            return false
+        }
+        return outcome
+    }
+
+    /// Waits until `element.value` equals `value`.
+    @MainActor
+    func waitForValue(_ element: XCUIElement, _ value: String, timeout: TimeInterval) -> Bool {
+        poll(timeout: timeout) { element.exists && (element.value as? String) == value }
+    }
+}
