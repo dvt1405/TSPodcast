@@ -30,6 +30,9 @@ struct PodcastDetailView: View {
         ScrollView {
             VStack(spacing: 0) {
                 DetailHeader(podcast: model.podcast)
+                if model.isShowingSavedEpisodes {
+                    OfflineBanner()
+                }
                 EpisodesSection(model: model)
                     .padding(.bottom, 24)
             }
@@ -169,6 +172,27 @@ private struct EpisodesSection: View {
                 Task { await model.retry() }
             }
         }
+    }
+}
+
+/// E10 failed and the list is the one saved on the device (M4 §3.3 [Sửa]).
+private struct OfflineBanner: View {
+    var body: some View {
+        Label {
+            Text("detail.offlineBanner")
+        } icon: {
+            Image(systemName: "wifi.slash")
+        }
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("detail.offlineBanner")
     }
 }
 

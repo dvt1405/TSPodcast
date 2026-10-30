@@ -27,19 +27,34 @@ final class AppEnvironment {
     var preferences: AppPreferences { graph.appPreferences }
     var favouriteCategories: FavouriteCategories { graph.favouriteCategories }
 
-    init(launchOptions: LaunchOptions = .current, artworkLoader: ArtworkLoader = .shared) {
-        self.launchOptions = launchOptions
-        self.artworkLoader = artworkLoader
+    /// The app's graph: DataStore and Room files in Application Support (M4 §3.1), and the
+    /// shared `PruneApiCache` as the launch cleanup.
+    convenience init(launchOptions: LaunchOptions = .current, artworkLoader: ArtworkLoader = .shared) {
         let credentials = BundleCredentialsProvider(baseUrlOverride: launchOptions.baseURLOverride)
         if !credentials.isComplete {
             AppLog.app.error("missing_credentials")
         }
-        graph = SharedGraph(
+        let databaseURL = Self.databaseURL()
+        let graph = SharedGraph(
             credentials: credentials,
             config: NoOpConfig(),
             preferencesPath: Self.preferencesPath(),
-            databasePath: Self.databasePath()
+            databasePath: databaseURL.path(percentEncoded: false)
         )
+        self.init(
+            launchOptions: launchOptions,
+            artworkLoader: artworkLoader,
+            graph: graph,
+            pruner: SharedCachePruner(pruneApiCache: graph.pruneApiCache, databaseURL: databaseURL)
+        )
+    }
+
+    /// Builds the services over `graph` and starts `pruner` once, off the main actor, without
+    /// waiting for it (features-spec §1: the cleanup never blocks the first screen).
+    init(launchOptions: LaunchOptions, artworkLoader: ArtworkLoader, graph: SharedGraph, pruner: any LaunchCachePruning) {
+        self.launchOptions = launchOptions
+        self.artworkLoader = artworkLoader
+        self.graph = graph
         analytics = LogAnalyticsTracker()
         categoryCatalog = CategoryCatalog(getCategories: graph.getCategories)
         audioEngine = AudioEngine(
@@ -56,6 +71,9 @@ final class AppEnvironment {
             feed: graph.searchFeed,
             delay: launchOptions.slowNetwork ? HomeFeedDataSource.slowNetworkDelay : nil
         )
+        Task.detached(priority: .utility) {
+            await pruner.prune()
+        }
     }
 
     func makeOnboardingModel() -> OnboardingModel {
@@ -94,6 +112,15 @@ final class AppEnvironment {
     func play(_ request: PlaybackRequest) {
         audioEngine.play(request)
         isPlayerPresented = true
+    }
+
+    /// The Favourite tab over the `FavouriteDTO` table: a tap plays through the player seam
+    /// without opening the Player (Android `FavouriteScreen`).
+    func makeFavouriteModel() -> FavouriteModel {
+        FavouriteModel(
+            dataSource: SharedFavouriteDataSource(repository: graph.favouriteRepository, resolver: graph.favouriteResolver),
+            playback: playback
+        )
     }
 
     /// Podcast detail of `route`, over shared `PodcastDetailFeed` and the app's player seam.
@@ -169,18 +196,23 @@ final class AppEnvironment {
         applicationSupportFile(DataStoreKeyValueStore.companion.FILE_NAME)
     }
 
-    /// `Application Support/TSPodcastDatabase.db` (M4 §3.1). Room opens it on the first query.
-    private static func databasePath() -> String {
-        applicationSupportFile(PodcastDatabase.companion.FILE_NAME)
+    /// `DatabaseLocation.url` (M4 §3.1). Room opens it on the first query, which is the launch
+    /// prune; the pruner then excludes it from backup.
+    private static func databaseURL() -> URL {
+        createApplicationSupportDirectory()
+        return DatabaseLocation.url
     }
 
     private static func applicationSupportFile(_ name: String) -> String {
-        let directory = URL.applicationSupportDirectory
+        createApplicationSupportDirectory()
+        return URL.applicationSupportDirectory.appending(path: name).path(percentEncoded: false)
+    }
+
+    private static func createApplicationSupportDirectory() {
         do {
-            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(at: .applicationSupportDirectory, withIntermediateDirectories: true)
         } catch {
             AppLog.app.error("app_support_dir_failed type=\(String(describing: type(of: error)), privacy: .public)")
         }
-        return directory.appending(path: name).path(percentEncoded: false)
     }
 }

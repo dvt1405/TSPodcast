@@ -16,13 +16,16 @@ enum AppTab: Hashable, Sendable {
 struct MainTabView: View {
     @Environment(AppEnvironment.self) private var environment
     @State private var selection: AppTab = .home
+    /// Favourite list and its stack (Podcast detail of a tapped favourite).
+    @State private var favouriteModel: FavouriteModel
     @State private var homePath: [PodcastRoute] = []
     @State private var homeModel: HomeModel
     /// Search stack: Podcast detail and category lists (two value types).
     @State private var searchPath = NavigationPath()
     @State private var searchModel: SearchModel
 
-    init(homeModel: HomeModel, searchModel: SearchModel) {
+    init(favouriteModel: FavouriteModel, homeModel: HomeModel, searchModel: SearchModel) {
+        _favouriteModel = State(initialValue: favouriteModel)
         _homeModel = State(initialValue: homeModel)
         _searchModel = State(initialValue: searchModel)
     }
@@ -37,8 +40,8 @@ struct MainTabView: View {
     var body: some View {
         @Bindable var environment = environment
         TabView(selection: $selection) {
-            NavigationStack {
-                FavouriteRootView { selection = .home }
+            NavigationStack(path: $favouriteModel.path) {
+                FavouriteRootView(model: favouriteModel) { selection = .home }
                     .tabRoot(title: "tab.favourite")
             }
             .miniPlayerInset(isPresented: showsMiniPlayer)

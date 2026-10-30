@@ -1,8 +1,10 @@
 import XCTest
+@preconcurrency import Shared
 @testable import TSPodcast
 
 /// M2-AC4: states, alert, inline retry, single load and the playlist handed to the player seam
-/// (`PodcastViewModel` with the features-spec §3.5 [Sửa]).
+/// (`PodcastViewModel` with the features-spec §3.5 [Sửa]). M4: offline banner and the Room
+/// history of a tap.
 @MainActor
 final class PodcastDetailModelTests: XCTestCase {
     private let threeEpisodes = PodcastDetailContent(episodes: [.sample(1), .sample(2), .sample(3)])
@@ -168,5 +170,49 @@ final class PodcastDetailModelTests: XCTestCase {
         XCTAssertFalse(model.play(index: -1))
 
         XCTAssertTrue(playback.requests.isEmpty)
+    }
+
+    // MARK: - M4 (§3.2, §3.3)
+
+    func testSavedEpisodesShowTheOfflineBanner() async {
+        let content = PodcastDetailContent(episodes: [.sample(1)], isFromCache: true)
+        let model = makeModel(FakePodcastDetailDataSource(.success(content)))
+
+        await model.loadIfNeeded()
+
+        XCTAssertTrue(model.isShowingSavedEpisodes)
+        XCTAssertEqual(model.episodes.map(\.id), [1])
+    }
+
+    func testOnlineListHasNoBannerAndRetryClearsIt() async {
+        let saved = PodcastDetailContent(episodes: [.sample(1)], isFromCache: true)
+        let model = makeModel(FakePodcastDetailDataSource(.success(saved), .success(threeEpisodes)))
+        await model.loadIfNeeded()
+        XCTAssertTrue(model.isShowingSavedEpisodes)
+
+        await model.retry()
+
+        XCTAssertFalse(model.isShowingSavedEpisodes)
+        XCTAssertEqual(model.episodes.count, 3)
+    }
+
+    /// A tap hands the E10 models and the podcast to save (from E11, else the route) to the player.
+    func testPlayCarriesTheRoomHistory() async throws {
+        let episodes = [SharedModelFactory.episode(1), SharedModelFactory.episode(2)]
+        let detail = PodcastDetail(episodes: episodes, feed: nil, hiddenExplicitCount: 0, isExplicitFeedHidden: false, isFromCache: false, podcast: nil)
+        let content = PodcastDetailContent(episodes: episodes.map(EpisodeRow.init), source: KotlinValue(detail))
+        let playback = RecordingPlaybackController()
+        let model = makeModel(FakePodcastDetailDataSource(.success(content)), playback: playback)
+        await model.loadIfNeeded()
+
+        model.play(index: 1)
+
+        let request = try XCTUnwrap(playback.requests.first)
+        guard case .playlist(let podcast, let saved)? = request.history else {
+            return XCTFail("expected the playlist history, got \(String(describing: request.history))")
+        }
+        XCTAssertEqual(saved.map(\.id), [1, 2])
+        XCTAssertEqual(podcast.id, 42, "the route's feed id")
+        XCTAssertEqual(podcast.title, "Podcast 42", "the route's title when E11 gave nothing")
     }
 }

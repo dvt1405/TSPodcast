@@ -21,12 +21,16 @@ final class PodcastDetailModel {
 
     let podcast: PodcastRoute
     private(set) var state: State = .loading
+    /// The list comes from the database because E10 failed (M4 §3.3 [Sửa]): `detail.offlineBanner`.
+    private(set) var isShowingSavedEpisodes = false
     /// "Rất tiếc!" alert of a failed load; the alert's binding writes it back to false.
     var isShowingErrorAlert = false
 
     @ObservationIgnored private let dataSource: any PodcastDetailDataSource
     @ObservationIgnored private let playback: any PlaybackController
     @ObservationIgnored private var hasStarted = false
+    /// Room rows of the loaded list, saved when an episode plays (M4 §3.2).
+    @ObservationIgnored private var history: PlaybackHistorySource?
     /// Latest request; an older result that arrives late is dropped.
     @ObservationIgnored private var latestRequest = 0
 
@@ -68,7 +72,7 @@ final class PodcastDetailModel {
     func play(index: Int) -> Bool {
         let rows = episodes
         guard rows.indices.contains(index) else { return false }
-        playback.play(PlaybackRequest(podcast: podcast, episodes: rows, startIndex: index))
+        playback.play(PlaybackRequest(podcast: podcast, episodes: rows, startIndex: index, history: history))
         return true
     }
 
@@ -84,10 +88,14 @@ final class PodcastDetailModel {
         let request = latestRequest
         state = .loading
         isShowingErrorAlert = false
+        isShowingSavedEpisodes = false
+        history = nil
         let result = await dataSource.load(feedId: podcast.feedId)
         guard request == latestRequest else { return }
         switch result {
         case .success(let content):
+            history = content.source.map { PlaybackHistorySource.detail($0.value, route: podcast) }
+            isShowingSavedEpisodes = content.isFromCache && !content.episodes.isEmpty
             if content.isExplicitFeedHidden {
                 state = .explicitHidden
             } else if content.episodes.isEmpty {

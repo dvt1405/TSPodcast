@@ -128,7 +128,9 @@ extension LiveRowItem {
             feedTitle: episode.feedTitle?.nonBlank,
             enclosureURL: episode.enclosureUrl,
             referer: episode.link.nonBlank,
-            durationSeconds: episode.duration
+            durationSeconds: episode.duration,
+            summary: HtmlText.shared.toPlainText(html: episode.description_),
+            source: KotlinValue(episode)
         )
     }
 }

@@ -1,0 +1,58 @@
+import Foundation
+@preconcurrency import Shared
+
+/// A Kotlin model carried inside a Swift value type (a row, a request) without being read by
+/// views. Kotlin data classes are immutable, so passing one between actors is safe; equality and
+/// hashing are Kotlin's `equals`/`hashCode` (through `NSObject`).
+struct KotlinValue<Value: NSObject>: Hashable, @unchecked Sendable {
+    let value: Value
+
+    init(_ value: Value) {
+        self.value = value
+    }
+}
+
+/// What a play writes to Room besides `extra:current_item_id` (M4 §3.2, Android
+/// `SaveCurrentPlayingUseCase`): the API models behind the list, untouched, so the saved rows are
+/// the full models and not something rebuilt from `PlaybackItem`.
+enum PlaybackHistorySource: Hashable, @unchecked Sendable {
+    /// Detail, Favourite and deep-link taps: `savePlaying(episode, podcast, playlist)`.
+    case playlist(podcast: Podcast, episodes: [Episode])
+    /// Home Live tap: `saveLive(live, playlist)` (Android `playLive`).
+    case live([LiveEpisode])
+
+    /// Detail: the E10 episodes on screen and the podcast from E11, the saved row or the route.
+    static func detail(_ detail: PodcastDetail, route: PodcastRoute) -> PlaybackHistorySource {
+        .playlist(
+            podcast: detail.podcastToSave(
+                feedId: route.feedId,
+                title: route.title,
+                image: route.imageURL,
+                description: route.summary
+            ),
+            episodes: detail.episodes
+        )
+    }
+}
+
+extension PlaybackHistory {
+    /// Saves the play of `itemId`: the playlist and podcast of `source` when it holds that item,
+    /// else (no source, or a unit-test request) only the current id, like previous/next.
+    func record(_ source: PlaybackHistorySource?, itemId: String) async throws {
+        switch source {
+        case .playlist(let podcast, let episodes):
+            if let episode = episodes.first(where: { String($0.id) == itemId }) {
+                try await savePlaying(episode: episode, podcast: podcast, playlist: episodes)
+                return
+            }
+        case .live(let items):
+            if let live = items.first(where: { String($0.id) == itemId }) {
+                try await saveLive(live: live, playlist: items)
+                return
+            }
+        case nil:
+            break
+        }
+        try await saveCurrentId(itemId: itemId)
+    }
+}

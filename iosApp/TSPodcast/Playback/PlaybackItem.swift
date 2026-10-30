@@ -20,6 +20,9 @@ struct PlaybackItem: Identifiable, Hashable, Sendable {
     /// Declared live. Live section items are not: they count as live only when the stream has
     /// no duration (M3 §3.4), which the engine finds out once the item loads.
     let isLive: Bool
+    /// Episode description as plain text (Android `MediaMetadata.description`), stored with a
+    /// favourite; empty when unknown.
+    var summary: String = ""
 }
 
 extension PlaybackItem {
@@ -34,7 +37,8 @@ extension PlaybackItem {
             artworkURL: episode.imageURL ?? podcast.imageURL,
             referer: episode.referer,
             durationMs: max(0, episode.durationSeconds) * 1000,
-            isLive: false
+            isLive: false,
+            summary: episode.summary
         )
     }
 
@@ -49,7 +53,8 @@ extension PlaybackItem {
             artworkURL: live.imageURL,
             referer: live.referer,
             durationMs: max(0, live.durationSeconds) * 1000,
-            isLive: false
+            isLive: false,
+            summary: live.summary
         )
     }
 
@@ -82,8 +87,15 @@ extension PlaybackItem {
         )
     }
 
-    /// Android `FavouriteDTO` of an episode.
+    /// Android `MediaItem.toFavouriteDTO()` of an episode: title, artwork and the episode
+    /// description (the podcast name when the description is unknown, so the row is not blank).
     var favourite: FavouriteItem {
-        FavouriteItem(id: id, type: .podcastepisode, title: title, image: artworkURL, description: podcastTitle)
+        FavouriteItem(
+            id: id,
+            type: .podcastepisode,
+            title: title,
+            image: artworkURL,
+            description: summary.isEmpty ? podcastTitle : summary
+        )
     }
 }

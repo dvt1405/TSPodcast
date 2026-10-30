@@ -198,7 +198,12 @@ final class PlaybackItemTests: XCTestCase {
         XCTAssertEqual(item.referer, "https://site.example.com/e7")
         XCTAssertEqual(item.durationMs, 1_800_000)
         XCTAssertFalse(item.isLive)
-        XCTAssertEqual(PlaybackItem(item.shared()), item)
+        XCTAssertEqual(item.summary, "Summary 7", "stored with a favourite (M4)")
+        // The shared item carries everything but the description, which only the favourite uses.
+        var roundTrip = PlaybackItem(item.shared())
+        XCTAssertEqual(roundTrip.summary, "")
+        roundTrip.summary = item.summary
+        XCTAssertEqual(roundTrip, item)
         XCTAssertTrue(item.shared(isLive: true).isLive)
     }
 

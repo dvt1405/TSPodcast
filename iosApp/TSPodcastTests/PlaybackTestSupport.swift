@@ -3,10 +3,47 @@ import XCTest
 @preconcurrency import Shared
 @testable import TSPodcast
 
-/// A `SharedGraph` on a fresh DataStore file and a fresh Room database file, and an engine
-/// playing the 60 s fixture tone.
+/// A `SharedGraph` on a DataStore file and a Room database file in the temporary directory
+/// (fresh ones unless `files` is given, to reopen the same files after `close`).
+@MainActor
+struct SharedGraphFixture {
+    struct Files: Sendable {
+        let preferences: URL
+        let database: URL
+
+        static func fresh(_ prefix: String = "graph") -> Files {
+            let directory = FileManager.default.temporaryDirectory
+            let name = "\(prefix)-\(UUID().uuidString)"
+            return Files(
+                preferences: directory.appending(path: "\(name).preferences_pb"),
+                database: directory.appending(path: "\(name).db")
+            )
+        }
+    }
+
+    let files: Files
+    let graph: SharedGraph
+
+    init(files: Files = .fresh()) {
+        self.files = files
+        graph = SharedGraph(
+            credentials: BundleCredentialsProvider(),
+            config: NoOpConfig(),
+            preferencesPath: files.preferences.path(percentEncoded: false),
+            databasePath: files.database.path(percentEncoded: false)
+        )
+    }
+
+    func close() {
+        graph.close()
+    }
+}
+
+/// A `SharedGraph` on temporary files (fresh unless `files` is given) and an engine playing the
+/// 60 s fixture tone.
 @MainActor
 struct PlaybackFixture {
+    let files: SharedGraphFixture.Files
     let graph: SharedGraph
     let positions: PlaybackPositions
     let history: PlaybackHistory
@@ -14,15 +51,10 @@ struct PlaybackFixture {
     let session = AudioSessionController()
     let engine: AudioEngine
 
-    init(audioURL: URL? = PlaybackFixture.toneURL, forceLive: Bool = false) {
-        let directory = FileManager.default.temporaryDirectory
-        let name = "playback-\(UUID().uuidString)"
-        graph = SharedGraph(
-            credentials: BundleCredentialsProvider(),
-            config: NoOpConfig(),
-            preferencesPath: directory.appending(path: "\(name).preferences_pb").path(percentEncoded: false),
-            databasePath: directory.appending(path: "\(name).db").path(percentEncoded: false)
-        )
+    init(audioURL: URL? = PlaybackFixture.toneURL, forceLive: Bool = false, files: SharedGraphFixture.Files = .fresh("playback")) {
+        let shared = SharedGraphFixture(files: files)
+        self.files = files
+        graph = shared.graph
         positions = graph.playbackPositions
         history = graph.playbackHistory
         favourites = graph.favouriteRepository

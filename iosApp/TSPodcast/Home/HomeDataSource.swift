@@ -1,4 +1,5 @@
 import Foundation
+@preconcurrency import Shared
 
 /// A podcast card of Home (trending, music, recent and "Có thể bạn yêu thích"), as the UI sees it.
 /// Built from shared's `Podcast`; views never hold Kotlin objects.
@@ -26,6 +27,10 @@ struct LiveRowItem: Identifiable, Hashable, Sendable {
     var enclosureURL: String = ""
     var referer: String? = nil
     var durationSeconds: Int64 = 0
+    /// `description` as plain text, stored with a favourite.
+    var summary: String = ""
+    /// The E2 model, written to Room when the row plays (M4 §3.2); nil in unit-test fakes.
+    var source: KotlinValue<LiveEpisode>? = nil
 }
 
 /// Why a section could not load. Only the error type name is kept, for logs.

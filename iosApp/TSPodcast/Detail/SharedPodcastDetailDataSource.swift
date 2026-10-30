@@ -47,10 +47,12 @@ final class SharedPodcastDetailDataSource: PodcastDetailDataSource, @unchecked S
                 let content = PodcastDetailContent(
                     episodes: detail.episodes.map(EpisodeRow.init),
                     isExplicitFeedHidden: detail.isExplicitFeedHidden,
-                    hiddenExplicitCount: Int(detail.hiddenExplicitCount)
+                    hiddenExplicitCount: Int(detail.hiddenExplicitCount),
+                    isFromCache: detail.isFromCache,
+                    source: KotlinValue(detail)
                 )
                 AppLog.browse.notice(
-                    "detail_loaded feedId=\(feedId, privacy: .public) count=\(content.episodes.count, privacy: .public) hiddenExplicit=\(content.hiddenExplicitCount, privacy: .public) feedHidden=\(content.isExplicitFeedHidden, privacy: .public)"
+                    "detail_loaded feedId=\(feedId, privacy: .public) count=\(content.episodes.count, privacy: .public) hiddenExplicit=\(content.hiddenExplicitCount, privacy: .public) feedHidden=\(content.isExplicitFeedHidden, privacy: .public) fromCache=\(content.isFromCache, privacy: .public)"
                 )
                 return .success(content)
             }

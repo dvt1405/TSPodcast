@@ -4,6 +4,7 @@ import XCTest
 @testable import TSPodcast
 
 /// M3-AC3: one AVPlayer, the queue, pause at the end of an episode, state, history, positions.
+/// M4-AC13: favourite and history in Room (temporary database file).
 /// Plays the 60 s fixture tone for every item.
 @MainActor
 final class AudioEngineTests: XCTestCase {
@@ -160,6 +161,91 @@ final class AudioEngineTests: XCTestCase {
         engine.skipPrevious()
         await engine.waitForPersistence()
         XCTAssertTrue(engine.state.isFavourite)
+    }
+
+    // MARK: - M4-AC13: favourite and history in Room
+
+    /// Android `onFavouriteChanged` → `SaveFavouriteUseCase`/`DeleteFavouriteUseCase`: the row is
+    /// in the database file, so a new graph and engine on the same file (an app restart) still
+    /// show the item as favourite.
+    func testFavouriteIsStoredInRoomAndSurvivesARestart() async throws {
+        engine.play(PlaybackFixture.request(startIndex: 0))
+        await engine.waitForPersistence()
+        engine.toggleFavourite()
+        await engine.waitForPersistence()
+        XCTAssertTrue(engine.state.isFavourite)
+        var isEpisodeRow = try await fixture.favourites.isFavourite(type: .podcastepisode, id: "1").boolValue
+        let isPodcastRow = try await fixture.favourites.isFavourite(type: .podcast, id: "1").boolValue
+        XCTAssertTrue(isEpisodeRow, "FavouriteDTO(type = PodcastEpisode, id = 1)")
+        XCTAssertFalse(isPodcastRow)
+
+        let files = fixture.files
+        fixture.close()
+        fixture = PlaybackFixture(files: files)
+
+        engine.play(PlaybackFixture.request(startIndex: 0))
+        await engine.waitForPersistence()
+        XCTAssertTrue(engine.state.isFavourite, "read back from the database file")
+
+        engine.toggleFavourite()
+        await engine.waitForPersistence()
+        XCTAssertFalse(engine.state.isFavourite)
+        isEpisodeRow = try await fixture.favourites.isFavourite(type: .podcastepisode, id: "1").boolValue
+        XCTAssertFalse(isEpisodeRow, "the second toggle deletes the row")
+    }
+
+    /// `SaveCurrentPlayingUseCase` from Detail: the E10 episodes and the podcast go to Room with
+    /// the current id; moving inside the queue only changes the id.
+    func testDetailPlayWritesThePlaylistAndThePodcast() async throws {
+        let podcast = SharedModelFactory.podcast(42, title: "Saved podcast")
+        let episodes = (1...3).map { SharedModelFactory.episode(Int64($0)) }
+
+        engine.play(SharedModelFactory.detailRequest(podcast: podcast, episodes: episodes, startIndex: 1))
+        await engine.waitForPersistence()
+
+        let storage = fixture.graph.podcastStorage
+        for id in 1...3 {
+            let saved = try await storage.episodeById(id: Int64(id))
+            XCTAssertEqual(saved?.title, "Episode \(id)", "episode \(id) of the playlist is saved")
+        }
+        let savedPodcast = try await storage.podcastById(id: 42)
+        XCTAssertEqual(savedPodcast?.title, "Saved podcast")
+        var current = try await fixture.history.currentItemId()
+        XCTAssertEqual(current, "2")
+
+        engine.skipNext()
+        await engine.waitForPersistence()
+        current = try await fixture.history.currentItemId()
+        XCTAssertEqual(current, "3")
+    }
+
+    /// Android `playLive`: every live item as an episode and a podcast `id = feedId`, `title = live.title`.
+    func testLivePlayIsSavedLikePlayLive() async throws {
+        let lives = [SharedModelFactory.live(7), SharedModelFactory.live(8)]
+
+        engine.play(PlaybackRequest(live: lives.map(LiveRowItem.init), startIndex: 1))
+        await engine.waitForPersistence()
+
+        let storage = fixture.graph.podcastStorage
+        let first = try await storage.episodeById(id: 7)
+        let second = try await storage.episodeById(id: 8)
+        XCTAssertEqual(first?.feedId, 900)
+        XCTAssertEqual(second?.title, "Live 8")
+        let podcast = try await storage.podcastById(id: 900)
+        XCTAssertEqual(podcast?.title, "Live 8", "Podcast.fromLive of the tapped item")
+        let current = try await fixture.history.currentItemId()
+        XCTAssertEqual(current, "8")
+    }
+
+    /// A request without models (unit-test rows) records the id only and writes no row.
+    func testRequestWithoutHistoryWritesNoRow() async throws {
+        engine.play(PlaybackFixture.request(startIndex: 0))
+        await engine.waitForPersistence()
+
+        let saved = try await fixture.graph.podcastStorage.episodeById(id: 1)
+        XCTAssertNil(saved)
+        let current = try await fixture.history.currentItemId()
+        XCTAssertEqual(current, "1")
     }
 
     func testForcedLiveHasNoDurationAndNoSeek() async {

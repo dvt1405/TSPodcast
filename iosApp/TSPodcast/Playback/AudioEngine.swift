@@ -6,9 +6,11 @@ import Observation
 /// **one** `AVPlayer` and a self-managed queue (shared `PlaybackQueue`). Like
 /// `setPauseAtEndOfMediaItems(true)`, it pauses at the end of every episode and never moves on
 /// by itself. It publishes `state` (Android `PlayerControlState`), keeps the listening position
-/// (shared `PlaybackPositions`, [Sửa] features-spec §3.6), records `extra:current_item_id`
-/// (shared `PlaybackHistory`), keeps the favourite flag in Room (shared `FavouriteRepository`)
-/// and feeds Now Playing and the remote commands.
+/// (shared `PlaybackPositions`, [Sửa] features-spec §3.6), records the history like Android
+/// `SaveCurrentPlayingUseCase` (a new list: playlist + podcast in Room and
+/// `extra:current_item_id`; previous/next/Up next: the id only, shared `PlaybackHistory`), keeps
+/// the favourite flag in Room (shared `FavouriteRepository`) and feeds Now Playing and the remote
+/// commands.
 @MainActor
 @Observable
 final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSessionEventHandling {
@@ -103,9 +105,9 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         self.queue = queue
         let item = items[Int(queue.index)]
         AppLog.playback.notice(
-            "play feedId=\(item.feedId, privacy: .public) id=\(item.id, privacy: .public) index=\(queue.index, privacy: .public) count=\(request.items.count, privacy: .public)"
+            "play feedId=\(item.feedId, privacy: .public) id=\(item.id, privacy: .public) index=\(queue.index, privacy: .public) count=\(request.items.count, privacy: .public) history=\(request.history != nil, privacy: .public)"
         )
-        load(autoplay: true)
+        load(autoplay: true, history: request.history)
     }
 
     // MARK: - Controls (Player, MiniPlayer, remote commands)
@@ -272,7 +274,9 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
     }
 
     /// Loads the queue's current item. `startAtMs` nil: resume from the saved position.
-    private func load(autoplay: Bool, startAtMs: Int64? = nil) {
+    /// `history`: the models of a new list, saved to Room with the item (M4 §3.2); nil when moving
+    /// inside the queue, which records the id only.
+    private func load(autoplay: Bool, startAtMs: Int64? = nil, history source: PlaybackHistorySource? = nil) {
         guard let queue else { return }
         loadGeneration += 1
         let generation = loadGeneration
@@ -313,7 +317,7 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         }
         enqueuePersistence {
             do {
-                try await history.saveCurrentId(itemId: shared.id)
+                try await history.record(source, itemId: shared.id)
             } catch {
                 AppLog.playback.error("history_save_failed")
             }

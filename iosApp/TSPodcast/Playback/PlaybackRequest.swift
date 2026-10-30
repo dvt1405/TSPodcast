@@ -6,6 +6,9 @@ import Foundation
 struct PlaybackRequest: Equatable, Sendable {
     let items: [PlaybackItem]
     let startIndex: Int
+    /// The API models written to Room when the request starts (M4 §3.2); nil only writes
+    /// `extra:current_item_id`.
+    var history: PlaybackHistorySource?
 
     /// The tapped item; nil only when `startIndex` is out of range.
     var startItem: PlaybackItem? {
@@ -14,13 +17,22 @@ struct PlaybackRequest: Equatable, Sendable {
 }
 
 extension PlaybackRequest {
-    /// Tap on Detail episode `startIndex`.
-    init(podcast: PodcastRoute, episodes: [EpisodeRow], startIndex: Int) {
-        self.init(items: episodes.map { PlaybackItem(episode: $0, podcast: podcast) }, startIndex: startIndex)
+    /// Tap on Detail episode `startIndex` (also a Favourite tap, from the saved rows).
+    init(podcast: PodcastRoute, episodes: [EpisodeRow], startIndex: Int, history: PlaybackHistorySource? = nil) {
+        self.init(
+            items: episodes.map { PlaybackItem(episode: $0, podcast: podcast) },
+            startIndex: startIndex,
+            history: history
+        )
     }
 
-    /// Tap on Live item `startIndex` of the flattened Live section.
+    /// Tap on Live item `startIndex` of the flattened Live section; saved like Android `playLive`.
     init(live: [LiveRowItem], startIndex: Int) {
-        self.init(items: live.map(PlaybackItem.init(live:)), startIndex: startIndex)
+        let sources = live.compactMap { $0.source?.value }
+        self.init(
+            items: live.map(PlaybackItem.init(live:)),
+            startIndex: startIndex,
+            history: sources.isEmpty ? nil : .live(sources)
+        )
     }
 }

@@ -19,6 +19,24 @@
         }
       }
     },
+    "action.close" : {
+      "comment" : "Close button of an alert.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đóng"
+          }
+        }
+      }
+    },
     "action.retry" : {
       "comment" : "Retry button of a failed section (popup_btn_reload_title).",
       "extractionState" : "manual",
@@ -217,6 +235,24 @@
         }
       }
     },
+    "detail.offlineBanner" : {
+      "comment" : "Banner of Podcast detail when the episodes come from the device because loading failed.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Showing saved episodes (offline)"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang hiện danh sách đã lưu (ngoại tuyến)"
+          }
+        }
+      }
+    },
     "favourite.discoverMore" : {
       "comment" : "Button of the empty Favourite tab that opens Discover (btn_discover_more_title).",
       "extractionState" : "manual",
@@ -249,6 +285,60 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Không có chương trình yêu thích."
+          }
+        }
+      }
+    },
+    "favourite.unavailable.message" : {
+      "comment" : "Alert message when a favourite row cannot be opened from the database.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This item is no longer stored on this device."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dữ liệu của mục này không còn trên máy."
+          }
+        }
+      }
+    },
+    "favourite.unavailable.remove" : {
+      "comment" : "Alert button that removes the broken favourite.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove from favorites"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ yêu thích"
+          }
+        }
+      }
+    },
+    "favourite.unavailable.title" : {
+      "comment" : "Alert title when a favourite row cannot be opened from the database (M4 §4.7).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't open this item"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không mở được mục này"
           }
         }
       }
