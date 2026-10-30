@@ -51,6 +51,18 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
 - **(M2) Lỗi ở Detail và Search:** Detail dùng alert "Rất tiếc!" (en "Oops!") với nội dung đã localize, nút "Tải lại" + "Huỷ", huỷ thì có lỗi inline + "Tải lại" (Android: "Opps!", message thô, shimmer mãi); episode rỗng có empty state. Search tách lỗi khỏi "không có kết quả", có loading, query rỗng không gửi request. File: `docs/ios/milestones/M2.md` §3, §7.
 - **(M2) Tap episode chỉ gửi sang seam phát nhạc (`PlaybackController`, bản stub ghi log)**, ở lại Detail cho tới khi có Player ở M3. File: `docs/ios/milestones/M2.md` §4.5.
 
+- **(M3) Favourite và lịch sử Episode/Podcast chỉ giữ trong bộ nhớ tới M4.**
+  - Vì sao: chưa có Room KMP; `extra:current_item_id` và vị trí nghe thì đã lưu bền trong DataStore (`KeyValueStore`).
+  - Hệ quả: favourite bấm ở Player mất khi app bị kill; chưa khôi phục được item cuối sau khi kill app (Android cũng chỉ khôi phục qua notification).
+  - File: `docs/ios/milestones/M3.md` §4.1, §4.4, §7 mục 1; `shared/src/commonMain/kotlin/tss/t/shared/playback/`.
+- **(M3) Player không có nút "More".** Android vẽ icon nhưng không gắn hành động; nút không làm gì là rủi ro review. File: `docs/ios/milestones/M3.md` §3.2, §7 mục 2.
+- **(M3) Lỗi phát có thông báo + "Tải lại", buffering hiện spinner** (Android không báo gì khi ExoPlayer lỗi). File: `docs/ios/milestones/M3.md` §3.1, §7 mục 3.
+- **(M3) Nhớ vị trí nghe ([Sửa] features-spec §3.6):** lưu mỗi 10 s, khi pause, khi đổi episode, khi vào background; còn < 30 s coi là đã nghe xong (lần sau phát từ đầu); 5 s đầu không lưu; live không lưu. Owner muốn ngưỡng khác thì đổi hằng số trong `PlaybackPositions`. File: `docs/ios/milestones/M3.md` §4.3.
+- **(M3) Prev/Next cũng lưu `current_item_id` và bị disable ở hai đầu playlist** (Android chỉ lưu khi tap từ Detail/Live; nút ở hai đầu bấm được nhưng không làm gì). File: `docs/ios/milestones/M3.md` §7 mục 5.
+- **(M3) Remote command chỉ có play/pause/toggle, next/previous track và kéo thanh seek** trên Lock Screen; skip ±, tốc độ, seek forward/backward bị tắt vì app chưa có các tính năng [iOS+] đó. File: `docs/ios/milestones/M3.md` §4.5, §7 mục 6.
+- **(M3) MiniPlayer hiện tên podcast ở dòng phụ** (Android hiện mô tả episode); Live dùng `feedTitle` làm tên podcast; stream live (không có duration) hiện "LIVE" và không seek được. File: `docs/ios/milestones/M3.md` §3.3, §7 mục 7.
+- **(M3) Không gửi User-Agent tuỳ chỉnh tới host audio; bật `NSAllowsArbitraryLoadsForMedia`** để phát enclosure `http://` (chỉ áp dụng cho AVFoundation). File: `iosApp/TSPodcast/Info.plist`, `docs/ios/milestones/M3.md` §7 mục 9.
+
 ### Môi trường test
 
 - **(M1) Chưa có simulator iOS 17/18 để chạy nhánh MiniPlayer cũ.**
@@ -59,3 +71,8 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
   - (M2) Cùng lý do: nhánh iOS 17 của zoom transition Home → Detail (push thường) và giao diện `.searchable` + hàng chip chế độ trên iOS 17–18 cũng mới compile, chưa chạy/chưa xem.
   - Owner chọn một trong hai: cài runtime iOS 17 hoặc 18 (Xcode › Settings › Components) rồi chạy lại toàn bộ `xcodebuild test` trên simulator đó (ít nhất `MainShellUITests`, `PodcastDetailUITests`, `SearchUITests`); hoặc nâng deployment target lên 26 (bỏ nhánh cũ).
   - File: `iosApp/TSPodcast/Main/MiniPlayerSlot.swift`, `iosApp/TSPodcast/Design/ZoomTransition.swift`, `iosApp/TSPodcast/Search/SearchView.swift`, `iosApp/project.yml` (`deploymentTarget`).
+- **(M3) Checklist audio trên máy thật** (simulator không mô phỏng được): AirPods (nút double tap, tháo tai → pause), rút tai nghe dây → pause, cuộc gọi/FaceTime → pause rồi tự resume khi trước đó đang phát, Siri, báo thức, điều khiển từ Lock Screen/Control Center, khoá màn hình 30 phút vẫn phát.
+  - Bị chặn vì: agent chỉ có simulator; không có máy thật và không ký được bản cài máy thật.
+  - Trong lúc chờ: logic interruption/route change/media services reset có unit test bằng notification tổng hợp (M3-AC4); remote command và Now Playing có unit test (M3-AC5, AC6).
+  - Owner: chạy checklist audio-playback-ios.md §11 (các mục trong scope M3) trên iPhone thật trước TestFlight.
+  - File: `docs/ios/milestones/M3.md` §7 mục 8, `docs/ios/audio-playback-ios.md` §11.

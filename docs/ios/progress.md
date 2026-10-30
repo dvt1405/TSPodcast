@@ -10,7 +10,8 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 |---|---|---|---|
 | M0 | Nền tảng: module `shared` KMP + project Xcode chạy được | [milestones/M0.md](milestones/M0.md) | Đã nghiệm thu (review round 1) |
 | M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đã nghiệm thu (review round 1) |
-| M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Developer đã làm xong T1–T4, M2-AC1..AC21 đã tự kiểm; chờ PO nghiệm thu |
+| M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đã nghiệm thu (review round 1) |
+| M3 | Audio engine, Player và MiniPlayer | [milestones/M3.md](milestones/M3.md) | Đã có kế hoạch (base `6f9aff9`); developer đang làm |
 
 ## M0
 
@@ -706,7 +707,7 @@ Screenshot trong `$OUT`:
 
 Kế hoạch: [milestones/M2.md](milestones/M2.md). Base `f370aa0`.
 
-Trạng thái: **developer đã làm xong T1–T4**, M2-AC1..AC21 đã tự kiểm (lần chạy cuối ở T4, bên dưới), chờ PO nghiệm thu. Các quyết định PO chọn thay owner ở §7 của kế hoạch đã có trong [handoff.md](handoff.md).
+Trạng thái: **đã nghiệm thu** (PO review round 1, 21/21 AC pass, xem [M2.md](milestones/M2.md) "Review round 1"). Developer đã làm xong T1–T4, M2-AC1..AC21 đã tự kiểm (lần chạy cuối ở T4, bên dưới). Các quyết định PO chọn thay owner ở §7 của kế hoạch đã có trong [handoff.md](handoff.md).
 
 ### Tóm tắt M2 (M2-AC21)
 
@@ -941,3 +942,7 @@ Screenshot (đã xem bằng mắt): `$OUT/M2-T4-shots/` có 54 attachment đổi
 - Nền blur của header Detail kéo lên 400 pt; kéo quá mạnh có thể lộ nền trống phía trên.
 - **Chỉ chạy trên iOS 26.3**: nhánh iOS 17 (push không zoom, giao diện `.searchable` + chip) mới compile, chưa chạy (bullet "Môi trường test" trong handoff).
 - Tên danh mục giữ tiếng Anh từ API (giống M1).
+
+## M3
+
+Kế hoạch: [milestones/M3.md](milestones/M3.md) (base `6f9aff9`). Trạng thái: **đang làm** — chi tiết từng task ghi bên dưới khi xong.
