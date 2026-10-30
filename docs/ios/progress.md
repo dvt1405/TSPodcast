@@ -1073,7 +1073,7 @@ Ghi chú: một lần chạy cả suite của developer trước review round 1 
 
 Kế hoạch: [milestones/M4.md](milestones/M4.md) (revision 2: không UI test, chỉ unit test + smoke check). Base `5b8e26c`.
 
-Trạng thái: **T1 xong**, T2–T5 chưa làm. Mục này được bổ sung sau mỗi task; tóm tắt + checklist parity §7 viết ở T5.
+Trạng thái: **T1, T2 xong**, T3–T5 chưa làm. Mục này được bổ sung sau mỗi task; tóm tắt + checklist parity §7 viết ở T5.
 
 ### T1 — Shared: Room KMP, PruneApiCache, favourite, lịch sử, fallback offline; hạ tầng kiểm tra (xong)
 
@@ -1158,3 +1158,70 @@ Giới hạn đã biết sau T1 (T3 xử lý):
 - Tab Yêu thích vẫn là view rỗng của M1; Detail chưa có banner offline (`isFromCache` đã có trong shared).
 - Hook `-uitest-reset` (M1) xoá DataStore + cache ảnh nhưng **không** xoá DB Room mới, nên favourite giờ còn lại giữa các lần launch của UI test. `PlayerUITests.testFavouriteToggles` bật rồi tắt nên tự dọn, nhưng một lần chạy bị ngắt giữa chừng sẽ để lại `fav=1` cho lần sau. Chưa sửa (không đụng UI test, không thêm hook ở T1); T3 cân nhắc cho reset xoá luôn bảng `FavouriteDTO`, nếu không thì QC xoá app trước khi chạy suite. Cờ favourite trên Player giờ cập nhật sau một lần ghi DB (vài ms); test trên đã chờ bằng `waitForProbe`/`poll`.
 
+### T2 — Shared: Install ID, crash, analytics, deep link, E12, cài đặt thông báo, retry Remote Config (xong)
+
+Thoả M4-AC8 … M4-AC11 (tự kiểm, chờ PO). Không đổi file Gradle nào nên không chạy `:app:assembleDebug`.
+
+| Thành phần | File (`shared/src/.../tss/t/shared/`) | Ghi chú |
+|---|---|---|
+| `InstallId` | `preferences/InstallId.kt` | Port `SharedPref.getOrCreateInstallId()`: khoá `InstallId`, `kotlin.uuid.Uuid.random()`, tạo lại khi thiếu/blank. Có `Mutex` để hai lần gọi đầu đồng thời không tạo hai id khác nhau. `SharedGraph.installId`. |
+| Crash seam (phần còn lại) | `crash/CrashReporter.kt` | Thêm `safeCallOrNull`, `safeCallOr` (như `SafeCall.kt` Android) và `CrashReporter.recordFatal(throwable, stackAddresses)` — **không có ở Android**: trên JVM Crashlytics tự bắt exception, trên Kotlin/Native thì không; Swift implement ở T4 (Crashlytics `ExceptionModel` + địa chỉ stack). `SharedGraph` nhận `crash: CrashReporter = Crash` (test truyền fake), truyền cho `PruneApiCache` và `GetMusicFeeds`. |
+| `KotlinCrashHook` | iosMain `crash/KotlinCrashHook.kt` | `installKotlinCrashHook(reporter)` (Swift: `KotlinCrashHookKt.installKotlinCrashHook(reporter:)`) dùng `setUnhandledExceptionHook`; thân hook `kotlinCrashHandler` gửi throwable + `getStackTraceAddresses()` tới `recordFatal`, nuốt lỗi của chính reporter, rồi để runtime kết thúc process. Gọi hook cũ (nếu có). Chưa gọi từ app (T4). |
+| `GetMusicFeeds` | `usecase/GetMusicFeeds.kt` | E6 lỗi → `record(cause, "GetMusicFeeds", {medium=music})` như Android. |
+| Analytics | `analytics/AnalyticsTracker.kt`, `analytics/AnalyticsDefaults.kt` | `trackEvent(name, screen: String?, params)` (screen null khi không biết màn nào, như `currentScreenName` null của Android). `AnalyticsDefaults.build(osVersion, appVersion, nowSeconds, screen)` → `os="iOS"`, `os_version`, `app_version`, `event_time_stamp` (giây), `screen` (chỉ khi có); **không** có tham số thiết bị (D5). `eventParams(...)` ghép theo thứ tự Android (props đè `os`/`app_version`, `event_time_stamp` và `screen` luôn thắng). `screenEventName` (`<lowercase>_screen`), `fcmReceiveEvent(type)`, `trimName` ≤ 40, `trimValue` ≤ 100 (không cắt giữa surrogate pair). |
+| `DeepLinkParser` | `deeplink/DeepLinkParser.kt` | `DeepLinkParser(allowedHosts).parse(url)` → `DeepLink.Podcast(feedId)` / `DeepLink.Episode(episodeId)` / null. Parse tay (không dùng `Url` của Ktor, vốn dễ dãi với URL lạ): chỉ `https`, host thuộc danh sách (không phân biệt hoa thường), không user info, port chỉ 443, path `/podcast/<seg>` hoặc `/episode/<seg>`, tiền tố `/en` tuỳ chọn, bỏ một `/` cuối, bỏ query/fragment. `parseIdSlug` port từ `web/src/lib/slug.ts`: percent-decode như `decodeURIComponent` (escape hỏng/UTF-8 sai → null), `^([0-9]{1,15})(?:-(.*))?$`, id > 0. Danh sách host rỗng → mọi link là null (plan §7 mục 6). |
+| E12 | `network/PodcastIndexApi.kt`, `model/Responses.kt`, `usecase/GetEpisodeById.kt` | `getEpisodeById(id, fulltext = true)` → `GET episodes/byid?id=&fulltext=true`; `EpisodeByIdRes(episode)` đọc object, phần tử đầu của mảng (như `single()` của web) hoặc `[]` → null. `GetEpisodeById(id)`: một request, không retry, không cache; không có episode → `Error(NoSuchElementException)`. Không lọc D6/blacklist ở đây (nơi gọi ở T5 lọc). `SharedGraph.getEpisodeById`. |
+| Thông báo | `preferences/AppPreferences.kt` | `notificationsOptIn()` / `saveNotificationsOptIn`, `notificationsPromptShown()` / `saveNotificationsPromptShown`; khoá `NotificationsOptIn`, `NotificationsPromptShown`, mặc định `false`; `clear()` xoá. |
+| `RemoteConfigRetry` | `config/RemoteConfigRetry.kt` | `MAX_ATTEMPTS = 20`, `delayFor(n) = 30 s × n` (n ≥ 1), `delayMillisFor(n)` cho Swift (Kotlin `Duration` không qua cầu ObjC được), `hasAttemptAfter(n)`. |
+
+**Swift (chỉ cập nhật chữ ký)**
+
+- `LogAnalyticsTracker.trackEvent(name:screen:params:)`; dòng log thêm params sắp theo tên, bỏ `screen=` khi nil. `OnboardingModel` gọi với `params: [:]`. `RecordingAnalyticsTracker` (test) ghi cả params.
+- `LogAnalyticsTrackerTests` +2 test (params sắp xếp, không có screen); `OnboardingModelTests` kiểm `OnboardingFinished` không có props (như Android).
+
+**Test**
+
+| Test | Nơi | AC | Số test |
+|---|---|---|---|
+| `InstallIdTest` | commonTest | AC8 | 6 (UUID v4 ở khoá `InstallId`; gọi lại/instance mới cùng giá trị; `""`/blank → tạo mới; giá trị cũ giữ nguyên; 20 lần gọi đồng thời ra 1 id; hai install khác id) |
+| `CrashTest` | commonTest | AC8 | 9 (facade gọi được trước `install`; sau `install(fake)` mọi `log/record/key/userId/recordFatal` tới fake; `safeCall` trả giá trị / nuốt + `record` tag + keys / mặc định dùng facade; `safeCallOrNull`, `safeCallOr`; không nuốt `CancellationException`; `GetMusicFeeds` HTTP 500 → `record` tag `GetMusicFeeds`, keys `{medium=music}`; thành công → không record) |
+| `KotlinCrashHookTest` | iosTest | AC8 | 3 (handler → fake nhận đúng throwable + địa chỉ stack khác rỗng, không thành record non-fatal; reporter ném lỗi không thoát ra; đi qua facade `Crash`) |
+| `AnalyticsDefaultsTest` | commonTest | AC9 | 8 |
+| `DeepLinkParserTest` | commonTest | AC10 | 6 (9 URL podcast, 3 URL episode, 27 URL bị từ chối gồm mọi case của AC, host rỗng, nhiều host, `parseIdSlug`) |
+| `PodcastIndexApiTest` | commonTest | AC10 | +3 (request E12 có `id=456`, `fulltext=true`, header ký; parse object; `[]` → null, mảng → phần tử đầu) |
+| `GetEpisodeByIdTest` | commonTest | AC10 | 3 |
+| `AppPreferencesTest` | commonTest | AC11 | +2 (mặc định false, ghi/đọc lại qua file mới, khoá thô; `clear()`) |
+| `RemoteConfigRetryTest` | commonTest | AC11 | 3 (`MAX_ATTEMPTS == 20`, `delayFor(1) == 30 s`, `delayFor(3) == 90 s`; dừng sau lần 20, tổng chờ 95 phút; attempt 0 bị từ chối) |
+
+**Lệnh và kết quả**
+
+```bash
+./gradlew :shared:allTests :shared:linkDebugFrameworkIosSimulatorArm64   # BUILD SUCCESSFUL
+#   iosSimulatorArm64Test: 39 class, 268 test; testAndroidHostTest: 32 class, 233 test; failures=0 errors=0 (T1: 32/225 và 26/193)
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcastUnit -destination "id=$SIM" \
+  -derivedDataPath $OUT/DD-m4 -resultBundlePath $OUT/M4T2-unit.xcresult -only-testing:TSPodcastTests
+#   ** TEST SUCCEEDED **, Executed 154 tests, 0 failures (T1: 152); grep -c "in target 'TSPodcastUITests'" → 0
+xcodebuild build -project iosApp/iosApp.xcodeproj -scheme TSPodcast -configuration Debug -destination "id=$SIM" -derivedDataPath $OUT/DD-m4
+#   ** BUILD SUCCEEDED **; grep -c "in target 'TSPodcastUITests'" → 0
+iosApp/scripts/smoke-launch.sh $SIM $OUT/DD-m4/Build/Products/Debug-iphonesimulator/TSPodcast.app   # SMOKE PASS
+grep -rIn "device_id" shared/src iosApp --exclude-dir=build | wc -l   # 0
+```
+
+(`--check-db` vẫn `SMOKE FAIL: database file missing` như ghi ở T1: app chưa mở DB lúc launch; AC12 thuộc T3.)
+
+Quyết định trong T2:
+
+| Hạng mục | Quyết định | Lý do |
+|---|---|---|
+| `recordFatal` trong `CrashReporter` | Thêm method vào interface thay vì interface riêng | Hook cần gửi địa chỉ stack để Crashlytics symbolicate frame Kotlin; mọi reporter Swift (log/Firebase, T4) buộc phải xử lý crash Kotlin, không quên được. |
+| `fcmReceiveEvent` với type rỗng/blank | → `fcm_null_message_receive` | Plan §4.2. Android: `null` → `fcm_null_…`, `""` → `fcm__message_receive`; gộp hai trường hợp cho dễ đọc trên console. |
+| `RemoteConfigRetry` tối đa 20 lần | Theo features-spec §1 | Vòng lặp Android (`fetchAndActivate` một lần trước vòng + `failCount <= 20`) thực tế có thể gọi tới 22 lần; spec ghi 20. |
+| `trackEvent` có `screen: String?` | Nullable | Push nhận ngoài màn hình nào (Android `currentScreenName` null). `AnalyticsDefaults` bỏ key `screen` khi null (Firebase cũng bỏ giá trị null). |
+| Cắt độ dài trong shared | `eventParams` tự cắt key ≤ 40, value ≤ 100 | Firebase bỏ cả event khi tên/key quá 40 ký tự; data của push có thể dài. |
+| E12 không lọc | `GetEpisodeById` trả nguyên episode | D6/blacklist áp dụng ở nơi hiển thị (T5) giống danh sách E10; tránh lọc hai lần. |
+
+Giới hạn đã biết sau T2:
+
+- Hook crash Kotlin, `InstallId`, `RemoteConfigRetry`, `AnalyticsDefaults`, notification prefs và `DeepLinkParser` mới có ở shared; app chưa dùng (T4 nối Firebase/crash/push, T5 nối deep link).
+- `KotlinCrashHookTest` chỉ gọi thân hook; việc runtime thật sự gọi hook và kết thúc process chưa kiểm (kết thúc process trong test là không được). QC/T4 có thể kiểm bằng một crash cố ý ở bản Debug khi đã có Crashlytics.
+- Reporter Firebase ở T4 phải ghi đồng bộ trong `recordFatal` vì process kết thúc ngay sau khi hook trả về.
