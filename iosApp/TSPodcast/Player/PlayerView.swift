@@ -276,7 +276,7 @@ private struct PlayerControlsView: View {
                                 .controlSize(.large)
                         } else {
                             Image(systemName: showsPause ? "pause.fill" : "play.fill")
-                                .font(.system(size: 34, weight: .bold))
+                                .font(.largeTitle.weight(.bold))
                                 .foregroundStyle(.white)
                         }
                     }
