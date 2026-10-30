@@ -34,6 +34,8 @@ final class AppEnvironment {
     @ObservationIgnored let categoryCatalog: CategoryCatalog
     /// The one player of the app (AVFoundation, M3).
     @ObservationIgnored let audioEngine: AudioEngine
+    /// What the App Shortcuts do (M6 §3.7); the intents reach it through `ShortcutBridge`.
+    @ObservationIgnored let shortcutActions: any ShortcutActions
     /// Whether the full-screen Player is shown (Detail, Live and the MiniPlayer open it).
     var isPlayerPresented = false
     /// Shared by every Detail screen of the process (the fail-once hook counts per process).
@@ -121,7 +123,7 @@ final class AppEnvironment {
             push: services.push
         )
         categoryCatalog = CategoryCatalog(getCategories: graph.getCategories)
-        audioEngine = AudioEngine(
+        let engine = AudioEngine(
             positions: graph.playbackPositions,
             history: graph.playbackHistory,
             favourites: graph.favouriteRepository,
@@ -129,6 +131,13 @@ final class AppEnvironment {
             sleepTimer: graph.sleepTimer,
             analytics: analytics,
             hooks: Self.audioHooks(launchOptions)
+        )
+        audioEngine = engine
+        shortcutActions = ShortcutActionHandler(
+            player: engine,
+            history: SharedShortcutHistory(history: graph.playbackHistory, resolver: graph.favouriteResolver),
+            events: .app,
+            track: { name, params in analytics.trackEvent(name: name, screen: nil, params: params) }
         )
         podcastDetailDataSource = SharedPodcastDetailDataSource(
             feed: graph.podcastDetailFeed,
@@ -162,6 +171,7 @@ final class AppEnvironment {
         let remoteConfig = services.remoteConfig.map { source in
             RemoteConfigLoader(source: source, crash: crash, onActivated: { sharedGraph.reloadRemoteConfig() })
         }
+        ShortcutBridge.register(self)
         Task.detached(priority: .utility) {
             if let remoteConfig {
                 Task.detached(priority: .utility) { await remoteConfig.run() }

@@ -239,6 +239,36 @@ final class LocalizationTests: XCTestCase {
         }
     }
 
+    /// M6-AC20/AC23: App Shortcuts titles and messages (`Localizable`) and the Siri phrases
+    /// (`AppShortcuts`), each phrase naming the app in both languages.
+    func testShortcutStrings() throws {
+        let expected: [String: (vi: String, en: String)] = [
+            "shortcut.continue.title": ("Tiếp tục nghe", "Continue listening"),
+            "shortcut.continue.nothing": ("Chưa có tập nào để tiếp tục", "There's no episode to continue yet"),
+            "shortcut.pause.title": ("Tạm dừng", "Pause"),
+            "shortcut.sleepTimer.title": ("Hẹn giờ tắt", "Set sleep timer"),
+            "shortcut.sleepTimer.minutes": ("Số phút", "Minutes"),
+        ]
+        for (key, value) in expected {
+            XCTAssertEqual(try text(key, "vi"), value.vi, "vi \(key)")
+            XCTAssertEqual(try text(key, "en"), value.en, "en \(key)")
+        }
+        for key in ["shortcut.continue.description", "shortcut.pause.description", "shortcut.sleepTimer.description"] {
+            for language in ["vi", "en"] {
+                XCTAssertNotEqual(try text(key, language), "<missing>", "\(language) \(key)")
+            }
+        }
+        let phrases: [String: String] = [
+            "Continue listening on ${applicationName}": "Tiếp tục nghe trên ${applicationName}",
+            "Pause ${applicationName}": "Tạm dừng ${applicationName}",
+            "Set a sleep timer in ${applicationName}": "Hẹn giờ tắt ${applicationName}",
+        ]
+        for (phrase, vi) in phrases {
+            XCTAssertEqual(try bundle("vi").localizedString(forKey: phrase, value: "<missing>", table: "AppShortcuts"), vi)
+            XCTAssertEqual(try bundle("en").localizedString(forKey: phrase, value: "<missing>", table: "AppShortcuts"), phrase)
+        }
+    }
+
     /// M6-AC23: "Thời sự & Bản tin", word for word (the footer is the §3.4 text).
     func testNewsHubStrings() throws {
         let expected: [String: (vi: String, en: String)] = [

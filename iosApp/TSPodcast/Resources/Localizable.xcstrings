@@ -2467,6 +2467,150 @@
         }
       }
     },
+    "shortcut.continue.description" : {
+      "comment" : "Shortcut \"Continue listening\": description in the Shortcuts app.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plays the episode you were listening to, from where you left off."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phát tiếp tập bạn đang nghe dở, từ vị trí đã lưu."
+          }
+        }
+      }
+    },
+    "shortcut.continue.nothing" : {
+      "comment" : "Siri/Shortcuts message when there is no episode to continue.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There's no episode to continue yet"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa có tập nào để tiếp tục"
+          }
+        }
+      }
+    },
+    "shortcut.continue.title" : {
+      "comment" : "Shortcut \"Continue listening\": title in Shortcuts and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue listening"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiếp tục nghe"
+          }
+        }
+      }
+    },
+    "shortcut.pause.description" : {
+      "comment" : "Shortcut \"Pause\": description in the Shortcuts app.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pauses the episode and turns off the sleep timer."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tạm dừng tập đang phát và tắt hẹn giờ."
+          }
+        }
+      }
+    },
+    "shortcut.pause.title" : {
+      "comment" : "Shortcut \"Pause\": title in Shortcuts and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tạm dừng"
+          }
+        }
+      }
+    },
+    "shortcut.sleepTimer.description" : {
+      "comment" : "Shortcut \"Set sleep timer\": description in the Shortcuts app.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stops playback after the number of minutes you choose (1–180)."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tự dừng phát sau số phút bạn chọn (1–180)."
+          }
+        }
+      }
+    },
+    "shortcut.sleepTimer.minutes" : {
+      "comment" : "Shortcut \"Set sleep timer\": title of the minutes parameter.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minutes"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Số phút"
+          }
+        }
+      }
+    },
+    "shortcut.sleepTimer.title" : {
+      "comment" : "Shortcut \"Set sleep timer\": title in Shortcuts and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set sleep timer"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hẹn giờ tắt"
+          }
+        }
+      }
+    },
     "show.hide" : {
       "comment" : "Detail menu and long-press menu on Home/Search: hide the show on this device.",
       "extractionState" : "manual",
