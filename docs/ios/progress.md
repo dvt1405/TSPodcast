@@ -12,7 +12,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đã nghiệm thu (review round 1) |
 | M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đã nghiệm thu (review round 1) |
 | M3 | Audio engine, Player và MiniPlayer | [milestones/M3.md](milestones/M3.md) | Đã nghiệm thu (review round 2, `5b8e26c`). UI suite để QC |
-| M4 | Favourite, lưu trữ, thông báo, deep link, analytics — chốt parity | [milestones/M4.md](milestones/M4.md) | Đã lập kế hoạch (base `5b8e26c`); chờ developer làm T1–T5 |
+| M4 | Favourite, lưu trữ, thông báo, deep link, analytics — chốt parity | [milestones/M4.md](milestones/M4.md) | Đã lập kế hoạch (base `5b8e26c`; plan sửa lần 2 theo luật test mới: unit test + smoke check, không UI test); chờ developer làm T1–T5 |
 
 ## M0
 
