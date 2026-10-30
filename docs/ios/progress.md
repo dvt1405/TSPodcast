@@ -13,7 +13,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đã nghiệm thu (review round 1) |
 | M3 | Audio engine, Player và MiniPlayer | [milestones/M3.md](milestones/M3.md) | Đã nghiệm thu (review round 2, `5b8e26c`). UI suite để QC |
 | M4 | Favourite, lưu trữ, thông báo, deep link, analytics — chốt parity | [milestones/M4.md](milestones/M4.md) | Đã nghiệm thu (review round 1, `9f2f1fb`). Checklist parity §7 ở mục M4 T5; UI suite và bước simulator để QC |
-| M5 | Giao diện Liquid Glass (iOS 26) + Up next peek trên Player | [milestones/M5.md](milestones/M5.md) | Kế hoạch PO xong (base `f6fc292`), chờ developer T1–T4 |
+| M5 | Giao diện Liquid Glass (iOS 26) + Up next peek trên Player | [milestones/M5.md](milestones/M5.md) | Đang làm: T1 xong (`999b1ac`, `b0de8a0`), bước trên iPhone chờ iOS platform; T2–T4 chưa làm |
 
 ## M0
 
@@ -1537,3 +1537,74 @@ Giới hạn đã biết của M4 (tổng hợp):
 - **`-uitest-reset` không xoá DB Room** (xem "Để QC" mục 7c).
 - Lệch nhỏ so với lệnh của plan: `plutil -lint` không đọc JSON nên AC19 kiểm `push-new-podcast.apns` bằng `plutil -convert` + `json.tool` (T4); Release build vào `$OUT/DD-m4` thay vì `$OUT/DD-rel-m4` (dùng lại SourcePackages, vẫn build sạch).
 - Không khôi phục item cuối lúc cold start (Android cũng không, plan §2); background push không tap thì không có event `fcm_*` (plan §7 mục 8).
+
+## M5
+
+Kế hoạch: [milestones/M5.md](milestones/M5.md). Base `f6fc292`.
+
+### T1 — Nền Glass + Up next peek trên Player (xong phần code; bước trên iPhone chờ platform)
+
+Commit: `999b1ac` `feat(ios): add Liquid Glass helpers with Material fallback`, `b0de8a0` `feat(ios): show the up next peek under the player controls`.
+
+| Thành phần | File | Ghi chú |
+|---|---|---|
+| Resolver vật liệu + helper glass | `iosApp/TSPodcast/Design/Glass.swift` | `GlassSurfaceStyle.resolve` (thuần): Reduce Transparency → `.opaque`, iOS 26 → `.glass`, thấp hơn → `.material`, `showsBorder = increasedContrast`. `glassSurface(in:tint:interactive:)` (glass `.regular` + tint/interactive; fallback `.regularMaterial` / `secondarySystemBackground`; tint ở fallback tô đặc shape như `.borderedProminent`; viền `primary` 35 % 1 pt). `GlassGroup`, `glassButton`, `glassProminentButton(tint:)`, `glassCircleButton`, `tabBarMinimizesOnScroll`, `bottomBar` (fallback nền `.bar`), `topBar` (fallback không nền). Chưa view nào ngoài panel dùng các helper này (T2/T3). |
+| Màu nhấn | `Resources/Assets.xcassets/Colors/BrandAccent.colorset`, `Design/AppColors.swift` | `#FF7A59` cả Light/Dark; `Color.brandAccent` dùng đúng 1 chỗ: chấm 6 pt `accessibilityHidden` cạnh "Đang phát" trong `UpNextRow`. |
+| Logic panel | `iosApp/TSPodcast/Player/UpNextPanelState.swift` | `UpNextPanelState` (`Mode`, `travel`, `offset(forDrag:)`, `endDrag`, `expand/collapse/toggle/didSelectItem/queueDidChange`) + `UpNextPeek.rows/maxRows`. Ngưỡng viết dạng nhân (`-dy*5 >= travel*2`, `dy*5 >= travel`) để 160/400 đúng 40 %. `travel <= 0` → chỉ luật vận tốc. Peek tối đa 2 dòng kể cả khi `maxRows` lớn hơn. |
+| Panel | `iosApp/TSPodcast/Player/UpNextPanel.swift` (thay `UpNextSheet.swift`) | `UpNextPanel` (header = Button `upNext.peek`: grabber 36×5, "Tiếp theo", dòng peek khi thu; `highPriorityGesture(DragGesture(minimumDistance: 8))` chỉ trên header; `accessibilityAction(.escape)`; `glassSurface` bo góc trên 28), `UpNextList` (`upNext.root`, `upNext.item.<i>` + `.isSelected`, nền trong suốt, `contentMargins` đáy = safe area), `UpNextRow` dùng chung (tiêu đề 1 dòng ở peek, 2 dòng ở list). |
+| Player | `iosApp/TSPodcast/Player/PlayerView.swift` | Cột dọc: hàng đóng → artwork (co giãn) → tiêu đề → progress → controls → lỗi? → `Spacer(16)` → `Color.clear` cao bằng header peek đo được (phần tử cuối). `UpNextPanel` là overlay căn trên của cột, `padding(.top, đáy hàng player.close)`, tự dời xuống `offset(forDrag:)`; `travel = đỉnh vùng peek − đáy hàng đóng`. Đo bằng `onGeometryChange` trong coordinate space `player`. Animation `.spring(duration: 0.35)`, Reduce Motion → `.easeInOut(duration: 0.2)`. `player.playlist` → `expand()`; tap hàng → `engine.select(index:)` rồi `didSelectItem()`. Không còn `.sheet`. |
+| Chuỗi | `Localizable.xcstrings`, `LocalizationTests.testUpNextPeekStrings` | `player.upNext.peekValue` (Đang phát: %@ / Now playing: %@), `player.upNext.expandHint`, `player.upNext.collapseHint` đúng bảng §4. Value VoiceOver dựng bằng `String(format: String(localized:), title)` để khoá giữ đúng tên trong plan. |
+| Unit test mới | `GlassSurfaceStyleTests` 6, `UpNextPanelStateTests` 14, `UpNextPeekTests` 7, `LocalizationTests` +1 | Theo các case §6 AC3/AC4/AC6 và thêm biên (fling đúng 1000, travel âm, `maxRows` 0). |
+
+Quyết định trong T1:
+
+| Hạng mục | Quyết định | Lý do |
+|---|---|---|
+| Header khi mở | Chỉ grabber + "Tiếp theo" (ẩn dòng peek); chiều cao vùng peek chỉ cập nhật khi đang thu | Khi mở, danh sách đã có item đang phát; giữ chiều cao vùng đặt chỗ ổn định để layout Player phía dưới và `travel` không nhảy. |
+| List khi đang kéo từ peek | Hiện list trong lúc kéo (`isDragging`) để panel không rỗng khi trượt lên | `upNext.root` vẫn chỉ tồn tại khi mở hoặc đang kéo bằng tay; UI test bấm `player.playlist`/chọn item không bị ảnh hưởng. |
+| Tap vs kéo header | `highPriorityGesture` cho drag (minimumDistance 8) | Tap không dời thì Button nhận (toggle); kéo quá 8 pt thì drag thắng, Button không bắn thêm toggle. |
+| "Kéo list ở đỉnh để thu" của Android | Không làm | Plan §4 mục 2; thu bằng kéo header, tap header, chọn item, escape. |
+| Ưu tiên layout | `layoutPriority(1)` cho tiêu đề, progress, controls, lỗi | Artwork là phần co lại trước khi thiếu chỗ (Dynamic Type lớn), hàng nút + peek luôn vừa (§3.5). |
+
+Lệnh và kết quả (30/10/2026):
+
+```bash
+xcodebuild -showsdks | grep iphoneos          # iOS 26.2 -sdk iphoneos26.2 (SDK có)
+xcodebuild build … -destination 'platform=iOS,name=Tun' …   # 2 lần (đầu task và sau khi xong code):
+#   xcodebuild: error: Unable to find a destination matching the provided destination specifier
+#   { platform:iOS, arch:arm64e, id:00008110-000878203AC1401E, name:Tun, error:iOS 26.2 is not installed.
+#     Please download and install the platform from Xcode > Settings > Components. }
+xcrun devicectl list devices                  # Tun … available (paired)
+# Kiểm biên dịch thay thế (không phải build, không tạo artefact): swiftc -typecheck toàn bộ source app
+# (bản copy trong scratchpad, bỏ dòng import Firebase*) với SDK iphonesimulator26.2, -target arm64-apple-ios17.0-simulator,
+# -swift-version 6, -F shared/build/xcode-frameworks/Debug/iphonesimulator26.2:
+#   0 error/warning ở Design/ và Player/; chỉ 3 lỗi "cannot find 'FirebaseApp'/'FirebaseOptions'" do bỏ import Firebase.
+#   Đã thử chèn 1 lỗi cố ý vào UpNextPanel.swift để chắc typecheck có báo lỗi file mới (có báo).
+# Logic thuần chạy trên macOS (Swift package tạm trong scratchpad: UpNextPanelState.swift + phần resolver của Glass.swift
+# + 3 file test y nguyên): swift test → Executed 27 tests, with 0 failures.
+# Kiểm tĩnh AC2: comm -23 (identifier / accessibilityLabel(Text / accessibilityHint(Text) f6fc292 vs HEAD → rỗng;
+#   comm -13 identifier → chỉ accessibilityIdentifier("upNext.peek"); label mới: accessibilityLabel(Text("player.upNext").
+# AC5: grep 'UpNextSheet\|presentationDetents' iosApp/TSPodcast → 0. AC6: grep token iOS 26 ngoài Glass.swift/MiniPlayerSlot.swift → 0 dòng.
+# AC10 (phần T1): brandAccent chỉ ở AppColors.swift + 1 chỗ (UpNextPanel.swift); font(.system(size: mới → 0.
+# AC11: script xcstrings → missing_en 0, missing_vi 0 (83 key).
+```
+
+#### Chờ chạy trên iPhone khi có iOS platform
+
+Xcode báo `iOS 26.2 is not installed` cho destination `Tun` (component platform iOS đang tải lại). Theo luật tạm thời không build/test/cài trên máy; orchestrator chạy sau khi platform có:
+
+1. `xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcastUnit -only-testing:TSPodcastTests -destination 'platform=iOS,name=Tun' -derivedDataPath $OUT/DD-m5 -resultBundlePath $OUT/M5-unit.xcresult $SIGN` → kỳ vọng `TEST SUCCEEDED`, có `GlassSurfaceStyleTests`, `UpNextPanelStateTests`, `UpNextPeekTests`, `LocalizationTests` Passed; 0 dòng `in target 'TSPodcastUITests'`.
+2. `xcodebuild build … -scheme TSPodcast -configuration Debug -destination 'platform=iOS,name=Tun' $SIGN` → `BUILD SUCCEEDED`, `grep -c "only available in iOS"` → 0.
+3. Smoke: `xcrun devicectl device install app --device 56DE0E78-9436-5BFB-8F79-E68AB560B730 …/Debug-iphoneos/TSPodcast.app`, `process launch … tss.t.podcast`, chờ ~15 s, `device info processes | grep TSPodcast.app` → có dòng.
+4. Owner xem trên máy (AC5): mở Player → peek "Tiếp theo" + "Đang phát" (+ tập kế) dưới hàng nút, không che nút; vuốt lên → danh sách, tập đang phát được đánh dấu; tap tập khác → phát và panel thu; vuốt xuống → peek; `player.playlist` → panel mở, nút đóng vẫn bấm được; phát Live → peek 1 dòng.
+
+#### Để QC (T1)
+
+- `PlayerUITests` mở Up next bằng `player.playlist` rồi chờ `upNext.root`: giờ là panel trong Player thay vì sheet, identifier giữ nguyên; `upNext.root` biến mất sau khi chọn item (panel thu). Nếu test vuốt sheet xuống để đóng thì cần đổi sang kéo `upNext.peek` hoặc chọn item.
+- Các bước trên máy ở mục 4 phía trên (vuốt/fling, Reduce Motion, VoiceOver escape + label/value/hint của `upNext.peek`, Dynamic Type cỡ accessibility → peek 1 dòng, xoay ngang → 1 dòng).
+
+Giới hạn đã biết (T1):
+
+- Chưa build/chạy trên máy nào: bằng chứng hiện có là typecheck Swift 6 với SDK iOS 26.2 (deployment 17) + 27 test logic chạy trên macOS + đọc code. Bố cục thật (đo `onGeometryChange`, `ignoresSafeArea` đáy panel, `contentMargins`) cần nhìn trên iPhone.
+- Thay đổi Dynamic Type trong lúc panel đang mở chỉ cập nhật chiều cao vùng peek khi panel thu lại.
+
