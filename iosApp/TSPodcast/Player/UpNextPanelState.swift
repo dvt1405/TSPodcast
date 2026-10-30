@@ -34,6 +34,24 @@ struct UpNextPanelState: Equatable, Sendable {
         }
     }
 
+    /// How far open the panel is while dragging by `dy`: 0 at the peek, 1 fully open. The peek
+    /// rows fade out and the list fades in with it, so nothing jumps when the mode flips. Without
+    /// a measured travel, the mode alone.
+    func progress(forDrag dy: CGFloat) -> CGFloat {
+        guard travel > 0 else { return isExpanded ? 1 : 0 }
+        return 1 - offset(forDrag: dy) / travel
+    }
+
+    /// The peek rows fade out over the first half of the opening and the list fades in over the
+    /// second half, so the two never show on top of each other.
+    static func peekRowsOpacity(progress: CGFloat) -> CGFloat {
+        min(max(1 - progress * 2, 0), 1)
+    }
+
+    static func listOpacity(progress: CGFloat) -> CGFloat {
+        min(max(progress * 2 - 1, 0), 1)
+    }
+
     /// Settles the mode when a drag of `dy` ends with velocity `vy` (pt/s, positive = down):
     /// a fling (|vy| ≥ 1000) follows its direction; otherwise it opens past 40 % up and closes past
     /// 20 % down (Android `anim.value <= -0.4 * initSize` / `>= -0.8 * initSize`).

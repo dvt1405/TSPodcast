@@ -133,4 +133,53 @@ final class UpNextPanelStateTests: XCTestCase {
         collapsed.queueDidChange(count: 3)
         XCTAssertEqual(collapsed.mode, .collapsed)
     }
+
+    // MARK: - Progress (fix: the peek rows and the list cross-fade with the drag)
+
+    func testProgressFollowsTheDrag() {
+        let collapsed = state(.collapsed)
+        XCTAssertEqual(collapsed.progress(forDrag: 0), 0)
+        XCTAssertEqual(collapsed.progress(forDrag: -100), 0.25)
+        XCTAssertEqual(collapsed.progress(forDrag: -400), 1)
+        XCTAssertEqual(collapsed.progress(forDrag: -900), 1, "clamped past the close row")
+        XCTAssertEqual(collapsed.progress(forDrag: 50), 0, "no pull below the peek")
+
+        let expanded = state(.expanded)
+        XCTAssertEqual(expanded.progress(forDrag: 0), 1)
+        XCTAssertEqual(expanded.progress(forDrag: 100), 0.75)
+        XCTAssertEqual(expanded.progress(forDrag: 1_000), 0)
+        XCTAssertEqual(expanded.progress(forDrag: -50), 1)
+    }
+
+    func testProgressWithoutTravelIsTheMode() {
+        XCTAssertEqual(state(.collapsed, travel: 0).progress(forDrag: -300), 0)
+        XCTAssertEqual(state(.expanded, travel: 0).progress(forDrag: 300), 1)
+    }
+
+    func testPeekRowsAndListNeverOverlap() {
+        XCTAssertEqual(UpNextPanelState.peekRowsOpacity(progress: 0), 1)
+        XCTAssertEqual(UpNextPanelState.listOpacity(progress: 0), 0)
+        XCTAssertEqual(UpNextPanelState.peekRowsOpacity(progress: 0.25), 0.5)
+        XCTAssertEqual(UpNextPanelState.listOpacity(progress: 0.25), 0)
+        XCTAssertEqual(UpNextPanelState.peekRowsOpacity(progress: 0.75), 0)
+        XCTAssertEqual(UpNextPanelState.listOpacity(progress: 0.75), 0.5)
+        XCTAssertEqual(UpNextPanelState.peekRowsOpacity(progress: 1), 0)
+        XCTAssertEqual(UpNextPanelState.listOpacity(progress: 1), 1)
+        for step in 0...20 {
+            let progress = CGFloat(step) / 20
+            XCTAssertTrue(
+                UpNextPanelState.peekRowsOpacity(progress: progress) == 0 || UpNextPanelState.listOpacity(progress: progress) == 0,
+                "both visible at \(progress)"
+            )
+        }
+    }
+
+    /// The rapid-toggle path: any number of taps leaves a mode that matches their parity.
+    func testRepeatedTogglesAlternate() {
+        var panel = state(.collapsed)
+        for tap in 1...11 {
+            panel.toggle()
+            XCTAssertEqual(panel.isExpanded, tap % 2 == 1, "after \(tap) taps")
+        }
+    }
 }

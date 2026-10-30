@@ -8,8 +8,11 @@ import os
 /// closes, a 1000 pt/s fling follows its direction), tap it, pick a row or VoiceOver escape.
 ///
 /// `PlayerView` places it with its top at the expanded position; the panel moves itself down by
-/// `UpNextPanelState.offset(forDrag:)`. `upNext.root` / `upNext.item.<i>` exist only while the
-/// list is shown, as with the M3 sheet.
+/// `UpNextPanelState.offset(forDrag:)`. The list stays mounted under the title bar at a fixed
+/// place and cross-fades with the peek rows (`progress(forDrag:)`), so opening never inserts 30
+/// rows mid-animation and nothing jumps when the header loses its peek rows. `upNext.root` /
+/// `upNext.item.<i>` are in the accessibility tree only while the panel is open, as with the M3
+/// sheet.
 struct UpNextPanel: View {
     let engine: AudioEngine
     @Binding var panel: UpNextPanelState
@@ -22,23 +25,38 @@ struct UpNextPanel: View {
 
     @State private var dragY: CGFloat = 0
     @State private var isDragging = false
+    /// True while a header drag is in progress; SwiftUI resets it even when the drag is cancelled
+    /// (system gesture, interruption), which never calls `onEnded`.
+    @GestureState private var isGestureActive = false
+    /// Top of the list: just under the grabber and the title.
+    @State private var listTop: CGFloat = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private static let cornerRadius: CGFloat = 28
+    private static let coordinateSpace = "upNextPanel"
 
     var body: some View {
         let state = engine.state
-        VStack(spacing: 0) {
-            header(state: state)
-            if panel.isExpanded || isDragging {
-                UpNextList(engine: engine, bottomInset: bottomInset) { index in
-                    engine.select(index: index)
-                    UpNextPanelSignpost.animate(animation) { panel.didSelectItem() }
-                }
-                .transition(.opacity)
+        let progress = panel.progress(forDrag: dragY)
+        // The header is drawn over the list: collapsed, its peek rows cover the (transparent,
+        // untouchable) list; open, it is only the title bar above the list.
+        ZStack(alignment: .top) {
+            UpNextList(
+                engine: engine,
+                bottomInset: bottomInset,
+                isShown: panel.isExpanded || isDragging,
+                isAccessible: panel.isExpanded
+            ) { index in
+                engine.select(index: index)
+                UpNextPanelSignpost.animate(animation) { panel.didSelectItem() }
             }
+            .padding(.top, listTop)
+            .modifier(PanelFade(progress: progress, opacity: UpNextPanelState.listOpacity))
+            .allowsHitTesting(panel.isExpanded && !isDragging)
+            header(state: state, progress: progress)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .coordinateSpace(.named(Self.coordinateSpace))
         .glassSurface(
             in: UnevenRoundedRectangle(
                 topLeadingRadius: Self.cornerRadius,
@@ -54,6 +72,14 @@ struct UpNextPanel: View {
         .onChange(of: state.queue.count) { _, count in
             withAnimation(animation) { panel.queueDidChange(count: count) }
         }
+        .onChange(of: isGestureActive) { _, active in
+            // A cancelled drag never reaches `onEnded`: settle back to the current mode.
+            guard !active, isDragging else { return }
+            UpNextPanelSignpost.animate(animation) {
+                dragY = 0
+                isDragging = false
+            }
+        }
     }
 
     /// Spring normally; a short ease without bounce with Reduce Motion.
@@ -61,25 +87,38 @@ struct UpNextPanel: View {
         reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.35)
     }
 
-    /// Grabber + "Tiếp theo" + the peek rows (collapsed only), one VoiceOver button.
-    private func header(state: PlaybackState) -> some View {
+    /// Grabber + "Tiếp theo" + the peek rows (collapsed only, fading out as the panel opens), one
+    /// VoiceOver button.
+    private func header(state: PlaybackState, progress: CGFloat) -> some View {
         Button {
             UpNextPanelSignpost.animate(animation) { panel.toggle() }
         } label: {
             VStack(alignment: .leading, spacing: 8) {
-                Capsule()
-                    .fill(Color.secondary.opacity(0.5))
-                    .frame(width: 36, height: 5)
-                    .frame(maxWidth: .infinity)
-                Text("player.upNext")
-                    .font(.headline)
-                    .foregroundStyle(.primary)
+                VStack(alignment: .leading, spacing: 8) {
+                    Capsule()
+                        .fill(Color.secondary.opacity(0.5))
+                        .frame(width: 36, height: 5)
+                        .frame(maxWidth: .infinity)
+                    Text("player.upNext")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                }
+                .onGeometryChange(for: CGFloat.self, of: { $0.frame(in: .named(Self.coordinateSpace)).maxY }) { maxY in
+                    // Same gap under the title as the header's bottom padding.
+                    listTop = maxY + 12
+                }
                 if !panel.isExpanded {
-                    ForEach(peekRows, id: \.self) { index in
-                        if state.queue.indices.contains(index) {
-                            UpNextRow(item: state.queue[index], isCurrent: index == state.index, titleLineLimit: 1)
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(peekRows, id: \.self) { index in
+                            if state.queue.indices.contains(index) {
+                                UpNextRow(item: state.queue[index], isCurrent: index == state.index, titleLineLimit: 1)
+                            }
                         }
                     }
+                    .modifier(PanelFade(progress: progress, opacity: UpNextPanelState.peekRowsOpacity))
+                    // Opening removes the rows: a removed view no longer follows the animated
+                    // progress, so they fade out quickly on their own, before the list fades in.
+                    .transition(.asymmetric(insertion: .identity, removal: .opacity.animation(.easeOut(duration: 0.1))))
                 }
             }
             .padding(.horizontal, 16)
@@ -95,7 +134,11 @@ struct UpNextPanel: View {
             if !panel.isExpanded { onPeekHeightChange(height) }
         }
         .highPriorityGesture(
-            DragGesture(minimumDistance: 8)
+            // Global coordinates: the header moves with the drag, so in its own (local) space the
+            // translation would shrink as the panel follows the finger and the panel would lag
+            // and shake (seen on Tun: a 60 % drag moved it ~20 % and did not open it).
+            DragGesture(minimumDistance: 8, coordinateSpace: .global)
+                .updating($isGestureActive) { _, active, _ in active = true }
                 .onChanged { value in
                     isDragging = true
                     dragY = value.translation.height
@@ -119,6 +162,24 @@ struct UpNextPanel: View {
     /// "Đang phát: <tiêu đề>".
     private func peekValue(state: PlaybackState) -> String {
         String(format: String(localized: "player.upNext.peekValue"), state.current?.title ?? "")
+    }
+}
+
+/// Opacity as a function of how far open the panel is. Animatable, so during a tap's or a
+/// release's spring the opacity follows the panel's animated position frame by frame (peek rows
+/// out over the first half, list in over the second half) instead of interpolating straight
+/// between the end values, which would show both at once.
+private struct PanelFade: ViewModifier, Animatable {
+    var progress: CGFloat
+    let opacity: (CGFloat) -> CGFloat
+
+    nonisolated var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    func body(content: Content) -> some View {
+        content.opacity(opacity(progress))
     }
 }
 
@@ -146,10 +207,25 @@ enum UpNextPanelSignpost {
 struct UpNextList: View {
     let engine: AudioEngine
     let bottomInset: CGFloat
+    /// The panel is open or being dragged: each time it becomes true the list brings the playing
+    /// row into view (while still transparent), so the open list never starts at row 0 with the
+    /// playing item far below.
+    let isShown: Bool
+    /// In the accessibility tree (and so `upNext.root` / `upNext.item.<i>` exist) only while open.
+    let isAccessible: Bool
     let select: (Int) -> Void
 
     var body: some View {
         let state = engine.state
+        ScrollViewReader { proxy in
+            list(state: state)
+                .onChange(of: isShown) { _, shown in
+                    if shown { proxy.scrollTo(engine.state.index, anchor: UnitPoint(x: 0.5, y: 0.25)) }
+                }
+        }
+    }
+
+    private func list(state: PlaybackState) -> some View {
         List {
             HStack(spacing: 12) {
                 QueueStepButton(systemImage: "backward.end.fill", label: "player.previous", identifier: "player.previous") {
@@ -163,6 +239,7 @@ struct UpNextList: View {
             }
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
+            .accessibilityHidden(!isAccessible)
             ForEach(Array(state.queue.enumerated()), id: \.offset) { index, item in
                 let isCurrent = index == state.index
                 Button {
@@ -174,13 +251,17 @@ struct UpNextList: View {
                 .buttonStyle(.plain)
                 .listRowBackground(Color.clear)
                 .accessibilityAddTraits(isCurrent ? .isSelected : [])
-                .accessibilityIdentifier("upNext.item.\(index)")
+                .accessibilityIdentifier(isAccessible ? "upNext.item.\(index)" : "")
+                .accessibilityHidden(!isAccessible)
             }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .contentMargins(.bottom, bottomInset, for: .scrollContent)
-        .accessibilityIdentifier("upNext.root")
+        // The list stays mounted while collapsed (no 30-row insert when opening). Its rows are
+        // hidden from VoiceOver then and it has no identifier (XCUITest still sees hidden
+        // elements).
+        .accessibilityIdentifier(isAccessible ? "upNext.root" : "")
     }
 }
 
