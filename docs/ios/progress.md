@@ -1903,7 +1903,7 @@ Giới hạn đã biết của M5 (tổng hợp):
 
 ## M6
 
-Kế hoạch: [milestones/M6.md](milestones/M6.md). Base code `e80136e`. Môi trường: platform iOS 26.2 vẫn chưa cài (kiểm 1 lần đầu T1, xem dưới) nên mọi bước trên iPhone dồn vào "Chờ chạy trên iPhone khi có iOS platform".
+Kế hoạch: [milestones/M6.md](milestones/M6.md). Base code `e80136e`. Môi trường: platform iOS 26.2 vẫn chưa cài (kiểm 1 lần đầu T1, xem dưới) nên mọi bước trên iPhone dồn vào "Chờ chạy trên iPhone khi có iOS platform". **Cập nhật T4 (30/10/2026):** platform đã cài, unit test (370/370) + build Debug + smoke đã chạy trên Tun cho M5 + M6 T1–T4 (mục T4).
 
 ### T1 — Player cơ bản + tốc độ (shared + iOS) (xong phần code; bước trên iPhone chờ platform)
 
@@ -2163,3 +2163,67 @@ Gộp với M5, M6 T1–T2: `xcodebuild test … -only-testing:TSPodcastTests` (
 - Chưa có UI và chưa có nơi gọi `news_source_unresolved` (T4).
 - Cache `newsHub.feed.<key>` giữ ảnh chụp `Feed` tới 7 ngày: tên/artwork đổi trên PodcastIndex thì tối đa 7 ngày sau mới thấy; blocklist và `dead` của bản chụp vẫn kiểm mỗi lần.
 - Giờ "trước 11:00" theo UTC+7 cố định (plan §7 mục 8); ngày trên thẻ brief (T4) theo lịch máy.
+
+### T4 — N2 iOS: mục Home, màn hub, kệ đêm khuya, review notes (xong; đã chạy unit test + smoke trên iPhone)
+
+Commit: `feat(ios): add the news section on discover and the news hub screen`, `docs(ios): add news hub review notes and release gate` (hash ở `git log`). Không đụng `shared/`, Gradle, code Android hay `TSPodcastUITests`.
+
+| Thành phần | File | Ghi chú |
+|---|---|---|
+| Data source | `NewsHub/NewsHubDataSource.swift` (protocol + `NewsItem`, `NewsSourceCard`, `NewsHubContent`, `NewsHubEntry`), `NewsHub/SharedNewsHubDataSource.swift`, test `FakeNewsHubDataSource.swift` | Map `NewsHub` của shared sang struct Swift (view không giữ object Kotlin). `isEnabled` = `NewsHubRepository.isEnabled` (không request). `load()` → `.success(nil)` khi hub tắt/rỗng hoặc không có tập tin nào trong "Mới nhất" (không màn rỗng), `.failure` khi shared trả `Error`. Artwork = `feed.artwork` → `feed.image` (ảnh feed gốc). Đặt `unresolvedListener` → event `news_source_unresolved` (`source_key`) qua `AppEnvironment.analytics` (đã bọc consent). Hook `-uitest-slow-network` áp như Home. |
+| Phát | `NewsHub/NewsHubActions.swift`, `Playback/PlaybackRequest.swift` (`init(news:startIndex:autoAdvance:)`), `Playback/PlaybackItem.swift` (`init(news:)`), `Playback/PlaybackHistorySource.swift` (`.news([NewsEpisode])`), `NewsHub/NewsHistoryOrder.swift` | "Phát tất cả": brief từ 0, **`autoAdvance: true` (nơi duy nhất)**, mở Player, `news_brief_play` (`count`). "Mới nhất" i: danh sách Mới nhất, không auto-advance, mở Player. Đêm khuya i: danh sách đêm khuya, không mở Player, `setSleepTimer(.minutes(30), origin: night_shelf)` (engine log `sleep_timer_set`). Room: mỗi show của danh sách ghi bằng `savePlaying` với `Podcast.fromFeed` của feed đó, show của tập được bấm ghi cuối (khoá `extra:current_item_id` = tập đó). |
+| Home | `Home/HomeModel.swift` (`HomeSection.news` ngay sau `.trending`, `NewsSectionState`, loader `.news`), `Home/HomeNewsSection.swift`, `Home/HomeView.swift` | `.absent` khi hub tắt (không header, không shimmer, 0 request); loading/failed/retry như section khác (`home.section.news.loading|error|retry`); refresh hỏi lại `isEnabled` (RC bật/tắt hub); refresh lỗi giữ nội dung; ẩn show gỡ ngay. Header "Thời sự & Bản tin" (`home.section.news`) + "Xem tất cả" (`home.news.seeAll`, `from=home_seeAll`); thẻ brief `home.news.brief` (bấm phần tiêu đề → hub `from=home_brief`; nút `home.news.brief.playAll`), ẩn khi brief rỗng; hàng ngang 10 tập đầu của Mới nhất `home.news.item.<i>`, có "Ẩn show này". |
+| Điều hướng | `Main/DiscoverRoute.swift`, `DeepLink/DeepLinkRouter.swift` (`homePath: [DiscoverRoute]`), `HomeView` (`navigationDestination(for: DiscoverRoute.self)`) | Stack Khám phá có 2 loại màn: `.podcast(PodcastRoute)` và `.newsHub(entry)`. Universal Link vẫn đẩy `.podcast`. `DeepLinkRouterTests` cập nhật theo kiểu mới. |
+| Màn hub | `NewsHub/NewsHubModel.swift`, `NewsHub/NewsHubView.swift`, `NewsHub/NewsHubComponents.swift`, `NewsHub/BriefCardFormat.swift` | `newsHub.root`, tiêu đề "Thời sự & Bản tin": thẻ brief (`newsHub.brief`, `.playAll`) → "Mới nhất" 30 (`newsHub.latest.item.<i>`) → "Nguồn" lưới (`newsHub.source.<i>`, mở Podcast detail thường) → "Truyện đêm khuya" (`moon.stars`, `newsHub.night.item.<i>`) → footer nguyên văn §3.4 (`newsHub.footer`) + "Báo cáo / yêu cầu gỡ" (`newsHub.report`, `ContentReporter` kind `hub`, chỉ khi có `CONTENT_REPORT_EMAIL`). Toast `newsHub.toast` "Đã hẹn giờ tắt 30 phút" + "Đổi" (`newsHub.toast.change` → `SleepTimerSheet`), tự ẩn sau 4 s, có VoiceOver announcement. Mở từ Home dùng dữ liệu Home đang có (không tải lại; kéo để làm mới). `news_hub_open` (`from`) một lần mỗi lần mở. Trạng thái thêm: `newsHub.loading`, `newsHub.error` + `newsHub.retry`, `newsHub.unavailable`. |
+| Remote Config | `App/AppEnvironment.swift` | `RemoteConfigLoader.onActivated` gọi `graph.reloadRemoteConfig()` (blacklist + `news_hub_v1`). |
+| Chuỗi | `Resources/Localizable.xcstrings` | 16 khoá `news.*` (vi + en; `news.brief.episodes`, `news.night.subtitle`, `news.toast` có dạng số nhiều tiếng Anh). Tổng 147 khoá, thiếu vi 0, thiếu en 0. Lỗi/thử lại trên Home dùng `section.error`/`action.retry` như các section khác; màn hub dùng `news.error` + `action.retry`. |
+| Cổng phát hành + kiểm chuỗi | `iosApp/scripts/check-news-hub-gate.sh`, `iosApp/scripts/check-news-strings.sh` | Gate đếm `confirmedAt` dạng ngày theo section, đạt khi (≥ 2 tin + ≥ 1 đêm) hoặc ≥ 3 tin và `enabled` ≠ false; nhận đường dẫn JSON khác (export RC). Strings: từ cấm theo ranh giới từ, kể cả dạng số nhiều. |
+| Review notes | `docs/ios/app-store-submission-plan.md` §14, §15, §16 | §14: đoạn "News & Bulletins" (on-demand; RSS công khai của toà soạn; phát từ URL audio của nhà xuất bản; không live, không re-host/sửa; xác nhận có khi được yêu cầu; chữ "trực tiếp" trong mô tả feed VOV Thời sự là bản ghi đăng sau phát sóng; link báo cáo; hub bật trong bản review, đường Discover → "Thời sự & Bản tin"). How to review: bỏ "Download an episode", thêm consent + hub; Privacy: Analytics/Crashlytics chỉ sau khi đồng ý. §15 lưu ý + §16 checklist: chạy `check-news-hub-gate.sh` (phải PASS) và `check-news-strings.sh` trước khi archive. |
+
+Test mới/cập nhật (`TSPodcastTests`): `NewsHubModelTests` (14), `HomeModelTests` (+7: thứ tự `.news` sau `.trending`, tắt → `.absent` + 0 request, rỗng → `.absent`, lỗi → `.failed` + retry, refresh theo công tắc hub, refresh lỗi giữ nội dung, ẩn show), `BriefCardFormatTests` (5), `NewsHistoryOrderTests` (3), `NewsHubHistoryTests` (2, Room thật qua `SharedGraph`), `NewsHubStringsTests` (2), `LocalizationTests.testNewsHubStrings`, `RemoteConfigLoaderTests.testActivationReloadsTheNewsHubConfigToo`, `DeepLinkRouterTests` (kiểu `DiscoverRoute`).
+
+Lệnh và kết quả (30/10/2026):
+
+```bash
+# Kiểm môi trường 1 lần: `xcodebuild -showdestinations` liệt kê { platform:iOS, arch:arm64, name:Tun }, không còn
+# "iOS 26.2 is not installed"; `-showsdks` có iphoneos26.2; devicectl: Tun `available (paired)`; không còn tiến trình
+# `-downloadPlatform`. → chạy được bước trên máy.
+# Typecheck (m6-typecheck: refresh.sh + run.sh/run-tests.sh, bỏ `import Firebase*` + Stub.swift):
+#   app 105 file → exit 0, 0 error, 0 warning; app + 54 file test (-D DEBUG) → exit 0, 0 error, 0 warning.
+#   Lỗi cố ý `let deliberateTypeError: Int = "T4"` cuối NewsHub/NewsHubModel.swift → exit 1, báo đúng dòng (đã bỏ).
+swift test   # trong $OUT/m6-hosttest (+ BriefCardFormat, NewsHistoryOrder và 2 test của chúng): Executed 30 tests, 0 failures
+iosApp/scripts/check-news-strings.sh      # news_keys=16 violations=0 missing=0 (exit 0); thử chèn "Live radio" vào bản sao → violations=1, exit 1
+iosApp/scripts/check-news-hub-gate.sh     # confirmed news=0 night=0 + FAIL, exit 1
+#   JSON thử (scratch): news=3 night=0 → PASS 0; news=2 night=1 → PASS 0; news=2 night=0 → FAIL 1
+grep -rn 'autoAdvance: true' iosApp/TSPodcast                       # chỉ NewsHub/NewsHubActions.swift (Phát tất cả)
+for e in NEWS_HUB_OPEN NEWS_BRIEF_PLAY NEWS_SOURCE_UNRESOLVED …; do grep -rln "$e" iosApp/TSPodcast; done
+#   8/9 có nơi gọi; SHORTCUT_INVOKED chờ T5
+grep -rniE '\bradio\b' iosApp/TSPodcast --include='*.swift'          # 0
+xcodebuild test -scheme TSPodcastUnit -only-testing:TSPodcastTests -destination 'platform=iOS,name=Tun' $SIGN FIREBASE_PLIST_DIR=$OUT/no-firebase
+#   ** TEST SUCCEEDED ** — Executed 370 tests, 0 failures (M5 + M6 T1–T4 lần đầu chạy trên máy); 0 dòng TSPodcastUITests.
+#   Lần chạy đầu quên FIREBASE_PLIST_DIR → 1 fail FirebaseBootstrapTests.testHostAppHasNoFirebasePlist (máy dev có plist UAT,
+#   test giả định bản kiểm không có Firebase như mọi lần build kiểm từ M4) → chạy lại với thư mục rỗng: 370/370.
+xcodebuild build -scheme TSPodcast -configuration Debug -destination 'platform=iOS,name=Tun' $SIGN FIREBASE_PLIST_DIR=$OUT/no-firebase   # ** BUILD SUCCEEDED **
+xcrun devicectl device install app … ; xcrun devicectl device process launch --device $DEV tss.t.podcast
+#   sau 15 s `devicectl device info processes | grep TSPodcast.app` → còn chạy (pid 26519)
+xcrun devicectl device process launch --device $DEV --terminate-existing tss.t.podcast -- -newshub-include-unconfirmed -uitest-consent=necessary
+#   sau 20 s còn chạy (pid 26521): đường có hub (Debug, nguồn chưa xác nhận) không crash khi launch
+./gradlew :shared:testAndroidHostTest     # shared không đổi trong T4; lần 1 BUILD FAILED: PodcastDetailFeedTest.anotherFeedIdDoesNotUseTheCache
+#   (expected 4 requests, was 3) — flaky có sẵn: TestGraph.requests là mutableListOf ghi từ hai request song song (E10 ‖ E11).
+#   Chạy lại `--rerun-tasks`: BUILD SUCCESSFUL, 48 class, 380 test, 0 failure (AnalyticsEventsTest 3/3).
+```
+
+Ghi chú về plan: ví dụ "Điểm tin sáng · Thứ Năm 30/10" (AC17) lệch ngày — 30/10/2026 là **Thứ Sáu**. Test dùng 29/10/2026 = "Thứ Năm 29/10" và 30/10 = "Thứ Sáu 30/10"; tiếng Anh "Thursday, Oct 29". Identifier của thẻ brief truyền qua tham số (`BriefCard(identifier:)` → `home.news.brief`/`newsHub.brief` và `<id>.playAll`), nên grep `accessibilityIdentifier("home.news.brief…")` dạng chuỗi cố định không thấy.
+
+Quyết định trong T4 (ghi trong handoff.md, mục "Quyết định agent đã tự chọn"): mục Home chỉ hiện khi có tập tin; Home hiện 10 tập, hub 30; đêm khuya không mở Player để thấy toast; bấm thẻ brief mở hub (`home_brief`); hub mở từ Home dùng lại dữ liệu; ghi Room từng show; ngày thẻ brief theo ngôn ngữ app; en "Bedtime stories"; review notes bỏ Download/CarPlay.
+
+#### Để QC (M6-AC17 trên máy)
+
+Debug với `-newshub-include-unconfirmed` (và `-uitest-consent=all` để sheet consent không che): Home có "Thời sự & Bản tin" ngay sau hàng thịnh hành; thẻ brief đúng ngày/số tập/phút; "Phát tất cả" phát hết brief nối tiếp; hàng mới nhất artwork feed gốc; "Xem tất cả" → hub đủ 4 khối + footer; nguồn → Podcast detail; đêm khuya → phát + timer 30 phút + toast + "Đổi" mở sheet; "Báo cáo / yêu cầu gỡ" chỉ khi có email. UI test cũ dùng `homePath`/Home có thể lệch vị trí cuộn vì có thêm section (chỉ khi hub bật).
+
+#### Giới hạn đã biết (T4)
+
+- Release hiện **không** có hub (mọi `confirmedAt` null; gate FAIL) — đúng thiết kế, chờ owner.
+- Mỗi lần mở hub thêm một observer `onHide` (closure `weak`, không giữ model) vào `HiddenShowsModel`; vô hại nhưng không bao giờ được dọn trong process.
+- `PodcastDetailFeedTest.anotherFeedIdDoesNotUseTheCache` flaky do `TestGraph.requests` không thread-safe (có từ trước, không thuộc T4).
+- `SHORTCUT_INVOKED` chưa có nơi gọi (App Shortcuts là T5).
