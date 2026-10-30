@@ -3,7 +3,7 @@ import Foundation
 
 /// A row of the Favourite tab (Android `FavouriteItemWidget` of a `FavouriteDTO`), as the UI sees it.
 struct FavouriteRow: Identifiable, Hashable, Sendable {
-    /// iOS v1 favourites (no radio, D1).
+    /// iOS v1 favourites: podcasts and episodes only (D1).
     enum Kind: Hashable, Sendable {
         case podcast
         case episode
