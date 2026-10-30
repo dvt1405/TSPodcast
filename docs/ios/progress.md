@@ -14,7 +14,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | M3 | Audio engine, Player và MiniPlayer | [milestones/M3.md](milestones/M3.md) | Đã nghiệm thu (review round 2, `5b8e26c`). UI suite để QC |
 | M4 | Favourite, lưu trữ, thông báo, deep link, analytics — chốt parity | [milestones/M4.md](milestones/M4.md) | Đã nghiệm thu (review round 1, `9f2f1fb`). Checklist parity §7 ở mục M4 T5; UI suite và bước simulator để QC |
 | M5 | Giao diện Liquid Glass (iOS 26) + Up next peek trên Player | [milestones/M5.md](milestones/M5.md) | Xong phần code + kiểm tĩnh (T1–T4): helper glass + fallback Material, panel Up next peek thay sheet, Player/MiniPlayer/tab bar/chip Tìm kiếm/thanh Lưu/nút "Tải lại" glass, 275 unit test (+32); typecheck Swift 6 toàn app 0 lỗi, 31 test logic pass trên macOS. **Chờ iPhone**: unit test trên máy, build Debug, smoke và danh sách "Owner xem trên iPhone" (platform iOS 26.2 chưa cài xong) |
-| M6 | Thời sự & Bản tin, player cơ bản, App Shortcuts — quick wins trước QC | [milestones/M6.md](milestones/M6.md) | Đang làm. T1 (player cơ bản + tốc độ) và T2 (N1 lite, N11 consent lite, N5 tìm trong show) xong phần code + kiểm tĩnh: shared 321 host test (+76 so với `e80136e`), 333 unit test iOS (+58, chưa chạy), typecheck Swift 6 app + test 0 lỗi, 22 test logic pass trên macOS, `:app:assembleDebug` pass. **Chờ iPhone** (platform iOS 26.2 chưa cài; lần kiểm T2 Tun còn `unavailable`) |
+| M6 | Thời sự & Bản tin, player cơ bản, App Shortcuts — quick wins trước QC | [milestones/M6.md](milestones/M6.md) | Đang làm. T1 (player cơ bản + tốc độ), T2 (N1 lite, N11 consent lite, N5 tìm trong show) và T3 (N2 shared: cấu hình hub, resolve nguồn, Điểm tin sáng) xong phần code + kiểm tĩnh: shared 380 host test (+135 so với `e80136e`), 334 unit test iOS (+59, chưa chạy), typecheck Swift 6 app + test 0 lỗi, 22 test logic pass trên macOS, `:app:assembleDebug` pass. **Chờ iPhone** (lần kiểm T3: Tun đã có trong destination, SDK iphoneos26.2 có; build/test trên máy để orchestrator chạy chung M5+M6) |
 
 ## M0
 
@@ -2086,3 +2086,80 @@ Giới hạn đã biết (T2):
 - `-uitest-consent` chỉ ghi quyết định; `TSPodcastUITests` chưa thêm cờ này (để QC).
 - Show ẩn được gỡ ngay khỏi Home/Search đang hiện; danh sách "Danh mục" (`CategoryPodcastsModel`) đang mở không gỡ ngay mà lọc ở lần tải sau (shared). Bỏ ẩn không tự thêm lại vào Home/Search đang hiện, cần kéo làm mới.
 - Tab Yêu thích, Player và deep link không lọc show ẩn (plan chỉ yêu cầu Home/Search/hub; người dùng tự thêm favourite thì vẫn mở được).
+
+### T3 — N2 shared: cấu hình hub, resolve nguồn, Điểm tin sáng (xong; bước trên iPhone chờ orchestrator)
+
+Commit: `0d88aac feat(shared): add the news hub config, source resolver and morning brief` (gồm hook Debug iOS `-newshub-include-unconfirmed`), `docs(ios): record M6 T3 progress and news source resolution`. Không đụng code Android, `coreApi`, Gradle ngoài `shared/build.gradle.kts`, hay `TSPodcastUITests`. Trong lúc làm, một phiên khác sửa Swift của Player trên cùng worktree và commit `bc3ca05 fix(ios): stop position ticks from re-rendering the whole Player` ngay trước commit T3; T3 chỉ stage file của mình (`0d88aac`), typecheck cả cây đã stage lẫn HEAD sau khi gộp (đều 0 lỗi).
+
+| Thành phần | File | Ghi chú |
+|---|---|---|
+| Cấu hình đóng gói | `shared/assets/news_hub_default.json`, `shared/build.gradle.kts` (→ `BundledAssets.newsHubDefault`) | Đúng 8 nguồn, đúng thứ tự bảng M6 §3.4: news `vov_thoisu` (take 1, 24 h, preferTitle "Thời sự 6h" trước 11), `vov_tinnhanh`, `vov_sukien`, `vov_kinhte`, `vnexpress_homnay` (48 h), `tuoitre` (take 2), `baophapluat`; night `hanoi_doctruyen` (`itunesId` null, không brief), `sleepTimerMinutes: 30`. Mọi `confirmedAt: null`. Không có trường ID PodcastIndex. URL nguồn chỉ nằm trong JSON (test ghép chuỗi để grep AC14 = 0). |
+| Model + `NewsHubConfigRepository` | `shared/.../newshub/NewsHubConfig.kt`, `NewsHubConfigRepository.kt`, `config/ConfigAPI.kt` (`ConfigKeys.KEY_NEWS_HUB = "news_hub_v1"`) | RC decode được và `version` ≤ 1 → thay file đóng gói; rỗng/hỏng/version lạ → file đóng gói. Lọc: key trống, `feedUrl` không `http(s)`, key trùng (kể cả khác section) bị bỏ; `confirmedAt` không phải `YYYY-MM-DD` → bỏ trừ khi `includeUnconfirmed`; `take < 1` → 1, `maxAgeHours ≤ 0` → 24, timer đêm kẹp 1–180. `isEnabled` = `enabled` **và** còn ≥ 1 nguồn news; tắt → `NewsHubConfig.Disabled`. `reload()`; `SharedGraph.reloadRemoteConfig()` reload cả blacklist + hub. |
+| API | `network/PodcastIndexApi.kt` | `getPodcastByItunesId(id)` → `podcasts/byitunesid?id=`, `getPodcastByFeedUrl(url)` → `podcasts/byfeedurl?url=`, cùng `PodcastByFeedIdRes` (`query.id` dạng số đọc được nhờ `isLenient`; `"feed": []` → null). |
+| `NewsSourceResolver` | `newshub/NewsSourceResolver.kt` | Cache máy `newsHub.feed.<key>` = `{feedUrl, itunesId, savedAtMillis, feed}` (cả `Feed` của PodcastIndex để có tên/artwork/D6/blocklist mà không cần E11), dùng khi tuổi ∈ [0, 7 ngày] và `feedUrl`/`itunesId` trùng config. Hết hạn → `byitunesid` (nhận khi host `feed.url` hoặc `feed.originalUrl` = host `feedUrl`, bỏ `www.`) → không có/không khớp/lỗi → `byfeedurl`. HTTP 400/404 hoặc `feed` rỗng = không có (nhớ trong RAM 15 phút, không ghi đĩa); lỗi khác = `Failed` (không cache, không báo). Feed `dead != 0` hoặc bị blocklist (id/keyword tiêu đề/host/author, `Feed.isBlocked`) → `Unresolved`, kiểm mỗi lần nên blocklist mới áp ngay. `Unresolved` → `Crash.log("news_source_unresolved key=<key>")` + `unresolvedListener` **một lần mỗi process mỗi key**. |
+| `NewsHubRepository` | `newshub/NewsHubRepository.kt`, `SharedGraph.kt` (`newsHubConfig`, `newsHub`) | `load(nowMillis)`: hub tắt → `Success(NewsHub.Disabled)`, 0 request. Mọi nguồn chạy song song: resolve → bỏ nếu show đã ẩn, feed explicit (D6) → `GetEpisodeByFeedId(id, 20)` (khoá `"<id>?max=20"`, 15 phút) → bỏ tập explicit (D6), tập có `feedId` ẩn hoặc enclosure trên host bị chặn, sắp mới trước → 0 tập thì bỏ nguồn. `latest` = 30 tập mới nhất của section news (trùng id bỏ). `Error` chỉ khi không nguồn nào tải được và có ít nhất một nguồn lỗi mạng/server. `unresolvedListener` chuyển cho resolver. |
+| `MorningBrief` | `newshub/MorningBrief.kt` | Thuần: thứ tự config; mỗi nguồn có `brief` lấy tập có `now − datePublished ≤ maxAgeHours`; có `preferTitle` và giờ UTC+7 (`VN_OFFSET_MILLIS`, `vietnamHour`) < `preferTitleBeforeHour` (null = mọi giờ) → tập mới nhất có tiêu đề chứa `preferTitle` (so bằng `VietnameseFold`) đứng đầu, phần còn lại mới trước; lấy `take`; không có tập trong cửa sổ → bỏ nguồn. `totalDurationSeconds` = tổng `duration`. Không AI, không sửa tiêu đề. |
+| Hook Debug (iOS) | `iosApp/TSPodcast/App/LaunchOptions.swift`, `App/AppEnvironment.swift`, `TSPodcastTests/LaunchOptionsTests.swift` | `-newshub-include-unconfirmed` đọc **trong `#if DEBUG`** → `SharedGraph(…, includeUnconfirmedNews:)` (constructor Kotlin riêng, vì Swift không thấy default). Release luôn false. `testNewsHubIncludeUnconfirmedHook`. |
+
+Việc để T4 nối vào app: `RemoteConfigLoader` gọi `graph.reloadRemoteConfig()` thay cho `blacklistRepository.reload()`; đặt `graph.newsHub.unresolvedListener` gửi `news_source_unresolved` (`source_key`) qua `AppEnvironment.analytics` (AC19: hằng `NEWS_SOURCE_UNRESOLVED` chưa có nơi gọi trong `iosApp/TSPodcast` ở T3).
+
+Quyết định trong T3 (ngoài plan, ghi vào handoff.md):
+
+| Hạng mục | Quyết định | Lý do |
+|---|---|---|
+| "0 nguồn = tắt" | Hub bật khi còn ≥ 1 nguồn **news**; chỉ còn kệ đêm → tắt | Mục Home và thẻ brief chỉ dựng từ news; hub chỉ có kệ đêm là trang gần rỗng. |
+| Nguồn resolve được nhưng 0 tập (hoặc 0 tập sau D6) | Bỏ khỏi hub, không báo `news_source_unresolved` | Không có gì để phát; ô "Nguồn" không có tập/tên là rủi ro review. Không phải lỗi resolve. |
+| Kết quả "không có trên PodcastIndex" | Nhớ trong RAM 15 phút | Home tải lại không gửi lại 2 request vô ích; vẫn "không cache âm qua process". |
+| RC `version` > 1 | Coi như hỏng → file đóng gói | Bản app cũ không hiểu schema mới. |
+| `preferTitleBeforeHour` null | `preferTitle` áp mọi giờ | Plan không nói; seed luôn có giờ. |
+
+Kiểm 8 nguồn qua PodcastIndex (30/10/2026 ~16:00 UTC+7; script không commit `$OUT/m6-resolve/probe.py`, đọc `Secrets.xcconfig`, không in key/secret/header; đi đúng thứ tự của `NewsSourceResolver`; ID PodcastIndex không ghi vào đây hay vào JSON):
+
+| Section | key | Resolve | Đường | Host itunes khớp | Tiêu đề feed (PodcastIndex) | Tập mới nhất (UTC+7) | Tập trong 24 h / 48 h | Ghi chú |
+|---|---|---|---|---|---|---|---|---|
+| news | `vov_thoisu` | có | `byitunesid` | có (`anchor.fm`) | VOV - Chương trình Thời sự | 29/10 23:36 | 2 / 6 | Có "Thời sự 6h 29/10/2026…" → preferTitle khớp |
+| news | `vov_tinnhanh` | có | `byitunesid` | có | VOV - Tin nhanh 24h | 29/10 23:46 | 9 / 20 | |
+| news | `vov_sukien` | có | `byitunesid` | có | VOV - Sự kiện Bàn luận | 29/10 23:46 | 15 / 20 | |
+| news | `vov_kinhte` | có | `byitunesid` | có | VOV - Kinh tế Tài chính | 29/10 16:33 | 2 / 4 | |
+| news | `vnexpress_homnay` | có | `byitunesid` | có (`vnexpress.net`) | VnExpress Podcasts: VnExpress Hôm nay | 30/10 06:21 | 1 / 1 | Cửa sổ 48 h |
+| news | `tuoitre` | **không** | `byitunesid` | có (`podcast.tuoitre.vn`) | Podcast Báo Tuổi Trẻ | — | 0 / 0 | PodcastIndex đánh dấu `dead = 1`, `episodes/byfeedid` trả 0 tập → app coi là unresolved |
+| news | `baophapluat` | có, nhưng **bị bỏ** | `byitunesid` | có (`baophapluat.vn`) | (rỗng) | — | 0 / 0 | Feed chưa parse được trên PodcastIndex (tiêu đề rỗng, 0 tập) → 0 tập nên không hiện |
+| night | `hanoi_doctruyen` | có | `byfeedurl` (không có itunesId) | — | Đài Hà Nội \| Đọc truyện đêm khuya | 29/10 23:25 | 1 / 2 | Tiêu đề của nhà phát hành, hiển thị nguyên văn |
+
+Thêm: `podcasts/byfeedurl` với URL không có trên PodcastIndex trả **HTTP 400** `{"status":"false","description":"Feed url not found."}`; `podcasts/byitunesid?id=1` vẫn trả **một feed bất kỳ** → kiểm host là bắt buộc. Kết quả: 5/7 nguồn tin + kệ đêm dùng được hôm nay (Tuổi Trẻ, Báo Pháp luật không) — vẫn trên ngưỡng owner (≥ 2 nguồn tin + kệ đêm), nhưng cần owner biết khi xin xác nhận (handoff.md).
+
+Lệnh và kết quả (30/10/2026):
+
+```bash
+./gradlew :shared:testAndroidHostTest          # BUILD SUCCESSFUL; 48 class, 380 test, 0 failure, 0 error, 0 skipped (T2: 321, base e80136e: 245)
+#   NewsHubConfigTest 6, NewsHubConfigRepositoryTest 11, NewsSourceResolverTest 15, MorningBriefTest 12,
+#   NewsHubRepositoryTest 12, PodcastIndexApiTest 23 (+3), AnalyticsEventsTest 3 (cũ, pass)
+#   Thử đột biến: bỏ kiểm host trong resolver → itunesFeedOnAnotherHostFallsBackToFeedUrl fail;
+#   bỏ điều kiện "trước 11h" → atNoonTheNewestEpisodeIsPicked, elevenSharpNoLongerPrefers fail (đã hoàn lại).
+./gradlew :shared:linkDebugFrameworkIosArm64   # BUILD SUCCESSFUL (header: init(credentials:config:preferencesPath:databasePath:includeUnconfirmedNews:),
+#                                                newsHub, newsHubConfig, reloadRemoteConfig(), NewsSourceUnresolvedListener)
+./gradlew :app:assembleDebug                    # BUILD SUCCESSFUL (shared/build.gradle.kts đổi)
+python3 -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(sum(len(s["sources"]) for s in d["sections"]))' shared/assets/news_hub_default.json   # 8
+grep -rn 'anchor.fm\|vnexpress.net/rss\|podcast.tuoitre.vn\|baophapluat.vn/rss' iosApp/TSPodcast shared/src   # 0
+grep -rn 'feedId\|podcastIndexId\|piFeedId' shared/assets/news_hub_default.json                               # 0
+# Typecheck cây đã stage (refresh.sh từ `git checkout-index`, bỏ `import Firebase*` + Stub.swift):
+#   app 95 file → exit 0, 0 error, 0 warning; app + 48 file TSPodcastTests (-D DEBUG) → exit 0, 0 error, 0 warning;
+#   lỗi cố ý ở nhãn includeUnconfirmedNews trong AppEnvironment.swift bị báo.
+#   Lặp lại trên HEAD 0d88aac (gồm bc3ca05): app 95 file + 48 file test → exit 0, 0 error, 0 warning.
+xcodebuild -project iosApp/iosApp.xcodeproj -scheme TSPodcastUnit -showdestinations   # kiểm 1 lần: Tun có trong danh sách
+#   ({ platform:iOS, arch:arm64, name:Tun }), `xcodebuild -showsdks` có iphoneos26.2, devicectl: Tun `available (paired)`.
+#   Platform có vẻ đã cài xong, nhưng lúc đó đang có một `xcodebuild … -scheme TSPodcast … generic/platform=iOS` của phiên khác chạy
+#   trên cùng project → T3 không chạy build/test trên máy để không giẫm lên nó; orchestrator chạy chung M5+M6.
+```
+
+Unit test iOS mới (chưa chạy): `LaunchOptionsTests.testNewsHubIncludeUnconfirmedHook` (333 → 334).
+
+#### Chờ chạy trên iPhone (M6 T3)
+
+Gộp với M5, M6 T1–T2: `xcodebuild test … -only-testing:TSPodcastTests` (334 test, có `LaunchOptionsTests`), build Debug + smoke (launch không crash; hub chưa có UI nên không có gì mới để nhìn).
+
+#### Giới hạn đã biết (T3)
+
+- Chưa có UI và chưa có nơi gọi `news_source_unresolved` (T4).
+- Cache `newsHub.feed.<key>` giữ ảnh chụp `Feed` tới 7 ngày: tên/artwork đổi trên PodcastIndex thì tối đa 7 ngày sau mới thấy; blocklist và `dead` của bản chụp vẫn kiểm mỗi lần.
+- Giờ "trước 11:00" theo UTC+7 cố định (plan §7 mục 8); ngày trên thẻ brief (T4) theo lịch máy.
