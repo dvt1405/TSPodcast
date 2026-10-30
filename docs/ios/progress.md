@@ -1073,7 +1073,7 @@ Ghi chú: một lần chạy cả suite của developer trước review round 1 
 
 Kế hoạch: [milestones/M4.md](milestones/M4.md) (revision 2: không UI test, chỉ unit test + smoke check). Base `5b8e26c`.
 
-Trạng thái: **T1, T2, T3 xong**, T4–T5 chưa làm. Mục này được bổ sung sau mỗi task; tóm tắt + checklist parity §7 viết ở T5.
+Trạng thái: **T1, T2, T3, T4 xong**, T5 chưa làm. Mục này được bổ sung sau mỗi task; tóm tắt + checklist parity §7 viết ở T5.
 
 ### T1 — Shared: Room KMP, PruneApiCache, favourite, lịch sử, fallback offline; hạ tầng kiểm tra (xong)
 
@@ -1283,3 +1283,96 @@ Giới hạn đã biết sau T3:
 - `PodcastRoute` khi tap favourite lấy tiêu đề/ảnh/mô tả từ row Podcast đã lưu; podcast được lưu từ route (lúc E11 lỗi) chỉ có tiêu đề, ảnh, mô tả, nên các field khác của row đó trống tới lần E11 thành công sau.
 - Không khôi phục item đang phát sau khi kill app (Android cũng chỉ khôi phục qua notification; M4 §2 ngoài phạm vi).
 - Xoá favourite của một episode ở tab Yêu thích chỉ qua alert mục hỏng hoặc Player (như Android: không có swipe-to-delete).
+
+### T4 — iOS: Firebase tuỳ chọn, analytics, crash, Remote Config, push opt-in, NSE, Cài đặt (xong)
+
+Thoả M4-AC15 … M4-AC19 và M4-AC21 phần unit test + build + smoke (tự kiểm, chờ PO); bước simulator của AC18/AC21 là "để QC", gửi thật qua FCM/APNs và Crashlytics thật là "chặn bởi owner". Không đổi file Gradle nào và không đổi `shared/` nên không chạy `:app:assembleDebug` / `:shared:allTests`. Không thêm hook UI test, không viết/sửa XCUITest, không build/chạy `TSPodcastUITests`.
+
+| Thành phần | File (`iosApp/`) | Ghi chú |
+|---|---|---|
+| Firebase SPM | `project.yml`, `iosApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved` | `firebase-ios-sdk` **`exactVersion: 12.19.2`** (12.19.3 phát hành 22/10/2026, chưa đủ 2 tuần; 13.x ngoài "12.x"). Chỉ target app link: `FirebaseCore`, `FirebaseAnalyticsCore` (Analytics **không** kèm IdentitySupport/AdSupport), `FirebaseCrashlytics`, `FirebaseRemoteConfig`, `FirebaseMessaging`. |
+| Bootstrap | `TSPodcast/Firebase/FirebaseBootstrap.swift` | `configureIfAvailable(bundle:configure:)`: có `GoogleService-Info.plist` trong bundle → `FirebaseApp.configure(options:)` → `.enabled`; không có → `.disabled(.missingPlist)`; file đọc không được → `.disabled(.invalidPlist)`. Log `firebase=enabled` / `firebase=disabled reason=missing_plist` (OSLog, category `Firebase`). |
+| 4 cặp seam | `TSPodcast/Firebase/AppServices.swift`, `FirebaseAnalyticsTracker.swift`, `CrashReporters.swift`, `RemoteConfig.swift`, `Notifications/PushRegistrar.swift` | `AppServices.make(for:)`: `.enabled` → `FirebaseAnalyticsTracker`, `FirebaseCrashReporter`, `FirebaseRemoteConfigAPI` (+ nguồn cho `RemoteConfigLoader`), `FirebasePushRegistrar`; còn lại → `LogAnalyticsTracker`, `OSLogCrashReporter`, `NoOpConfig`, `LogPushRegistrar`. Implementation Firebase chỉ được tạo khi `.enabled` nên bản không plist không gọi API Firebase nào. |
+| Thứ tự launch | `TSPodcast/App/AppEnvironment.swift` (`LaunchSteps`), `App/AppDelegate.swift`, `App/TSPodcastApp.swift` | Như `App.onCreate`: bootstrap → `AppServices` → `CrashWiring.install` (`Crash.install` rồi `installKotlinCrashHook(Crash.shared)`) → `SharedGraph(config: services.config, …)` → nền: `Crash.userId(InstallId)` → `RemoteConfigLoader.run()` (chỉ khi có Firebase, task riêng) → `PruneApiCache`. `AppDelegate` (`@UIApplicationDelegateAdaptor`) giữ `AppEnvironment`, đặt delegate notification ở `didFinishLaunching`, chuyển APNs token cho `PushRegistrar`. |
+| Analytics | `Firebase/FirebaseAnalyticsTracker.swift` | `trackScreen` → `<screen lowercase>_screen`, `trackEvent` → `name` + `screen`; tham số từ shared `AnalyticsDefaults.eventParams` (`os="iOS"`, `os_version` dạng `17.5.1`, `app_version` = `CFBundleShortVersionString`, `event_time_stamp` giây, cắt key 40 / value 100). Hàm map thuần, lệnh `Analytics.logEvent` được inject. |
+| Crash | `Firebase/CrashReporters.swift` | `FirebaseCrashReporter`: `log` → breadcrumb, `record` → `record(error:userInfo:)` với domain = tag (gom issue theo call site) + keys, `key` → custom value, `userId` → `setUserID`, `recordFatal` → `ExceptionModel` + `StackFrame(address:)` từ địa chỉ stack Kotlin. `OSLogCrashReporter` (category `Crash`) ghi tag/kiểu/số key, không ghi Install ID. |
+| Remote Config | `Firebase/RemoteConfig.swift` | `RemoteConfigLoader`: tối đa `RemoteConfigRetry.MAX_ATTEMPTS` (20) lần, sau lần lỗi n chờ `delayMillisFor(n)` (30 s × n); thành công → `blacklistRepository.reload()` đúng 1 lần; lỗi lần 20 → `crash.record(tag "RemoteConfig", attempts=20)`, giữ asset đóng gói. `FirebaseRemoteConfigAPI.getString` chỉ trả giá trị có nguồn `.remote`. |
+| Push opt-in | `Notifications/NotificationsModel.swift`, `NotificationSystem.swift`, `Settings/SettingsView.swift` (modifier `notificationsPrompt`, `notificationsDeniedAlert`), `Player/PlayerView.swift` | `start()` lúc launch chỉ đọc `NotificationsOptIn` (đã opt-in + iOS còn cho phép → `registerForRemoteNotifications`), **không** xin quyền. `AppEnvironment` observe số favourite: lần đầu đi từ 0 lên ≥ 1, chưa opt-in, `NotificationsPromptShown == false` → alert trong Player. "Để sau"/"Bật thông báo" đều ghi `PromptShown = true`; bật → `requestAuthorization([.alert, .sound, .badge])` → được cấp: `registerForRemoteNotifications` + `subscribe("new_podcasts")` + `OptIn = true`; bị từ chối: `OptIn = false` + alert "Mở Cài đặt". Tắt → `unsubscribe` + `OptIn = false`. `requestAuthorization` chỉ có trong `NotificationsModel.enable()` (+ wrapper hệ thống). |
+| FCM | `Notifications/PushRegistrar.swift`, `TSPodcast/Info.plist` | `FirebaseMessagingAutoInitEnabled = NO`: chưa opt-in thì không có FCM token; `subscribe` bật auto-init, chờ APNs token rồi mới subscribe topic. |
+| Delegate notification | `Notifications/NotificationPresenter.swift` | `willPresent`: `type == "new_podcasts"` → `[.banner, .list, .sound]`, loại khác (kể cả 3 loại ads, loại lạ, thiếu type) → `[]`. `willPresent` và `didReceive` gửi `fcm_<type>_message_receive` (thiếu type → `fcm_null_message_receive`) với các key payload trừ `aps` (string, số → text), `screen` = nil. Tap chỉ mở app. |
+| NSE | `TSPodcastNotificationService/NotificationService.swift`, `Info.plist`; logic `TSPodcast/Notifications/RichNotification.swift` (biên dịch vào cả NSE và app) | Target `app-extension` `tss.t.podcast.NotificationService`, nhúng vào `PlugIns/`, chỉ Foundation + UserNotifications. URL: `big_image`, không hợp lệ/thiếu thì `fcm_options.image`; chỉ http(s) có host. Tải bằng `URLSession` trong cuộc đua với timeout 20 s; HTTP 2xx + 12 byte đầu là JPEG/PNG/GIF/WebP/HEIC (không tin `Content-Type`) → `UNNotificationAttachment("big_image")`; mọi lỗi/hết giờ/`serviceExtensionTimeWillExpire` → nội dung gốc, handler gọi đúng 1 lần. |
+| Payload mẫu | `scripts/push-new-podcast.apns` | JSON: `Simulator Target Bundle = tss.t.podcast`, `aps.alert{title, body}`, `aps.mutable-content = 1`, `type = new_podcasts`, `big_image` https. |
+| Cài đặt | `Settings/SettingsModel.swift`, `SettingsView.swift`, `Main/MainTabView.swift` | Nút bánh răng `settings.open` ở toolbar tab Khám phá mở sheet `settings.root`: `settings.notifications` (qua `NotificationsModel.setEnabled`), `settings.explicit` (ghi `AllowExplicitContent`; Home/Search/Detail đọc lại ở lần tải sau), `settings.privacy` (chỉ hiện khi `TSPrivacyPolicyURL` là URL http(s) hợp lệ; build setting `PRIVACY_POLICY_URL` mặc định rỗng), `settings.version` ("1.0.0 (1)"), `settings.close`. |
+| Build/plist | `scripts/copy-firebase-plist.sh`, `scripts/crashlytics-upload-symbols.sh`, `.gitignore`, `Config/Shared.xcconfig`, `TSPodcast/TSPodcast.entitlements`, `TSPodcast/Info.plist` | `iosApp/Config/Firebase/*/GoogleService-Info.plist` gitignored; build phase chép plist khi có (`FIREBASE_PLIST_DIR` đổi thư mục nguồn), xoá bản cũ khi không có. dSYM upload chỉ Release + có plist. Entitlement `aps-environment = development` (`CODE_SIGN_ENTITLEMENTS`). Info.plist: `GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS = false`, `FirebaseMessagingAutoInitEnabled = false`, `TSPrivacyPolicyURL = $(PRIVACY_POLICY_URL)`; không có `NSUserTrackingUsageDescription`. |
+| Chuỗi | `TSPodcast/Resources/Localizable.xcstrings` | 12 key mới (vi nguồn, en như bảng §4.7): `notifications.prompt.title/.message/.enable/.later`, `notifications.denied.message/.hint/.openSettings`, `settings.title/.notifications/.explicit/.privacy/.version`. `LocalizationTests` thêm 10 key mỗi ngôn ngữ. |
+
+accessibilityIdentifier mới (cho QC): `settings.open`, `settings.root`, `settings.notifications`, `settings.explicit`, `settings.privacy`, `settings.version`, `settings.close`, `notifications.prompt` (message của alert), `notifications.prompt.enable`, `notifications.prompt.later`, `notifications.denied` (message của alert từ chối, thêm ngoài §4.6), `notifications.denied.openSettings`.
+
+**Test** (scheme `TSPodcastUnit`, chỉ `TSPodcastTests`)
+
+| Test | AC | Nội dung |
+|---|---|---|
+| `FirebaseBootstrapTests` (6) | AC15 | bundle không plist → `.disabled(.missingPlist)`, closure configure không được gọi; bundle có plist giả → `.enabled` với đúng path; đọc lỗi → `.invalidPlist`; `AppServices` offline đúng 4 kiểu + không có Remote Config; `AppEnvironment` qua `LaunchSteps` với bundle không plist → không configure, 4 seam log/no-op, `Crash` nhận `OSLogCrashReporter`; app host không có plist. |
+| `AnalyticsMappingTests` (6) | AC16 | `trackScreen("Onboarding", CurrentPage=2)` → `onboarding_screen`, đúng 5 key, `event_time_stamp` = giây, không `screen`; `trackEvent("OnboardingFinished", "Onboarding")` → `screen=Onboarding`; không key nào chứa "device"; cắt tên/key 40, value 100; version mặc định. |
+| `CrashWiringTests` (4) | AC16 | thứ tự launch `firebase.configure → services → crash.install → graph`; reporter giả nhận `userId` **đúng 1 lần** = `graph.installId.getOrCreate()` (UUID); `CrashWiring.install` gọi `Crash.install` trước hook Kotlin; facade `Crash` chuyển log/record/userId tới reporter đã cài; non-fatal domain = tag. |
+| `RemoteConfigLoaderTests` (6) | AC17 | lỗi 2 lần → chờ 30 s, 60 s → reload 1 lần; lỗi mãi → đúng 20 fetch, 19 lần chờ (30 s … 570 s), không reload, 1 `record`; thành công ngay không chờ; giá trị `ts_podcast_black_list` của nguồn giả qua `ConfigAPI.getString` và blacklist của `SharedGraph` thật đổi sang nó sau reload; không Firebase → asset đóng gói; sleep bị huỷ → dừng. |
+| `NotificationsModelTests` (12) | AC18 | launch không xin quyền; đã opt-in + được phép → register lại, không xin; bị tắt ở Cài đặt iOS → toggle tắt; 0 → 1 → prompt; mở app đã có favourite / favourite thứ hai / đã hỏi → không; "Để sau" ghi `PromptShown`, không hỏi lại; "Bật" + cấp → register 1, subscribe `new_podcasts` 1, `OptIn = true`; từ chối → `OptIn = false`, `showDeniedAlert`, "Mở Cài đặt"; toggle bật bỏ qua prompt; toggle tắt → unsubscribe. |
+| `NotificationPresentationTests` (6) | AC18 | `new_podcasts` → banner/list/sound; `banner_ads`, `video_ads`, `full_screen_ads`, lạ, rỗng, thiếu, không phải string → `[]`; `willPresent`/`didReceive` mỗi lần đúng 1 event với key payload (không `aps`, số thành text); thiếu type → `fcm_null_message_receive`. |
+| `RichNotificationTests` (10) | AC19 | `StubURLProtocol` (thêm `.hang`): `big_image` hợp lệ → 1 attachment `big_image`; `fcm_options.image` khi thiếu `big_image`; không URL / URL sai (ftp, file, rỗng, `https://`) → gốc, không request; lỗi mạng, HTTP 404, nội dung không phải ảnh, server treo (timeout 300 ms) → gốc; nhận dạng ảnh theo byte. |
+| `SettingsModelTests` (5) | AC21 | explicit ghi/đọc `AllowExplicitContent` qua `AppPreferences` thật; toggle thông báo đi qua `NotificationsModel` (center giả: 1 lần xin quyền, subscribe/unsubscribe); `privacyURL` nil với rỗng/sai, có với https; Info.plist của app khai `TSPrivacyPolicyURL` (rỗng → ẩn) và version "1.0.0 (1)". |
+
+**Lệnh và kết quả** (`OUT` = scratchpad/ios, `SIM` = NovaTest iPhone 17)
+
+```bash
+cd iosApp && xcodegen generate && cd ..
+xcodebuild -resolvePackageDependencies -project iosApp/iosApp.xcodeproj -scheme TSPodcast -derivedDataPath $OUT/DD-m4 -disablePackageRepositoryCache
+#   Firebase 12.19.2 + phụ thuộc (GoogleAppMeasurement 12.19.2, GoogleUtilities 8.1.5, nanopb, Promises, …)
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcastUnit -destination "id=$SIM" -derivedDataPath $OUT/DD-m4 \
+  -disablePackageRepositoryCache -resultBundlePath $OUT/M4T4-unit.xcresult -only-testing:TSPodcastTests FIREBASE_PLIST_DIR=$OUT/no-firebase
+#   ** TEST SUCCEEDED **, Executed 228 tests, 0 failures (T3: 173); grep -c "in target 'TSPodcastUITests'" → 0
+xcodebuild build -project iosApp/iosApp.xcodeproj -scheme TSPodcast -configuration Debug -destination "id=$SIM" -derivedDataPath $OUT/DD-m4 \
+  -disablePackageRepositoryCache FIREBASE_PLIST_DIR=$OUT/no-firebase
+#   ** BUILD SUCCEEDED **; "firebase plist: none for Debug", "crashlytics: Debug build, skip dSYM upload"
+iosApp/scripts/smoke-launch.sh $SIM $OUT/DD-m4/Build/Products/Debug-iphonesimulator/TSPodcast.app --check-db
+#   SMOKE PASS; log của process smoke: firebase=disabled reason=missing_plist, crash_user_id set, prune_api_cache …
+xcrun simctl spawn $SIM log show --last 2m --predicate 'subsystem == "tss.t.podcast"' | grep -c "firebase=disabled reason=missing_plist"   # ≥ 1
+xcodebuild build -project iosApp/iosApp.xcodeproj -scheme TSPodcast -configuration Release -sdk iphonesimulator \
+  -destination "generic/platform=iOS Simulator" -derivedDataPath $OUT/DD-m4 -disablePackageRepositoryCache FIREBASE_PLIST_DIR=$OUT/no-firebase
+#   ** BUILD SUCCEEDED **; "crashlytics: no GoogleService-Info.plist in the app, skip dSYM upload"
+R=$OUT/DD-m4/Build/Products/Release-iphonesimulator/TSPodcast.app
+otool -L $R/TSPodcast | grep -c -E "AdSupport|AppTrackingTransparency|FBSDK"                       # 0
+plutil -extract NSExtension.NSExtensionPointIdentifier raw $R/PlugIns/TSPodcastNotificationService.appex/Info.plist   # com.apple.usernotifications.service
+otool -L $R/PlugIns/TSPodcastNotificationService.appex/TSPodcastNotificationService | grep -ci firebase   # 0
+plutil -extract GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS raw $R/Info.plist        # false
+plutil -extract NSUserTrackingUsageDescription raw $R/Info.plist                                   # không có key
+git check-ignore -v iosApp/Config/Firebase/Debug/GoogleService-Info.plist iosApp/Config/Firebase/Release/GoogleService-Info.plist   # 2 dòng
+git ls-files | grep -c GoogleService-Info.plist                                                    # 0
+grep -rn "requestAuthorization" iosApp/TSPodcast    # NotificationsModel.enable() + protocol/wrapper NotificationSystem
+grep -rIn "device_id" shared/src iosApp --exclude-dir=build | wc -l                                # 0
+plutil -convert xml1 -o /dev/null iosApp/scripts/push-new-podcast.apns && python3 -m json.tool iosApp/scripts/push-new-podcast.apns >/dev/null   # OK
+```
+
+Quyết định trong T4:
+
+| Hạng mục | Quyết định | Lý do |
+|---|---|---|
+| Version Firebase | `12.19.2` (exact) | Bản 12.x mới nhất đã phát hành ≥ 2 tuần (12.19.3: 22/10/2026). |
+| Analytics không IDFA | Product `FirebaseAnalyticsCore` | Product không kèm `GoogleAppMeasurementIdentitySupport`; binary Release không link AdSupport/ATT. |
+| Hook Kotlin cài cả khi không Firebase | `CrashWiring.install` luôn gọi `installKotlinCrashHook(Crash.shared)` | Không Firebase thì crash Kotlin vẫn để lại dòng `crash_fatal type=… frames=…` trong OSLog; có Firebase thì hook cài sau `configure`. |
+| Tên reporter log | `OSLogCrashReporter` (plan ghi `LogCrashReporter`) | Shared đã export `LogCrashReporter` (bản `println`), trùng tên khi test import cả hai module. |
+| Thành công của Remote Config | Mọi lần fetch không lỗi đều tính là thành công | Android coi `fetchAndActivate() == false` (không có giá trị mới) là lỗi và tiếp tục retry; với iOS điều đó chỉ tốn request. |
+| FCM auto-init | Tắt (`FirebaseMessagingAutoInitEnabled = NO`), bật khi opt-in | Opt-in mặc định tắt (plan §7 mục 9): chưa đồng ý thì không tạo FCM token. |
+| dSYM upload | Chỉ Release | Build Debug hằng ngày không gửi gì ra ngoài. |
+| Prompt có thêm dòng message | `notifications.prompt.message` "Chỉ gửi khi có podcast mới…" và `notifications.denied.hint` | Alert của SwiftUI chỉ gắn được accessibilityIdentifier lên message (như `favourite.unavailable` ở T3); hai chuỗi này ngoài bảng §4.7. |
+| Prompt khi đã opt-in từ Cài đặt | Không hiện | Người dùng đã bật; plan chỉ nói prompt khi chưa hỏi. |
+| Bật thông báo bị từ chối từ prompt | Hiện luôn alert "Mở Cài đặt" | Đúng AC18 (`showDeniedAlert == true`); QC xem có quá dồn dập không. |
+| Ảnh NSE | Nhận dạng theo byte, không theo `Content-Type` | `UNNotificationAttachment` không kiểm nội dung; trang lỗi HTML trả 200 sẽ thành attachment hỏng. |
+
+Giới hạn đã biết sau T4:
+
+- AC19 ghi `plutil -lint iosApp/scripts/push-new-podcast.apns → OK`, nhưng `plutil -lint` không đọc JSON (báo `Unexpected character { at line 1` với mọi file JSON, kể cả `{"a":1}`), còn `xcrun simctl push` bắt buộc JSON. Thay bằng `plutil -convert xml1 -o /dev/null …` (rc 0) và `python3 -m json.tool` (OK); PO sửa lệnh kiểm trong plan.
+- Trên máy dev có sẵn `iosApp/Config/Firebase/{Debug,Release}/GoogleService-Info.plist` (xuất hiện 30/10 11:01, không do task này tạo, đã gitignore, không đọc/in giá trị). Mọi lần build để kiểm của T4 dùng `FIREBASE_PLIST_DIR=$OUT/no-firebase`; app **chưa** từng chạy với Firebase bật. Một lần build Debug đầu tiên (trước khi thêm `FIREBASE_PLIST_DIR` và giới hạn Release) đã chép plist vào app và chạy `Crashlytics/run`, script này báo "Symbol uploading will proceed in the background" (handoff).
+- Đường Firebase bật (`FirebaseAnalyticsTracker`/`FirebaseCrashReporter`/`FirebaseRemoteConfigSource`/`FirebasePushRegistrar` gọi SDK thật) chỉ được compile + unit test phần map thuần; chạy thật cần plist hợp lệ và mạng tới Firebase: chặn bởi owner.
+- Background push không tap → không có event `fcm_*` (plan §7 mục 8).
+- Để QC: (AC18) launch lần đầu không có hộp thoại quyền; favourite đầu tiên ở Player → alert `notifications.prompt`; "Bật thông báo" → hộp thoại iOS; `xcrun simctl push $SIM tss.t.podcast iosApp/scripts/push-new-podcast.apns` → banner có ảnh (NSE); favourite thứ hai → không hỏi lại. (AC21) bánh răng `settings.open` → sheet, bật `settings.explicit`, kéo Home tải lại → không lỗi; tắt/bật `settings.notifications`; `settings.version` = "1.0.0 (1)"; không có `settings.privacy` khi `PRIVACY_POLICY_URL` rỗng.
+- UI test cũ có thể bị ảnh hưởng: toolbar tab Khám phá có thêm nút `settings.open`; Player có thêm 2 alert (chỉ hiện khi có trigger). Không sửa XCUITest (để QC).

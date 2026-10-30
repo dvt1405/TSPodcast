@@ -196,6 +196,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
    - **không commit** nếu repo public;
    - lưu thành `Config/Firebase/Debug/GoogleService-Info.plist` và `.../Release/...`;
    - thêm Build Phase copy file đúng theo `$(CONFIGURATION)` vào `$(BUILT_PRODUCTS_DIR)/$(PRODUCT_NAME).app/`.
+   - **Đã làm ở M4 T4:** hai đường dẫn trên đã gitignore; build phase "Copy GoogleService-Info.plist" (`iosApp/scripts/copy-firebase-plist.sh`) chép file khi có, không có thì app chạy bằng các seam log/no-op (log `firebase=disabled reason=missing_plist`). Build setting `FIREBASE_PLIST_DIR` (mặc định `iosApp/Config/Firebase`) đổi thư mục nguồn; trỏ tới thư mục rỗng để build bản không Firebase dù máy có plist: `xcodebuild … FIREBASE_PLIST_DIR=/tmp/no-firebase`.
 3. **Remote Config:** dùng chung key với Android (`ts_podcast_black_list`, `ads_enable`). Có thể tạo **condition** theo platform iOS để tắt `ads_enable` trên iOS.
 4. **Cloud Messaging:**
    - tạo APNs Auth Key (`.p8`) ở Certificates, Identifiers & Profiles → Keys;
@@ -233,6 +234,8 @@ $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plis
 $(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)
 ```
 
+- **Đã làm ở M4 T4:** build phase "Crashlytics dSYM" (`iosApp/scripts/crashlytics-upload-symbols.sh`) chỉ chạy cho **Release** và chỉ khi app có `GoogleService-Info.plist`; thiếu script hay plist thì bỏ qua, không fail build. Không khai Input Files (Xcode báo lỗi khi input không tồn tại, mà plist là tuỳ chọn).
+- Kotlin/Native (§6.2): M4 dùng hook tự viết `installKotlinCrashHook` thay CrashKiOS (handoff, plan M4 §7 mục 7); `FirebaseCrashReporter.recordFatal` gửi `ExceptionModel` với địa chỉ stack.
 - Trên CI/Xcode Cloud, upload dSYM của archive một cách tường minh:
   - `upload-symbols -gsp <plist> -p ios <path/to/dSYMs>`, hoặc
   - fastlane `upload_symbols_to_crashlytics`.
