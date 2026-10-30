@@ -14,6 +14,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | M3 | Audio engine, Player và MiniPlayer | [milestones/M3.md](milestones/M3.md) | Đã nghiệm thu (review round 2, `5b8e26c`). UI suite để QC |
 | M4 | Favourite, lưu trữ, thông báo, deep link, analytics — chốt parity | [milestones/M4.md](milestones/M4.md) | Đã nghiệm thu (review round 1, `9f2f1fb`). Checklist parity §7 ở mục M4 T5; UI suite và bước simulator để QC |
 | M5 | Giao diện Liquid Glass (iOS 26) + Up next peek trên Player | [milestones/M5.md](milestones/M5.md) | Xong phần code + kiểm tĩnh (T1–T4): helper glass + fallback Material, panel Up next peek thay sheet, Player/MiniPlayer/tab bar/chip Tìm kiếm/thanh Lưu/nút "Tải lại" glass, 275 unit test (+32); typecheck Swift 6 toàn app 0 lỗi, 31 test logic pass trên macOS. **Chờ iPhone**: unit test trên máy, build Debug, smoke và danh sách "Owner xem trên iPhone" (platform iOS 26.2 chưa cài xong) |
+| M6 | Thời sự & Bản tin, player cơ bản, App Shortcuts — quick wins trước QC | [milestones/M6.md](milestones/M6.md) | Đang làm. T1 (player cơ bản + tốc độ) xong phần code + kiểm tĩnh: shared 273 host test (+28), 303 unit test iOS (+28, chưa chạy), typecheck Swift 6 app + test 0 lỗi, 7 test logic pass trên macOS. **Chờ iPhone** (platform iOS 26.2 chưa cài) |
 
 ## M0
 
@@ -1899,3 +1900,88 @@ Giới hạn đã biết của M5 (tổng hợp):
 - **Nhánh fallback iOS 17/18 chưa ai nhìn thấy** (không simulator, Tun chạy iOS 27) — handoff.md.
 - `upNext.root` cũng tồn tại trong lúc đang kéo header từ peek (để panel không rỗng khi trượt); khi đứng yên chỉ tồn tại lúc mở.
 - Đổi Dynamic Type khi panel đang mở chỉ cập nhật chiều cao vùng peek khi panel thu lại (T1).
+
+## M6
+
+Kế hoạch: [milestones/M6.md](milestones/M6.md). Base code `e80136e`. Môi trường: platform iOS 26.2 vẫn chưa cài (kiểm 1 lần đầu T1, xem dưới) nên mọi bước trên iPhone dồn vào "Chờ chạy trên iPhone khi có iOS platform".
+
+### T1 — Player cơ bản + tốc độ (shared + iOS) (xong phần code; bước trên iPhone chờ platform)
+
+Commit: `feat(shared): add sleep timer, end of item policy and playback speed profiles`, `feat(ios): add skip, speed and sleep timer to the audio engine and lock screen`, `feat(ios): add speed and sleep timer sheets to the player` (hash ở `git log`). Không đụng code Android, Gradle hay `TSPodcastUITests`.
+
+| Thành phần | File | Ghi chú |
+|---|---|---|
+| `SleepTimer` (shared) | `shared/src/commonMain/kotlin/tss/t/shared/playback/SleepTimer.kt` | `SleepTimerOption` = `Off` / `Minutes(1..180)` (`require` trong `init`) / `EndOfEpisode`; `set`, `tick()` → `None`/`Fade(v)`/`Stop` (fade tuyến tính 10 s, `Stop` tự về `Off`), `onManualPause()`, `onItemEnded()`, `state` (option, deadline, remaining ≥ 0); thời gian qua `EpochClock`. `PRESET_MINUTES = [5,10,15,30,45,60]`, `clampMinutes` cho Shortcuts. |
+| `EndOfItemPolicy` (shared) | `.../playback/EndOfItemPolicy.kt` | `Advance` chỉ khi `autoAdvance && hasNext && !timerStopsHere`. |
+| `PlaybackSpeed`, `PlaybackProfileRepository` (shared) | `.../playback/PlaybackSpeed.kt`, `PlaybackProfileRepository.kt` | Phần mười 5..30, `normalize` (NaN → 10, ±∞ clamp), `CHIPS`, `REMOTE_RATES`, `label`. Repository trên `KeyValueStore`: `playback.speed.global` (Long, mặc định 10), `playback.speed.feed.<id>`, `playback.speed.applyToAll`; giá trị đọc ra được clamp. |
+| `AnalyticsEvents` (shared) | `.../analytics/AnalyticsEvents.kt` | 9 tên event §3.8 + `ALL`, khoá tham số, giá trị `scope`/`origin`, `rateValue(15) = "1.5"`, `sleepTimerOption(...)`. |
+| Wiring | `SharedGraph.kt` | `playbackProfiles`, `sleepTimer` (một cho cả process). |
+| `AudioEngine` | `iosApp/TSPodcast/Playback/AudioEngine.swift` | `skip(bySeconds:)` (clamp 0…duration qua `seek(toMs:)`, bỏ qua live/không item); tốc độ: đọc profile của `feedId` trước khi item bắt đầu → `player.defaultRate` (+ `player.rate` khi đang phát), mỗi `AVPlayerItem` `.timeDomain`, live/phát hiện live → 1,0; `setSpeed(tenths:screen:)`, `changeRate(_:)` (normalize), `setSpeedAppliesToAll(_:)`; hẹn giờ: `setSleepTimer(_:origin:)`, `tick()` trong periodic observer 0,25 s, `Fade` → `player.volume`, `Stop` → pause (không phải pause thủ công) + volume 1; `pause()` người dùng → `onManualPause()`; ngắt quãng và mất route (rút tai nghe) **không** huỷ; `itemDidPlayToEnd` → `onItemEnded()` + `EndOfItemPolicy`. Event `speed_change`, `sleep_timer_set` qua seam `AnalyticsTracker` (bọc consent ở T2). |
+| `PlaybackRequest` / `PlaybackState` | `Playback/PlaybackRequest.swift`, `PlaybackState.swift`, `SleepTimerStatus.swift` | `autoAdvance = false` mặc định; `speedTenths` + `rate`, `sleepTimer: SleepTimerStatus` (setting + deadline; view tự đếm ngược bằng `TimelineView`, state không đổi mỗi giây). |
+| `RemoteCommands` | `Playback/RemoteCommands.swift` | `skipBackward [15]`, `skipForward [30]`, `changePlaybackRate` `[0.5,0.8,1.0,1.2,1.5,2.0,2.5,3.0]`; next/previous track, seek ± luôn tắt; live/không item → skip, rate, position tắt. Handler `handleSkip(seconds:)`, `handleChangeRate(_:)`. |
+| `NowPlayingCenter` | `Playback/NowPlayingCenter.swift` | `PlaybackRate = isPlaying ? rate : 0`, `DefaultPlaybackRate = rate`. |
+| Player | `Player/PlayerView.swift`, `UpNextPanel.swift`, `SpeedSheet.swift`, `SleepTimerSheet.swift`, `SpeedSteps.swift` | Hàng chính Favourite · `player.skipBack` (`gobackward.15`) · Play/Pause · `player.skipForward` (`goforward.30`) · Playlist trong một `GlassGroup`; hàng phụ `player.speed` ("1.0×", value VoiceOver "1,5×") + `player.sleepTimer` (`moon.zzz` + "28:14"/"Hết tập", value "Còn …"/"Hết tập"/"Tắt"); Previous/Next (`player.previous`/`player.next`, nhãn cũ) là hàng đầu của danh sách Up next khi panel mở. `speed.sheet` (`.medium`): số lớn, `speed.slider` 0,5–3,0 bước 0,1 (kéo thì áp khi thả), `speed.minus`/`speed.plus`, `speed.chip.<tenths>` (`.isSelected`), `speed.applyAll`. `sleepTimer.sheet`: `sleepTimer.option.<5…60|endOfEpisode|off>` (`.isSelected` + dấu tick), dòng thời gian còn lại khi đang hẹn, chọn xong thì đóng sheet. Live: −15/+30/tốc độ disabled (hẹn giờ vẫn dùng được). |
+| Chuỗi | `Resources/Localizable.xcstrings` | 14 khoá mới vi + en: `player.skipBack/skipForward/speed/sleepTimer/sleepTimer.off/sleepTimer.remaining`, `speed.minus/plus/applyAll/applyAll.footnote`, `sleepTimer.minutes %lld`, `sleepTimer.option.endOfEpisode/off`, `sleepTimer.status.endOfEpisode`. |
+
+Quyết định trong T1 (ngoài plan, ghi thêm vào handoff.md):
+
+| Hạng mục | Quyết định | Lý do |
+|---|---|---|
+| Bấm Play sau khi deadline đã qua trong lúc bị ngắt quãng | Timer về `Off`, volume 1, **vẫn phát** (không `Stop` ngay) | Người dùng chủ động bấm phát; dừng ngay sẽ như lỗi. Fade đang chạy thì tiếp tục fade. |
+| Tắt "Áp dụng cho mọi show" | Đọc lại `speedFor(feedId)` và áp ngay cho tập đang phát | Tốc độ đang nghe luôn bằng giá trị đã lưu cho show (per-show nếu có, không thì global). |
+| Kéo slider tốc độ | Chỉ áp + ghi + log khi thả tay; chip, −/+ và VoiceOver adjust áp ngay | Một lần kéo = một `speed_change`, không spam event/ghi store. |
+| Đặt cùng tốc độ đang có | Không ghi, không log | Tránh event giả (vd. remote gửi 1,04 → vẫn 1,0×). |
+| `SleepTimerSetting`, `SpeedSteps` (Swift thuần) | Gương các hằng shared, có `SpeedStepsSharedTests` so với `PlaybackSpeed`/`SleepTimer.companion` trên máy | Để test logic trên macOS khi chưa có platform (plan §4 mục 8); `sharedOption` clamp lại phút để Swift không bao giờ chạm `require` của Kotlin (exception Kotlin không `@Throws` làm crash). |
+| Hằng `AnalyticsEvents` trong Swift | Gọi `AnalyticsEvents.shared.SPEED_CHANGE` / `SLEEP_TIMER_SET` (đúng tên hằng, grep AC19 thấy) | |
+
+Identifier mới (AC2): `comm -23` base `e80136e` vs HEAD → rỗng (`player.previous`/`player.next` còn, nay ở `UpNextPanel.swift` qua `QueueStepButton(identifier:)`). `comm -13` dạng literal: `player.speed`, `player.sleepTimer`, `speed.sheet`, `speed.slider`, `speed.applyAll`, `speed.chip.\(tenths)`, `sleepTimer.sheet`, `sleepTimer.option.\(option.identifierSuffix)`. Dạng tham số (qua đối số `identifier:` nên grep `accessibilityIdentifier(` không thấy literal): `player.skipBack`, `player.skipForward` (`ControlButton`), `speed.minus`, `speed.plus` (`stepButton`), `player.previous`, `player.next` (`QueueStepButton`). `accessibilityLabel(Text("…")`/`accessibilityHint(Text("…")` bị mất → rỗng; thêm `player.speed`, `player.sleepTimer`.
+
+Lệnh và kết quả (30/10/2026):
+
+```bash
+xcodebuild -project iosApp/iosApp.xcodeproj -scheme TSPodcastUnit -showdestinations   # kiểm 1 lần trước mọi xcodebuild:
+#   { platform:iOS, arch:arm64e, id:00008110-000878203AC1401E, name:Tun, error:iOS 26.2 is not installed.
+#     Please download and install the platform from Xcode > Settings > Components. }   → bỏ mọi bước trên máy
+./gradlew :shared:testAndroidHostTest          # BUILD SUCCESSFUL; 273 test, 0 failure, 0 error (trước: 245)
+#   SleepTimerTest 12, EndOfItemPolicyTest 4, PlaybackSpeedTest 5, PlaybackProfileRepositoryTest 4, AnalyticsEventsTest 3
+./gradlew :shared:linkDebugFrameworkIosArm64   # BUILD SUCCESSFUL (header: SleepTimer.set(option:), EndOfItemPolicy.shared.decide(...))
+# :app:assembleDebug không chạy: T1 không đổi file Gradle nào (shared/build.gradle.kts đổi ở T3).
+# Typecheck toàn app (83 file, bản copy trong $OUT/m6-typecheck, bỏ `import Firebase*` + Stub.swift của M5):
+xcrun swiftc -typecheck -swift-version 6 -sdk $(xcrun --sdk iphoneos --show-sdk-path) -target arm64-apple-ios17.0 \
+  -module-name TSPodcast -F shared/build/bin/iosArm64/debugFramework src/**/*.swift Stub.swift   # exit 0, 0 error, 0 warning
+#   Thử lỗi cố ý (1 file mỗi lần): SpeedSheet, SleepTimerSheet, SleepTimerStatus, SpeedSteps, PlayerView, UpNextPanel,
+#   RemoteCommands, NowPlayingCenter, AudioEngine → mỗi lần báo đúng 1 lỗi ở file đó.
+# Typecheck app + 42 file TSPodcastTests như một module (-D DEBUG, bỏ `@testable import TSPodcast`,
+#   XCTest của iPhoneOS.platform): exit 0, 0 error, 0 warning; lỗi cố ý trong AudioEngineSpeedTimerTests/PlaybackSystemTests bị báo.
+#   Cùng lệnh trên cây đã stage của commit engine (trước commit UI): exit 0.
+swift test   # $OUT/m6-hosttest (SleepTimerStatus.swift + SpeedSteps.swift + PlayerControlsLogicTests.swift y nguyên)
+#            → Executed 7 tests, with 0 failures
+python3 -I …/Localizable.xcstrings   # 97 khoá, missing_en 0, missing_vi 0 (+14)
+grep -rn 'autoAdvance: true' iosApp/TSPodcast                 # 0 (chỗ duy nhất sẽ là "Phát tất cả" Điểm tin sáng, T4)
+grep -rniE '\bradio\b' iosApp/TSPodcast --include='*.swift'    # 0
+grep -rniE 'xe máy|chạy xe|lái xe' iosApp/TSPodcast/Resources/*.xcstrings   # 0
+# Luật một chỗ M5-AC6: token iOS 26 ngoài Design/Glass.swift + Main/MiniPlayerSlot.swift → 2 comment cũ
+#   + lời gọi helper `.glassProminentButton(` (PlayerView ×2, SpeedSheet ×1; trùng tiền tố tên, không phải API)
+(cd iosApp && xcodegen generate) && git status --porcelain iosApp/iosApp.xcodeproj   # rỗng
+```
+
+Unit test iOS mới (chưa chạy, chờ iPhone): 275 → 303. `AudioEngineSpeedTimerTests` (17: skip −15 về 0, +30 rồi clamp duration, không item, live không skip/không đổi tốc độ; tốc độ lưu theo show + đọc lại sau "khởi động lại" + event `rate`/`scope`, cùng tốc độ không log, remote rate normalize, áp cho mọi show; hẹn 5 phút fade rồi dừng không qua pause thủ công, pause thủ công huỷ, ngắt quãng/mất route giữ, `off` + `end_of_episode` được log; auto-advance sang item 1, auto-advance dừng ở item cuối, `EndOfEpisode` thắng auto-advance; map `SleepTimerSetting` ↔ shared) + `SpeedStepsSharedTests` (hằng Swift = shared); `PlaybackSystemTests` (`testRateFollowsTheSpeed` 1,5/0/1,5; remote: intervals [15]/[30], rates, next/prev tắt ở mọi vị trí, live tắt skip/rate, handler skip/rate); `PlayerControlsLogicTests` (7, cũng chạy trên macOS); `LocalizationTests.testPlayerBasicsStrings`.
+
+#### Chờ chạy trên iPhone khi có iOS platform (M6 T1)
+
+Gộp với danh sách M5. Khi platform có (`SIGN`, `DEV` như M6 §6):
+
+1. `xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcastUnit -only-testing:TSPodcastTests -destination 'platform=iOS,name=Tun' -derivedDataPath $OUT/DD-m6 -resultBundlePath $OUT/M6-unit.xcresult $SIGN` → `TEST SUCCEEDED`, 303 test (khi M6 xong sẽ nhiều hơn); có `AudioEngineSpeedTimerTests`, `SpeedStepsSharedTests`, `SpeedStepsTests`, `SleepTimerStatusTests`, `NowPlayingInfoTests`, `RemoteCommandsTests`, `LocalizationTests` Passed; 0 dòng `TSPodcastUITests`.
+2. Build Debug + smoke (install, launch `tss.t.podcast`, ~15 s, process còn sống).
+
+#### Để QC (T1)
+
+- Trên máy: Player hiện −15/+30, tốc độ, hẹn giờ; đặt 1,5× → thời gian trên màn khoá chạy đúng nhịp, giọng không méo ở 2×; hẹn 5 phút → 10 s cuối nhỏ dần rồi dừng, lần phát sau volume bình thường; khoá máy thấy nút −15/+30 (không còn next/prev); tốc độ của một show còn sau khi tắt mở app.
+- **`PlayerUITests` cần cập nhật**: `player.previous`/`player.next` không còn ở hàng chính mà ở đầu danh sách Up next (chỉ tồn tại khi panel mở: bấm `player.playlist` trước). Test nào kiểm remote/next-prev trên màn khoá cũng đổi theo.
+- Hit target ≥ 44 pt: `player.skipBack/skipForward` (56), `player.speed`/`player.sleepTimer` (≥ 44 cao, ≥ 64 rộng), `speed.minus/plus` (44), chip (≥ 44 cao), hàng `sleepTimer.option.*` (≥ 44).
+
+Giới hạn đã biết (T1):
+
+- Chưa build/chạy trên máy nào: bằng chứng là shared JVM test, typecheck Swift 6 (app + test), 7 test logic trên macOS, đọc code.
+- Đồng hồ hẹn giờ trên nút Player cập nhật mỗi giây bằng `TimelineView` chỉ khi đang hẹn phút; khi app ở nền, `tick()` vẫn chạy trong periodic observer (audio đang phát), nhưng nếu AVPlayer đứng (buffer) thì không có tick: deadline đã qua sẽ dừng ở tick đầu tiên khi phát tiếp.
+- `AppEnvironment.analytics` chưa bọc consent (`ConsentGatedAnalyticsTracker` là T2); event M6 đi qua cùng seam nên sẽ được bọc khi T2 xong.

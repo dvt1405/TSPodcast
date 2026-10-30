@@ -8,7 +8,7 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
 
 ### Máy và môi trường
 
-- **iPhone "Tun" chưa build/cài được (cả M5, T1–T4).** Xcode báo `iOS 26.2 is not installed. Please download and install the platform from Xcode > Settings > Components.` cho destination Tun (component platform iOS đang tải lại; lần kiểm cuối 13:52 ngày 30/10/2026). `devicectl` báo Tun `available (paired)`, nên chỉ còn thiếu platform. Trong lúc chờ: toàn bộ code M5 đã commit, kiểm bằng typecheck Swift 6 toàn app (SDK iOS 26.2, deployment 17: 0 lỗi, 0 cảnh báo) + 31 test logic chạy trên macOS + kiểm tĩnh §6. Cần: platform iOS cài xong trong Xcode > Settings > Components; iPhone mở khoá khi chạy. Sau đó chạy 4 bước ở `docs/ios/progress.md` mục M5 T4 "Chờ chạy trên iPhone khi có iOS platform" (unit test 275 test, build Debug, smoke, rồi owner xem theo bảng "Owner xem trên iPhone").
+- **iPhone "Tun" chưa build/cài được (cả M5, T1–T4; M6 T1 cũng vậy, kiểm lại 30/10/2026 đầu M6 T1).** Xcode báo `iOS 26.2 is not installed. Please download and install the platform from Xcode > Settings > Components.` cho destination Tun (component platform iOS đang tải lại; lần kiểm cuối 13:52 ngày 30/10/2026). `devicectl` báo Tun `available (paired)`, nên chỉ còn thiếu platform. Trong lúc chờ: toàn bộ code M5 đã commit, kiểm bằng typecheck Swift 6 toàn app (SDK iOS 26.2, deployment 17: 0 lỗi, 0 cảnh báo) + 31 test logic chạy trên macOS + kiểm tĩnh §6. Cần: platform iOS cài xong trong Xcode > Settings > Components; iPhone mở khoá khi chạy. Sau đó chạy 4 bước ở `docs/ios/progress.md` mục M5 T4 "Chờ chạy trên iPhone khi có iOS platform" (unit test 275 test, build Debug, smoke, rồi owner xem theo bảng "Owner xem trên iPhone") và mục M6 T1 cùng tên (303 test sau T1).
 
 ### Tài khoản và cloud resource
 
@@ -111,6 +111,9 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
 - **(M5) Không chuyển `TabView` sang API `Tab(...)` / `Tab(role: .search)`** (plan M5 §7 mục 6) để không đổi điều hướng và identifier; cân nhắc sau v1. File: `iosApp/TSPodcast/Main/MainTabView.swift`.
 - **(M5) Chữ của chip Tìm kiếm đang chọn dùng màu nền hệ thống** (trắng ở Light, đen ở Dark) vì chữ trắng trên `brandPrimary` Dark (#6E97F0) chỉ ~2.9:1. Trên iOS 26 glass tint bán trong suốt nên độ tương phản thật cần owner xem ở Dark Mode (bảng AC14 dòng 6–7). File: `iosApp/TSPodcast/Search/SearchView.swift`.
 - **(M5) Nút tròn glass dùng `glassEffect` thay cho button style `.glass`/`.glassProminent`** để nút 44/56/84 pt giữ đúng kích thước M3 (style `.glass` tự thêm padding, hàng 5 nút có thể tràn trên iPhone 375 pt). File: `iosApp/TSPodcast/Design/Glass.swift`.
+- **(M6 T1) Màn khoá/CarPlay hiện −15/+30 thay vì next/previous** (plan M6 §7 mục 5): `nextTrackCommand`/`previousTrackCommand` tắt (bật cả hai thì hệ thống ưu tiên next/prev); trên Player, Previous/Next chuyển vào hàng đầu danh sách Up next. Owner muốn giữ next/prev trên màn khoá thì đổi `RemoteCommands.configure` (`iosApp/TSPodcast/Playback/RemoteCommands.swift`).
+- **(M6 T1) Hẹn giờ ngủ bị huỷ khi người dùng tự pause** (Player, MiniPlayer, màn khoá), **không** huỷ khi cuộc gọi ngắt hay rút tai nghe (plan M6 §7 mục 9). Agent tự chọn thêm: deadline đã qua trong lúc bị ngắt quãng thì lần bấm Play sau đó vẫn phát (timer về Tắt), không dừng ngay. File: `iosApp/TSPodcast/Playback/AudioEngine.swift`.
+- **(M6 T1) Tốc độ phát** (agent tự chọn): tắt "Áp dụng cho mọi show" thì tập đang phát chuyển về tốc độ đã lưu của show đó (nếu có, không thì tốc độ chung); kéo slider chỉ áp và ghi khi thả tay (một lần kéo = một event `speed_change`). File: `AudioEngine.swift`, `iosApp/TSPodcast/Player/SpeedSheet.swift`.
 
 ### Môi trường test
 
