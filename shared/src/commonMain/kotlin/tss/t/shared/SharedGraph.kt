@@ -8,6 +8,7 @@ import tss.t.shared.cache.InMemoryTtlCache
 import tss.t.shared.config.ConfigAPI
 import tss.t.shared.crash.Crash
 import tss.t.shared.crash.CrashReporter
+import tss.t.shared.deeplink.DeepLinkTargets
 import tss.t.shared.detail.PodcastDetailFeed
 import tss.t.shared.favourite.FavouriteRepository
 import tss.t.shared.favourite.FavouriteResolver
@@ -170,6 +171,15 @@ class SharedGraph(
 
     /** Favourite row → podcast, sorted episodes and start index (M4 §3.3). */
     val favouriteResolver = FavouriteResolver(podcastStorage)
+
+    /** What a podcast or episode Universal Link opens, after the blacklist and D6 (M4 §4.5). */
+    val deepLinkTargets = DeepLinkTargets(
+        getEpisodeById = getEpisodeById,
+        getPodcastByFeedID = getPodcastByFeedID,
+        blacklist = blacklistRepository,
+        preferences = appPreferences,
+        storage = podcastStorage,
+    )
 
     /** Releases the HTTP client, the store file and the database. The graph cannot be used afterwards. */
     fun close() {
