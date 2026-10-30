@@ -13,7 +13,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đã nghiệm thu (review round 1) |
 | M3 | Audio engine, Player và MiniPlayer | [milestones/M3.md](milestones/M3.md) | Đã nghiệm thu (review round 2, `5b8e26c`). UI suite để QC |
 | M4 | Favourite, lưu trữ, thông báo, deep link, analytics — chốt parity | [milestones/M4.md](milestones/M4.md) | Đã nghiệm thu (review round 1, `9f2f1fb`). Checklist parity §7 ở mục M4 T5; UI suite và bước simulator để QC |
-| M5 | Giao diện Liquid Glass (iOS 26) + Up next peek trên Player | [milestones/M5.md](milestones/M5.md) | Đang làm: T1 xong (`999b1ac`, `b0de8a0`), T2 xong phần code (Player/MiniPlayer/tab bar glass), T3 xong phần code (chip Tìm kiếm, thanh Lưu, nút "Tải lại" glass); bước trên iPhone của T1–T3 chờ iOS platform; T4 chưa làm |
+| M5 | Giao diện Liquid Glass (iOS 26) + Up next peek trên Player | [milestones/M5.md](milestones/M5.md) | Xong phần code + kiểm tĩnh (T1–T4): helper glass + fallback Material, panel Up next peek thay sheet, Player/MiniPlayer/tab bar/chip Tìm kiếm/thanh Lưu/nút "Tải lại" glass, 275 unit test (+32); typecheck Swift 6 toàn app 0 lỗi, 31 test logic pass trên macOS. **Chờ iPhone**: unit test trên máy, build Debug, smoke và danh sách "Owner xem trên iPhone" (platform iOS 26.2 chưa cài xong) |
 
 ## M0
 
@@ -1741,3 +1741,161 @@ Giới hạn đã biết (T3):
 
 - Chưa build/chạy trên máy: bằng chứng là typecheck toàn app Swift 6 (SDK iOS 26.2, deployment 17) + đọc code. Độ tương phản chữ trên chip glass tint ở Dark Mode và mức mờ scroll edge dưới chip/thanh Lưu cần nhìn trên iPhone.
 - Nhánh fallback iOS 17/18 (chip Material, thanh Lưu `.bar`) không có máy để xem (Tun iOS 27).
+
+### T4 — Kiểm toàn bộ, danh sách xem trên iPhone, tài liệu (kiểm tĩnh xong; bước trên iPhone chờ platform)
+
+Commit: `docs(ios): record M5 progress and device review checklist`. Không cần commit `fix(ios)` nào: kiểm tĩnh §6 không tìm thấy khoảng trống.
+
+#### Tổng hợp thành phần M5
+
+| Thành phần | File | Task |
+|---|---|---|
+| Resolver vật liệu + helper glass (`glassSurface`, `GlassGroup`, `glassButton`, `glassProminentButton` ×2, `glassCircleButton`, `tabBarMinimizesOnScroll`, `bottomBar`, `topBar`), màu `BrandAccent` | `Design/Glass.swift`, `Design/AppColors.swift`, `Assets.xcassets/Colors/BrandAccent.colorset` | T1, T2, T3 |
+| Logic panel Up next + chọn dòng peek | `Player/UpNextPanelState.swift` | T1 |
+| Panel Up next (thay `UpNextSheet`) | `Player/UpNextPanel.swift`, `Player/PlayerView.swift` | T1 |
+| Player glass (nút đóng, hàng nút trong 1 `GlassGroup`, Play/Pause prominent, "Tải lại") | `Player/PlayerView.swift` | T2, T3 |
+| Tab bar thu nhỏ khi cuộn, MiniPlayer thường/gọn, capsule nổi iOS 17/18 | `Main/MainTabView.swift`, `Main/MiniPlayerSlot.swift`, `Main/MiniPlayerView.swift` | T2 |
+| Chip Tìm kiếm glass + `topBar`, "Tải lại" glass, thanh "Lưu" `bottomBar` | `Search/SearchView.swift`, `Home/HomeView.swift`, `Detail/PodcastDetailView.swift`, `Categories/CategorySelectionView.swift` | T3 |
+| Chuỗi mới (3 khoá vi + en) | `Resources/Localizable.xcstrings` | T1 |
+| Unit test mới: `GlassSurfaceStyleTests` 6, `UpNextPanelStateTests` 14, `UpNextPeekTests` 7, `MiniPlayerLayoutTests` 4, `LocalizationTests` +1 | `iosApp/TSPodcastTests/` | T1, T2 |
+
+Số test: `grep -rh 'func test' iosApp/TSPodcastTests | wc -l` → **275** (M4 base `f6fc292`: 243; +32 của M5).
+
+#### Lệnh và kết quả (30/10/2026, 13:4x–13:5x)
+
+```bash
+OUT=/private/tmp/claude-501/…/scratchpad/ios ; BASE=f6fc292
+# Môi trường (đầu task và lần thử lại lúc 13:52):
+xcodebuild -showsdks | grep iphoneos     # iOS 26.2 -sdk iphoneos26.2
+xcrun simctl runtime list                # Total Disk Images: 0 (không dùng simulator)
+xcrun devicectl list devices             # Tun  Tun.coredevice.local  56DE0E78-9436-5BFB-8F79-E68AB560B730  available (paired)  iPhone 13 Pro Max
+xcodebuild -project iosApp/iosApp.xcodeproj -scheme TSPodcastUnit -showdestinations
+#   { platform:iOS, arch:arm64e, id:00008110-000878203AC1401E, name:Tun,
+#     error:iOS 26.2 is not installed. Please download and install the platform from Xcode > Settings > Components. }
+# → cả 2 lần như nhau; không build/test/cài trên máy (luật tạm thời), không thử cách khác.
+#   (Tiến trình `xcodebuild -downloadPlatform iOS` từ 12:27 vẫn chạy; agent không đụng vào.)
+
+# AC1
+grep -n IPHONEOS_DEPLOYMENT_TARGET iosApp/project.yml          # 5 dòng, đều "17.0"
+git diff $BASE..HEAD -- iosApp/project.yml                      # rỗng (không đổi target, không thêm package)
+git diff --name-only $BASE..HEAD -- shared app core coreApi podcasts sharedFirebase sharedLibrary gradle \
+  settings.gradle.kts build.gradle.kts iosApp/TSPodcastUITests  # rỗng
+# AC2
+comm -23 m5-id-before m5-id-after                               # rỗng
+comm -13 m5-id-before m5-id-after                               # accessibilityIdentifier("upNext.peek")
+# accessibilityLabel(Text("…")): comm -23 rỗng; mới: accessibilityLabel(Text("player.upNext")
+# accessibilityHint(Text("…")):  comm -23 rỗng; không có mới
+# Đọc code: UpNextList (upNext.root, upNext.item.<i> + .isSelected khi index == state.index) chỉ render khi
+#   panel.isExpanded || isDragging; header peek (upNext.peek) không mang upNext.item.*.
+# AC5
+grep -rn 'UpNextSheet\|presentationDetents' iosApp/TSPodcast    # 0 ; PlayerView không có .sheet
+# AC6 (luật một chỗ)
+grep -rnE 'glassEffect|GlassEffectContainer|\.glass[^A-Za-z]|\.glassProminent|tabBarMinimizeBehavior|tabViewBottomAccessory|safeAreaBar|scrollEdgeEffect|backgroundExtensionEffect' \
+  iosApp/TSPodcast | grep -v -e Design/Glass.swift -e Main/MiniPlayerSlot.swift
+#   → 2 dòng comment (SearchView:24, CategorySelectionView:29) + 2 dòng `.glassProminentButton(` (PlayerView:286, 343):
+#     đó là helper M5 trong Glass.swift, khớp regex `\.glassProminent` vì trùng tiền tố tên, không phải API iOS 26.
+# AC8
+grep -rn 'toolbarBackground\|background(.bar)' iosApp/TSPodcast | grep -v Design/Glass.swift   # 0
+grep -n tabBarMinimizesOnScroll iosApp/TSPodcast/Main/MainTabView.swift                        # 82
+# AC10
+grep -nE 'glassSurface|GlassGroup|glassButton|glassProminentButton|glassCircleButton' Detail/EpisodeRowView.swift \
+  Search/SearchResultRow.swift Favourite/FavouriteRootView.swift Categories/CategorySelectionView.swift   # 0
+# PodcastCardView / ListRow / LivePager trong HomeView: 0 lời gọi helper glass
+grep -rn brandAccent iosApp/TSPodcast        # AppColors.swift:17 + UpNextPanel.swift:172 (Circle, accessibilityHidden(true))
+git diff $BASE..HEAD -- iosApp/TSPodcast | grep '^+' | grep -c 'font(.system(size'   # 0 ; Color(red: mới → 0
+# GradientButtonStyle: OnboardingView:60, CategorySelectionView:107, FavouriteRootView:127 (giữ)
+# AC11: script xcstrings → missing_en 0, missing_vi 0; 3 khoá đúng bảng §4; LocalizationTests:172-180 kiểm 3 khoá.
+# Kiểm biên dịch thay thế (không phải build): 79 file Swift của app ở HEAD (copy vào scratchpad, bỏ `import Firebase*`,
+#   + file stub API Firebase của T3):
+xcrun swiftc -typecheck -swift-version 6 -sdk <iphonesimulator26.2> -target arm64-apple-ios17.0-simulator \
+  -F shared/build/xcode-frameworks/Debug/iphonesimulator26.2 src/*.swift Stub.swift   # exit 0, 0 error, 0 warning
+#   cùng lệnh với SDK iphoneos26.2, -target arm64-apple-ios17.0                     # exit 0, 0 error
+# Logic thuần trên macOS (Swift package tạm, copy file test y nguyên từ HEAD):
+swift test   # m5-hosttest: GlassSurfaceStyleTests + UpNextPanelStateTests + UpNextPeekTests → Executed 27 tests, 0 failures
+swift test   # mpl-pkg: MiniPlayerLayoutTests → Executed 4 tests, 0 failures
+# AC15
+git log $BASE..HEAD --format=%s            # toàn feat(ios)/fix(ios)/docs(ios)
+git log $BASE..HEAD --format=%B | grep -c 'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'  # = git rev-list --count
+git check-ignore -v iosApp/Config/Secrets.xcconfig   # .gitignore:32
+git ls-files | grep -E '(^|/)(build|DerivedData|xcuserdata|\.gradle)/|\.xcresult|Secrets\.xcconfig$|Config/Firebase/(Debug|Release)/GoogleService-Info\.plist'   # rỗng
+# key/secret PodcastIndex (đọc từ Secrets.xcconfig, chỉ in số lần) trong git log $BASE..HEAD -p → 0 và 0
+```
+
+`shared/`, Gradle, Android và UI test không đổi nên không chạy Gradle (`:shared:testAndroidHostTest`, `:app:assembleDebug` không bắt buộc ở M5).
+
+#### Chờ chạy trên iPhone khi có iOS platform (toàn M5)
+
+Lỗi nguyên văn (13:52, lần thử lại): `{ platform:iOS, arch:arm64e, id:00008110-000878203AC1401E, name:Tun, error:iOS 26.2 is not installed. Please download and install the platform from Xcode > Settings > Components. }`. `devicectl` báo Tun `available (paired)`, chỉ thiếu platform. Orchestrator chạy theo thứ tự (`SIGN="DEVELOPMENT_TEAM=57N5M3BU77 -allowProvisioningUpdates CODE_SIGN_ENTITLEMENTS=$OUT/../device-nopush.entitlements"`, `DEV=56DE0E78-9436-5BFB-8F79-E68AB560B730`):
+
+1. **AC12** `xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcastUnit -only-testing:TSPodcastTests -destination 'platform=iOS,name=Tun' -derivedDataPath $OUT/DD-m5 -resultBundlePath $OUT/M5-unit.xcresult $SIGN 2>&1 | tee $OUT/M5-unit.log` → `** TEST SUCCEEDED **`, 275 test; `xcrun xcresulttool get test-results tests --path $OUT/M5-unit.xcresult` có `GlassSurfaceStyleTests`, `UpNextPanelStateTests`, `UpNextPeekTests`, `MiniPlayerLayoutTests`, `LocalizationTests`, `AudioEngineTests`, `PlaybackSystemTests`, `SearchModelTests`, `HomeModelTests`, `PodcastDetailModelTests`, `CategorySelectionModelTests` Passed; `grep -c "in target 'TSPodcastUITests'" $OUT/M5-unit.log` → 0.
+2. **AC13** `xcodebuild build -project iosApp/iosApp.xcodeproj -scheme TSPodcast -configuration Debug -destination 'platform=iOS,name=Tun' -derivedDataPath $OUT/DD-m5 $SIGN 2>&1 | tee $OUT/M5-build.log` → `** BUILD SUCCEEDED **`; `grep -c "only available in iOS" $OUT/M5-build.log` → 0; `grep -c "in target 'TSPodcastUITests'"` → 0.
+3. **AC13 smoke** `xcrun devicectl device install app --device $DEV $OUT/DD-m5/Build/Products/Debug-iphoneos/TSPodcast.app`; `xcrun devicectl device process launch --device $DEV tss.t.podcast`; chờ ~15 s; `xcrun devicectl device info processes --device $DEV | grep TSPodcast.app` → 1 dòng.
+4. **AC14** owner xem trên iPhone theo bảng dưới.
+
+#### Owner xem trên iPhone (AC14 — thay cho screenshot)
+
+`devicectl` không có lệnh chụp màn hình và không có simulator, nên M5 không có ảnh. Cài bản Debug (bước 3) rồi xem lần lượt. Đổi chế độ: Cài đặt iOS > Màn hình & Độ sáng (Light/Dark); Trợ năng > Màn hình & Cỡ chữ > Giảm độ trong suốt / Tăng độ tương phản / Cỡ chữ lớn hơn (kéo hết cỡ). Tun chạy iOS 27 nên chỉ thấy nhánh Liquid Glass; nhánh iOS 17/18 xem handoff.md.
+
+Lượt 1–2: mỗi dòng xem ở **Light** rồi **Dark**.
+
+| # | Màn / trạng thái | Cách tới | Kỳ vọng (Light và Dark) |
+|---|---|---|---|
+| 1 | Onboarding | Xoá app rồi cài lại, mở app | 4 trang vuốt ngang như M4; nút "Tiếp tục" vẫn là CTA gradient Xanh TS (không glass), chữ trắng đọc rõ ở cả hai chế độ. |
+| 2 | Chọn danh mục (thanh "Lưu" khi cuộn) | Sau trang onboarding cuối; chọn vài danh mục rồi cuộn lưới | Thanh "Lưu" không có dải nền riêng: lưới cuộn mờ dần dưới thanh (scroll edge effect), nút "Lưu" gradient + badge số danh mục vẫn rõ và bấm được. |
+| 3 | Khám phá + tab bar thu nhỏ + MiniPlayer inline | Phát 1 tập, về tab Khám phá, cuộn xuống rồi cuộn lên | Tab bar là glass của hệ thống, cuộn xuống thì thu nhỏ và MiniPlayer vào hàng với nó ở dạng gọn (artwork nhỏ + tiêu đề + play/pause, không tên podcast, không thanh progress); cuộn lên thì MiniPlayer đầy đủ trở lại có thanh progress. Card/hàng nội dung không có glass. |
+| 4 | Khám phá — section lỗi | Bật Chế độ máy bay, kéo để làm mới hoặc mở app lạnh | Hộp "Không tải được nội dung" giữ nền như cũ; nút "Tải lại" là nút glass tint xanh, bấm được (≥ 44 pt). |
+| 5 | Podcast detail | Tap một podcast ở Khám phá | Header ảnh mờ chạy dưới navigation bar glass; danh sách tập không glass; khi lỗi mạng nút "Tải lại" là nút glass. |
+| 6 | Tìm kiếm — rỗng | Tab Tìm kiếm, chưa gõ | Ô tìm kiếm của hệ thống luôn hiện; chip "Tất cả"/"Nhạc" là capsule glass, chip đang chọn tint xanh với chữ đủ tương phản (Light chữ trắng, Dark chữ đen); gợi ý + lưới danh mục như M4. |
+| 7 | Tìm kiếm — có kết quả | Gõ "radio hay", đổi chip, cuộn | Kết quả cuộn **dưới** hàng chip và mờ dần ở cạnh; đổi chip có hiệu ứng glass và tìm lại ngay; hàng kết quả không glass. |
+| 8 | Yêu thích — rỗng | Tab Yêu thích khi chưa thích gì | Hình minh hoạ + "Không có chương trình yêu thích." + nút "Khám phá thêm" gradient (không đổi so với M4). |
+| 9 | Yêu thích — có dữ liệu | Thích 1–2 tập ở Player rồi mở tab | Danh sách như M4, không glass trên hàng; tab bar thu nhỏ khi cuộn nếu danh sách đủ dài. |
+| 10 | Cài đặt | Bánh răng ở tab Khám phá | Form hệ thống như M4 (navigation bar glass của hệ thống), không có nền tự vẽ sau thanh. |
+| 11 | Player — peek | Tap MiniPlayer hoặc một tập | Nút đóng tròn glass ở trên trái; dưới hàng 5 nút là panel glass bo góc trên với grabber, "Tiếp theo", dòng "Đang phát" (chấm cam nhỏ + sóng âm) và tập kế nếu đủ chỗ; panel **không** che hàng nút hay thanh progress. |
+| 12 | Player — panel mở | Vuốt header lên, hoặc tap header, hoặc nút danh sách phát | Panel trượt lên tới ngay dưới nút đóng, danh sách đầy đủ cuộn được, tập đang phát đánh dấu "Đang phát"; tap tập khác → phát tập đó và panel thu về peek; vuốt header xuống → peek; nút đóng vẫn đóng Player. |
+| 13 | Player — live | Phát một mục Live ở Khám phá | Peek chỉ một dòng (mục live), thay thanh progress là nhãn "LIVE" đỏ (`player.live`) như M3; mở panel thấy đúng 1 mục. |
+| 14 | Player — lỗi phát | Phát một tập rồi bật Chế độ máy bay (hoặc tập có link hỏng) | Thông báo lỗi + nút "Tải lại" glass prominent tint xanh, cao ≥ 44 pt, nằm trên peek và không bị panel che; bấm khi có mạng thì phát lại. |
+| 15 | Player — hàng nút | Bất kỳ lúc nào trong Player | Favourite / Previous / Next / Playlist là nút tròn glass 56 pt, Play/Pause tròn 84 pt glass tint xanh với glyph trắng, spinner trắng khi đang buffering; Prev/Next mờ ở hai đầu playlist như M3. |
+| 16 | MiniPlayer — thường | Đang phát, ở đầu một tab | Capsule glass phía trên tab bar: artwork, tiêu đề + tên podcast, play/pause, thanh progress mảnh nằm gọn trong đầu bo; tap mở Player. |
+| 17 | MiniPlayer — inline | Như dòng 3 sau khi cuộn xuống | Dạng gọn trong tab bar thu nhỏ, play/pause vẫn bấm được, tap mở Player. |
+
+Lượt 3–5: bật **một** tuỳ chọn trợ năng mỗi lượt (Light, rồi lặp nhanh ở Dark), xem lại các dòng 2, 3, 6, 11, 12, 15, 16.
+
+| Lượt | Tuỳ chọn | Kỳ vọng |
+|---|---|---|
+| 3 | Giảm độ trong suốt (Reduce Transparency) | Không còn glass/mờ nào ở panel Up next, MiniPlayer, chip Tìm kiếm: chúng thành nền đặc (`secondarySystemBackground`), chữ và nút vẫn đọc rõ; thanh hệ thống (tab/nav) theo giao diện đặc của iOS. |
+| 4 | Tăng độ tương phản (Increase Contrast) | Panel Up next, MiniPlayer và chip Tìm kiếm có thêm viền 1 pt rõ ràng quanh mép; chip đang chọn vẫn đủ tương phản; glass vẫn còn (không thành nền đặc). |
+| 5 | Cỡ chữ accessibility lớn nhất (AX5) | Player: hàng 5 nút và peek vẫn vừa một màn, không chồng lên nhau, artwork co lại trước; peek chỉ còn 1 dòng; glyph Play/Pause to hơn nhưng vẫn nằm trong vòng 84 pt. MiniPlayer ở dạng gọn ngay cả khi không cuộn. Chip Tìm kiếm và thanh "Lưu" không bị cắt chữ. |
+
+Ghi chú khi xem: ghi số dòng + chế độ của chỗ nào sai vào handoff.md (mục Máy và môi trường) hoặc báo agent; dòng nào đúng không cần ghi.
+
+#### Để QC (gộp T1–T4)
+
+Chạy ở pha QC cuối (luật test: không viết/sửa/chạy XCUITest trong milestone):
+
+- **AC5 (panel Up next)**: mở Player → `upNext.peek` hiện dưới `player.playPause`, khung không giao nhau với hàng nút; `player.playlist` → `upNext.root` xuất hiện, `upNext.item.<index đang phát>` có trait selected; tap `upNext.item.1` → item 1 phát, `upNext.root` biến mất; kéo `upNext.peek` lên > 40 % → mở, kéo xuống > 20 % → thu; VoiceOver: `upNext.peek` đọc "Tiếp theo", value "Đang phát: <tiêu đề>", hint mở/thu; escape (hai ngón chữ Z) khi mở → thu; Live → peek 1 dòng.
+- **`PlayerUITests` cần cập nhật**: test mở Up next bằng `player.playlist` rồi chờ `upNext.root` — giờ là **panel trong Player thay vì sheet**, identifier giữ nguyên; `upNext.root` biến mất sau khi chọn item. Bước nào vuốt sheet xuống để đóng phải đổi sang kéo `upNext.peek` xuống hoặc chọn item.
+- **AC7 (Player)**: hit target ≥ 44 pt (Accessibility Inspector) cho `player.close`, 4 nút phụ, `player.playPause`, `player.retry`; `player.buffering` vẫn hiện khi buffering; Prev/Next disabled ở hai đầu.
+- **AC8 (tab + MiniPlayer)**: `MiniPlayerUITests` dùng `miniplayer.progress` — ở iOS 26 khi tab bar thu nhỏ hoặc cỡ chữ accessibility thì không có `miniplayer.progress` (bố cục gọn); `miniplayer.slot/open/playPause` có ở cả hai. `MainShellUITests.testMiniPlayerSlotSitsAboveTabBar` cần chạy ở trạng thái chưa cuộn.
+- **AC9 (Tìm kiếm, thanh, nút phụ)**: `SearchUITests` dùng `search.mode.all/music` + `isSelected` — giữ nguyên, chip giờ nằm trong safe-area bar (vẫn là con của `search.root`); hit target chip ≥ 44 pt; `category.save` còn bấm được khi lưới cuộn dưới thanh.
+- Nếu QC có simulator/máy iOS 17/18: chạy lại các bước trên ở nhánh fallback (Material, capsule MiniPlayer, Player kiểu M3) — xem handoff.md.
+
+#### Bảng AC M5 (developer tự đánh giá)
+
+| AC | Trạng thái | Bằng chứng |
+|---|---|---|
+| AC1 | Đạt | Target 17.0 ×5, `project.yml` không đổi, diff phạm vi rỗng. |
+| AC2 | Đạt | comm identifier/label/hint như trên; `upNext.root` chỉ khi mở (hoặc đang kéo tay). |
+| AC3, AC4, AC6 | Đạt (macOS) / chờ iPhone | 27 test logic pass trên macOS; chạy trong xcresult khi có platform. |
+| AC5, AC7, AC8, AC9 | Đạt (đọc code) / để QC | Grep + đọc code; bước UI ở "Để QC". |
+| AC10, AC11 | Đạt | Grep và script xcstrings như trên. |
+| AC12 | Chờ iPhone | Lỗi platform ở trên. |
+| AC13 | Chờ iPhone | Lỗi platform ở trên; typecheck Swift 6 toàn app 0 lỗi thay thế tạm. |
+| AC14 | Đạt | Bảng "Owner xem trên iPhone" ở trên. |
+| AC15 | Đạt | Docs (progress, handoff, features-spec §3.6), log commit, ignore/ls-files/secret = 0. |
+
+Giới hạn đã biết của M5 (tổng hợp):
+
+- **Chưa build, chưa chạy unit test, chưa cài trên iPhone nào** vì component platform iOS 26.2 chưa cài xong. Bằng chứng hiện có: typecheck Swift 6 toàn app (SDK iOS 26.2, deployment 17) 0 lỗi, 31 test logic pass trên macOS, grep + đọc code. Khi có platform phải chạy các bước 1–4 ở trên trước khi coi M5 xong.
+- **Nhánh fallback iOS 17/18 chưa ai nhìn thấy** (không simulator, Tun chạy iOS 27) — handoff.md.
+- `upNext.root` cũng tồn tại trong lúc đang kéo header từ peek (để panel không rỗng khi trượt); khi đứng yên chỉ tồn tại lúc mở.
+- Đổi Dynamic Type khi panel đang mở chỉ cập nhật chiều cao vùng peek khi panel thu lại (T1).

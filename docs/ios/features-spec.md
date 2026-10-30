@@ -162,6 +162,7 @@ Pull-to-refresh: `reload()` đặt lại toàn bộ cờ loading rồi gọi l�
 | Progress an toàn | `progressOf(pos, dur)` trả về 0 khi `dur ≤ 0` hoặc chưa xác định (stream live). **[Parity]** Trên iOS phải xử lý `CMTime.indefinite` và `NaN` tương tự |
 | **[Sửa]** | Android **không lưu vị trí nghe**: chỉ lưu `mediaId`, nên mở lại là phát từ đầu. iOS nên lưu `positionMs` theo episode (mỗi 10 giây và khi pause) rồi resume |
 | **[iOS+]** | Tốc độ 0.5–3x, sleep timer, nút skip ±15 s / +30 s, AirPlay (`AVRoutePickerView`), chọn "tự phát tiếp" (bật hoặc tắt; mặc định giữ hành vi Android là tắt) |
+| iOS | Up next là panel peek dưới hàng nút (owner 30/10/2026), không phải sheet: peek "Tiếp theo" + "Đang phát" (+ tập kế nếu đủ chỗ), kéo/tap header hoặc nút danh sách phát để mở cả danh sách, chọn tập thì thu lại; Liquid Glass trên iOS 26, Material ở iOS 17/18. Xem [milestones/M5.md](milestones/M5.md) |
 
 Chi tiết engine: [audio-playback-ios.md](audio-playback-ios.md).
 
