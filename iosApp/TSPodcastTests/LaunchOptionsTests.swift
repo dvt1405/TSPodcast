@@ -21,6 +21,14 @@ final class LaunchOptionsTests: XCTestCase {
         XCTAssertTrue(options.shouldReset)
     }
 
+    func testConsentHook() {
+        XCTAssertEqual(LaunchOptions(arguments: ["-uitest-consent=all"], environment: [:]).consentChoice, .all)
+        XCTAssertEqual(LaunchOptions(arguments: ["-uitest-consent=necessary"], environment: [:]).consentChoice, .necessary)
+        XCTAssertNil(LaunchOptions(arguments: ["-uitest-consent=maybe"], environment: [:]).consentChoice)
+        XCTAssertNil(LaunchOptions(arguments: ["-uitest-consent"], environment: [:]).consentChoice)
+        XCTAssertFalse(LaunchOptions(arguments: ["-uitest-consent=all"], environment: [:]).shouldReset)
+    }
+
     func testSkipOnboardingImpliesReset() {
         let options = LaunchOptions(arguments: ["-uitest-skip-onboarding"], environment: [:])
         XCTAssertTrue(options.skipOnboarding)

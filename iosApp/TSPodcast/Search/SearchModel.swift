@@ -115,6 +115,15 @@ final class SearchModel {
         start(Request(query: shownQuery, mode: shownMode))
     }
 
+    /// "Ẩn show này" (M6 §3.5): drops `feedId` from the results on screen, without a request
+    /// (shared `SearchFeed` already leaves it out of the next search).
+    func removeShow(feedId: Int64) {
+        guard case .results(let items) = phase else { return }
+        let kept = items.filter { $0.id != feedId }
+        guard kept.count != items.count else { return }
+        phase = kept.isEmpty ? .empty : .results(kept)
+    }
+
     // MARK: - Requests
 
     private func debounceFired() {

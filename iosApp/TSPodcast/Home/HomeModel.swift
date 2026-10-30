@@ -111,6 +111,30 @@ final class HomeModel {
         }
     }
 
+    /// "Ẩn show này" (M6 §3.5): drops `feedId` from every section at once, without a request
+    /// (shared `HomeFeed` already leaves it out of the next load). A section left with nothing
+    /// shows its empty state.
+    func removeShow(feedId: Int64) {
+        trending = Self.removing(feedId, from: trending)
+        music = Self.removing(feedId, from: music)
+        recent = Self.removing(feedId, from: recent)
+        forYou = Self.removing(feedId, from: forYou)
+        if case .loaded(let pages) = live {
+            let items = pages.flatMap { $0 }
+            let kept = items.filter { $0.feedId != feedId }
+            if kept.count != items.count {
+                live = LivePaging.state(.success(kept))
+            }
+        }
+    }
+
+    private static func removing(_ feedId: Int64, from state: SectionState<PodcastCard>) -> SectionState<PodcastCard> {
+        guard case .loaded(let cards) = state else { return state }
+        let kept = cards.filter { $0.id != feedId }
+        guard kept.count != cards.count else { return state }
+        return kept.isEmpty ? .empty : .loaded(kept)
+    }
+
     // MARK: - Loading
 
     private func loadAll(keepingContent: Bool) async {

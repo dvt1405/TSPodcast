@@ -14,7 +14,14 @@ final class AppEnvironment {
     /// Firebase-backed or log/no-op seams (M4 §4.3).
     @ObservationIgnored let services: AppServices
     @ObservationIgnored let firebase: FirebaseStatus
+    /// Every event of the app: `services.analytics` behind the consent gate (M6 §3.6).
     @ObservationIgnored let analytics: any AnalyticsTracker
+    /// The privacy choice: first-launch sheet, Settings toggles, gate and SDK switches (M6 §3.6).
+    @ObservationIgnored let consent: ConsentController
+    /// "Ẩn show này" and Settings → "Show đã ẩn" (M6 §3.5).
+    @ObservationIgnored let hiddenShows: HiddenShowsModel
+    /// "Báo cáo nội dung" by mail; hidden without `CONTENT_REPORT_EMAIL` (M6 §3.5).
+    @ObservationIgnored let contentReporter: ContentReporter
     /// Push opt-in (M4 §4.4): the Player prompt and the Settings toggle.
     @ObservationIgnored let notifications: NotificationsModel
     /// `UNUserNotificationCenter` delegate (kept here: the center holds it weakly).
@@ -42,9 +49,10 @@ final class AppEnvironment {
     var favouriteCategories: FavouriteCategories { graph.favouriteCategories }
 
     /// The launch of Android `App.onCreate` (M4 §3.4), in this order: Firebase (only with
-    /// `GoogleService-Info.plist`) → the four seams → `Crash.install` + the Kotlin crash hook →
-    /// the graph (DataStore and Room files in Application Support, M4 §3.1) → in the background
-    /// the crash user id (Install ID), Remote Config and `PruneApiCache`.
+    /// `GoogleService-Info.plist`) → the four seams → `Crash.install` (behind the consent gate,
+    /// M6 §3.6) + the Kotlin crash hook → the graph (DataStore and Room files in Application
+    /// Support, M4 §3.1) → in the background Remote Config and `PruneApiCache`. The crash user id
+    /// (Install ID) is sent once crash reports are allowed.
     convenience init(
         launchOptions: LaunchOptions = .current,
         artworkLoader: ArtworkLoader = .shared,
@@ -52,7 +60,9 @@ final class AppEnvironment {
     ) {
         let firebase = launch.configureFirebase()
         let services = launch.makeServices(firebase)
-        launch.installCrashReporter(services.crashReporter)
+        let gate = ConsentGate()
+        let crashReporter = ConsentGatedCrashReporter(inner: services.crashReporter, local: OSLogCrashReporter(), gate: gate)
+        launch.installCrashReporter(crashReporter)
         let (graph, pruner) = launch.makeGraph(services.config, launchOptions)
         self.init(
             launchOptions: launchOptions,
@@ -60,13 +70,16 @@ final class AppEnvironment {
             graph: graph,
             pruner: pruner,
             services: services,
-            firebase: firebase
+            firebase: firebase,
+            consentGate: gate,
+            crashReporter: crashReporter
         )
     }
 
     /// Builds the app over `graph` and `services`, then starts off the main actor, without
-    /// waiting (features-spec §1: nothing here blocks the first screen): the crash user id, the
-    /// Remote Config fetch (with Firebase only) and `pruner`, once each.
+    /// waiting (features-spec §1: nothing here blocks the first screen): the Remote Config fetch
+    /// (with Firebase only) and `pruner`, once each. `consentGate` closes analytics and
+    /// `crashReporter` (the one installed as `Crash`) until the saved consent is read.
     init(
         launchOptions: LaunchOptions,
         artworkLoader: ArtworkLoader,
@@ -74,15 +87,32 @@ final class AppEnvironment {
         pruner: any LaunchCachePruning,
         services: AppServices = .offline(),
         firebase: FirebaseStatus = .disabled(.missingPlist),
-        notificationSystem: (any NotificationSystem)? = nil
+        notificationSystem: (any NotificationSystem)? = nil,
+        consentGate: ConsentGate = ConsentGate(),
+        crashReporter: (any CrashReporter)? = nil
     ) {
         self.launchOptions = launchOptions
         self.artworkLoader = artworkLoader
         self.graph = graph
         self.services = services
         self.firebase = firebase
-        analytics = services.analytics
-        notificationPresenter = NotificationPresenter(analytics: services.analytics)
+        let analytics = ConsentGatedAnalyticsTracker(inner: services.analytics, gate: consentGate)
+        self.analytics = analytics
+        let installId = graph.installId
+        let crash = crashReporter ?? services.crashReporter
+        consent = ConsentController(
+            store: SharedConsentStore(repository: graph.consentRepository),
+            gate: consentGate,
+            collection: services.collection,
+            onCrashReportsAllowed: {
+                Task.detached(priority: .utility) {
+                    await CrashWiring.setUserId(installId: installId, reporter: crash)
+                }
+            }
+        )
+        hiddenShows = HiddenShowsModel(store: SharedHiddenShowsStore(repository: graph.hiddenShows), analytics: analytics)
+        contentReporter = ContentReporter(info: Bundle.main.infoDictionary ?? [:], analytics: analytics)
+        notificationPresenter = NotificationPresenter(analytics: analytics)
         notifications = NotificationsModel(
             preferences: SharedNotificationPreferences(preferences: graph.appPreferences),
             system: notificationSystem ?? SystemNotifications(),
@@ -95,7 +125,7 @@ final class AppEnvironment {
             favourites: graph.favouriteRepository,
             profiles: graph.playbackProfiles,
             sleepTimer: graph.sleepTimer,
-            analytics: services.analytics,
+            analytics: analytics,
             hooks: Self.audioHooks(launchOptions)
         )
         podcastDetailDataSource = SharedPodcastDetailDataSource(
@@ -119,14 +149,11 @@ final class AppEnvironment {
         favouriteCountObservation = favouriteCounter.observe { rows in
             Task { await notifications.favouritesChanged(count: rows.count) }
         }
-        let installId = graph.installId
-        let crash = services.crashReporter
         let blacklist = graph.blacklistRepository
         let remoteConfig = services.remoteConfig.map { source in
             RemoteConfigLoader(source: source, crash: crash, onActivated: { blacklist.reload() })
         }
         Task.detached(priority: .utility) {
-            await CrashWiring.setUserId(installId: installId, reporter: crash)
             if let remoteConfig {
                 Task.detached(priority: .utility) { await remoteConfig.run() }
             }
@@ -176,7 +203,9 @@ final class AppEnvironment {
             favourites: favouriteCategories,
             delay: launchOptions.slowNetwork ? HomeFeedDataSource.slowNetworkDelay : nil
         )
-        return HomeModel(dataSource: dataSource)
+        let model = HomeModel(dataSource: dataSource)
+        hiddenShows.onHide { [weak model] feedId in model?.removeShow(feedId: feedId) }
+        return model
     }
 
     /// The player seam the screens use.
@@ -205,7 +234,9 @@ final class AppEnvironment {
     /// The Search tab (debounce 200 ms on the continuous clock). `MainTabView` keeps it, so the
     /// query, the mode and the results survive tab switches.
     func makeSearchModel() -> SearchModel {
-        SearchModel(dataSource: searchDataSource)
+        let model = SearchModel(dataSource: searchDataSource)
+        hiddenShows.onHide { [weak model] feedId in model?.removeShow(feedId: feedId) }
+        return model
     }
 
     /// Podcasts trending in `category`, pushed from a Search category chip.
@@ -232,6 +263,8 @@ final class AppEnvironment {
         #if DEBUG
         await applyTestHooks()
         #endif
+        // The saved consent opens or keeps closed the gate before the first screen sends anything.
+        await consent.load()
         do {
             let route = AppRoute(try await preferences.startDestination())
             AppLog.app.notice("start_destination=\(route.logName, privacy: .public)")
@@ -244,9 +277,14 @@ final class AppEnvironment {
     }
 
     #if DEBUG
-    /// `LaunchOptions.shouldReset` / `skipOnboarding`. Writes go through the same shared APIs
-    /// as the real screens.
+    /// `LaunchOptions.shouldReset` / `skipOnboarding`, then `consentChoice`. Writes go through the
+    /// same shared APIs as the real screens.
     private func applyTestHooks() async {
+        await applyResetHooks()
+        await applyConsentHook()
+    }
+
+    private func applyResetHooks() async {
         guard launchOptions.shouldReset else { return }
         do {
             try await preferences.clear()
@@ -259,6 +297,22 @@ final class AppEnvironment {
             }
             let saved = try await favouriteCategories.save(categories: categories).boolValue
             AppLog.app.notice("test_hook skip_onboarding saved=\(saved, privacy: .public)")
+        } catch {
+            AppLog.app.error("test_hook_failed type=\(String(describing: type(of: error)), privacy: .public)")
+        }
+    }
+
+    /// `-uitest-consent=all|necessary`: the decision is saved before routing (after a reset,
+    /// which clears it), so the consent sheet does not cover the screens under test.
+    private func applyConsentHook() async {
+        guard let choice = launchOptions.consentChoice else { return }
+        let repository = graph.consentRepository
+        do {
+            switch choice {
+            case .all: _ = try await repository.acceptAll()
+            case .necessary: _ = try await repository.necessaryOnly()
+            }
+            AppLog.app.notice("test_hook consent=\(choice.rawValue, privacy: .public)")
         } catch {
             AppLog.app.error("test_hook_failed type=\(String(describing: type(of: error)), privacy: .public)")
         }

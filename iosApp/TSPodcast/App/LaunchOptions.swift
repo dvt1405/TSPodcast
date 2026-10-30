@@ -27,6 +27,14 @@ struct LaunchOptions: Equatable, Sendable {
     var audioURLOverride: URL?
     /// Env `TSP_UITEST_BASE_URL`: PodcastIndex base URL used instead of the one in Info.plist.
     var baseURLOverride: String?
+    /// `-uitest-consent=all|necessary` (M6 §3.6): saves that consent decision before routing, so
+    /// the first-launch privacy sheet does not show.
+    var consentChoice: ConsentChoice?
+
+    enum ConsentChoice: String, Equatable, Sendable {
+        case all
+        case necessary
+    }
 
     /// Whether the store must be cleared before reading the start destination.
     var shouldReset: Bool { resetState || skipOnboarding }
@@ -53,6 +61,9 @@ struct LaunchOptions: Equatable, Sendable {
         forceLive = arguments.contains("-uitest-force-live")
         let audioURL = environment["TSP_UITEST_AUDIO_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
         audioURLOverride = audioURL.flatMap { $0.isEmpty ? nil : URL(string: $0) }
+        consentChoice = arguments.lazy
+            .compactMap { $0.hasPrefix("-uitest-consent=") ? ConsentChoice(rawValue: String($0.dropFirst("-uitest-consent=".count))) : nil }
+            .first
         let baseURL = environment["TSP_UITEST_BASE_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
         baseURLOverride = (baseURL?.isEmpty ?? true) ? nil : baseURL
         #endif

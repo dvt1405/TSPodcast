@@ -29,7 +29,8 @@ final class CrashWiringTests: XCTestCase {
             },
             installCrashReporter: { installed in
                 steps.append("crash.install")
-                XCTAssertTrue(installed === reporter)
+                // M6 §3.6: the installed reporter is the consent gate around the Firebase one.
+                XCTAssertTrue((installed as? ConsentGatedCrashReporter)?.inner === reporter)
             },
             makeGraph: { _, _ in
                 steps.append("graph")
@@ -44,6 +45,10 @@ final class CrashWiringTests: XCTestCase {
 
         XCTAssertEqual(steps, ["firebase.configure", "services", "crash.install", "graph"],
                        "the reporter is installed before any shared object exists")
+        try await Task.sleep(for: .milliseconds(300))
+        XCTAssertTrue(reporter.userIds.isEmpty, "no crash user id before crash reports are allowed (M6 §3.6)")
+
+        await environment.consent.acceptAll()
         await waitUntil("user id sent") { !reporter.userIds.isEmpty }
         try await Task.sleep(for: .milliseconds(300))
 

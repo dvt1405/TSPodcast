@@ -205,6 +205,7 @@ private struct SearchResultsList: View {
                     )
                 }
                 .buttonStyle(RowButtonStyle())
+                .hideShowContextMenu(feedId: item.id, title: item.title, imageURL: item.imageURL, screen: "Search")
                 .accessibilityElement(children: .contain)
                 .accessibilityAddTraits(.isButton)
                 .accessibilityIdentifier("search.result.\(index)")

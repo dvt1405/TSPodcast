@@ -8,7 +8,8 @@ import SwiftUI
 /// controls sits the "Tiếp theo" peek (Android `SlideArea` header, without its ad; M5 §3.1/§4):
 /// the last item of the column is a space as tall as the measured peek, and `UpNextPanel` is
 /// drawn over that space, so the collapsed peek never covers the controls. Expanded, the panel
-/// top sits just below the close row. No "More" button (M3 §7 item 2).
+/// top sits just below the close row. The close row's `…` (`player.more`) only holds "Báo cáo nội
+/// dung" and shows only when a report address is configured (M6 §3.5).
 /// Coordinate space of the Player column, where the close row and the peek space are measured.
 private let playerCoordinateSpace = "player"
 
@@ -28,6 +29,10 @@ struct PlayerView: View {
     @State private var bottomInset: CGFloat = 0
     @State private var isSpeedSheetPresented = false
     @State private var isSleepTimerSheetPresented = false
+    /// Address shown when no app could open the report mail.
+    @State private var reportFallbackEmail: String?
+
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
         let state = engine.state
@@ -56,6 +61,9 @@ struct PlayerView: View {
                     .accessibilityLabel(Text("player.close"))
                     .accessibilityIdentifier("player.close")
                     Spacer()
+                    if environment.contentReporter.isAvailable, let item = state.current {
+                        moreMenu(for: item)
+                    }
                 }
                 .padding(.horizontal, 8)
                 .onGeometryChange(for: CGFloat.self, of: { $0.frame(in: .named(playerCoordinateSpace)).maxY }) { bottom in
@@ -160,6 +168,7 @@ struct PlayerView: View {
         .sheet(isPresented: $isSleepTimerSheetPresented) {
             SleepTimerSheet(engine: engine)
         }
+        .contentReportFallbackAlert(email: $reportFallbackEmail)
         .onChange(of: state.isLive) { _, isLive in
             // Live has no speed (M6 §3.1): never leave the sheet open on a live stream.
             if isLive { isSpeedSheetPresented = false }
@@ -176,6 +185,39 @@ struct PlayerView: View {
             }
         }
         #endif
+    }
+
+    /// `…` of the close row (M6 §3.5): "Báo cáo nội dung" for the current episode. Shown only
+    /// when a report address is configured, since it is the menu's only entry.
+    private func moreMenu(for item: PlaybackItem) -> some View {
+        Menu {
+            Button {
+                report(item)
+            } label: {
+                Label("report.action", systemImage: "exclamationmark.bubble")
+            }
+            .accessibilityIdentifier("player.report")
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.title3.weight(.semibold))
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .glassCircleButton()
+        .accessibilityLabel(Text("player.more"))
+        .accessibilityIdentifier("player.more")
+    }
+
+    private func report(_ item: PlaybackItem) {
+        let openURL = openURL
+        environment.contentReporter.report(
+            kind: .episode,
+            feedId: item.feedId,
+            episodeId: Int64(item.id),
+            screen: AudioEngine.analyticsScreen,
+            open: { url, completion in openURL(url, completion: completion) },
+            failed: { email in reportFallbackEmail = email }
+        )
     }
 
     /// Spring normally; a short ease without bounce with Reduce Motion (same as `UpNextPanel`).

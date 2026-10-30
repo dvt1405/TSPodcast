@@ -14,3 +14,7 @@ PRIVACY_POLICY_URL =
 // tspodcast.example.com (không có https://). Rỗng = app không nhận link nào cho tới khi owner có domain,
 // entitlement Associated Domains và file apple-app-site-association (handoff).
 APP_LINK_HOST =
+
+// Email nhận "Báo cáo nội dung" (M6 §3.5, mailto từ Detail, Player, hub). Rỗng = ẩn mọi lối báo cáo cho tới khi
+// owner có địa chỉ (bắt buộc trước khi nộp, handoff). Ví dụ: report@example.com
+CONTENT_REPORT_EMAIL =

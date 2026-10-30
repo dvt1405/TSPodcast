@@ -9,6 +9,9 @@ import Foundation
 /// | `CrashReporter` | `FirebaseCrashReporter` | `OSLogCrashReporter` |
 /// | `ConfigAPI` | `FirebaseRemoteConfigAPI` (+ `RemoteConfigLoader`) | `NoOpConfig` |
 /// | `PushRegistrar` | `FirebasePushRegistrar` | `LogPushRegistrar` |
+/// | `CollectionSwitch` (M6) | `FirebaseCollectionSwitch` | `NoCollectionSwitch` |
+///
+/// Analytics and the crash reporter are wrapped by the consent gate in `AppEnvironment` (M6 §3.6).
 ///
 /// The Firebase implementations are created only for `.enabled`, so a build without the plist
 /// never calls a Firebase API (they assert a configured `FirebaseApp`).
@@ -19,6 +22,8 @@ struct AppServices: @unchecked Sendable {
     let push: any PushRegistrar
     /// What `RemoteConfigLoader` fetches at launch; nil without Firebase (bundled defaults only).
     let remoteConfig: (any RemoteConfigSource)?
+    /// Analytics/Crashlytics collection, switched by `ConsentController` (M6 §3.6).
+    var collection: any CollectionSwitch = NoCollectionSwitch()
 
     /// The log/no-op set: no Firebase API is ever called.
     static func offline() -> AppServices {
@@ -40,7 +45,8 @@ struct AppServices: @unchecked Sendable {
             crashReporter: FirebaseCrashReporter(),
             config: FirebaseRemoteConfigAPI(source: remoteConfig),
             push: FirebasePushRegistrar(),
-            remoteConfig: remoteConfig
+            remoteConfig: remoteConfig,
+            collection: FirebaseCollectionSwitch()
         )
     }
 

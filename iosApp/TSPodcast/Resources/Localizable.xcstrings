@@ -127,6 +127,222 @@
         }
       }
     },
+    "consent.acceptAll" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): button: allow analytics and crash reports.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accept all"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đồng ý tất cả"
+          }
+        }
+      }
+    },
+    "consent.analytics.detail" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): explanation of usage analytics.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anonymous figures on how the app is used (screens, features). What you search for is never sent."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Số liệu ẩn danh về cách app được dùng (màn hình, tính năng). Không gửi nội dung bạn tìm kiếm."
+          }
+        }
+      }
+    },
+    "consent.analytics.title" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): optional group and Settings toggle (Firebase Analytics).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usage analytics"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phân tích sử dụng"
+          }
+        }
+      }
+    },
+    "consent.crash.detail" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): explanation of crash reports.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When the app runs into an error, send technical details about it so we can fix it."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khi app gặp lỗi, gửi thông tin kỹ thuật về lỗi đó để chúng tôi sửa."
+          }
+        }
+      }
+    },
+    "consent.crash.title" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): optional group and Settings toggle (Crashlytics).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crash reports"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Báo cáo sự cố"
+          }
+        }
+      }
+    },
+    "consent.footnote" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): footnote of the privacy sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can change your choice at any time in Settings → Privacy."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn có thể đổi lựa chọn bất cứ lúc nào trong Cài đặt → Quyền riêng tư."
+          }
+        }
+      }
+    },
+    "consent.intro" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): intro of the privacy sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TSPodcast only collects what it needs to run. Usage analytics and crash reports help us improve the app and are only turned on if you agree."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TSPodcast chỉ thu thập những gì cần để app chạy. Phân tích sử dụng và báo cáo sự cố giúp chúng tôi cải thiện app, và chỉ bật khi bạn đồng ý."
+          }
+        }
+      }
+    },
+    "consent.necessary.detail" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): explanation of the necessary group.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always on: running the app, updating the spam content filter (Remote Config) and a random install ID that is not tied to your device or identity."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Luôn bật: để app chạy, cập nhật danh sách lọc nội dung spam (Remote Config) và một mã cài đặt ngẫu nhiên, không gắn với thiết bị hay danh tính của bạn."
+          }
+        }
+      }
+    },
+    "consent.necessary.title" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): group that is always on.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Necessary"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cần thiết"
+          }
+        }
+      }
+    },
+    "consent.necessaryOnly" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): button: allow nothing optional (same style and size as Accept all).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Necessary only"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chỉ cần thiết"
+          }
+        }
+      }
+    },
+    "consent.saveChoice" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): the Necessary only button once a toggle is on: saves the toggles as set.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save choices"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lưu lựa chọn"
+          }
+        }
+      }
+    },
+    "consent.title" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): title of the first-launch privacy sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your privacy"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quyền riêng tư"
+          }
+        }
+      }
+    },
     "deeplink.error.message" : {
       "comment" : "Message of the deep link error alert (carries the deeplink.error identifier).",
       "extractionState" : "manual",
@@ -253,6 +469,60 @@
         }
       }
     },
+    "detail.hide.confirm" : {
+      "comment" : "Destructive button that hides the show.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide show"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ẩn show"
+          }
+        }
+      }
+    },
+    "detail.hide.confirmMessage" : {
+      "comment" : "Message of the hide confirmation.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This show will no longer appear in Discover and Search on this device. You can unhide it in Settings → Hidden shows."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show sẽ không còn xuất hiện ở Khám phá và Tìm kiếm trên máy này. Bạn có thể bỏ ẩn trong Cài đặt → Show đã ẩn."
+          }
+        }
+      }
+    },
+    "detail.hide.confirmTitle" : {
+      "comment" : "Title of the confirmation before hiding a show from Detail.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide this show?"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ẩn show này?"
+          }
+        }
+      }
+    },
     "detail.loading" : {
       "comment" : "VoiceOver label of the episode list placeholders while loading.",
       "extractionState" : "manual",
@@ -267,6 +537,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đang tải danh sách tập"
+          }
+        }
+      }
+    },
+    "detail.menu" : {
+      "comment" : "VoiceOver label of the … menu of Podcast detail.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm"
           }
         }
       }
@@ -375,6 +663,78 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Không mở được mục này"
+          }
+        }
+      }
+    },
+    "hiddenShows.empty" : {
+      "comment" : "Empty state of the hidden shows screen.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You haven't hidden any shows."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn chưa ẩn show nào."
+          }
+        }
+      }
+    },
+    "hiddenShows.footer" : {
+      "comment" : "Footer of the hidden shows list.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hidden shows don't appear in Discover and Search on this device. The list stays on this device."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show đã ẩn không xuất hiện ở Khám phá và Tìm kiếm trên máy này. Danh sách chỉ lưu trên máy."
+          }
+        }
+      }
+    },
+    "hiddenShows.title" : {
+      "comment" : "Title of the hidden shows screen.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hidden shows"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show đã ẩn"
+          }
+        }
+      }
+    },
+    "hiddenShows.unhide" : {
+      "comment" : "Button that shows a hidden show again.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unhide"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ ẩn"
           }
         }
       }
@@ -919,6 +1279,24 @@
         }
       }
     },
+    "player.more" : {
+      "comment" : "VoiceOver label of the … menu of the Player.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm"
+          }
+        }
+      }
+    },
     "player.next" : {
       "comment" : "Next episode button of the Player.",
       "extractionState" : "manual",
@@ -1225,6 +1603,78 @@
         }
       }
     },
+    "report.action" : {
+      "comment" : "Menu entry that opens a pre-filled report mail (Detail, Player).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Report content"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Báo cáo nội dung"
+          }
+        }
+      }
+    },
+    "report.fallback.copy" : {
+      "comment" : "Alert button that copies the report email address.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy address"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sao chép địa chỉ"
+          }
+        }
+      }
+    },
+    "report.fallback.message %@" : {
+      "comment" : "Alert message; %@ is the report email address.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please send your report to %@ from your email app."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy gửi báo cáo tới %@ từ ứng dụng email của bạn."
+          }
+        }
+      }
+    },
+    "report.fallback.title" : {
+      "comment" : "Alert title when no app can send the report mail.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't open Mail"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không mở được ứng dụng Mail"
+          }
+        }
+      }
+    },
     "search.categories" : {
       "comment" : "Header above the category chips of the idle Search tab.",
       "extractionState" : "manual",
@@ -1459,6 +1909,24 @@
         }
       }
     },
+    "settings.consent.decidedAt %@" : {
+      "comment" : "Footer of the privacy section; %@ is a date and time.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choice saved on %@."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lựa chọn được lưu lúc %@."
+          }
+        }
+      }
+    },
     "settings.explicit" : {
       "comment" : "Settings toggle for explicit content (D6).",
       "extractionState" : "manual",
@@ -1473,6 +1941,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hiện nội dung người lớn (explicit)"
+          }
+        }
+      }
+    },
+    "settings.hiddenShows" : {
+      "comment" : "Settings row that opens the list of hidden shows.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hidden shows"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show đã ẩn"
           }
         }
       }
@@ -1513,6 +1999,24 @@
         }
       }
     },
+    "settings.privacySection" : {
+      "comment" : "Settings section with the analytics and crash report toggles.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quyền riêng tư"
+          }
+        }
+      }
+    },
     "settings.title" : {
       "comment" : "Title of the Settings sheet and label of the gear button.",
       "extractionState" : "manual",
@@ -1545,6 +2049,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Phiên bản"
+          }
+        }
+      }
+    },
+    "show.hide" : {
+      "comment" : "Detail menu and long-press menu on Home/Search: hide the show on this device.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide this show"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ẩn show này"
           }
         }
       }

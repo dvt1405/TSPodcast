@@ -20,6 +20,10 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
+	<false/>
+	<key>FirebaseCrashlyticsCollectionEnabled</key>
+	<false/>
 	<key>FirebaseMessagingAutoInitEnabled</key>
 	<false/>
 	<key>GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS</key>
@@ -43,6 +47,8 @@
 	<string>$(PODCASTINDEX_USER_AGENT)</string>
 	<key>TSAppLinkHost</key>
 	<string>$(APP_LINK_HOST)</string>
+	<key>TSContentReportEmail</key>
+	<string>$(CONTENT_REPORT_EMAIL)</string>
 	<key>TSPrivacyPolicyURL</key>
 	<string>$(PRIVACY_POLICY_URL)</string>
 	<key>UIApplicationSceneManifest</key>

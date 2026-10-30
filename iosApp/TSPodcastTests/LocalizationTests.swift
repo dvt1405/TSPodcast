@@ -207,6 +207,34 @@ final class LocalizationTests: XCTestCase {
         XCTAssertEqual(String(format: try text("player.sleepTimer.remaining", "vi"), "28:14"), "Còn 28:14")
     }
 
+    /// M6-AC23: hide/report, hidden shows and the consent placeholders.
+    func testShowSafetyAndPrivacyStrings() throws {
+        let expected: [String: (vi: String, en: String)] = [
+            "show.hide": ("Ẩn show này", "Hide this show"),
+            "report.action": ("Báo cáo nội dung", "Report content"),
+            "settings.hiddenShows": ("Show đã ẩn", "Hidden shows"),
+            "hiddenShows.unhide": ("Bỏ ẩn", "Unhide"),
+            "consent.acceptAll": ("Đồng ý tất cả", "Accept all"),
+            "consent.necessaryOnly": ("Chỉ cần thiết", "Necessary only"),
+            "consent.saveChoice": ("Lưu lựa chọn", "Save choices"),
+            "consent.necessary.title": ("Cần thiết", "Necessary"),
+            "consent.analytics.title": ("Phân tích sử dụng", "Usage analytics"),
+            "consent.crash.title": ("Báo cáo sự cố", "Crash reports"),
+            "settings.privacySection": ("Quyền riêng tư", "Privacy"),
+        ]
+        for (key, value) in expected {
+            XCTAssertEqual(try text(key, "vi"), value.vi, "vi \(key)")
+            XCTAssertEqual(try text(key, "en"), value.en, "en \(key)")
+        }
+        for key in ["consent.title", "consent.intro", "consent.necessary.detail", "consent.analytics.detail", "consent.crash.detail", "consent.footnote",
+                    "report.fallback.title", "report.fallback.message %@", "report.fallback.copy", "detail.hide.confirmTitle",
+                    "detail.hide.confirm", "detail.hide.confirmMessage", "hiddenShows.empty", "hiddenShows.footer"] {
+            for language in ["vi", "en"] {
+                XCTAssertNotEqual(try text(key, language), "<missing>", "\(language) \(key)")
+            }
+        }
+    }
+
     func testOnboardingHighlightsAppearInTheirTitles() throws {
         let highlights = [
             1: ["onboarding.title.1.highlight.1", "onboarding.title.1.highlight.2"],

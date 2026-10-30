@@ -21,10 +21,20 @@ struct PodcastDetailDestination: View {
 /// Favourite/Share button ([iOS+], out of scope).
 struct PodcastDetailView: View {
     @State private var model: PodcastDetailModel
+    @State private var isHideConfirmationPresented = false
+    /// Address shown when no app could open the report mail.
+    @State private var reportFallbackEmail: String?
+
+    @Environment(AppEnvironment.self) private var environment
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
 
     init(model: PodcastDetailModel) {
         _model = State(initialValue: model)
     }
+
+    /// Screen name of Podcast detail in analytics.
+    static let analyticsScreen = "PodcastDetail"
 
     var body: some View {
         ScrollView {
@@ -40,6 +50,29 @@ struct PodcastDetailView: View {
         .accessibilityIdentifier("detail.root")
         .navigationTitle(Text(verbatim: model.podcast.title))
         .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                moreMenu
+            }
+        }
+        .confirmationDialog(
+            Text("detail.hide.confirmTitle"),
+            isPresented: $isHideConfirmationPresented,
+            titleVisibility: .visible
+        ) {
+            Button(role: .destructive) {
+                hideShow()
+            } label: {
+                Text("detail.hide.confirm")
+            }
+            .accessibilityIdentifier("hide.confirm")
+            Button(role: .cancel) {} label: {
+                Text("action.cancel")
+            }
+        } message: {
+            Text("detail.hide.confirmMessage")
+        }
+        .contentReportFallbackAlert(email: $reportFallbackEmail)
         .task { await model.loadIfNeeded() }
         .alert(Text("detail.error.title"), isPresented: $model.isShowingErrorAlert) {
             Button("action.retry") {
@@ -51,6 +84,60 @@ struct PodcastDetailView: View {
         } message: {
             Text("detail.error.message")
         }
+    }
+
+    /// `…` of the navigation bar: "Ẩn show này" and, when an address is configured, "Báo cáo
+    /// nội dung" (M6 §3.5).
+    private var moreMenu: some View {
+        Menu {
+            Button {
+                isHideConfirmationPresented = true
+            } label: {
+                Label("show.hide", systemImage: "eye.slash")
+            }
+            .accessibilityIdentifier("detail.hide")
+            if environment.contentReporter.isAvailable {
+                Button {
+                    report()
+                } label: {
+                    Label("report.action", systemImage: "exclamationmark.bubble")
+                }
+                .accessibilityIdentifier("detail.report")
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .accessibilityLabel(Text("detail.menu"))
+        .accessibilityIdentifier("detail.menu")
+    }
+
+    /// Hides the show (saved, logged, dropped from Home/Search at once) and leaves Detail.
+    private func hideShow() {
+        let podcast = model.podcast
+        let hiddenShows = environment.hiddenShows
+        Task {
+            await hiddenShows.hide(
+                feedId: podcast.feedId,
+                title: podcast.title,
+                imageURL: podcast.imageURL,
+                screen: Self.analyticsScreen
+            )
+        }
+        dismiss()
+    }
+
+    private func report() {
+        let openURL = openURL
+        environment.contentReporter.report(
+            kind: .feed,
+            feedId: model.podcast.feedId,
+            episodeId: nil,
+            screen: Self.analyticsScreen,
+            open: { url, completion in openURL(url, completion: completion) },
+            failed: { email in reportFallbackEmail = email }
+        )
     }
 }
 

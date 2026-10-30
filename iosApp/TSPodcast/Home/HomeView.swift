@@ -51,6 +51,9 @@ struct HomeView: View {
         }
     }
 
+    /// Screen name of Home/Discover in analytics.
+    static let analyticsScreen = "Discover"
+
     private func retry(_ section: HomeSection) -> () -> Void {
         { [model] in
             Task { await model.retry(section) }
@@ -110,6 +113,7 @@ private struct PodcastCarousel: View {
                         PodcastCardView(card: card, zoomSourceID: sourceID, zoomNamespace: zoomNamespace)
                     }
                     .buttonStyle(PressableStyle())
+                    .hideShowContextMenu(feedId: card.id, title: card.title, imageURL: card.imageURL, screen: HomeView.analyticsScreen)
                     .accessibilityLabel(Text(card.title))
                     .accessibilityIdentifier("home.section.\(section.rawValue).item.\(index)")
                 }
@@ -151,6 +155,12 @@ private struct LivePager: View {
                                 ListRow(imageURL: item.imageURL, title: item.title, subtitle: item.subtitle)
                             }
                             .buttonStyle(PressableStyle())
+                            .hideShowContextMenu(
+                                feedId: item.feedId,
+                                title: item.feedTitle ?? item.title,
+                                imageURL: item.imageURL,
+                                screen: HomeView.analyticsScreen
+                            )
                             .accessibilityLabel(Text(item.title))
                             .accessibilityValue(Text(item.subtitle))
                             .accessibilityIdentifier("home.section.live.item.\(pageIndex * LivePaging.pageSize + row)")
@@ -205,6 +215,7 @@ private struct ForYouList: View {
                         )
                     }
                     .buttonStyle(PressableStyle())
+                    .hideShowContextMenu(feedId: card.id, title: card.title, imageURL: card.imageURL, screen: HomeView.analyticsScreen)
                     .accessibilityLabel(Text(card.title))
                     .accessibilityIdentifier("home.section.forYou.item.\(index)")
                 }

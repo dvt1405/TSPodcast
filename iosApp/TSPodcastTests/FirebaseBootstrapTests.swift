@@ -76,12 +76,13 @@ final class FirebaseBootstrapTests: XCTestCase {
 
         XCTAssertEqual(configureCalls, 0)
         XCTAssertEqual(environment.firebase, .disabled(.missingPlist))
-        XCTAssertTrue(environment.analytics is LogAnalyticsTracker)
+        XCTAssertTrue((environment.analytics as? ConsentGatedAnalyticsTracker)?.inner is LogAnalyticsTracker)
         XCTAssertTrue(environment.services.crashReporter is OSLogCrashReporter)
         XCTAssertTrue(environment.services.config is NoOpConfig)
         XCTAssertTrue(environment.services.push is LogPushRegistrar)
         XCTAssertEqual(installed.count, 1)
-        XCTAssertTrue(installed.first is OSLogCrashReporter)
+        XCTAssertTrue((installed.first as? ConsentGatedCrashReporter)?.inner is OSLogCrashReporter)
+        XCTAssertTrue(environment.services.collection is NoCollectionSwitch, "no Firebase API without the plist")
     }
 
     /// The test host app is built without the plist (`FIREBASE_PLIST_DIR` points to an empty
