@@ -25,8 +25,15 @@ struct PlaybackProbe: View {
         ].joined(separator: ";")
     }
 
+    /// `state` alone no longer notifies on position ticks; reading `position` keeps the probe live.
+    private var liveLabel: String {
+        var state = engine.state
+        state.positionMs = engine.position.positionMs
+        return Self.label(state)
+    }
+
     var body: some View {
-        let label = Self.label(engine.state)
+        let label = liveLabel
         Text(verbatim: label.isEmpty ? " " : label)
             .font(.system(size: 7, design: .monospaced))
             .foregroundStyle(.secondary)

@@ -249,7 +249,8 @@ private struct PlayerBackground: View {
 
 /// Slider + elapsed/total (`PlayerProgress`), or the "LIVE" badge for a stream without duration.
 /// The slider seeks when the drag ends (or right away when the value is set without a drag,
-/// e.g. VoiceOver or XCUITest `adjust`).
+/// e.g. VoiceOver or XCUITest `adjust`). Reads `engine.position`, so only this view follows the
+/// 4 Hz ticks.
 private struct PlayerProgressView: View {
     let engine: AudioEngine
     let state: PlaybackState
@@ -267,8 +268,9 @@ private struct PlayerProgressView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityIdentifier("player.live")
         } else {
-            let fraction = scrubbing ?? state.progress
-            let shownMs = scrubbing.map { Int64($0 * Double(state.durationMs)) } ?? state.positionMs
+            let position = engine.position
+            let fraction = scrubbing ?? position.progress
+            let shownMs = scrubbing.map { Int64($0 * Double(position.durationMs)) } ?? position.positionMs
             VStack(spacing: 4) {
                 Slider(
                     value: Binding(
@@ -284,7 +286,7 @@ private struct PlayerProgressView: View {
                     in: 0...1,
                     onEditingChanged: { editing in
                         if editing {
-                            scrubbing = state.progress
+                            scrubbing = position.progress
                         } else {
                             if let scrubbing { engine.seek(toFraction: scrubbing) }
                             scrubbing = nil
@@ -292,13 +294,13 @@ private struct PlayerProgressView: View {
                     }
                 )
                 .tint(Color.brandSecondary)
-                .disabled(state.durationMs <= 0)
+                .disabled(position.durationMs <= 0)
                 .accessibilityIdentifier("player.slider")
                 HStack {
                     Text(verbatim: PlaybackProgressKt.formatPlaybackTime(ms: shownMs))
                         .accessibilityIdentifier("player.elapsed")
                     Spacer()
-                    Text(verbatim: PlaybackProgressKt.formatPlaybackTime(ms: state.durationMs))
+                    Text(verbatim: PlaybackProgressKt.formatPlaybackTime(ms: position.durationMs))
                         .accessibilityIdentifier("player.duration")
                 }
                 .font(.caption.monospacedDigit())

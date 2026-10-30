@@ -28,7 +28,32 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         static let none = Hooks()
     }
 
-    private(set) var state = PlaybackState()
+    /// Everything the player publishes. A change of `positionMs` alone (the 4 Hz time observer,
+    /// a seek) updates the value without notifying observers of `state`, so the Player, the Up
+    /// next list and the tab shell do not re-render on every tick and scroll smoothly. Views that
+    /// draw the position observe `position` instead.
+    private(set) var state: PlaybackState {
+        get {
+            access(keyPath: \.state)
+            return stateStorage
+        }
+        set {
+            let newPosition = PlaybackPosition(positionMs: newValue.positionMs, durationMs: newValue.durationMs)
+            if newPosition != position { position = newPosition }
+            var positionOnly = stateStorage
+            positionOnly.positionMs = newValue.positionMs
+            if positionOnly == newValue {
+                stateStorage = newValue
+            } else {
+                withMutation(keyPath: \.state) { stateStorage = newValue }
+            }
+        }
+    }
+
+    /// Position and duration of the current item, updated on every tick.
+    private(set) var position = PlaybackPosition()
+
+    @ObservationIgnored private var stateStorage = PlaybackState()
 
     @ObservationIgnored private var player: AVPlayer
     @ObservationIgnored private var queue: PlaybackQueue?

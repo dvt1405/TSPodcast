@@ -65,17 +65,27 @@ struct MiniPlayerView: View {
             .overlay(alignment: .bottom) {
                 if !isCompact && !state.isLive {
                     // Inset from the capsule's rounded ends (iOS 26 accessory, iOS 17/18 capsule).
-                    ProgressView(value: state.progress)
-                        .progressViewStyle(.linear)
-                        .tint(Color.brandPrimary)
-                        .scaleEffect(x: 1, y: 0.5, anchor: .bottom)
+                    MiniPlayerProgress(engine: engine)
                         .padding(.horizontal, 22)
                         .padding(.bottom, 3)
-                        .accessibilityIdentifier("miniplayer.progress")
                 }
             }
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("miniplayer.slot")
         }
+    }
+}
+
+/// The thin progress line, the only part of the MiniPlayer that follows the 4 Hz ticks
+/// (`engine.position`).
+private struct MiniPlayerProgress: View {
+    let engine: AudioEngine
+
+    var body: some View {
+        ProgressView(value: engine.position.progress)
+            .progressViewStyle(.linear)
+            .tint(Color.brandPrimary)
+            .scaleEffect(x: 1, y: 0.5, anchor: .bottom)
+            .accessibilityIdentifier("miniplayer.progress")
     }
 }

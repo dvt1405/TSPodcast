@@ -34,6 +34,29 @@ final class AudioEngineTests: XCTestCase {
         XCTAssertNil(engine.state.error)
     }
 
+    /// Position ticks reach `position` but do not notify observers of `state`, so the Player and the
+    /// Up next list do not re-render 4 times a second while the user scrolls.
+    func testPositionTicksDoNotInvalidateState() async {
+        engine.play(PlaybackFixture.request())
+        await waitUntil(timeout: 5, "playing") { engine.state.isPlaying }
+        await waitUntil(timeout: 5, "duration known") { engine.state.durationMs > 0 }
+
+        let stateChanged = ChangeFlag()
+        withObservationTracking { _ = engine.state } onChange: { stateChanged.set() }
+        let positionChanged = ChangeFlag()
+        withObservationTracking { _ = engine.position } onChange: { positionChanged.set() }
+
+        let start = engine.position.positionMs
+        await waitUntil(timeout: 5, "position advances") { engine.position.positionMs >= start + 1_000 }
+        XCTAssertTrue(positionChanged.isSet)
+        XCTAssertFalse(stateChanged.isSet, "a position-only tick must not notify `state` observers")
+        XCTAssertEqual(engine.state.positionMs, engine.position.positionMs, "state still carries the position")
+
+        engine.pause()
+        await waitUntil(timeout: 3, "paused") { !engine.state.isPlaying }
+        XCTAssertTrue(stateChanged.isSet, "a real change (pause) still notifies")
+    }
+
     func testPauseAndToggle() async {
         engine.play(PlaybackFixture.request())
         await waitUntil(timeout: 5) { engine.state.isPlaying }
@@ -286,4 +309,13 @@ final class AudioEngineErrorTests: XCTestCase {
         fixture.engine.play(PlaybackRequest(items: [item], startIndex: 0))
         await waitUntil(timeout: 5, "error") { fixture.engine.state.error == .failed }
     }
+}
+
+/// Set from an Observation `onChange` (a `@Sendable` closure), read on the main actor.
+private final class ChangeFlag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = false
+
+    func set() { lock.withLock { value = true } }
+    var isSet: Bool { lock.withLock { value } }
 }

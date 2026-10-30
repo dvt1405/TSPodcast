@@ -38,6 +38,19 @@ struct PlaybackState: Equatable, Sendable {
     }
 }
 
+/// The part of `PlaybackState` that changes on every time-observer tick, published on its own
+/// (`AudioEngine.position`) so only the slider, the time labels and the MiniPlayer progress line
+/// re-render at 4 Hz.
+struct PlaybackPosition: Equatable, Sendable {
+    var positionMs: Int64 = 0
+    var durationMs: Int64 = 0
+
+    /// Played fraction, the same as `PlaybackState.progress`.
+    var progress: Double {
+        Double(PlaybackProgressKt.progressOf(positionMs: positionMs, durationMs: durationMs))
+    }
+}
+
 extension PlaybackState {
     /// `isBuffering` of the Play/Pause spinner: the user wants sound, nothing failed, and AVPlayer
     /// waits for data or the item has not loaded yet.
