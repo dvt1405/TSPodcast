@@ -11,7 +11,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | M0 | Nền tảng: module `shared` KMP + project Xcode chạy được | [milestones/M0.md](milestones/M0.md) | Đã nghiệm thu (review round 1) |
 | M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đã nghiệm thu (review round 1) |
 | M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đã nghiệm thu (review round 1) |
-| M3 | Audio engine, Player và MiniPlayer | [milestones/M3.md](milestones/M3.md) | Đã có kế hoạch (base `6f9aff9`); developer đang làm |
+| M3 | Audio engine, Player và MiniPlayer | [milestones/M3.md](milestones/M3.md) | Developer đã làm xong T1–T4 (round 2 sửa M3-AC21); chờ PO nghiệm thu lại. UI suite để QC |
 
 ## M0
 
@@ -936,7 +936,7 @@ Screenshot (đã xem bằng mắt): `$OUT/M2-T4-shots/` có 54 attachment đổi
 - **UI test gọi PodcastIndex thật** (key dùng chung với Android): khoảng 550–600 request mỗi lần chạy toàn bộ suite (~12 phút). Test fail nếu API chậm hơn 30 s, nếu dữ liệu đổi khác hẳn (ví dụ "vietnam" không còn kết quả, "zzqxjvkwpt" có kết quả) dù app đúng. Unit test dùng fake nên không phụ thuộc mạng.
 - **Trending #1 là feed explicit** (30/10/2026, feed 4201720): D6 ẩn hết tập ở Detail; UI test cần tập tự chọn item trending đầu tiên có tập (`openDetailWithEpisodes`), `PodcastDetailErrorUITests` launch thêm một lần để tìm index. Hệ quả sản phẩm ghi ở handoff.
 - **D6 ở Home và màn danh mục** chỉ lọc được khi API trả `explicit` (E1/E5 không trả); Detail và Search lọc được. Chưa có toggle vì chưa có Settings.
-- **Tap episode chỉ gửi sang seam phát nhạc** (log `playback_request`), chưa phát; Player là M3.
+- ~~Tap episode chỉ gửi sang seam phát nhạc~~: đã thay bằng Player thật ở M3.
 - `testBlacklistedResultsHidden` chép danh sách từ khoá `blacklist.json`; Remote Config chưa có trên iOS (`NoOpConfig`).
 - Gõ thêm chữ khi đang có kết quả: kết quả cũ hiện thêm 200 ms rồi chuyển loading.
 - Nền blur của header Detail kéo lên 400 pt; kéo quá mạnh có thể lộ nền trống phía trên.
@@ -945,4 +945,125 @@ Screenshot (đã xem bằng mắt): `$OUT/M2-T4-shots/` có 54 attachment đổi
 
 ## M3
 
-Kế hoạch: [milestones/M3.md](milestones/M3.md) (base `6f9aff9`). Trạng thái: **đang làm** — chi tiết từng task ghi bên dưới khi xong.
+Kế hoạch: [milestones/M3.md](milestones/M3.md). Base `6f9aff9`.
+
+Trạng thái: **developer đã làm xong T1–T4, chờ PO nghiệm thu lại (round 2)**. PO review round 1 (ở `15c16cd`): 20/21 AC đạt (một số phần "để QC"), M3-AC21 chưa đạt vì phần tài liệu T4 chưa làm. Round 2 viết mục này, gỡ bullet M2 "seam phát nhạc" khỏi [handoff.md](handoff.md) và sửa thêm lỗi seek PO ghi chú (không chặn). Theo luật test của owner, milestone chỉ chạy unit test + build; XCUITest, simulator walkthrough và screenshot để QC sau khi xong mọi milestone.
+
+### Tóm tắt M3 (M3-AC21)
+
+| Task | Việc chính | AC | Commit |
+|---|---|---|---|
+| T1 | `shared`: package `tss.t.shared.playback` — `PlayableItem`, `PlaybackQueue` (bất biến, kẹp `startIndex`, `next()`/`previous()` trả `null` ở hai đầu), `PlaybackPositions` (nhớ vị trí nghe), `PlaybackHistory` (`extra:current_item_id` + danh sách gần đây, tối đa 100), `FavouriteStore` (bộ nhớ), `progressOf`/`formatPlaybackTime`; nối vào `SharedGraph` | AC1, AC2 | `924ee22` |
+| T2 | iOS: `AudioEngine` (một `AVPlayer`, `actionAtItemEnd = .pause`), `AudioSessionController` (`.playback`/`.spokenAudio`/`.longFormAudio`, interruption, route change, media services reset), `NowPlayingCenter`, `RemoteCommands`, `PlaybackItem`/`PlaybackRequest`/`PlaybackState`, `Info.plist` (`UIBackgroundModes = audio`, `NSAllowsArbitraryLoadsForMedia`), fixture `tone-60s.m4a`; xoá `LoggingPlaybackController` | AC3–AC7 | `9b1c3cb` |
+| T3 | iOS: `PlayerView` (fullScreenCover), `UpNextSheet`, `MiniPlayerView` thật trong `MiniPlayerSlot`, Detail → Player + dấu "Đang phát", Home Live → Player (cả list Live đã làm phẳng), hook `TSP_UITEST_AUDIO_URL`/`-uitest-force-live`/probe mới, chuỗi §4.8 vi + en, XCUITest | AC8–AC16 | `9b1c3cb` (gộp với T2), `15c16cd` (identifier trong plan) |
+| T4 | Kiểm unit/build/Release, `LocalizationUITests.testEnglishPlayer`, tài liệu; round 2: sửa seek trong lúc seek resume | AC16–AC21 | `b3c7459` + commit tài liệu này |
+
+Ghi chú commit: T2 và T3 nằm chung một commit (`9b1c3cb`) thay vì hai commit như plan §5, vì Player/MiniPlayer và engine đổi cùng lúc `AppEnvironment`, `PlaybackController` và các test cũ dùng `LoggingPlaybackController`; tách ra thì commit giữa không build được.
+
+Quyết định chính (§7 của plan, đều đã có trong [handoff.md](handoff.md)):
+
+| Hạng mục | Quyết định | Lý do / chi tiết |
+|---|---|---|
+| Lưu trữ | Favourite + lịch sử Episode/Podcast giữ trong bộ nhớ tới M4; `extra:current_item_id` và vị trí nghe lưu bền trong `KeyValueStore` (DataStore) | Chưa có Room KMP. Favourite bấm ở Player mất khi app bị kill. (§7 mục 1) |
+| Nút More | Không có | Android vẽ icon nhưng không gắn hành động; nút không làm gì là rủi ro review. (§7 mục 2) |
+| Lỗi phát / buffering | "Không phát được tập này" + "Tải lại" (nạp lại đúng item ở vị trí cũ); buffering → Play/Pause thành spinner `player.buffering` | Android không báo gì khi ExoPlayer lỗi. (§7 mục 3) |
+| Nhớ vị trí nghe ([Sửa] §3.6) | Lưu mỗi 10 s khi đang phát, khi pause, khi đổi episode, khi app vào background (`scenePhase`); 5 s đầu không lưu; còn < 30 s coi là nghe xong (xoá); live không lưu | Android chỉ lưu media id nên mọi episode phát lại từ 0. Hằng số ở `PlaybackPositions.companion`. (§7 mục 4) |
+| Prev/Next | Lưu `current_item_id` sau mỗi lần đổi; nút disable ở hai đầu playlist; giữ trạng thái play/pause như `playWhenReady` | Android chỉ lưu khi tap từ Detail/Live; nút ở hai đầu bấm được nhưng không làm gì. (§7 mục 5) |
+| Hết episode | Dừng ở cuối item, không tự sang tập sau; bấm Play lại thì phát từ đầu | Giống `setPauseAtEndOfMediaItems(true)` của Android. |
+| Remote command | Bật play/pause/toggle, next/previous track, `changePlaybackPosition`; tắt skip ±, seek forward/backward, đổi tốc độ (live: tắt cả `changePlaybackPosition`) | Không bật command cho tính năng [iOS+] app chưa có. (§7 mục 6) |
+| MiniPlayer | Dòng phụ là tên podcast; Live dùng `feedTitle`; stream không có duration hiện "LIVE", không seek | Android hiện `description` (thường là HTML dài). (§7 mục 7) |
+| Audio session | `setCategory` khi khởi tạo, `setActive(true)` chỉ khi bắt đầu phát (không ở launch) | Không cắt nhạc của app khác khi người dùng chỉ mở app. |
+| Host audio | Không gửi User-Agent tuỳ chỉnh; `NSAllowsArbitraryLoadsForMedia = true` (không bật `NSAllowsArbitraryLoads`) | ExoPlayer cũng dùng UA mặc định; key header của `AVURLAsset` là API không công khai; ATS cho `URLSession` giữ nguyên. (§7 mục 9) |
+| Checklist máy thật | Giao owner (AirPods, tai nghe dây, cuộc gọi, Siri, báo thức, Lock Screen, khoá màn hình 30 phút) | Simulator không mô phỏng được. (§7 mục 8, bullet "Môi trường test" trong handoff) |
+| Seek lúc vừa nạp item (round 2) | Seek của người dùng trong lúc seek resume còn chạy thay target thay vì bị mất; completion của lần nạp cũ bị bỏ qua (`loadGeneration`) | Ghi chú không chặn của PO round 1. |
+
+Giới hạn đã biết: xem "Giới hạn đã biết của M3 (tổng hợp)" ở cuối mục M3.
+
+### T1 — Shared: playback logic (xong)
+
+Thoả M3-AC1, M3-AC2, chạy lại M3-AC20. Commit `924ee22`.
+
+- `tss.t.shared.playback`: `PlayableItem` (id, feedId, url, title, podcastTitle, artworkUrl, referer, durationMs, isLive), `PlaybackQueue(items, startIndex)` (kẹp index, `current`, `hasPrevious`/`hasNext`, `next()`/`previous()` trả queue mới hoặc `null`), `PlaybackPositions` (§4.3, quy tắc ở bảng trên), `PlaybackHistory` (khoá `extra:current_item_id` như Android, danh sách gần đây mới nhất trước, không trùng, tối đa 100), `FavouriteStore` (theo `type` + `id`, trong bộ nhớ), `PlaybackProgress.kt` (`progressOf` chặn duration ≤ 0/NaN, `formatPlaybackTime`: `65 000` → `1:05`, `3 605 000` → `1:00:05`, âm → `0:00`).
+- `SharedGraph` có `playbackPositions`, `playbackHistory`, `favouriteStore`, dùng chung `KeyValueStore` với M1.
+- Lệch nhỏ đã được PO chấp nhận: `PlaybackHistory.saveCurrent(item)` không nhận `queue` (không dùng tới).
+- Test `commonTest`: `PlaybackQueueTest` 6, `PlaybackPositionsTest` 6, `PlaybackHistoryTest` 3, `FavouriteStoreTest` 3, `PlaybackProgressTest` 2.
+
+```bash
+./gradlew :shared:allTests :shared:linkDebugFrameworkIosSimulatorArm64 :app:assembleDebug   # BUILD SUCCESSFUL
+#   iosSimulatorArm64Test + testAndroidHostTest: mỗi target 27 class, 191 test (M2: 22 class, 171), failures=0 errors=0
+```
+
+M3 không đổi file Gradle nào (`git diff --name-only 6f9aff9..HEAD` chỉ có `shared/`, `iosApp/`, `docs/ios/`).
+
+### T2 — iOS: AudioEngine, session, Now Playing, remote command, background (xong)
+
+Thoả M3-AC3 … M3-AC7. Commit `9b1c3cb`.
+
+- `Playback/AudioEngine.swift` (`@Observable`, `@MainActor`, triển khai `PlaybackController`): đúng một `AVPlayer` (`makePlayer`, tạo lại khi media services reset), không `AVQueuePlayer`; queue lấy từ `PlaybackQueue` của `shared`. Nạp item: lưu `current_item_id`, đọc vị trí đã lưu, `replaceCurrentItem`, seek tới vị trí khi `readyToPlay` rồi mới phát. `loadGeneration` chặn kết quả của lần nạp cũ. Ghi lịch sử/vị trí qua một chuỗi `Task` nối tiếp (đọc không vượt ghi). State công bố qua `PlaybackState` (`isPlaying` theo `timeControlStatus`, `isBuffering`, `positionMs`/`durationMs`, `isLive`, `isFavourite`, `error`), time observer 0,25 s.
+- `AudioSessionController`: category như bảng trên; interruption began → pause (nhớ đang phát), ended + `shouldResume` → phát lại chỉ khi trước đó đang phát và người dùng chưa pause, bỏ qua `wasSuspended`; route change `oldDeviceUnavailable` → pause; media services reset → `AVPlayer` mới, giữ item + vị trí, không tự phát.
+- `NowPlayingCenter` (title, artist = album = tên podcast, duration, elapsed, rate, `MediaType.audio`, `IsLiveStream`, artwork qua `ArtworkLoader`); `RemoteCommands` như bảng trên.
+- `Info.plist`: `UIBackgroundModes = [audio]`, `NSAppTransportSecurity.NSAllowsArbitraryLoadsForMedia = true`.
+- Fixture `iosApp/scripts/make-test-audio.sh` → `TSPodcastUITests/Fixtures/tone-60s.m4a` (tone 60 s, commit), là resource của `TSPodcastUITests` và `TSPodcastTests`, không nằm trong `TSPodcast.app`.
+- Unit test: `PlaybackStateTests` 4, `PlaybackItemTests` 4, `AudioEngineTests` 10 (8 + 2 của round 2), `AudioEngineErrorTests` 2, `AudioSessionControllerTests` 7 (notification tổng hợp), `NowPlayingInfoTests` 3, `RemoteCommandsTests` 5. `AudioEngineTests` phát fixture thật trên simulator.
+
+### T3 — iOS: Player, Up next, MiniPlayer, điều hướng (xong)
+
+Thoả M3-AC8 … M3-AC15 (phần UI "để QC"). Commit `9b1c3cb`; `15c16cd` sửa identifier trong plan cho khớp code (PO round 1 chấp nhận, lần sau đề xuất qua PO).
+
+- `Player/PlayerView.swift`: mở bằng `.fullScreenCover` từ `MainTabView` (`AppEnvironment.isPlayerPresented`); nền artwork blur, nút chevron `player.close`, artwork vuông bo 12, tiêu đề 2 dòng, tên podcast, slider (seek khi thả) + nhãn `formatPlaybackTime`, hàng 5 nút Favourite · Prev · Play/Pause · Next · Playlist; live hiện "LIVE" thay slider. Lỗi: `player.error` + `player.retry`.
+- `Player/UpNextSheet.swift`: toàn bộ queue, `upNext.item.<i>`, item đang phát có "Đang phát" + `.isSelected`, tap → `select(index:)` rồi đóng sheet; detents medium/large.
+- `Main/MiniPlayerView.swift` trong `MiniPlayerSlot` (giữ 3 nhánh iOS của M1): artwork, tiêu đề, tên podcast, play/pause, progress mảnh; `miniplayer.open` label "`<tiêu đề>, <tên podcast>`". Hiện khi có item và Player đang đóng. Đã gỡ placeholder M1 và hook `-uitest-miniplayer-placeholder`.
+- Detail: tap episode gửi cả list + index rồi mở Player (`PodcastDetailModel.play`); dòng đang phát (cùng `feedId`) có `waveform` + `detail.episode.<i>.nowPlaying`. Home Live: tap gửi cả list Live đã làm phẳng (`pageIndex * pageSize + row`), `home.live.pager` (Debug: value `count=`); log `live_tap` đã xoá.
+- Hook (chỉ `#if DEBUG`): env `TSP_UITEST_AUDIO_URL`, `-uitest-force-live`, `-uitest-playback-probe` (label mới theo §4.6).
+- Chuỗi §4.8 vi + en trong `Localizable.xcstrings`.
+- XCUITest (viết xong, compile qua `build-for-testing`, **chưa chạy — để QC**): `PlayerUITests` (7: `testEpisodeTapOpensPlayerAndPlays`, `testPlayPauseSeekAndTimeLabels`, `testPreviousNextFollowPlaylist`, `testFavouriteToggles`, `testUpNextListsQueueAndSelects`, `testDetailMarksNowPlayingEpisode`, `testPlayerDarkAppearance`), `MiniPlayerUITests.testMiniPlayerAfterClosingPlayer`, `PlayerErrorUITests.testUnplayableItemShowsErrorAndRetry`, `LivePlayerUITests` (2), `LocalizationUITests.testEnglishPlayer`; `MainShellUITests.testMiniPlayerSlotSitsAboveTabBar` đổi sang phát fixture rồi đóng Player; `PodcastDetailUITests.testEpisodeTapHandsPlaylistToPlaybackSeam` bị thay bằng `PlayerUITests.testEpisodeTapOpensPlayerAndPlays`.
+
+### T4 — Nghiệm thu nội bộ, tài liệu, vệ sinh (xong ở round 2)
+
+Thoả M3-AC16 … M3-AC21 trong phạm vi luật test (unit + build). Plan §5 T4 bước 1 ghi "chạy toàn bộ `xcodebuild test`"; luật test của owner (có sau khi viết plan) đưa phần UI sang QC, nên T4 chỉ chạy unit test, `build-for-testing` và build Release.
+
+Round 2 (30/10/2026):
+
+- **Nguyên nhân AC21 fail:** sau commit code `9b1c3cb`, bước 2 của T4 (viết `progress.md`, cập nhật `handoff.md`, commit tài liệu) bị bỏ sót; mục M3 chỉ có dòng "đang làm" từ lúc lập plan. Đã viết mục này, sửa bảng milestone, gỡ bullet M2 "Tap episode chỉ gửi sang seam phát nhạc" khỏi `handoff.md` (M3 đã có Player) và sửa giới hạn tương ứng của M2 ở trên cho khỏi gây hiểu nhầm.
+- **Sửa thêm (ghi chú không chặn của PO):** `AudioEngine.seek(toMs:)` gọi trong lúc seek resume (vị trí đã lưu) còn chạy bị mất, vì completion của seek resume đặt `pendingStartMs = 0` rồi phát từ vị trí đã lưu. Giờ completion (`startSeekFinished`) áp target mới (seek thêm một lần, hoặc về 0) và bỏ qua completion của lần nạp cũ. Seam test `onStartSeekSent` chỉ có trong `#if DEBUG`. Test `testSeekDuringTheResumeSeekIsKept`, `testSeekToStartDuringTheResumeSeekIsKept`; kiểm đột biến: tắt phần sửa thì cả hai fail (vị trí `20000` thay vì ≥ `39500` / < `5000`), bật lại thì pass 3/3 lần chạy liên tiếp. Commit `b3c7459`.
+- **Drag-down để đóng Player:** chưa thêm, chỉ đóng bằng chevron `player.close` (xem giới hạn).
+
+Lệnh đã chạy và kết quả (`OUT` = scratch dir `…/scratchpad/ios`, không commit; `SIM` = NovaTest iPhone 17, iOS 26.3):
+
+```bash
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcast -destination "id=$SIM" \
+  -derivedDataPath $OUT/DD-m3-r2 -resultBundlePath $OUT/M3-r2-unit.xcresult -only-testing:TSPodcastTests
+#   ** TEST SUCCEEDED **; summary: 152 test, 152 passed, 0 failed, 0 skipped (round 1: 150)
+xcodebuild build-for-testing -project iosApp/iosApp.xcodeproj -scheme TSPodcast -destination "id=$SIM" \
+  -derivedDataPath $OUT/DD-m3-r2                                    # ** TEST BUILD SUCCEEDED ** (UI target compile được)
+xcodebuild -project iosApp/iosApp.xcodeproj -scheme TSPodcast -configuration Release \
+  -destination "id=$SIM" -derivedDataPath $OUT/DD-rel-m3-r2 build   # ** BUILD SUCCEEDED **
+strings $OUT/DD-rel-m3-r2/Build/Products/Release-iphonesimulator/TSPodcast.app/TSPodcast \
+  | grep -c -e "uitest-" -e "TSP_UITEST_" -e "playback.probe" -e "onStartSeekSent"   # 0
+```
+
+`shared/` không đổi ở round 2 nên không chạy lại `:shared:allTests` (kết quả T1 và PO round 1: 27 class, 191 test mỗi target, 0 fail); không đổi file Gradle nên không chạy `:app:assembleDebug` (PO round 1: `BUILD SUCCESSFUL`). `project.yml` không đổi, không thêm file mới nên không cần `xcodegen generate`.
+
+Kiểm tĩnh M3-AC21:
+
+| Lệnh | Kết quả |
+|---|---|
+| `git check-ignore -v iosApp/Config/Secrets.xcconfig` | `.gitignore:32:iosApp/Config/Secrets.xcconfig` |
+| đếm key/secret (đọc từ `Secrets.xcconfig`, chỉ in số) trong `git log main..HEAD -p` | `0` và `0` |
+| `git log 6f9aff9..HEAD --format='%s'` + đếm `Co-Authored-By` so với `git rev-list --count 6f9aff9..HEAD` | mọi subject conventional (`docs`, `feat`, `fix`); số trailer = số commit |
+| `git ls-files \| grep -E '(^\|/)(build\|DerivedData\|xcuserdata)/\|\.xcresult\|\.xcframework\|Secrets\.xcconfig$'` | 0 dòng |
+| `grep -n "seam phát nhạc" docs/ios/handoff.md` | 0 |
+
+Ghi chú: một lần chạy cả suite của developer trước review round 1 (`$OUT/M3-xcodebuild.log`, chạy trước khi có luật test) có 53 UI test, 2 fail ở `SearchUITests` (`testBlacklistedResultsHidden`, `testCategoryOpensTrendingByCategory`, phụ thuộc dữ liệu PodcastIndex thật, ngoài scope M3). Không dùng làm bằng chứng nghiệm thu; QC chạy lại.
+
+**handoff.md:** gỡ bullet M2 "Tap episode chỉ gửi sang seam phát nhạc"; các bullet M3 (§7 mục 1–9) đã có từ T1–T3 và vẫn đúng với code; thêm vào bullet "Môi trường test" nhánh iOS 17–18 của MiniPlayer thật; thêm bullet mới "Player chỉ đóng bằng nút chevron" (khoảng trống so với §3.2, chờ owner/QC quyết).
+
+### Giới hạn đã biết của M3 (tổng hợp)
+
+- **Chưa chạy XCUITest nào của M3** (luật test của owner): `PlayerUITests`, `MiniPlayerUITests`, `PlayerErrorUITests`, `LivePlayerUITests`, `LocalizationUITests.testEnglishPlayer`, `MainShellUITests` (đã điều chỉnh) chỉ mới compile. Các AC "để QC" trong review round 1 (AC8–AC16 phần UI, screenshot light/dark/MiniPlayer của AC15) chờ QC.
+- **Chỉ chạy trên iOS 26.3**: nhánh iOS 17–18 (`safeAreaInset`) và iOS 26.0 của `MiniPlayerSlot`, giờ chứa MiniPlayer thật, mới compile (bullet "Môi trường test" trong handoff).
+- **Checklist audio máy thật** (AirPods, tai nghe dây, cuộc gọi, Siri, báo thức, Lock Screen/Control Center, khoá màn hình 30 phút) chưa làm; logic interruption/route change/reset chỉ có unit test bằng notification tổng hợp. Giao owner (handoff).
+- **Player chỉ đóng bằng chevron** `player.close`; `.fullScreenCover` không có vuốt xuống để đóng (§3.2 ghi "vuốt xuống hoặc chevron"). Chưa thêm vì gesture cần kiểm bằng UI run; QC/owner quyết có cần không.
+- **Favourite và lịch sử chỉ trong bộ nhớ** tới M4; sau khi kill app chưa khôi phục item cuối (Android cũng chỉ khôi phục qua notification).
+- **UI test vẫn gọi PodcastIndex thật** cho danh sách episode/Live (audio luôn là fixture); fail nếu API chậm hơn 30 s hoặc không có Live/episode.
+- Lệch nhỏ so với §4.2 PO đã chấp nhận: `PlaybackRequest` không có `feedId` riêng (nằm trong từng `PlaybackItem`), `PlayerPresentation` gộp thành `AppEnvironment.isPlayerPresented`, không có `PlaybackState.derive` (thay bằng hàm thuần `isBuffering`/`milliseconds`, có test).

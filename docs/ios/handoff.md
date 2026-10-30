@@ -49,8 +49,6 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
 - **(M2) Search có chip danh mục, tap mở podcast thịnh hành của danh mục** (E1 `cat=<id>`, `lang=vi`, 7 ngày). Android tải E9 ở Search nhưng không hiện, và tap danh mục chưa có hành động (features-spec §3.9 [Sửa]). Owner muốn kiểu khác (ví dụ tìm theo tên danh mục bằng E7) thì đổi `SearchFeed.categoryPodcasts`. Đã làm ở M2 T3: chip ở trạng thái idle của tab Tìm kiếm, màn danh sách có loading/rỗng/lỗi + "Tải lại", tap mở Detail. Tên danh mục giữ tiếng Anh từ API. File: `docs/ios/milestones/M2.md` §3.2, §7; `iosApp/TSPodcast/Search/SearchView.swift`, `CategoryPodcastsView.swift`.
 - **(M2) Gợi ý tìm kiếm "Podcast hay" thay cho "Radio hay"** của Android, vì iOS v1 không có Radio và chữ "Radio" trong UI dễ khiến reviewer đi tìm tính năng radio. File: `docs/ios/milestones/M2.md` §4.8, §7.
 - **(M2) Lỗi ở Detail và Search:** Detail dùng alert "Rất tiếc!" (en "Oops!") với nội dung đã localize, nút "Tải lại" + "Huỷ", huỷ thì có lỗi inline + "Tải lại" (Android: "Opps!", message thô, shimmer mãi); episode rỗng có empty state. Search tách lỗi khỏi "không có kết quả", có loading, query rỗng không gửi request. File: `docs/ios/milestones/M2.md` §3, §7.
-- **(M2) Tap episode chỉ gửi sang seam phát nhạc (`PlaybackController`, bản stub ghi log)**, ở lại Detail cho tới khi có Player ở M3. File: `docs/ios/milestones/M2.md` §4.5.
-
 - **(M3) Favourite và lịch sử Episode/Podcast chỉ giữ trong bộ nhớ tới M4.**
   - Vì sao: chưa có Room KMP; `extra:current_item_id` và vị trí nghe thì đã lưu bền trong DataStore (`KeyValueStore`).
   - Hệ quả: favourite bấm ở Player mất khi app bị kill; chưa khôi phục được item cuối sau khi kill app (Android cũng chỉ khôi phục qua notification).
@@ -62,6 +60,7 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
 - **(M3) Remote command chỉ có play/pause/toggle, next/previous track và kéo thanh seek** trên Lock Screen; skip ±, tốc độ, seek forward/backward bị tắt vì app chưa có các tính năng [iOS+] đó. File: `docs/ios/milestones/M3.md` §4.5, §7 mục 6.
 - **(M3) MiniPlayer hiện tên podcast ở dòng phụ** (Android hiện mô tả episode); Live dùng `feedTitle` làm tên podcast; stream live (không có duration) hiện "LIVE" và không seek được. File: `docs/ios/milestones/M3.md` §3.3, §7 mục 7.
 - **(M3) Không gửi User-Agent tuỳ chỉnh tới host audio; bật `NSAllowsArbitraryLoadsForMedia`** để phát enclosure `http://` (chỉ áp dụng cho AVFoundation). File: `iosApp/TSPodcast/Info.plist`, `docs/ios/milestones/M3.md` §7 mục 9.
+- **(M3) Player chỉ đóng bằng nút chevron, chưa vuốt xuống để đóng** (plan M3 §3.2 ghi "vuốt xuống hoặc chevron"). `.fullScreenCover` không có gesture này sẵn; chưa tự thêm vì gesture cần kiểm bằng UI run, mà milestone chỉ chạy unit test. Trong lúc chờ: chevron `player.close` hoạt động, có XCUITest (để QC). Owner/QC quyết có cần vuốt xuống không; nếu cần thì thêm `DragGesture` gọi `environment.isPlayerPresented = false` ở `PlayerView`. File: `iosApp/TSPodcast/Player/PlayerView.swift`, `iosApp/TSPodcast/Main/MainTabView.swift`, progress.md mục M3 "Giới hạn đã biết".
 
 ### Môi trường test
 
@@ -69,6 +68,7 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
   - Vì sao bị chặn: deployment target là iOS 17.0, nhưng máy dev chỉ có runtime iOS 26.3. Nhánh `safeAreaInset` (iOS 17–18) và nhánh iOS 26.0 của `MiniPlayerSlot` mới chỉ compile, chưa chạy. Tải runtime (vài GB) là việc của owner trên máy này.
   - Trong lúc chờ: nhánh iOS 26.1+ (`tabViewBottomAccessory(isEnabled:)`) đã qua `MainShellUITests.testMiniPlayerSlotSitsAboveTabBar` / `testNoMiniPlayerWhenNothingPlays` trên iOS 26.3.
   - (M2) Cùng lý do: nhánh iOS 17 của zoom transition Home → Detail (push thường) và giao diện `.searchable` + hàng chip chế độ trên iOS 17–18 cũng mới compile, chưa chạy/chưa xem.
+  - (M3) Hai nhánh cũ của `MiniPlayerSlot` giờ chứa MiniPlayer thật (`MiniPlayerView`), vẫn mới compile; trên iOS 26.3 cũng chưa chạy UI test nào của M3 (theo luật test, để QC).
   - Owner chọn một trong hai: cài runtime iOS 17 hoặc 18 (Xcode › Settings › Components) rồi chạy lại toàn bộ `xcodebuild test` trên simulator đó (ít nhất `MainShellUITests`, `PodcastDetailUITests`, `SearchUITests`); hoặc nâng deployment target lên 26 (bỏ nhánh cũ).
   - File: `iosApp/TSPodcast/Main/MiniPlayerSlot.swift`, `iosApp/TSPodcast/Design/ZoomTransition.swift`, `iosApp/TSPodcast/Search/SearchView.swift`, `iosApp/project.yml` (`deploymentTarget`).
 - **(M3) Checklist audio trên máy thật** (simulator không mô phỏng được): AirPods (nút double tap, tháo tai → pause), rút tai nghe dây → pause, cuộc gọi/FaceTime → pause rồi tự resume khi trước đó đang phát, Siri, báo thức, điều khiển từ Lock Screen/Control Center, khoá màn hình 30 phút vẫn phát.
