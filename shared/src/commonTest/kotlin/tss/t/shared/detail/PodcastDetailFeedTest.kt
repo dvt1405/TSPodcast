@@ -6,6 +6,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import tss.t.shared.TestGraph
 import tss.t.shared.model.Episode
+import tss.t.shared.model.Podcast
 import tss.t.shared.model.TSDataState
 import tss.t.shared.network.PodcastIndexHttpException
 import tss.t.shared.network.respondJson
@@ -105,6 +106,9 @@ class PodcastDetailFeedTest {
         assertEquals("Show", assertNotNull(detail.feed).title)
         assertEquals(0, detail.hiddenExplicitCount)
         assertFalse(detail.isExplicitFeedHidden)
+        val podcast = assertNotNull(detail.podcast, "the podcast saved with a tap comes from E11")
+        assertEquals(42L, podcast.id)
+        assertEquals("Show", podcast.title)
     }
 
     @Test
@@ -116,6 +120,13 @@ class PodcastDetailFeedTest {
 
         assertNull(detail.feed)
         assertEquals(listOf(1L, 2L, 3L), detail.episodes.map { it.id })
+        assertNull(detail.podcast)
+        val fallback = detail.podcastToSave(42, "From route", "https://img/42.jpg", "About")
+        assertEquals(42L, fallback.id)
+        assertEquals(42L, fallback.feedId)
+        assertEquals("From route", fallback.title)
+        assertEquals("https://img/42.jpg", fallback.image)
+        assertEquals("About", fallback.description)
     }
 
     @Test
@@ -268,6 +279,20 @@ class PodcastDetailFeedTest {
         assertEquals(listOf(13L, 11L), detail.episodes.map { it.id }, "newest first, D6 drops the explicit one")
         assertEquals(1, detail.hiddenExplicitCount)
         assertNull(detail.feed)
+        assertNull(detail.podcast, "no E11 and no saved podcast row")
+    }
+
+    @Test
+    fun savedEpisodesComeWithTheSavedPodcast() = runTest {
+        val test = graph(episodes = null, podcast = null)
+        test.graph.podcastStorage.insertPodcast(Podcast(id = 42, title = "Saved show"))
+        test.graph.podcastStorage.insertEpisodes(listOf(saved(11)))
+
+        val detail = test.graph.podcastDetailFeed.load(42).data()
+
+        assertTrue(detail.isFromCache)
+        assertEquals("Saved show", assertNotNull(detail.podcast).title)
+        assertEquals("Saved show", detail.podcastToSave(42, "From route", null, null).title)
     }
 
     @Test

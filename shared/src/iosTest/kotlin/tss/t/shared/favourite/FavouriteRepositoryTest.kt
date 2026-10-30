@@ -14,7 +14,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/** Favourites in Room keyed by `(type, id)`, observable, newest first (replaces M3 FavouriteStore). */
+/** Favourites in Room keyed by `(type, id)`, observable, newest first (replaces the M3 key-value favourites). */
 class FavouriteRepositoryTest {
     private val test = TestDatabase()
     private val repository = FavouriteRepository(test.db.favouriteDao())

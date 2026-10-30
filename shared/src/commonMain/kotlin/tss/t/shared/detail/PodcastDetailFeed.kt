@@ -3,8 +3,10 @@ package tss.t.shared.detail
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import tss.t.shared.crash.safeCall
+import tss.t.shared.crash.safeCallOrNull
 import tss.t.shared.model.Episode
 import tss.t.shared.model.Feed
+import tss.t.shared.model.Podcast
 import tss.t.shared.model.TSDataState
 import tss.t.shared.preferences.AppPreferences
 import tss.t.shared.storage.PodcastStorage
@@ -31,6 +33,9 @@ import tss.t.shared.usecase.GetPodcastByFeedID
  * feed (played or favourited earlier), they are returned newest first with
  * [PodcastDetail.isFromCache] set, D6 still applied; with nothing saved the E10 error stands.
  * The database is only read when E10 fails.
+ *
+ * [PodcastDetail.podcast] is what a tap saves with the playlist (M4 §3.2): `Podcast.fromFeed`
+ * of the E11 feed, else (offline) the podcast row saved earlier.
  */
 class PodcastDetailFeed internal constructor(
     private val getEpisodeByFeedId: GetEpisodeByFeedId,
@@ -49,7 +54,8 @@ class PodcastDetailFeed internal constructor(
             is TSDataState.Success -> {
                 val feed = (podcast as? TSDataState.Success)?.data?.feed
                 TSDataState.Success(
-                    detail(episodes.data.items, feed, preferences.allowExplicitContent()),
+                    detail(episodes.data.items, feed, preferences.allowExplicitContent())
+                        .copy(podcast = feed?.let(Podcast::fromFeed)),
                 )
             }
 
@@ -60,7 +66,10 @@ class PodcastDetailFeed internal constructor(
                 } else {
                     val feed = (podcast as? TSDataState.Success)?.data?.feed
                     TSDataState.Success(
-                        detail(saved, feed, preferences.allowExplicitContent()).copy(isFromCache = true),
+                        detail(saved, feed, preferences.allowExplicitContent()).copy(
+                            isFromCache = true,
+                            podcast = feed?.let(Podcast::fromFeed) ?: savedPodcast(feedId),
+                        ),
                     )
                 }
             }
@@ -73,6 +82,9 @@ class PodcastDetailFeed internal constructor(
     private suspend fun savedEpisodes(feedId: Long): List<Episode> =
         safeCall(TAG, mapOf("feedId" to feedId.toString())) { storage.episodesOfFeed(feedId) }
             .getOrDefault(emptyList())
+
+    private suspend fun savedPodcast(feedId: Long): Podcast? =
+        safeCallOrNull(TAG, mapOf("feedId" to feedId.toString())) { storage.podcastById(feedId) }
 
     private fun detail(items: List<Episode>, feed: Feed?, allowExplicit: Boolean): PodcastDetail {
         if (allowExplicit) {
@@ -110,6 +122,8 @@ class PodcastDetailFeed internal constructor(
  *   every episode E10 returned.
  * @property isExplicitFeedHidden E11 marked the feed explicit and D6 is on, so [episodes] is empty.
  * @property isFromCache E10 failed and [episodes] are the ones saved on the device (offline banner).
+ * @property podcast the podcast saved with a played episode: from the E11 feed, else the saved
+ *   row; null when neither exists ([podcastToSave] then builds one from what the screen shows).
  */
 data class PodcastDetail(
     val episodes: List<Episode>,
@@ -117,4 +131,20 @@ data class PodcastDetail(
     val hiddenExplicitCount: Int,
     val isExplicitFeedHidden: Boolean,
     val isFromCache: Boolean = false,
-)
+    val podcast: Podcast? = null,
+) {
+    /**
+     * [podcast], else the podcast the screen was opened with (`id = feedId`): Android saves the
+     * `Podcast` it navigated with, iOS routes only carry these four fields.
+     */
+    fun podcastToSave(feedId: Long, title: String, image: String?, description: String?): Podcast =
+        podcast ?: Podcast(
+            id = feedId,
+            feedId = feedId,
+            title = title,
+            feedTitle = title,
+            image = image.orEmpty(),
+            feedImage = image,
+            description = description,
+        )
+}
