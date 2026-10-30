@@ -3,7 +3,7 @@ import XCTest
 
 /// M1-AC8: the String Catalog compiles into vi and en tables with the §4.5 texts; M2 §4.8
 /// adds the Podcast detail and Search texts; M4-AC23 every M4 key (§4.7) in both languages;
-/// M5-AC11 the Up next peek strings.
+/// M5-AC11 the Up next peek strings; M6-AC23 the Player basics.
 final class LocalizationTests: XCTestCase {
     private func bundle(_ language: String) throws -> Bundle {
         let path = try XCTUnwrap(Bundle.main.path(forResource: language, ofType: "lproj"), "\(language).lproj missing")
@@ -179,6 +179,32 @@ final class LocalizationTests: XCTestCase {
         }
         let vietnamese = try text("player.upNext.peekValue", "vi")
         XCTAssertEqual(String(format: vietnamese, "Tập 1"), "Đang phát: Tập 1")
+    }
+
+    /// M6-AC23: the Player basics (skip, speed, sleep timer), exactly as in the strings table.
+    func testPlayerBasicsStrings() throws {
+        let expected: [String: (vi: String, en: String)] = [
+            "player.skipBack": ("Lùi 15 giây", "Back 15 seconds"),
+            "player.skipForward": ("Tới 30 giây", "Forward 30 seconds"),
+            "player.speed": ("Tốc độ phát", "Playback speed"),
+            "player.sleepTimer": ("Hẹn giờ tắt", "Sleep timer"),
+            "player.sleepTimer.off": ("Tắt", "Off"),
+            "player.sleepTimer.remaining": ("Còn %@", "%@ left"),
+            "speed.minus": ("Giảm tốc độ", "Slower"),
+            "speed.plus": ("Tăng tốc độ", "Faster"),
+            "speed.applyAll": ("Áp dụng cho mọi show", "Apply to all shows"),
+            "speed.applyAll.footnote": ("Khi tắt, mỗi show nhớ tốc độ riêng.", "When off, each show remembers its own speed."),
+            "sleepTimer.minutes %lld": ("%lld phút", "%lld minutes"),
+            "sleepTimer.option.endOfEpisode": ("Hết tập", "End of episode"),
+            "sleepTimer.option.off": ("Tắt hẹn giờ", "Turn off timer"),
+            "sleepTimer.status.endOfEpisode": ("Dừng khi hết tập này", "Stops at the end of this episode"),
+        ]
+        for (key, value) in expected {
+            XCTAssertEqual(try text(key, "vi"), value.vi, "vi \(key)")
+            XCTAssertEqual(try text(key, "en"), value.en, "en \(key)")
+        }
+        XCTAssertEqual(String(format: try text("sleepTimer.minutes %lld", "vi"), 30), "30 phút")
+        XCTAssertEqual(String(format: try text("player.sleepTimer.remaining", "vi"), "28:14"), "Còn 28:14")
     }
 
     func testOnboardingHighlightsAppearInTheirTitles() throws {

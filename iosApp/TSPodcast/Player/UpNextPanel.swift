@@ -122,7 +122,8 @@ struct UpNextPanel: View {
 }
 
 /// The whole queue (the list of the M3 sheet): the playing row is marked and selected; a tap
-/// plays that item in the same queue (`playerMediaItem`).
+/// plays that item in the same queue (`playerMediaItem`). The first row holds Previous / Next
+/// (M6 §3.1: the Player's main row now has −15 / +30), disabled at the ends of the queue.
 struct UpNextList: View {
     let engine: AudioEngine
     let bottomInset: CGFloat
@@ -131,6 +132,18 @@ struct UpNextList: View {
     var body: some View {
         let state = engine.state
         List {
+            HStack(spacing: 12) {
+                QueueStepButton(systemImage: "backward.end.fill", label: "player.previous", identifier: "player.previous") {
+                    engine.skipPrevious()
+                }
+                .disabled(!state.hasPrevious)
+                QueueStepButton(systemImage: "forward.end.fill", label: "player.next", identifier: "player.next") {
+                    engine.skipNext()
+                }
+                .disabled(!state.hasNext)
+            }
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
             ForEach(Array(state.queue.enumerated()), id: \.offset) { index, item in
                 let isCurrent = index == state.index
                 Button {
@@ -149,6 +162,27 @@ struct UpNextList: View {
         .scrollContentBackground(.hidden)
         .contentMargins(.bottom, bottomInset, for: .scrollContent)
         .accessibilityIdentifier("upNext.root")
+    }
+}
+
+/// Previous / Next episode at the top of the Up next list: glyph + text, ≥ 44 pt, half the row each.
+private struct QueueStepButton: View {
+    let systemImage: String
+    let label: LocalizedStringKey
+    let identifier: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Label(label, systemImage: systemImage)
+                .font(.subheadline.weight(.semibold))
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .glassButton()
+        .accessibilityLabel(Text(label))
+        .accessibilityIdentifier(identifier)
     }
 }
 

@@ -1045,6 +1045,114 @@
         }
       }
     },
+    "player.skipBack" : {
+      "comment" : "Player: skip back 15 s button (VoiceOver label).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back 15 seconds"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lùi 15 giây"
+          }
+        }
+      }
+    },
+    "player.skipForward" : {
+      "comment" : "Player: skip forward 30 s button (VoiceOver label).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forward 30 seconds"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tới 30 giây"
+          }
+        }
+      }
+    },
+    "player.sleepTimer" : {
+      "comment" : "Player: sleep timer button label and title of the sleep timer sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sleep timer"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hẹn giờ tắt"
+          }
+        }
+      }
+    },
+    "player.sleepTimer.off" : {
+      "comment" : "VoiceOver value of the sleep timer button when no timer is set.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tắt"
+          }
+        }
+      }
+    },
+    "player.sleepTimer.remaining" : {
+      "comment" : "Time left on the sleep timer; %@ is a clock like 28:14.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ left"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Còn %@"
+          }
+        }
+      }
+    },
+    "player.speed" : {
+      "comment" : "Player: speed button label and title of the speed sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playback speed"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tốc độ phát"
+          }
+        }
+      }
+    },
     "player.upNext" : {
       "comment" : "Title of the Up next panel on the Player (Android UP NEXT).",
       "extractionState" : "manual",
@@ -1437,6 +1545,150 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Phiên bản"
+          }
+        }
+      }
+    },
+    "sleepTimer.minutes %lld" : {
+      "comment" : "Sleep timer sheet row; %lld is a number of minutes (5 or more).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld minutes"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld phút"
+          }
+        }
+      }
+    },
+    "sleepTimer.option.endOfEpisode" : {
+      "comment" : "Sleep timer: stop at the end of the current episode (sheet row and Player button).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End of episode"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hết tập"
+          }
+        }
+      }
+    },
+    "sleepTimer.option.off" : {
+      "comment" : "Sleep timer sheet row that cancels the timer.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off timer"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tắt hẹn giờ"
+          }
+        }
+      }
+    },
+    "sleepTimer.status.endOfEpisode" : {
+      "comment" : "Sleep timer sheet: status line while the end-of-episode timer is set.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stops at the end of this episode"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dừng khi hết tập này"
+          }
+        }
+      }
+    },
+    "speed.applyAll" : {
+      "comment" : "Speed sheet toggle: one speed for every show.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply to all shows"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Áp dụng cho mọi show"
+          }
+        }
+      }
+    },
+    "speed.applyAll.footnote" : {
+      "comment" : "Speed sheet: explains the apply-to-all toggle.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When off, each show remembers its own speed."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khi tắt, mỗi show nhớ tốc độ riêng."
+          }
+        }
+      }
+    },
+    "speed.minus" : {
+      "comment" : "Speed sheet: lowers the speed by 0.1 (VoiceOver label).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slower"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giảm tốc độ"
+          }
+        }
+      }
+    },
+    "speed.plus" : {
+      "comment" : "Speed sheet: raises the speed by 0.1 (VoiceOver label).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Faster"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tăng tốc độ"
           }
         }
       }

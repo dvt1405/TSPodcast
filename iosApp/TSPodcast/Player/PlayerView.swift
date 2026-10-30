@@ -3,7 +3,8 @@ import SwiftUI
 
 /// Full-screen Player (Android `PlayerScreen` + `PlayerArea` + `PlayerControl` + `PlayerProgress`):
 /// blurred artwork background, close chevron, artwork, title, podcast name, seek slider with
-/// time labels (or "LIVE"), then Favourite · Previous · Play/Pause · Next · Playlist. Under the
+/// time labels (or "LIVE"), then Favourite · −15 · Play/Pause · +30 · Playlist and, under it, the
+/// speed and sleep timer buttons (M6 §3.1; Previous/Next moved to the Up next panel). Under the
 /// controls sits the "Tiếp theo" peek (Android `SlideArea` header, without its ad; M5 §3.1/§4):
 /// the last item of the column is a space as tall as the measured peek, and `UpNextPanel` is
 /// drawn over that space, so the collapsed peek never covers the controls. Expanded, the panel
@@ -25,6 +26,8 @@ struct PlayerView: View {
     @State private var closeRowBottom: CGFloat = 0
     @State private var peekTop: CGFloat = 0
     @State private var bottomInset: CGFloat = 0
+    @State private var isSpeedSheetPresented = false
+    @State private var isSleepTimerSheetPresented = false
 
     var body: some View {
         let state = engine.state
@@ -101,6 +104,15 @@ struct PlayerView: View {
                 .padding(.top, 8)
                 .layoutPriority(1)
 
+                PlayerSecondaryControls(
+                    state: state,
+                    openSpeed: { isSpeedSheetPresented = true },
+                    openSleepTimer: { isSleepTimerSheetPresented = true }
+                )
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .layoutPriority(1)
+
                 if state.error != nil {
                     PlayerErrorView { engine.retry() }
                         .padding(.top, 8)
@@ -142,6 +154,16 @@ struct PlayerView: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("player.root")
+        .sheet(isPresented: $isSpeedSheetPresented) {
+            SpeedSheet(engine: engine)
+        }
+        .sheet(isPresented: $isSleepTimerSheetPresented) {
+            SleepTimerSheet(engine: engine)
+        }
+        .onChange(of: state.isLive) { _, isLive in
+            // Live has no speed (M6 §3.1): never leave the sheet open on a live stream.
+            if isLive { isSpeedSheetPresented = false }
+        }
         // The first favourite is set here, so the one-time push prompt shows here (M4 §4.4).
         .notificationsPrompt(environment.notifications)
         .notificationsDeniedAlert(environment.notifications)
@@ -244,9 +266,10 @@ private struct PlayerProgressView: View {
     }
 }
 
-/// Favourite · Previous · Play/Pause · Next · Playlist (`PlayerControl`). On iOS 26 the four
-/// secondary buttons are glass circles and Play/Pause is tinted glass, all in one `GlassGroup` so
-/// they share one glass layer; below, the M3 row (plain glyphs, a `brandSecondary` circle).
+/// Favourite · −15 · Play/Pause · +30 · Playlist (`PlayerControl`, M6 §3.1: skip replaces
+/// Previous/Next, which live in the Up next panel). On iOS 26 the four secondary buttons are glass
+/// circles and Play/Pause is tinted glass, all in one `GlassGroup` so they share one glass layer;
+/// below, the M3 row (plain glyphs, a `brandSecondary` circle). Skip is disabled for live.
 private struct PlayerControlsView: View {
     let engine: AudioEngine
     let state: PlaybackState
@@ -254,6 +277,7 @@ private struct PlayerControlsView: View {
 
     var body: some View {
         let showsPause = state.isPlaying || state.isBuffering
+        let canSkip = state.current != nil && !state.isLive
         GlassGroup(spacing: 8) {
             HStack {
                 ControlButton(systemImage: state.isFavourite ? "heart.fill" : "heart", label: "player.favourite", identifier: "player.favourite") {
@@ -261,10 +285,10 @@ private struct PlayerControlsView: View {
                 }
                 .accessibilityAddTraits(state.isFavourite ? .isSelected : [])
                 Spacer(minLength: 0)
-                ControlButton(systemImage: "backward.end.fill", label: "player.previous", identifier: "player.previous") {
-                    engine.skipPrevious()
+                ControlButton(systemImage: "gobackward.15", label: "player.skipBack", identifier: "player.skipBack") {
+                    engine.skip(bySeconds: -RemoteCommands.skipBackwardSeconds)
                 }
-                .disabled(!state.hasPrevious)
+                .disabled(!canSkip)
                 Spacer(minLength: 0)
                 Button {
                     engine.togglePlayPause()
@@ -296,13 +320,86 @@ private struct PlayerControlsView: View {
                     }
                 }
                 Spacer(minLength: 0)
-                ControlButton(systemImage: "forward.end.fill", label: "player.next", identifier: "player.next") {
-                    engine.skipNext()
+                ControlButton(systemImage: "goforward.30", label: "player.skipForward", identifier: "player.skipForward") {
+                    engine.skip(bySeconds: RemoteCommands.skipForwardSeconds)
                 }
-                .disabled(!state.hasNext)
+                .disabled(!canSkip)
                 Spacer(minLength: 0)
                 ControlButton(systemImage: "list.bullet", label: "player.playlist", identifier: "player.playlist", action: openPlaylist)
             }
+        }
+    }
+}
+
+/// Speed ("1.0×") and sleep timer (moon, then the time left or "Hết tập") under the main row
+/// (M6 §3.1). Speed is disabled for live; the timer works for anything that plays.
+private struct PlayerSecondaryControls: View {
+    let state: PlaybackState
+    let openSpeed: () -> Void
+    let openSleepTimer: () -> Void
+
+    @Environment(\.locale) private var locale
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Button(action: openSpeed) {
+                Text(verbatim: SpeedSteps.label(state.speedTenths))
+                    .font(.subheadline.weight(.semibold).monospacedDigit())
+                    .frame(minWidth: 64, minHeight: 44)
+                    .contentShape(Capsule())
+            }
+            .glassButton()
+            .disabled(state.current == nil || state.isLive)
+            .accessibilityLabel(Text("player.speed"))
+            .accessibilityValue(Text(verbatim: SpeedSteps.spokenLabel(state.speedTenths, locale: locale)))
+            .accessibilityIdentifier("player.speed")
+
+            // Ticks once a second only while a minutes timer runs.
+            TimelineView(.periodic(from: .now, by: state.sleepTimer.deadline == nil ? 3600 : 1)) { context in
+                Button(action: openSleepTimer) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "moon.zzz")
+                        if let text = sleepTimerText(at: context.date) {
+                            Text(verbatim: text)
+                                .font(.subheadline.weight(.semibold).monospacedDigit())
+                        }
+                    }
+                    .frame(minWidth: 64, minHeight: 44)
+                    .contentShape(Capsule())
+                }
+                .glassButton()
+                .accessibilityLabel(Text("player.sleepTimer"))
+                .accessibilityValue(Text(verbatim: sleepTimerValue(at: context.date)))
+                .accessibilityIdentifier("player.sleepTimer")
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    /// "28:14" or "Hết tập"; nothing when off (the moon alone).
+    private func sleepTimerText(at now: Date) -> String? {
+        switch state.sleepTimer.setting {
+        case .off:
+            nil
+        case .minutes:
+            SleepTimerStatus.clockText(remainingMs: state.sleepTimer.remainingMs(at: now) ?? 0)
+        case .endOfEpisode:
+            String(localized: "sleepTimer.option.endOfEpisode")
+        }
+    }
+
+    /// VoiceOver: "Còn 28:14", "Hết tập" or "Tắt".
+    private func sleepTimerValue(at now: Date) -> String {
+        switch state.sleepTimer.setting {
+        case .off:
+            String(localized: "player.sleepTimer.off")
+        case .minutes:
+            String(
+                format: String(localized: "player.sleepTimer.remaining"),
+                SleepTimerStatus.clockText(remainingMs: state.sleepTimer.remainingMs(at: now) ?? 0)
+            )
+        case .endOfEpisode:
+            String(localized: "sleepTimer.option.endOfEpisode")
         }
     }
 }
