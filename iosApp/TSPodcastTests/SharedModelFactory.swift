@@ -5,7 +5,7 @@ import Foundation
 /// Kotlin API models for tests (Kotlin default arguments do not reach Swift).
 enum SharedModelFactory {
     /// Episode `id` of feed `feedId`, with an audio URL and a publish date that grows with `id`.
-    static func episode(_ id: Int64, feedId: Int64 = 42, published: Int64? = nil) -> Episode {
+    static func episode(_ id: Int64, feedId: Int64 = 42, published: Int64? = nil, title: String? = nil) -> Episode {
         Episode(
             chaptersUrl: nil,
             dateCrawled: 0,
@@ -36,7 +36,7 @@ enum SharedModelFactory {
             socialInteract: nil,
             soundbite: nil,
             soundbites: nil,
-            title: "Episode \(id)",
+            title: title ?? "Episode \(id)",
             transcriptUrl: nil,
             transcripts: nil,
             value: nil

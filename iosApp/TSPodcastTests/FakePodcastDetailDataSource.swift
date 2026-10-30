@@ -31,6 +31,25 @@ final class FakePodcastDetailDataSource: PodcastDetailDataSource, @unchecked Sen
 
     var heldCount: Int { lock.withLock { waiting.count } }
 
+    /// What `searchIndex` answers (M6 §3.3); nil: an index over the episodes on screen.
+    var searchResult: ShowSearchIndexResult? {
+        get { lock.withLock { _searchResult } }
+        set { lock.withLock { _searchResult = newValue } }
+    }
+    private var _searchResult: ShowSearchIndexResult?
+    private var _searchRequests: [Int64] = []
+
+    /// Feed ids of every `searchIndex` call.
+    var searchRequests: [Int64] { lock.withLock { _searchRequests } }
+
+    func searchIndex(feedId: Int64, onScreen: PodcastDetailContent) async -> ShowSearchIndexResult {
+        let result = lock.withLock {
+            _searchRequests.append(feedId)
+            return _searchResult
+        }
+        return result ?? ShowSearchIndexResult(index: FakeShowSearchIndex(rows: onScreen.episodes), isFallback: true)
+    }
+
     func load(feedId: Int64) async -> Result<PodcastDetailContent, DetailLoadError> {
         let (mustWait, result) = lock.withLock {
             _requests.append(feedId)
@@ -43,6 +62,25 @@ final class FakePodcastDetailDataSource: PodcastDetailDataSource, @unchecked Sen
             }
         }
         return result
+    }
+}
+
+/// `ShowEpisodeSearchIndex` matching titles that contain every word, case-insensitively (no fold:
+/// shared `EpisodeFilter` has its own tests).
+struct FakeShowSearchIndex: ShowEpisodeSearchIndex {
+    let rows: [EpisodeRow]
+    var loadedCount: Int
+    var isTruncated: Bool
+
+    init(rows: [EpisodeRow], loadedCount: Int? = nil, isTruncated: Bool = false) {
+        self.rows = rows
+        self.loadedCount = loadedCount ?? rows.count
+        self.isTruncated = isTruncated
+    }
+
+    func matches(_ query: String) -> ShowSearchMatches {
+        let words = query.lowercased().split(separator: " ")
+        return ShowSearchMatches(episodes: rows.filter { row in words.allSatisfy { row.title.lowercased().contains($0) } })
     }
 }
 

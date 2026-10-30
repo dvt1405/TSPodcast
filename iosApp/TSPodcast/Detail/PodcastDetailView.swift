@@ -43,10 +43,16 @@ struct PodcastDetailView: View {
                 if model.isShowingSavedEpisodes {
                     OfflineBanner()
                 }
-                EpisodesSection(model: model)
-                    .padding(.bottom, 24)
+                if model.searchState == .idle {
+                    EpisodesSection(model: model)
+                        .padding(.bottom, 24)
+                } else {
+                    SearchResultsSection(model: model)
+                        .padding(.bottom, 24)
+                }
             }
         }
+        .modifier(ShowSearchField(model: model))
         .accessibilityIdentifier("detail.root")
         .navigationTitle(Text(verbatim: model.podcast.title))
         .toolbarTitleDisplayMode(.inline)
@@ -138,6 +144,98 @@ struct PodcastDetailView: View {
             open: { url, completion in openURL(url, completion: completion) },
             failed: { email in reportFallbackEmail = email }
         )
+    }
+}
+
+// MARK: - Search in show (M6 §3.3)
+
+/// `.searchable` ("Tìm trong show") only on a show with more than 20 episodes.
+private struct ShowSearchField: ViewModifier {
+    let model: PodcastDetailModel
+
+    func body(content: Content) -> some View {
+        if model.isSearchAvailable {
+            content.searchable(
+                text: Binding(get: { model.searchQuery }, set: { model.searchQueryChanged($0) }),
+                placement: .navigationBarDrawer(displayMode: .automatic),
+                prompt: Text("detail.search.prompt")
+            )
+        } else {
+            content
+        }
+    }
+}
+
+/// Results of "Tìm trong show": rows like the list (a tap plays the results), "Không tìm thấy tập
+/// phù hợp", and the footnotes when the search does not cover every episode.
+private struct SearchResultsSection: View {
+    let model: PodcastDetailModel
+
+    @Environment(AppEnvironment.self) private var environment
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            switch model.searchState {
+            case .idle:
+                EmptyView()
+            case .loading:
+                ProgressView()
+                    .frame(maxWidth: .infinity, minHeight: 120)
+                    .accessibilityLabel(Text("detail.search.loading"))
+                    .accessibilityIdentifier("detail.search.loading")
+            case .results(let rows):
+                let nowPlayingID = model.nowPlayingEpisodeID
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+                        Button {
+                            if model.playSearchResult(index: index) {
+                                environment.isPlayerPresented = true
+                            }
+                        } label: {
+                            EpisodeRowView(row: row, index: index, isNowPlaying: row.id == nowPlayingID)
+                        }
+                        .buttonStyle(EpisodeButtonStyle())
+                        .accessibilityElement(children: .contain)
+                        .accessibilityAddTraits(.isButton)
+                        .accessibilityIdentifier("detail.search.result.\(index)")
+                        if index < rows.count - 1 {
+                            GradientDivider()
+                        }
+                    }
+                }
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("detail.search.results")
+            case .noMatch:
+                DetailMessage(icon: "magnifyingglass", text: "detail.search.empty", identifier: "detail.search.empty")
+            }
+            footnotes
+        }
+    }
+
+    @ViewBuilder
+    private var footnotes: some View {
+        if model.searchState != .loading {
+            if model.isSearchingOnScreenOnly {
+                SearchFootnote(text: Text("detail.search.onScreenOnly"), identifier: "detail.search.onScreenOnly")
+            } else if let count = model.searchFootnoteCount {
+                SearchFootnote(text: Text("detail.search.footnote \(count)"), identifier: "detail.search.footnote")
+            }
+        }
+    }
+}
+
+private struct SearchFootnote: View {
+    let text: Text
+    let identifier: String
+
+    var body: some View {
+        text
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .accessibilityIdentifier(identifier)
     }
 }
 

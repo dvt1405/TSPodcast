@@ -207,13 +207,16 @@ final class LocalizationTests: XCTestCase {
         XCTAssertEqual(String(format: try text("player.sleepTimer.remaining", "vi"), "28:14"), "Còn 28:14")
     }
 
-    /// M6-AC23: hide/report, hidden shows and the consent placeholders.
-    func testShowSafetyAndPrivacyStrings() throws {
+    /// M6-AC23: hide/report, search in show, hidden shows and the consent placeholders.
+    func testShowSafetyPrivacyAndSearchStrings() throws {
         let expected: [String: (vi: String, en: String)] = [
             "show.hide": ("Ẩn show này", "Hide this show"),
             "report.action": ("Báo cáo nội dung", "Report content"),
             "settings.hiddenShows": ("Show đã ẩn", "Hidden shows"),
             "hiddenShows.unhide": ("Bỏ ẩn", "Unhide"),
+            "detail.search.prompt": ("Tìm trong show", "Search this show"),
+            "detail.search.empty": ("Không tìm thấy tập phù hợp", "No matching episodes"),
+            "detail.search.footnote %lld": ("Chỉ tìm trong %lld tập mới nhất", "Searching the %lld newest episodes only"),
             "consent.acceptAll": ("Đồng ý tất cả", "Accept all"),
             "consent.necessaryOnly": ("Chỉ cần thiết", "Necessary only"),
             "consent.saveChoice": ("Lưu lựa chọn", "Save choices"),
@@ -226,9 +229,10 @@ final class LocalizationTests: XCTestCase {
             XCTAssertEqual(try text(key, "vi"), value.vi, "vi \(key)")
             XCTAssertEqual(try text(key, "en"), value.en, "en \(key)")
         }
+        XCTAssertEqual(String(format: try text("detail.search.footnote %lld", "vi"), 1000), "Chỉ tìm trong 1000 tập mới nhất")
         for key in ["consent.title", "consent.intro", "consent.necessary.detail", "consent.analytics.detail", "consent.crash.detail", "consent.footnote",
                     "report.fallback.title", "report.fallback.message %@", "report.fallback.copy", "detail.hide.confirmTitle",
-                    "detail.hide.confirm", "detail.hide.confirmMessage", "hiddenShows.empty", "hiddenShows.footer"] {
+                    "detail.hide.confirm", "detail.hide.confirmMessage", "hiddenShows.empty", "hiddenShows.footer", "detail.search.onScreenOnly"] {
             for language in ["vi", "en"] {
                 XCTAssertNotEqual(try text(key, language), "<missing>", "\(language) \(key)")
             }

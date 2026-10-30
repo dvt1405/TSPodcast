@@ -577,6 +577,96 @@
         }
       }
     },
+    "detail.search.empty" : {
+      "comment" : "Search in show found nothing.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No matching episodes"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tìm thấy tập phù hợp"
+          }
+        }
+      }
+    },
+    "detail.search.footnote %lld" : {
+      "comment" : "Footnote when the show has more episodes than were loaded; %lld is that number.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Searching the %lld newest episodes only"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chỉ tìm trong %lld tập mới nhất"
+          }
+        }
+      }
+    },
+    "detail.search.loading" : {
+      "comment" : "VoiceOver label while the episodes of the show load for search.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Searching"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tìm"
+          }
+        }
+      }
+    },
+    "detail.search.onScreenOnly" : {
+      "comment" : "Footnote when the full episode list failed and search covers the listed episodes only.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load every episode: searching the episodes shown here."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tải được toàn bộ danh sách tập: đang tìm trong các tập đang hiển thị."
+          }
+        }
+      }
+    },
+    "detail.search.prompt" : {
+      "comment" : "Prompt of the search field of Podcast detail (shows with more than 20 episodes).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search this show"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm trong show"
+          }
+        }
+      }
+    },
     "favourite.discoverMore" : {
       "comment" : "Button of the empty Favourite tab that opens Discover (btn_discover_more_title).",
       "extractionState" : "manual",

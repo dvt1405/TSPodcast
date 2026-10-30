@@ -25,13 +25,34 @@ final class SharedPodcastDetailDataSource: PodcastDetailDataSource, @unchecked S
     }
 
     private let feed: PodcastDetailFeed
+    private let search: ShowEpisodeSearch?
     private let hooks: TestHooks
     private let lock = NSLock()
     private var hasFailedOnce = false
 
-    init(feed: PodcastDetailFeed, hooks: TestHooks = .none) {
+    init(feed: PodcastDetailFeed, search: ShowEpisodeSearch? = nil, hooks: TestHooks = .none) {
         self.feed = feed
+        self.search = search
         self.hooks = hooks
+    }
+
+    func searchIndex(feedId: Int64, onScreen: PodcastDetailContent) async -> ShowSearchIndexResult {
+        if let search {
+            do {
+                let state = try await search.load(feedId: feedId)
+                if let index = (state as? TSDataStateSuccess<ShowEpisodeIndex>)?.data {
+                    AppLog.browse.notice(
+                        "show_search_index feedId=\(feedId, privacy: .public) loaded=\(index.loadedCount, privacy: .public) searchable=\(index.episodes.count, privacy: .public) truncated=\(index.isTruncated, privacy: .public)"
+                    )
+                    return ShowSearchIndexResult(index: SharedShowEpisodeSearchIndex(index), isFallback: false)
+                }
+                let reason = (state as? TSDataStateError<ShowEpisodeIndex>)?.exception.typeName ?? "UnexpectedState"
+                AppLog.browse.error("show_search_failed feedId=\(feedId, privacy: .public) type=\(reason, privacy: .public)")
+            } catch {
+                AppLog.browse.error("show_search_failed feedId=\(feedId, privacy: .public) type=\(String(describing: type(of: error)), privacy: .public)")
+            }
+        }
+        return ShowSearchIndexResult(index: SharedShowEpisodeSearchIndex(onScreen: onScreen), isFallback: true)
     }
 
     func load(feedId: Int64) async -> Result<PodcastDetailContent, DetailLoadError> {
@@ -49,7 +70,8 @@ final class SharedPodcastDetailDataSource: PodcastDetailDataSource, @unchecked S
                     isExplicitFeedHidden: detail.isExplicitFeedHidden,
                     hiddenExplicitCount: Int(detail.hiddenExplicitCount),
                     isFromCache: detail.isFromCache,
-                    source: KotlinValue(detail)
+                    source: KotlinValue(detail),
+                    feedEpisodeCount: detail.feed.map { Int($0.episodeCount) }
                 )
                 AppLog.browse.notice(
                     "detail_loaded feedId=\(feedId, privacy: .public) count=\(content.episodes.count, privacy: .public) hiddenExplicit=\(content.hiddenExplicitCount, privacy: .public) feedHidden=\(content.isExplicitFeedHidden, privacy: .public) fromCache=\(content.isFromCache, privacy: .public)"
@@ -90,6 +112,39 @@ final class SharedPodcastDetailDataSource: PodcastDetailDataSource, @unchecked S
     private static func failed(feedId: Int64, reason: String) -> DetailLoadError {
         AppLog.browse.error("detail_failed feedId=\(feedId, privacy: .public) type=\(reason, privacy: .public)")
         return DetailLoadError(reason: reason)
+    }
+}
+
+/// `ShowEpisodeSearchIndex` over shared `EpisodeFilter`: rows are built once, a query only folds
+/// itself and picks rows by position. Immutable after `init`.
+final class SharedShowEpisodeSearchIndex: ShowEpisodeSearchIndex, @unchecked Sendable {
+    let loadedCount: Int
+    let isTruncated: Bool
+    private let filter: EpisodeFilter
+    private let rows: [EpisodeRow]
+    private let sources: [KotlinValue<Episode>]
+
+    init(_ index: ShowEpisodeIndex) {
+        filter = index.filter
+        loadedCount = Int(index.loadedCount)
+        isTruncated = index.isTruncated
+        sources = index.episodes.map { KotlinValue($0) }
+        rows = index.episodes.map(EpisodeRow.init)
+    }
+
+    /// The episodes Detail shows (the search failed): nothing more to say about truncation.
+    init(onScreen: PodcastDetailContent) {
+        let episodes = onScreen.source?.value.episodes ?? []
+        filter = EpisodeFilter.companion.index(episodes: episodes)
+        loadedCount = episodes.count
+        isTruncated = false
+        sources = episodes.map { KotlinValue($0) }
+        rows = episodes.map(EpisodeRow.init)
+    }
+
+    func matches(_ query: String) -> ShowSearchMatches {
+        let positions = filter.matchingIndices(query: query).map { Int($0.int32Value) }
+        return ShowSearchMatches(episodes: positions.map { rows[$0] }, sources: positions.map { sources[$0] })
     }
 }
 

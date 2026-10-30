@@ -130,6 +130,7 @@ final class AppEnvironment {
         )
         podcastDetailDataSource = SharedPodcastDetailDataSource(
             feed: graph.podcastDetailFeed,
+            search: graph.showEpisodeSearch,
             hooks: Self.detailHooks(launchOptions)
         )
         searchDataSource = SharedSearchDataSource(
@@ -228,7 +229,7 @@ final class AppEnvironment {
 
     /// Podcast detail of `route`, over shared `PodcastDetailFeed` and the app's player seam.
     func makePodcastDetailModel(for route: PodcastRoute) -> PodcastDetailModel {
-        PodcastDetailModel(podcast: route, dataSource: podcastDetailDataSource, playback: playback)
+        PodcastDetailModel(podcast: route, dataSource: podcastDetailDataSource, playback: playback, analytics: analytics)
     }
 
     /// The Search tab (debounce 200 ms on the continuous clock). `MainTabView` keeps it, so the
