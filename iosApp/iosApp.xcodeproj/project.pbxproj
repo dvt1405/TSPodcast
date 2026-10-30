@@ -71,6 +71,7 @@
 		6376C826EC53ADD10BE4BF9D /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 1979479388477543B8CAD128 /* FirebaseMessaging */; };
 		6587BE574D14BD915151EFE0 /* CategoryCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFCE351C2B1B5C90F742D246 /* CategoryCatalog.swift */; };
 		67AF04EA106EC4103F52451B /* RemoteConfigLoaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7774A37568AAA9A88E9C00F8 /* RemoteConfigLoaderTests.swift */; };
+		6946A7AEE12BA52721C987F7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = CA2B04D1BB9872254B5998A6 /* PrivacyInfo.xcprivacy */; };
 		6AEE67ED002A3421295E2475 /* PlaybackSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6834D6458DB1916F68771D7 /* PlaybackSystemTests.swift */; };
 		6E9035A635BC0C046F04E56B /* GradientButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCB71B2F7830EEE139A96A4B /* GradientButtonStyle.swift */; };
 		701635C2893975142440CFBC /* CategoryIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E56D0E732FD41C3690BB7F0 /* CategoryIcon.swift */; };
@@ -294,6 +295,7 @@
 		C05A5A89C400685059F7EA5D /* LocalizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationTests.swift; sourceTree = "<group>"; };
 		C3C3B7E051DE01C6136453FD /* PodcastRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastRoute.swift; sourceTree = "<group>"; };
 		C7CF693F8CD1CFD852C82ECB /* EpisodeRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeRow.swift; sourceTree = "<group>"; };
+		CA2B04D1BB9872254B5998A6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		CA5D68CA939071D29DC67A33 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CB5798956AD701BC290E47EC /* TSPodcastApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TSPodcastApp.swift; sourceTree = "<group>"; };
 		CC6422AAD68C376A3FAE07AD /* PodcastDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastDetailView.swift; sourceTree = "<group>"; };
@@ -597,6 +599,7 @@
 		D6189BA866B513F9C6F7E4F6 /* TSPodcast */ = {
 			isa = PBXGroup;
 			children = (
+				CA2B04D1BB9872254B5998A6 /* PrivacyInfo.xcprivacy */,
 				EDE301742AB76878E341085C /* App */,
 				85E5F50E71653A0ABCE3BF7D /* Categories */,
 				078720D5E8ECEC3DEB030C1F /* Config */,
@@ -847,6 +850,7 @@
 			files = (
 				A1E678B0E23D0B04ED333B42 /* Assets.xcassets in Resources */,
 				A98AD53122D15AA0A2D3A8C3 /* Localizable.xcstrings in Resources */,
+				6946A7AEE12BA52721C987F7 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

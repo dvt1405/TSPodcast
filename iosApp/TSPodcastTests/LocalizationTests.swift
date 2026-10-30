@@ -2,7 +2,7 @@ import XCTest
 @testable import TSPodcast
 
 /// M1-AC8: the String Catalog compiles into vi and en tables with the §4.5 texts; M2 §4.8
-/// adds the Podcast detail and Search texts.
+/// adds the Podcast detail and Search texts; M4-AC23 every M4 key (§4.7) in both languages.
 final class LocalizationTests: XCTestCase {
     private func bundle(_ language: String) throws -> Bundle {
         let path = try XCTUnwrap(Bundle.main.path(forResource: language, ofType: "lproj"), "\(language).lproj missing")
@@ -62,6 +62,10 @@ final class LocalizationTests: XCTestCase {
             "settings.explicit": "Hiện nội dung người lớn (explicit)",
             "settings.privacy": "Chính sách bảo mật",
             "settings.version": "Phiên bản",
+            "notifications.prompt.message": "Chỉ gửi khi có podcast mới. Bạn có thể tắt bất cứ lúc nào trong Cài đặt.",
+            "notifications.denied.hint": "Mở Cài đặt để bật lại thông báo cho TSPodcast.",
+            "deeplink.error.title": "Không mở được liên kết",
+            "deeplink.error.message": "Nội dung này không còn hoặc không xem được trong ứng dụng.",
             "detail.explicitHidden": "Podcast này được đánh dấu có nội dung người lớn (explicit) nên các tập đã bị ẩn.",
             "search.prompt": "Tìm podcast, nghệ sĩ",
             "search.mode.all": "Tất cả",
@@ -120,6 +124,10 @@ final class LocalizationTests: XCTestCase {
             "settings.explicit": "Show explicit content",
             "settings.privacy": "Privacy Policy",
             "settings.version": "Version",
+            "notifications.prompt.message": "Only when new podcasts arrive. You can turn this off anytime in Settings.",
+            "notifications.denied.hint": "Open Settings to turn notifications back on for TSPodcast.",
+            "deeplink.error.title": "Couldn't open the link",
+            "deeplink.error.message": "This content is no longer available or can't be shown in the app.",
             "detail.explicitHidden": "This podcast is marked explicit, so its episodes are hidden.",
             "search.prompt": "Search podcasts, artists",
             "search.mode.all": "All",
@@ -134,6 +142,26 @@ final class LocalizationTests: XCTestCase {
         ]
         for (key, value) in expected {
             XCTAssertEqual(try text(key, "en"), value, key)
+        }
+    }
+
+    /// Every string M4 added (plan §4.7, plus the alert messages that carry identifiers).
+    static let m4Keys = [
+        "favourite.unavailable.title", "favourite.unavailable.message", "favourite.unavailable.remove", "action.close",
+        "detail.offlineBanner",
+        "notifications.prompt.title", "notifications.prompt.message", "notifications.prompt.enable", "notifications.prompt.later",
+        "notifications.denied.message", "notifications.denied.hint", "notifications.denied.openSettings",
+        "settings.title", "settings.notifications", "settings.explicit", "settings.privacy", "settings.version",
+        "deeplink.error.title", "deeplink.error.message",
+    ]
+
+    func testEveryM4KeyHasVietnameseAndEnglish() throws {
+        for key in Self.m4Keys {
+            let vietnamese = try text(key, "vi")
+            let english = try text(key, "en")
+            XCTAssertNotEqual(vietnamese, "<missing>", "vi \(key)")
+            XCTAssertNotEqual(english, "<missing>", "en \(key)")
+            XCTAssertNotEqual(english, vietnamese, "en of \(key) is translated")
         }
     }
 
