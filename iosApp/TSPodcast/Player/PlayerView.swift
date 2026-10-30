@@ -4,11 +4,13 @@ import SwiftUI
 /// Full-screen Player (Android `PlayerScreen` + `PlayerArea` + `PlayerControl` + `PlayerProgress`):
 /// blurred artwork background, close chevron, artwork, title, podcast name, seek slider with
 /// time labels (or "LIVE"), then Favourite · −15 · Play/Pause · +30 · Playlist and, under it, the
-/// speed and sleep timer buttons (M6 §3.1; Previous/Next moved to the Up next panel). Under the
+/// speed and sleep timer buttons (M6 §3.1; Previous/Next moved to the Up next sheet). Under the
 /// controls sits the "Tiếp theo" peek (Android `SlideArea` header, without its ad; M5 §3.1/§4):
-/// the last item of the column is a space as tall as the measured peek, and `UpNextPanel` is
-/// drawn over that space, so the collapsed peek never covers the controls. Expanded, the panel
-/// top sits just below the close row. The close row's `…` (`player.more`) only holds "Báo cáo nội
+/// the last item of the column is a space as tall as the measured peek, and `UpNextSheet` is a
+/// system sheet whose peek detent is exactly that space, so the peek never covers the controls.
+/// Open, the sheet top sits just below the close row. The sheet stays presented while the Player
+/// is (the Player behind it stays usable), so the Player's own sheets and alerts are presented
+/// from the sheet then (`PlayerPresentations`). The close row's `…` (`player.more`) only holds "Báo cáo nội
 /// dung" and shows only when a report address is configured (M6 §3.5).
 /// Coordinate space of the Player column, where the close row and the peek space are measured.
 private let playerCoordinateSpace = "player"
@@ -25,7 +27,19 @@ struct PlayerView: View {
     @State private var panel = UpNextPanelState()
     @State private var peekHeight: CGFloat = 0
     @State private var closeRowBottom: CGFloat = 0
-    @State private var peekTop: CGFloat = 0
+    /// Height of the column (inside the safe area): the open detent is the part under the close row.
+    @State private var columnHeight: CGFloat = 0
+    /// The Up next sheet is presented once the Player is on screen (not during the cover's
+    /// presentation).
+    @State private var hasAppeared = false
+    /// Screen y of the close row's bottom and of the peek space's top: where the open and the
+    /// collapsed sheet tops must land.
+    @State private var openTarget: CGFloat = 0
+    @State private var peekTarget: CGFloat = 0
+    /// Added to the detent heights so the sheet tops land on the targets: a detent height is not
+    /// exactly the distance from the screen bottom (iOS 26 floats a partial sheet above the bottom
+    /// edge; Tun put the open top 23 pt low). Measured when the sheet settles, per column height.
+    @State private var detentCorrection = UpNextDetentCorrection()
     @State private var bottomInset: CGFloat = 0
     @State private var isSpeedSheetPresented = false
     @State private var isSleepTimerSheetPresented = false
@@ -68,7 +82,9 @@ struct PlayerView: View {
                 .padding(.horizontal, 8)
                 .onGeometryChange(for: CGFloat.self, of: { $0.frame(in: .named(playerCoordinateSpace)).maxY }) { bottom in
                     closeRowBottom = bottom
-                    updateTravel()
+                }
+                .onGeometryChange(for: CGFloat.self, of: { $0.frame(in: .global).maxY }) { bottom in
+                    openTarget = bottom
                 }
 
                 Spacer(minLength: 8)
@@ -106,7 +122,7 @@ struct PlayerView: View {
                     .layoutPriority(1)
 
                 PlayerControlsView(engine: engine, state: state) {
-                    UpNextPanelSignpost.animate(panelAnimation) { panel.expand() }
+                    withAnimation(panelAnimation) { panel.expand() }
                 }
                 .padding(.horizontal, 8)
                 .padding(.top, 8)
@@ -132,50 +148,74 @@ struct PlayerView: View {
                 // The space the collapsed peek occupies: always the last item, under the controls
                 // (and under the error view), so the panel can never overlay the transport row.
                 if !peekRows.isEmpty {
-                    Color.clear
-                        .frame(height: peekHeight)
-                        .accessibilityHidden(true)
-                        .onGeometryChange(for: CGFloat.self, of: { $0.frame(in: .named(playerCoordinateSpace)).minY }) { top in
-                            peekTop = top
-                            updateTravel()
+                    if isCompactHeight {
+                        // Landscape iPhone: a sheet there always fills the height, so the peek is
+                        // drawn here and the queue opens as a full sheet.
+                        UpNextHeader(engine: engine, peekRows: peekRows, isExpanded: false) {
+                            withAnimation(panelAnimation) { panel.expand() }
                         }
+                    } else {
+                        Color.clear
+                            .frame(height: peekHeight)
+                            .accessibilityHidden(true)
+                            .onGeometryChange(for: CGFloat.self, of: { $0.frame(in: .global).minY }) { top in
+                                peekTarget = top
+                            }
+                    }
                 }
             }
             .coordinateSpace(.named(playerCoordinateSpace))
+            .onGeometryChange(for: CGFloat.self, of: \.size.height) { height in
+                columnHeight = height
+                detentCorrection.layoutDidChange(columnHeight: height)
+            }
             .onGeometryChange(for: CGFloat.self, of: \.safeAreaInsets.bottom) { inset in
                 bottomInset = inset
-            }
-            .overlay(alignment: .top) {
-                if !peekRows.isEmpty {
-                    UpNextPanel(
-                        engine: engine,
-                        panel: $panel,
-                        peekRows: peekRows,
-                        bottomInset: bottomInset
-                    ) { height in
-                        peekHeight = height
-                    }
-                    .padding(.top, closeRowBottom)
-                    .ignoresSafeArea(.container, edges: .bottom)
-                }
             }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("player.root")
-        .sheet(isPresented: $isSpeedSheetPresented) {
-            SpeedSheet(engine: engine)
+        .onAppear { hasAppeared = true }
+        .sheet(isPresented: isUpNextPresented(hasQueue: !peekRows.isEmpty)) {
+            let detents = upNextDetents
+            UpNextSheet(
+                engine: engine,
+                panel: $panel,
+                peekRows: peekRows,
+                peekTop: peekTarget,
+                openTop: openTarget,
+                bottomInset: bottomInset,
+                onPeekHeightChange: { height in
+                    if !isCompactHeight { peekHeight = height }
+                },
+                onSettledTop: { top in
+                    guard !isCompactHeight else { return }
+                    detentCorrection.settled(
+                        top: top,
+                        target: panel.isExpanded ? openTarget : peekTarget,
+                        isOpen: panel.isExpanded
+                    )
+                }
+            )
+            .presentationDetents(
+                [detents.peek, detents.open],
+                selection: Binding(
+                    get: { panel.isExpanded ? detents.open : detents.peek },
+                    set: { panel.mode = $0 == detents.open ? .expanded : .collapsed }
+                )
+            )
+            .presentationDragIndicator(.visible)
+            // The Player (close, controls, speed, timer) stays usable at both detents, undimmed.
+            .presentationBackgroundInteraction(.enabled)
+            // Never dismissed by a drag, except the full sheet of a compact height (it collapses).
+            .interactiveDismissDisabled(!isCompactHeight)
+            .modifier(presentations(isActive: true))
         }
-        .sheet(isPresented: $isSleepTimerSheetPresented) {
-            SleepTimerSheet(engine: engine)
-        }
-        .contentReportFallbackAlert(email: $reportFallbackEmail)
+        .modifier(presentations(isActive: !isUpNextPresented(hasQueue: !peekRows.isEmpty).wrappedValue))
         .onChange(of: state.isLive) { _, isLive in
             // Live has no speed (M6 §3.1): never leave the sheet open on a live stream.
             if isLive { isSpeedSheetPresented = false }
         }
-        // The first favourite is set here, so the one-time push prompt shows here (M4 §4.4).
-        .notificationsPrompt(environment.notifications)
-        .notificationsDeniedAlert(environment.notifications)
         #if DEBUG
         .overlay(alignment: .topTrailing) {
             if environment.launchOptions.playbackProbe {
@@ -220,14 +260,71 @@ struct PlayerView: View {
         )
     }
 
-    /// Spring normally; a short ease without bounce with Reduce Motion (same as `UpNextPanel`).
+    /// Spring normally; a short ease without bounce with Reduce Motion (same as `UpNextSheet`).
     private var panelAnimation: Animation {
         reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.35)
     }
 
-    /// Distance between the panel top at the peek and just below the close row.
-    private func updateTravel() {
-        panel.travel = max(peekTop - closeRowBottom, 0)
+    /// The Up next sheet's detents: the measured peek (its top on the space under the controls)
+    /// and open (its top just below the close row). A sheet height excludes the bottom safe area,
+    /// as the column does. Until measured, a plausible peek and the open one kept above it.
+    private var upNextDetents: (peek: PresentationDetent, open: PresentationDetent) {
+        let peekHeight = max((peekHeight > 0 ? peekHeight : 160) + detentCorrection.peek, 60)
+        let openHeight = max(columnHeight - closeRowBottom + detentCorrection.open, peekHeight + 1)
+        return (.height(peekHeight), .height(openHeight))
+    }
+
+    private var isCompactHeight: Bool { verticalSizeClass == .compact }
+
+    /// Presented while the Player is on screen with a queue; in a compact height only while open
+    /// (the peek is in the Player then), and dismissing it there collapses.
+    private func isUpNextPresented(hasQueue: Bool) -> Binding<Bool> {
+        Binding(
+            get: { hasAppeared && hasQueue && (!isCompactHeight || panel.isExpanded) },
+            set: { presented in
+                if !presented { panel.collapse() }
+            }
+        )
+    }
+
+    /// The Player's sheets and alerts, attached to whichever view presents: the Up next sheet
+    /// while it is up (a view that already presents a sheet cannot present another), else the
+    /// Player itself.
+    private func presentations(isActive: Bool) -> PlayerPresentations {
+        PlayerPresentations(
+            engine: engine,
+            notifications: environment.notifications,
+            isActive: isActive,
+            isSpeedSheetPresented: $isSpeedSheetPresented,
+            isSleepTimerSheetPresented: $isSleepTimerSheetPresented,
+            reportFallbackEmail: $reportFallbackEmail
+        )
+    }
+}
+
+/// Speed and sleep timer sheets, the report fallback alert and the push prompts of the Player.
+/// Inactive, it presents nothing (its bindings read false), so only one view presents them.
+private struct PlayerPresentations: ViewModifier {
+    let engine: AudioEngine
+    let notifications: NotificationsModel
+    let isActive: Bool
+    @Binding var isSpeedSheetPresented: Bool
+    @Binding var isSleepTimerSheetPresented: Bool
+    @Binding var reportFallbackEmail: String?
+
+    func body(content: Content) -> some View {
+        content
+            .sheet(isPresented: isActive ? $isSpeedSheetPresented : .constant(false)) {
+                SpeedSheet(engine: engine)
+            }
+            .sheet(isPresented: isActive ? $isSleepTimerSheetPresented : .constant(false)) {
+                SleepTimerSheet(engine: engine)
+            }
+            .contentReportFallbackAlert(email: isActive ? $reportFallbackEmail : .constant(nil))
+            // The first favourite is set in the Player, so the one-time push prompt shows here
+            // (M4 §4.4).
+            .notificationsPrompt(notifications, isActive: isActive)
+            .notificationsDeniedAlert(notifications, isActive: isActive)
     }
 }
 
@@ -485,5 +582,44 @@ private struct PlayerErrorView: View {
                 .controlSize(.large)
                 .accessibilityIdentifier("player.retry")
         }
+    }
+}
+
+/// Corrections of the Up next detent heights (see `PlayerView.detentCorrection`): when the sheet
+/// settles at a detent, the distance between its top and the target is added to that detent's
+/// height, once per column height (rotation, Dynamic Type), and only for a small miss: a sheet
+/// held still mid-drag is far from both targets and is ignored.
+struct UpNextDetentCorrection: Equatable {
+    /// A larger miss is a sheet held mid-drag, not a detent offset.
+    static let maxMiss: CGFloat = 40
+
+    private(set) var peek: CGFloat = 0
+    private(set) var open: CGFloat = 0
+    private var peekDone = false
+    private var openDone = false
+    private var columnHeight: CGFloat = 0
+
+    /// `top` / `target`: screen y of the settled sheet top and of where it must be.
+    mutating func settled(top: CGFloat, target: CGFloat, isOpen: Bool) {
+        let miss = top - target
+        guard target > 0, abs(miss) > 0.5, abs(miss) <= Self.maxMiss else {
+            if isOpen { openDone = openDone || abs(miss) <= 0.5 } else { peekDone = peekDone || abs(miss) <= 0.5 }
+            return
+        }
+        if isOpen, !openDone {
+            open += miss
+            openDone = true
+        } else if !isOpen, !peekDone {
+            peek += miss
+            peekDone = true
+        }
+    }
+
+    /// A new layout: measure again (the offsets are kept as the starting point).
+    mutating func layoutDidChange(columnHeight: CGFloat) {
+        guard abs(columnHeight - self.columnHeight) > 0.5 else { return }
+        self.columnHeight = columnHeight
+        peekDone = false
+        openDone = false
     }
 }

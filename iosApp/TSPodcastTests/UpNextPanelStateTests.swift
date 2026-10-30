@@ -1,110 +1,17 @@
 import XCTest
 @testable import TSPodcast
 
-/// M5-AC3: open/close rule of the Up next panel (Android `SlideArea.flingSlideAreaState`:
-/// 40 % up opens, 20 % down closes, a fling of 1000 pt/s follows its direction).
+/// M5-AC3: mode of the Up next sheet and the cross-fade of its peek rows and list. The drag
+/// rules (thresholds, flings, scroll hand-off) are the system sheet's, covered by
+/// `UpNextPanelUITests` on a device.
 final class UpNextPanelStateTests: XCTestCase {
-    private func state(_ mode: UpNextPanelState.Mode, travel: CGFloat = 400) -> UpNextPanelState {
-        UpNextPanelState(mode: mode, travel: travel)
+    private func state(_ mode: UpNextPanelState.Mode) -> UpNextPanelState {
+        UpNextPanelState(mode: mode)
     }
 
     func testDefaultIsCollapsed() {
         XCTAssertEqual(UpNextPanelState().mode, .collapsed)
         XCTAssertFalse(UpNextPanelState().isExpanded)
-    }
-
-    func testDragUpFortyPercentExpands() {
-        var panel = state(.collapsed)
-        panel.endDrag(translation: -160, velocity: 0)
-        XCTAssertEqual(panel.mode, .expanded)
-    }
-
-    func testDragUpLessThanFortyPercentStaysCollapsed() {
-        var panel = state(.collapsed)
-        panel.endDrag(translation: -150, velocity: 0)
-        XCTAssertEqual(panel.mode, .collapsed)
-    }
-
-    func testDragDownTwentyPercentCollapses() {
-        var panel = state(.expanded)
-        panel.endDrag(translation: 80, velocity: 0)
-        XCTAssertEqual(panel.mode, .collapsed)
-    }
-
-    func testDragDownLessThanTwentyPercentStaysExpanded() {
-        var panel = state(.expanded)
-        panel.endDrag(translation: 70, velocity: 0)
-        XCTAssertEqual(panel.mode, .expanded)
-    }
-
-    func testFlingUpExpandsAfterAShortDrag() {
-        var panel = state(.collapsed)
-        panel.endDrag(translation: -20, velocity: -1200)
-        XCTAssertEqual(panel.mode, .expanded)
-    }
-
-    func testFlingDownCollapses() {
-        var panel = state(.expanded)
-        panel.endDrag(translation: -10, velocity: 1200)
-        XCTAssertEqual(panel.mode, .collapsed)
-
-        var still = state(.expanded)
-        still.endDrag(translation: 0, velocity: 1200)
-        XCTAssertEqual(still.mode, .collapsed)
-    }
-
-    func testVelocityDirectionWinsOverDistance() {
-        var panel = state(.collapsed)
-        panel.endDrag(translation: -300, velocity: 1200)
-        XCTAssertEqual(panel.mode, .collapsed)
-
-        var open = state(.expanded)
-        open.endDrag(translation: 300, velocity: -1200)
-        XCTAssertEqual(open.mode, .expanded)
-    }
-
-    func testFlingThresholdIsInclusive() {
-        var panel = state(.collapsed)
-        panel.endDrag(translation: 0, velocity: -1000)
-        XCTAssertEqual(panel.mode, .expanded)
-
-        var slow = state(.collapsed)
-        slow.endDrag(translation: 0, velocity: -999)
-        XCTAssertEqual(slow.mode, .collapsed)
-    }
-
-    func testZeroTravelDoesNotCrashAndOnlyVelocityChangesMode() {
-        var panel = state(.collapsed, travel: 0)
-        XCTAssertEqual(panel.offset(forDrag: -100), 0)
-        XCTAssertEqual(panel.offset(forDrag: 100), 0)
-        panel.endDrag(translation: -500, velocity: 0)
-        XCTAssertEqual(panel.mode, .collapsed)
-        panel.endDrag(translation: 0, velocity: -1500)
-        XCTAssertEqual(panel.mode, .expanded)
-        panel.endDrag(translation: 500, velocity: 0)
-        XCTAssertEqual(panel.mode, .expanded)
-        panel.endDrag(translation: 0, velocity: 1500)
-        XCTAssertEqual(panel.mode, .collapsed)
-
-        var negative = state(.expanded, travel: -20)
-        XCTAssertEqual(negative.offset(forDrag: 50), 0)
-        negative.endDrag(translation: 50, velocity: 0)
-        XCTAssertEqual(negative.mode, .expanded)
-    }
-
-    func testOffsetClampsWhenCollapsed() {
-        let panel = state(.collapsed)
-        XCTAssertEqual(panel.offset(forDrag: 0), 400)
-        XCTAssertEqual(panel.offset(forDrag: -1000), 0)
-        XCTAssertEqual(panel.offset(forDrag: 50), 400)
-        XCTAssertEqual(panel.offset(forDrag: -100), 300)
-    }
-
-    func testOffsetClampsWhenExpanded() {
-        let panel = state(.expanded)
-        XCTAssertEqual(panel.offset(forDrag: -50), 0)
-        XCTAssertEqual(panel.offset(forDrag: 1000), 400)
-        XCTAssertEqual(panel.offset(forDrag: 120), 120)
     }
 
     func testButtonsAndSelection() {
@@ -134,26 +41,23 @@ final class UpNextPanelStateTests: XCTestCase {
         XCTAssertEqual(collapsed.mode, .collapsed)
     }
 
-    // MARK: - Progress (fix: the peek rows and the list cross-fade with the drag)
+    // MARK: - Progress (the peek rows and the list cross-fade with the sheet position)
 
-    func testProgressFollowsTheDrag() {
-        let collapsed = state(.collapsed)
-        XCTAssertEqual(collapsed.progress(forDrag: 0), 0)
-        XCTAssertEqual(collapsed.progress(forDrag: -100), 0.25)
-        XCTAssertEqual(collapsed.progress(forDrag: -400), 1)
-        XCTAssertEqual(collapsed.progress(forDrag: -900), 1, "clamped past the close row")
-        XCTAssertEqual(collapsed.progress(forDrag: 50), 0, "no pull below the peek")
-
-        let expanded = state(.expanded)
-        XCTAssertEqual(expanded.progress(forDrag: 0), 1)
-        XCTAssertEqual(expanded.progress(forDrag: 100), 0.75)
-        XCTAssertEqual(expanded.progress(forDrag: 1_000), 0)
-        XCTAssertEqual(expanded.progress(forDrag: -50), 1)
+    func testProgressFollowsTheSheetTop() {
+        let panel = state(.collapsed)
+        XCTAssertEqual(panel.progress(top: 716, peekTop: 716, openTop: 91), 0)
+        XCTAssertEqual(panel.progress(top: 559.75, peekTop: 716, openTop: 91), 0.25)
+        XCTAssertEqual(panel.progress(top: 91, peekTop: 716, openTop: 91), 1)
+        XCTAssertEqual(panel.progress(top: 40, peekTop: 716, openTop: 91), 1, "clamped above the open top")
+        XCTAssertEqual(panel.progress(top: 800, peekTop: 716, openTop: 91), 0, "clamped below the peek")
+        XCTAssertEqual(state(.expanded).progress(top: 403.5, peekTop: 716, openTop: 91), 0.5, "the position decides, not the mode")
     }
 
-    func testProgressWithoutTravelIsTheMode() {
-        XCTAssertEqual(state(.collapsed, travel: 0).progress(forDrag: -300), 0)
-        XCTAssertEqual(state(.expanded, travel: 0).progress(forDrag: 300), 1)
+    func testProgressWithoutMeasuredTargetsIsTheMode() {
+        XCTAssertEqual(state(.collapsed).progress(top: 300, peekTop: 0, openTop: 0), 0)
+        XCTAssertEqual(state(.expanded).progress(top: 300, peekTop: 0, openTop: 0), 1)
+        XCTAssertEqual(state(.expanded).progress(top: 300, peekTop: 91, openTop: 716), 1)
+        XCTAssertEqual(state(.collapsed).progress(top: 300, peekTop: 91, openTop: 716), 0)
     }
 
     func testPeekRowsAndListNeverOverlap() {
@@ -181,5 +85,43 @@ final class UpNextPanelStateTests: XCTestCase {
             panel.toggle()
             XCTAssertEqual(panel.isExpanded, tap % 2 == 1, "after \(tap) taps")
         }
+    }
+
+    // MARK: - Detent correction (the sheet tops land on their targets)
+
+    func testDetentCorrectionAddsTheMissOnce() {
+        var correction = UpNextDetentCorrection()
+        correction.layoutDidChange(columnHeight: 845)
+        correction.settled(top: 114, target: 91, isOpen: true)
+        XCTAssertEqual(correction.open, 23, "open top 23 pt low → open detent 23 pt taller")
+        correction.settled(top: 92, target: 91, isOpen: true)
+        XCTAssertEqual(correction.open, 23, "measured once per layout")
+        correction.settled(top: 714, target: 716, isOpen: false)
+        XCTAssertEqual(correction.peek, -2, "peek top 2 pt high → peek detent 2 pt shorter")
+    }
+
+    func testDetentCorrectionIgnoresASheetHeldMidDrag() {
+        var correction = UpNextDetentCorrection()
+        correction.settled(top: 400, target: 91, isOpen: true)
+        correction.settled(top: 400, target: 716, isOpen: false)
+        XCTAssertEqual(correction.open, 0)
+        XCTAssertEqual(correction.peek, 0)
+        correction.settled(top: 100, target: 91, isOpen: true)
+        XCTAssertEqual(correction.open, 9, "a real settle afterwards still counts")
+    }
+
+    func testDetentCorrectionMeasuresAgainAfterALayoutChange() {
+        var correction = UpNextDetentCorrection()
+        correction.layoutDidChange(columnHeight: 845)
+        correction.settled(top: 114, target: 91, isOpen: true)
+        correction.layoutDidChange(columnHeight: 845.2)
+        correction.settled(top: 95, target: 91, isOpen: true)
+        XCTAssertEqual(correction.open, 23, "same layout")
+        correction.layoutDidChange(columnHeight: 700)
+        correction.settled(top: 95, target: 91, isOpen: true)
+        XCTAssertEqual(correction.open, 27, "a new layout adds its miss to the old offset")
+        var unmeasured = UpNextDetentCorrection()
+        unmeasured.settled(top: 30, target: 0, isOpen: true)
+        XCTAssertEqual(unmeasured.open, 0, "no target yet")
     }
 }
