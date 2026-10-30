@@ -14,7 +14,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | M3 | Audio engine, Player và MiniPlayer | [milestones/M3.md](milestones/M3.md) | Đã nghiệm thu (review round 2, `5b8e26c`). UI suite để QC |
 | M4 | Favourite, lưu trữ, thông báo, deep link, analytics — chốt parity | [milestones/M4.md](milestones/M4.md) | Đã nghiệm thu (review round 1, `9f2f1fb`). Checklist parity §7 ở mục M4 T5; UI suite và bước simulator để QC |
 | M5 | Giao diện Liquid Glass (iOS 26) + Up next peek trên Player | [milestones/M5.md](milestones/M5.md) | Xong phần code + kiểm tĩnh (T1–T4): helper glass + fallback Material, panel Up next peek thay sheet, Player/MiniPlayer/tab bar/chip Tìm kiếm/thanh Lưu/nút "Tải lại" glass, 275 unit test (+32); typecheck Swift 6 toàn app 0 lỗi, 31 test logic pass trên macOS. **Chờ iPhone**: unit test trên máy, build Debug, smoke và danh sách "Owner xem trên iPhone" (platform iOS 26.2 chưa cài xong) |
-| M6 | Thời sự & Bản tin, player cơ bản, App Shortcuts — quick wins trước QC | [milestones/M6.md](milestones/M6.md) | Đang làm. T1 (player cơ bản + tốc độ) xong phần code + kiểm tĩnh: shared 273 host test (+28), 303 unit test iOS (+28, chưa chạy), typecheck Swift 6 app + test 0 lỗi, 7 test logic pass trên macOS. **Chờ iPhone** (platform iOS 26.2 chưa cài) |
+| M6 | Thời sự & Bản tin, player cơ bản, App Shortcuts — quick wins trước QC | [milestones/M6.md](milestones/M6.md) | Đang làm. T1 (player cơ bản + tốc độ) và T2 (N1 lite, N11 consent lite, N5 tìm trong show) xong phần code + kiểm tĩnh: shared 321 host test (+76 so với `e80136e`), 333 unit test iOS (+58, chưa chạy), typecheck Swift 6 app + test 0 lỗi, 22 test logic pass trên macOS, `:app:assembleDebug` pass. **Chờ iPhone** (platform iOS 26.2 chưa cài; lần kiểm T2 Tun còn `unavailable`) |
 
 ## M0
 
@@ -1985,3 +1985,104 @@ Giới hạn đã biết (T1):
 - Chưa build/chạy trên máy nào: bằng chứng là shared JVM test, typecheck Swift 6 (app + test), 7 test logic trên macOS, đọc code.
 - Đồng hồ hẹn giờ trên nút Player cập nhật mỗi giây bằng `TimelineView` chỉ khi đang hẹn phút; khi app ở nền, `tick()` vẫn chạy trong periodic observer (audio đang phát), nhưng nếu AVPlayer đứng (buffer) thì không có tick: deadline đã qua sẽ dừng ở tick đầu tiên khi phát tiếp.
 - `AppEnvironment.analytics` chưa bọc consent (`ConsentGatedAnalyticsTracker` là T2); event M6 đi qua cùng seam nên sẽ được bọc khi T2 xong.
+
+### T2 — N1 lite, N11 consent lite, N5 tìm trong show (xong phần code; bước trên iPhone chờ platform)
+
+Commit: `c96aa8f feat(shared): block feeds by host and author and remember hidden shows`, `2a40752 feat(shared): fold Vietnamese text and filter a show's episodes`, `afe8a98 feat(ios): hide shows, report content by mail and ask for consent without blocking the app`, `63ef2bc feat(ios): search inside a show on podcast detail`. Hai commit shared tách bằng index (cây đã stage của commit 1 chạy `:shared:testAndroidHostTest` riêng: BUILD SUCCESSFUL); commit iOS thứ nhất cũng tách bằng index và cây đã stage typecheck riêng (app 95 file + 46 file test: exit 0). Không đụng code Android, `coreApi`, Gradle ngoài `shared/build.gradle.kts`, hay `TSPodcastUITests`.
+
+| Thành phần | File | Ghi chú |
+|---|---|---|
+| Blocklist host/author (shared) | `shared/assets/blacklist_extra.json`, `shared/build.gradle.kts` (thêm file vào `generateBundledAssets` → `BundledAssets.blacklistExtra`), `blacklist/BlacklistRepository.kt`, `BlacklistFilters.kt`, `deeplink/DeepLinkTargets.kt` | `host`/`author` đọc **theo từng khoá**: RC `ts_podcast_black_list` có khoá đó dạng mảng → dùng RC, không thì `blacklist_extra.json` (`{"host":["ngocbaomedia.com"],"author":[]}`); `feedId`/`filterText` giữ luật cũ. `isBlockedHost(url)`: host lowercase, bỏ `www.`/userinfo/port/dấu chấm cuối, chặn khi bằng hoặc là subdomain; URL không có `scheme://` → không chặn. Mục trong danh sách được chuẩn hoá (`*.x`, `.x`, URL → host). `isBlockedAuthor`: so bằng sau trim + lowercase. Áp ở E1/E5 (`url`, `enclosureUrl`, `author`), E2 (`enclosureUrl`), E6–E8 (`url`, `originalUrl`, `author`, `ownerName`), deep link (feed, podcast đã lưu, episode `enclosureUrl`/`feedUrl`). |
+| `HiddenShowsRepository` (shared) | `blacklist/HiddenShowsRepository.kt` | JSON `[HiddenShow(feedId, title, imageUrl, hiddenAtMillis)]` ở khoá `hiddenShows`; `hide` (trùng → 1 bản ghi, cập nhật thời điểm), `unhide`, `all()` (mới ẩn trước), `hiddenIds()`, `isHidden`; ghi tuần tự bằng `Mutex`; JSON hỏng → rỗng. Thời gian qua `EpochClock`. Lọc cuối trong `HomeFeed` (trending/forYou/recent/music theo `id`/`feedId`, live theo `feedId`) và `SearchFeed` (search theo `Feed.id`, categoryPodcasts). `NewsHubRepository` (T3) sẽ dùng cùng repository. |
+| `ConsentRepository` (shared) | `privacy/ConsentRepository.kt` | `CURRENT_VERSION = 1`; khoá `consent.version/decidedAt/analytics/crash`; `state()` (`needsPrompt` khi chưa có `decidedAt` hoặc version cũ, khi đó analytics/crash = false), `acceptAll`, `necessaryOnly`, `update(analytics, crash)` (ghi lựa chọn trước, version + thời điểm sau). |
+| `VietnameseFold`, `EpisodeFilter` (shared) | `text/VietnameseFold.kt` + `androidMain`/`iosMain` `VietnameseFold.*.kt`, `text/EpisodeFilter.kt` | `expect fun canonicalDecompose` (Android `Normalizer` NFD, iOS `decomposedStringWithCanonicalMapping`), bỏ U+0300–U+036F, `đ/Đ → d`, lowercase, gộp khoảng trắng. `EpisodeFilter.index(episodes)` fold tiêu đề + mô tả (`HtmlText`) một lần; `filter`/`matchingIndices(query)`: mọi từ, giữ thứ tự gốc, query rỗng → tất cả. |
+| `GetEpisodeByFeedId(id, max)`, `ShowEpisodeSearch` (shared) | `usecase/GetEpisodeByFeedId.kt`, `detail/ShowEpisodeSearch.kt`, `SharedGraph.kt` | `max = 100` giữ khoá cache cũ (`id`), size khác dùng `"<id>?max=<n>"` trong cùng cache 15 phút. `ShowEpisodeSearch.load(feedId)`: E10 `max=1000` ‖ E11; D6 như Detail; `ShowEpisodeIndex(filter, loadedCount = số E10 trả (trước D6), totalCount = feed.episodeCount > 0, isTruncated)`; lỗi trả nguyên, không cache. |
+| Ẩn show (iOS) | `HiddenShows/HiddenShowsModel.swift`, `HiddenShowsView.swift`, `HideShowContextMenu.swift`, `Home/HomeModel.swift`, `Search/SearchModel.swift`, `Detail/PodcastDetailView.swift`, `Settings/SettingsView.swift` | `HiddenShowsModel` (protocol `HiddenShowsStore` + `SharedHiddenShowsStore`): `hide` báo ngay cho observer (`HomeModel.removeShow`, `SearchModel.removeShow`, đăng ký ở `AppEnvironment.makeHomeModel/makeSearchModel`), ghi, log `show_hidden` (`feed_id`). Detail: `detail.menu` → `detail.hide` → confirmationDialog `hide.confirm` → ẩn + đóng Detail. Context menu "Ẩn show này" (`show.hide`) trên thẻ trending/music/recent, hàng live (feedId của live), hàng forYou và kết quả Search. Cài đặt → `settings.hiddenShows` → `hiddenShows.root` (`hiddenShows.item.<i>`, `hiddenShows.unhide.<i>`, `hiddenShows.empty`). |
+| Báo cáo nội dung (iOS) | `Report/ContentReportMail.swift` (Swift thuần), `ContentReporter.swift`, `ContentReportFallback.swift`, `Info.plist` `TSContentReportEmail = $(CONTENT_REPORT_EMAIL)`, `Config/Shared.xcconfig` (`CONTENT_REPORT_EMAIL =` rỗng) | `mailto:` có subject (`[TSPodcast] Báo cáo nội dung / Content report · <kind> · episode <id> · feed <id>`) + body (`kind`, `feedId`, `episodeId` khi có, `appVersion`, chỗ mô tả), percent-encode RFC 6068 (chỉ ký tự unreserved, xuống dòng `%0D%0A`, không `+`). Email không hợp lệ/rỗng/`$(…)` → nil → ẩn mọi lối báo cáo. Lối vào: `detail.report` (kind `feed`), `player.more` → `player.report` (kind `episode`; nút `…` chỉ hiện khi có email và có item). Mở bằng `openURL` có completion: nhận → event `content_report` (`kind`); không app nào nhận → alert hiện địa chỉ + "Sao chép địa chỉ" (`report.fallback.copy`). Lối `newsHub.report` làm ở T4. Không Firestore. |
+| Consent (iOS) | `Privacy/ConsentGate.swift`, `ConsentController.swift` (Swift thuần, không `import Shared`), `ConsentGatedSeams.swift`, `SharedConsentStore.swift`, `ConsentSheet.swift`, `Firebase/FirebaseCollectionSwitch.swift`, `Firebase/AppServices.swift`, `App/AppEnvironment.swift`, `App/RootView.swift`, `App/LaunchOptions.swift`, `Settings/SettingsView.swift`, `Info.plist` | Info.plist `FIREBASE_ANALYTICS_COLLECTION_ENABLED = false`, `FirebaseCrashlyticsCollectionEnabled = false`. `ConsentGate` (khoá, bắt đầu **đóng**) dùng chung cho `ConsentGatedAnalyticsTracker` (`AppEnvironment.analytics`, mọi event kể cả AudioEngine/NotificationPresenter) và `ConsentGatedCrashReporter` (được `Crash.install`; khi tắt: `log`/`record`/`recordFatal` chỉ ghi OSLog cục bộ, `userId`/`key` bỏ). `ConsentController.load()` chạy trong `resolveStartRoute` (trước màn đầu tiên), áp gate + `CollectionSwitch` (`FirebaseCollectionSwitch` chỉ khi Firebase bật, không thì `NoCollectionSwitch`), bật `isPromptPresented` khi `needsPrompt`. Crash user id (Install ID) chỉ gửi khi crash vừa được cho phép (`onCrashReportsAllowed`), không còn gửi lúc launch. Sheet `consent.sheet` trên màn đầu tiên (RootView, cả Onboarding lẫn Main): 3 nhóm (Cần thiết toggle disabled luôn bật, `consent.analytics`, `consent.crash` mặc định tắt), link chính sách khi có `TSPrivacyPolicyURL`, 2 nút `.bordered` cùng rộng: `consent.necessaryOnly` (đổi nhãn "Lưu lựa chọn" khi có toggle bật, lưu đúng toggle) và `consent.acceptAll`; `interactiveDismissDisabled`. Cài đặt: section "Quyền riêng tư" với `settings.analytics`, `settings.crash` + chú thích ngày lưu (`settings.consent.decidedAt`). Debug: `-uitest-consent=all|necessary` ghi quyết định sau reset, trước khi route. |
+| Tìm trong show (iOS) | `Detail/PodcastDetailModel.swift`, `PodcastDetailView.swift`, `PodcastDetailDataSource.swift`, `SharedPodcastDetailDataSource.swift` | `isSearchAvailable` = list đã tải và (> 20 tập hoặc `feed.episodeCount` > 20). `.searchable` prompt "Tìm trong show" chỉ khi available. Query đầu tạo **một** `Task` lấy index (`searchIndex(feedId:onScreen:)`), query sau dùng lại; debounce 200 ms (clock tiêm được); rỗng → về danh sách ngay. State `.loading`/`.results`/`.noMatch` (`detail.search.empty`); `searchFootnoteCount` khi truncated (`detail.search.footnote`); request 1 000 tập lỗi → index trên các tập đang hiện + chú thích `detail.search.onScreenOnly`. Tap kết quả → `PlaybackRequest` của danh sách kết quả (start index, history = podcast của Detail + episode Kotlin của kết quả). Event `show_search` (`result_count`, `truncated`) một lần mỗi màn Detail, ở lần lọc đầu tiên có kết quả trả về (kể cả 0). |
+| Chuỗi | `Resources/Localizable.xcstrings` | 34 khoá mới vi + en (97 → 131): `show.hide`, `detail.menu`, `detail.hide.confirm*`, `report.*`, `player.more`, `settings.hiddenShows`, `hiddenShows.*`, `consent.*`, `settings.privacySection`, `settings.consent.decidedAt %@`, `detail.search.*`. |
+
+Quyết định trong T2 (ngoài plan, ghi thêm vào handoff.md):
+
+| Hạng mục | Quyết định | Lý do |
+|---|---|---|
+| RC có khoá `host`/`author` nhưng không phải mảng (vd. `null`) | Coi như không có khoá → dùng `blacklist_extra.json` | Một giá trị hỏng không được làm rỗng danh sách chặn spam. RC `"host": []` (mảng rỗng) thì đúng là bỏ chặn host. |
+| Context menu "Ẩn show này" ở Home/Search | Không hỏi xác nhận (Detail thì có) | Long-press là thao tác chủ ý; bỏ ẩn được ngay trong Cài đặt. |
+| Crash khi chưa đồng ý | Ghi OSLog cục bộ thay vì bỏ hẳn; user id/khoá tuỳ chỉnh bỏ | Không gì rời máy, nhưng vẫn debug được qua Console. |
+| Gate trước khi đọc consent | Đóng (event màn Onboarding đầu tiên trước khi đọc xong store bị bỏ) | An toàn về quyền riêng tư; `consent.load()` chạy trước khi route nên thực tế không mất event nào sau màn đầu. |
+| Crash user id | Gửi khi crash reports chuyển sang được phép (lúc launch nếu đã đồng ý, hoặc ngay khi bật) | Trước đây gửi ở mỗi launch; giờ không gửi gì cho Crashlytics khi chưa đồng ý (`CrashWiringTests` cập nhật). |
+| Nút `player.more` | Chỉ hiện khi có `CONTENT_REPORT_EMAIL` và có item | Menu chỉ có một mục; nút không làm gì là rủi ro review (quyết định M3 §7 mục 2 vẫn đúng). |
+| `show_search` khi 0 kết quả | Vẫn log (một lần mỗi màn), `result_count = 0` | "Có kết quả trả về" hiểu là lần lọc đầu đã xong; số 0 hữu ích cho đo chất lượng tìm. |
+| Request 1 000 tập lỗi | Tìm trong các tập đang hiện + chú thích, không alert | Plan: "giữ danh sách 100 tập đang có và báo lỗi nhẹ". |
+
+Identifier (AC2): `comm -23` base `e80136e` vs HEAD → rỗng; `accessibilityLabel(Text("…")`/`accessibilityHint(Text("…")` mất → 0. Mới dạng literal: `consent.sheet/analytics/crash/necessary/acceptAll/necessaryOnly/privacyPolicy`, `detail.menu/hide/report`, `hide.confirm`, `detail.search.loading/results/result.<i>`, `hiddenShows.root/empty/item.<i>/unhide.<i>`, `player.more/report`, `report.fallback.copy`, `settings.analytics/crash/hiddenShows/consent.decidedAt`, `show.hide`. Dạng tham số (qua đối số `identifier:` nên grep `accessibilityIdentifier(` không thấy literal): `detail.search.empty` (`DetailMessage`), `detail.search.footnote`, `detail.search.onScreenOnly` (`SearchFootnote`).
+
+AC19 (phần T2): `SHOW_SEARCH` → `Detail/PodcastDetailModel.swift`, `SHOW_HIDDEN` → `HiddenShows/HiddenShowsModel.swift`, `CONTENT_REPORT` → `Report/ContentReporter.swift` (lệnh grep `head -1` của AC19 in ra `Info.plist` trước vì khoá `CONTENT_REPORT_EMAIL` cũng khớp chuỗi con; nơi gọi thật là `ContentReporter.swift:73`). Không event nào mang query, tiêu đề hay email.
+
+Lệnh và kết quả (30/10/2026):
+
+```bash
+xcodebuild -project iosApp/iosApp.xcodeproj -scheme TSPodcastUnit -showdestinations   # kiểm 1 lần (+1 lần thử lại):
+#   chỉ còn "Any iOS Device"/"Any iOS Simulator Device", không có dòng Tun;
+#   xcrun devicectl list devices → "Tun  Tun.coredevice.local  56DE0E78-…  unavailable  iPhone 13 Pro Max"
+#   → bỏ mọi bước trên máy (ngoài platform iOS 26.2 chưa cài, máy đang unavailable: cần mở khoá/cắm lại)
+./gradlew :shared:testAndroidHostTest          # BUILD SUCCESSFUL; 321 test, 0 failure, 0 error (T1: 273, base e80136e: 245)
+#   BlacklistRepositoryTest 20 (+7), BlacklistFilteringTest 12 (+3), HomeFeedTest 14 (+2), SearchFeedTest 13 (+2),
+#   DeepLinkTargetsTest 14 (+3), HiddenShowsRepositoryTest 6, ConsentRepositoryTest 6, VietnameseFoldTest 4,
+#   EpisodeFilterTest 8 (1 000 tập lọc < 100 ms sau làm nóng), ShowEpisodeSearchTest 7, UseCaseCacheTest 7 (cũ, pass)
+./gradlew :shared:linkDebugFrameworkIosArm64   # BUILD SUCCESSFUL (header: VietnameseFold.shared.fold(text:), EpisodeFilter.companion.index(episodes:),
+#                                                ShowEpisodeSearch.load(feedId:), HiddenShowsRepository, ConsentRepository)
+./gradlew :app:assembleDebug                    # BUILD SUCCESSFUL (shared/build.gradle.kts đổi)
+git diff e80136e..HEAD -- coreApi               # rỗng
+plutil -extract FIREBASE_ANALYTICS_COLLECTION_ENABLED raw iosApp/TSPodcast/Info.plist   # false
+plutil -extract FirebaseCrashlyticsCollectionEnabled raw iosApp/TSPodcast/Info.plist    # false
+plutil -extract TSContentReportEmail raw iosApp/TSPodcast/Info.plist                    # $(CONTENT_REPORT_EMAIL)
+grep -n CONTENT_REPORT_EMAIL iosApp/Config/Shared.xcconfig                              # 20:CONTENT_REPORT_EMAIL =
+grep -rn Firestore iosApp/TSPodcast                                                     # 0
+# Typecheck toàn app (95 file, bản copy $OUT/m6-typecheck qua refresh.sh: bỏ `import Firebase*` + Stub.swift):
+xcrun swiftc -typecheck -swift-version 6 -sdk $(xcrun --sdk iphoneos --show-sdk-path) -target arm64-apple-ios17.0 \
+  -module-name TSPodcast -F shared/build/bin/iosArm64/debugFramework src/**/*.swift Stub.swift   # exit 0, 0 error, 0 warning
+#   Thử lỗi cố ý (1 file mỗi lần): ContentReportMail, ContentReporter, ConsentController, ConsentSheet, ConsentGatedSeams,
+#   HiddenShowsModel, HiddenShowsView, PodcastDetailModel, PodcastDetailView, SettingsView, FirebaseCollectionSwitch
+#   → mỗi lần đúng 1 lỗi ở file đó.
+# App + 48 file TSPodcastTests như một module (-D DEBUG, bỏ @testable, XCTest của iPhoneOS.platform): exit 0, 0 error, 0 warning;
+#   lỗi cố ý trong PodcastDetailSearchTests, ConsentGatingTests, HiddenShowsModelTests, VietnameseFoldIOSTests bị báo.
+swift test   # $OUT/m6-hosttest: ContentReportMail.swift, ConsentGate.swift, ConsentController.swift, AppLog.swift (+ file T1) y nguyên,
+#            ContentReportMailTests 6, ConsentControllerTests 7 (y nguyên từ TSPodcastTests), FoldParityHostTests 2 (chỉ trong scratch:
+#            decomposedStringWithCanonicalMapping + các bước fold cho đúng kết quả VietnameseFoldTest) + 7 test T1
+#            → Executed 22 tests, with 0 failures
+python3 -I …/Localizable.xcstrings   # 131 khoá, missing_en 0, missing_vi 0 (+34)
+grep -rniE '\bradio\b' iosApp/TSPodcast --include='*.swift'    # 0
+grep -rniE 'xe máy|chạy xe|lái xe' iosApp/TSPodcast/Resources/*.xcstrings   # 0
+(cd iosApp && xcodegen generate) && git status --porcelain iosApp/iosApp.xcodeproj   # rỗng
+```
+
+Unit test iOS mới (chưa chạy, chờ iPhone): 303 → 333. `ContentReportMailTests` 6, `ConsentControllerTests` 7 (gate đóng lúc đầu, cài mới hiện sheet + tắt hết, quyết định đã lưu áp lúc launch không sheet, đồng ý tất cả, chỉ cần thiết vẫn đi tiếp, toggle trong sheet, toggle Cài đặt áp ngay + gửi user id một lần), `ConsentGatingTests` 3 (tracker/reporter trong không nhận gì khi tắt; `AppEnvironment.analytics` là `ConsentGatedAnalyticsTracker`), `HiddenShowsModelTests` 4 (ẩn → observer + event chỉ `feed_id`, danh sách mới trước + bỏ ẩn + đọc lại, Home gỡ ở mọi section, Search gỡ khỏi kết quả), `PodcastDetailSearchTests` 6 (20/21 tập, `episodeCount 25`, feed explicit; index một lần cho 3 query + event một lần không query; debounce; noMatch + query trắng; footnote + fallback; tap → danh sách kết quả), `VietnameseFoldIOSTests` 2 (actual iOS), `LaunchOptionsTests.testConsentHook`, `LocalizationTests.testShowSafetyPrivacyAndSearchStrings`. Cập nhật: `CrashWiringTests` (reporter cài là gate quanh reporter Firebase; user id chỉ sau khi đồng ý), `FirebaseBootstrapTests` (seam trong gate, `NoCollectionSwitch`), `FakePodcastDetailDataSource` (`searchIndex`, `FakeShowSearchIndex`), `SharedModelFactory.episode(title:)`.
+
+#### Chuỗi chờ luật sư (N11)
+
+Mọi khoá `consent.*` là placeholder (comment trong xcstrings bắt đầu bằng "PLACEHOLDER waiting for the lawyer"): `consent.title`, `consent.intro`, `consent.necessary.title`, `consent.necessary.detail`, `consent.analytics.title`, `consent.analytics.detail`, `consent.crash.title`, `consent.crash.detail`, `consent.footnote`, `consent.acceptAll`, `consent.necessaryOnly`, `consent.saveChoice`. Toggle Cài đặt dùng lại `consent.analytics.title`/`consent.crash.title`. Khi luật sư đổi nội dung đồng ý: sửa chuỗi và tăng `ConsentRepository.CURRENT_VERSION` để hỏi lại mọi người.
+
+#### Chờ chạy trên iPhone khi có iOS platform (M6 T2)
+
+Gộp với M5 và M6 T1. Khi platform có và Tun `available` (`SIGN`, `DEV` như M6 §6):
+
+1. `xcodebuild test … -scheme TSPodcastUnit -only-testing:TSPodcastTests -destination 'platform=iOS,name=Tun' …` → `TEST SUCCEEDED`, 333 test; có `ContentReportMailTests`, `ConsentControllerTests`, `ConsentGatingTests`, `HiddenShowsModelTests`, `PodcastDetailSearchTests`, `VietnameseFoldIOSTests`, `LaunchOptionsTests`, `LocalizationTests`, `CrashWiringTests`, `FirebaseBootstrapTests` Passed; 0 dòng `TSPodcastUITests`.
+2. Build Debug + smoke: cài mới → sheet `consent.sheet` hiện trên màn đầu tiên và **không** làm crash; process còn sống sau ~15 s.
+
+#### Để QC (T2)
+
+- Cài mới: sheet quyền riêng tư trên Onboarding; "Chỉ cần thiết" → vào app, proxy không thấy request `app-measurement.com`/`firebaselogging`/Crashlytics (chỉ khi có plist Firebase); bật lại trong Cài đặt → có request. Bật một toggle trong sheet → nút đổi thành "Lưu lựa chọn".
+- **Mọi UI test launch cần `-uitest-consent=all`** (hoặc `necessary`), nếu không sheet consent che màn đầu tiên. `TSPodcastUITestCase` chưa được sửa (luật test).
+- Detail → `…` → "Ẩn show này" → xác nhận → về màn trước, show biến mất khỏi Khám phá/Tìm kiếm ngay, còn ẩn sau khi tắt mở app; Cài đặt → Show đã ẩn → "Bỏ ẩn" → kéo làm mới Khám phá thì hiện lại. Long-press thẻ Home/kết quả Search → "Ẩn show này".
+- Báo cáo: build với `CONTENT_REPORT_EMAIL = a@b.vn` → `detail.report`, `player.more` → `player.report` mở Mail điền sẵn; máy không có tài khoản Mail → alert có địa chỉ + sao chép. Email rỗng → không có lối báo cáo, Player không có nút `…`.
+- Tìm trong show: show > 20 tập có ô "Tìm trong show"; "doc truyen" tìm ra "Đọc truyện"; show hơn 1 000 tập có chú thích; tap kết quả phát danh sách kết quả.
+- Feed `ngocbaomedia.com` không xuất hiện ở Home/Search/deep link.
+
+Giới hạn đã biết (T2):
+
+- Chưa build/chạy trên máy nào: bằng chứng là shared JVM test, link iosArm64, typecheck Swift 6 (app + test, cả cây đã stage của commit iOS thứ nhất), 22 test logic trên macOS, đọc code.
+- `-uitest-consent` chỉ ghi quyết định; `TSPodcastUITests` chưa thêm cờ này (để QC).
+- Show ẩn được gỡ ngay khỏi Home/Search đang hiện; danh sách "Danh mục" (`CategoryPodcastsModel`) đang mở không gỡ ngay mà lọc ở lần tải sau (shared). Bỏ ẩn không tự thêm lại vào Home/Search đang hiện, cần kéo làm mới.
+- Tab Yêu thích, Player và deep link không lọc show ẩn (plan chỉ yêu cầu Home/Search/hub; người dùng tự thêm favourite thì vẫn mở được).

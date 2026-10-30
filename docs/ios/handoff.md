@@ -8,7 +8,7 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
 
 ### Máy và môi trường
 
-- **iPhone "Tun" chưa build/cài được (cả M5, T1–T4; M6 T1 cũng vậy, kiểm lại 30/10/2026 đầu M6 T1).** Xcode báo `iOS 26.2 is not installed. Please download and install the platform from Xcode > Settings > Components.` cho destination Tun (component platform iOS đang tải lại; lần kiểm cuối 13:52 ngày 30/10/2026). `devicectl` báo Tun `available (paired)`, nên chỉ còn thiếu platform. Trong lúc chờ: toàn bộ code M5 đã commit, kiểm bằng typecheck Swift 6 toàn app (SDK iOS 26.2, deployment 17: 0 lỗi, 0 cảnh báo) + 31 test logic chạy trên macOS + kiểm tĩnh §6. Cần: platform iOS cài xong trong Xcode > Settings > Components; iPhone mở khoá khi chạy. Sau đó chạy 4 bước ở `docs/ios/progress.md` mục M5 T4 "Chờ chạy trên iPhone khi có iOS platform" (unit test 275 test, build Debug, smoke, rồi owner xem theo bảng "Owner xem trên iPhone") và mục M6 T1 cùng tên (303 test sau T1).
+- **iPhone "Tun" chưa build/cài được (cả M5, T1–T4; M6 T1 cũng vậy, kiểm lại 30/10/2026 đầu M6 T1).** Xcode báo `iOS 26.2 is not installed. Please download and install the platform from Xcode > Settings > Components.` cho destination Tun (component platform iOS đang tải lại; lần kiểm cuối 13:52 ngày 30/10/2026). `devicectl` báo Tun `available (paired)`, nên chỉ còn thiếu platform. Trong lúc chờ: toàn bộ code M5 đã commit, kiểm bằng typecheck Swift 6 toàn app (SDK iOS 26.2, deployment 17: 0 lỗi, 0 cảnh báo) + 31 test logic chạy trên macOS + kiểm tĩnh §6. Cần: platform iOS cài xong trong Xcode > Settings > Components; iPhone mở khoá khi chạy. Sau đó chạy 4 bước ở `docs/ios/progress.md` mục M5 T4 "Chờ chạy trên iPhone khi có iOS platform" (unit test 275 test, build Debug, smoke, rồi owner xem theo bảng "Owner xem trên iPhone") và mục M6 T1 cùng tên (303 test sau T1). **Lần kiểm M6 T2 (30/10/2026):** `xcodebuild -showdestinations` không còn liệt kê Tun và `xcrun devicectl list devices` báo Tun `unavailable` (thử 2 lần), nên ngoài platform còn cần mở khoá/cắm lại iPhone. Mục "Chờ chạy trên iPhone" của M6 T2 trong progress.md: 333 unit test + smoke (sheet consent hiện ở lần cài mới không được làm crash).
 
 ### Tài khoản và cloud resource
 
@@ -45,6 +45,19 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
 - **Key PodcastIndex riêng cho iOS** (architecture §5 mục 3).
   - Hiện tại: `iosApp/Config/Secrets.xcconfig` (gitignored) dùng chung key/secret với Android, chép từ `securedtoken.cpp`.
   - Nên cấp key riêng để thu hồi độc lập và tách quota trước khi lên TestFlight.
+
+- **(M6) Email nhận "Báo cáo nội dung" — `CONTENT_REPORT_EMAIL`** (plan M6 §7 mục 4; guideline 5.2, takedown).
+  - Vì sao bị chặn: chưa có địa chỉ; agent không tự đặt email của ai.
+  - Trong lúc chờ: `iosApp/Config/Shared.xcconfig` để `CONTENT_REPORT_EMAIL =` rỗng → `TSContentReportEmail` rỗng → mọi lối báo cáo (`detail.report`, nút `…` của Player, sau này `newsHub.report`) bị ẩn. Có giá trị (vd. trong `Release.xcconfig` hoặc `Shared.xcconfig`) là hiện, không cần sửa code.
+  - Cần owner: một hộp thư được theo dõi, điền trước khi nộp. File: `iosApp/TSPodcast/Report/`, `iosApp/TSPodcast/Info.plist`.
+- **(M6) Văn bản đồng ý quyền riêng tư (N11) + chính sách bảo mật** (plan M6 §7 mục 2; PDPL 91/2025, NĐ 330/2026; Apple 5.1.1(iv)).
+  - Vì sao bị chặn: cần luật sư; mọi chuỗi `consent.*` hiện là placeholder (liệt kê ở progress.md mục M6 T2 "Chuỗi chờ luật sư").
+  - Trong lúc chờ: sheet lần đầu không chặn app, hai nút ngang hàng, Analytics/Crashlytics tắt trong Info.plist và chỉ bật sau khi đồng ý; toggle trong Cài đặt.
+  - Cần owner: văn bản chính thức (vi + en) và `PRIVACY_POLICY_URL`; khi đổi nội dung thì tăng `ConsentRepository.CURRENT_VERSION` để hỏi lại. File: `iosApp/TSPodcast/Resources/Localizable.xcstrings` (`consent.*`), `shared/src/commonMain/kotlin/tss/t/shared/privacy/ConsentRepository.kt`.
+- **(M6) Remote Config xếp vào "Cần thiết"** (plan M6 §7 mục 3, câu hỏi L5 cho luật sư).
+  - Vì sao: RC là kênh cập nhật danh sách chặn spam (`ts_podcast_black_list`) nên chạy trước consent, kèm Firebase Installations ID.
+  - Trong lúc chờ: sheet nói rõ RC + ID cài đặt ngẫu nhiên thuộc "Cần thiết".
+  - Cần owner/luật sư: xác nhận; nếu không được thì chuyển `RemoteConfigLoader.run()` ra sau khi đồng ý (`iosApp/TSPodcast/App/AppEnvironment.swift`).
 
 ### Quyết định agent đã tự chọn (owner xác nhận hoặc đổi)
 
@@ -96,7 +109,7 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
   - Link đến lúc onboarding/chọn danh mục: chỉ giữ link **mới nhất**; cùng một URL lặp lại trong 2 s (đến qua cả hai callback) chỉ mở một lần. Link mở Detail ở tab Khám phá, đóng Player/Cài đặt nếu đang mở.
   - Alert có thêm dòng message `deeplink.error.message` ("Nội dung này không còn hoặc không xem được trong ứng dụng.") để gắn identifier `deeplink.error`, ngoài bảng §4.7.
   - File: `iosApp/TSPodcast/DeepLink/`, `shared/.../deeplink/DeepLinkTargets.kt`.
-- **(M3) Player không có nút "More".** Android vẽ icon nhưng không gắn hành động; nút không làm gì là rủi ro review. File: `docs/ios/milestones/M3.md` §3.2, §7 mục 2.
+- **(M3) Player không có nút "More".** Android vẽ icon nhưng không gắn hành động; nút không làm gì là rủi ro review. File: `docs/ios/milestones/M3.md` §3.2, §7 mục 2. (M6 T2: có nút `…` `player.more` chỉ chứa "Báo cáo nội dung", chỉ hiện khi có `CONTENT_REPORT_EMAIL`.)
 - **(M3) Lỗi phát có thông báo + "Tải lại", buffering hiện spinner** (Android không báo gì khi ExoPlayer lỗi). File: `docs/ios/milestones/M3.md` §3.1, §7 mục 3.
 - **(M3) Nhớ vị trí nghe ([Sửa] features-spec §3.6):** lưu mỗi 10 s, khi pause, khi đổi episode, khi vào background; còn < 30 s coi là đã nghe xong (lần sau phát từ đầu); 5 s đầu không lưu; live không lưu. Owner muốn ngưỡng khác thì đổi hằng số trong `PlaybackPositions`. File: `docs/ios/milestones/M3.md` §4.3.
 - **(M3) Prev/Next cũng lưu `current_item_id` và bị disable ở hai đầu playlist** (Android chỉ lưu khi tap từ Detail/Live; nút ở hai đầu bấm được nhưng không làm gì). File: `docs/ios/milestones/M3.md` §7 mục 5.
@@ -114,6 +127,10 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
 - **(M6 T1) Màn khoá/CarPlay hiện −15/+30 thay vì next/previous** (plan M6 §7 mục 5): `nextTrackCommand`/`previousTrackCommand` tắt (bật cả hai thì hệ thống ưu tiên next/prev); trên Player, Previous/Next chuyển vào hàng đầu danh sách Up next. Owner muốn giữ next/prev trên màn khoá thì đổi `RemoteCommands.configure` (`iosApp/TSPodcast/Playback/RemoteCommands.swift`).
 - **(M6 T1) Hẹn giờ ngủ bị huỷ khi người dùng tự pause** (Player, MiniPlayer, màn khoá), **không** huỷ khi cuộc gọi ngắt hay rút tai nghe (plan M6 §7 mục 9). Agent tự chọn thêm: deadline đã qua trong lúc bị ngắt quãng thì lần bấm Play sau đó vẫn phát (timer về Tắt), không dừng ngay. File: `iosApp/TSPodcast/Playback/AudioEngine.swift`.
 - **(M6 T1) Tốc độ phát** (agent tự chọn): tắt "Áp dụng cho mọi show" thì tập đang phát chuyển về tốc độ đã lưu của show đó (nếu có, không thì tốc độ chung); kéo slider chỉ áp và ghi khi thả tay (một lần kéo = một event `speed_change`). File: `AudioEngine.swift`, `iosApp/TSPodcast/Player/SpeedSheet.swift`.
+- **(M6 T2) Blocklist host/author nằm ở `shared/assets/blacklist_extra.json`** (plan M6 §7 mục 6), không sửa `coreApi/src/main/assets/blacklist.json`; seed chỉ có `ngocbaomedia.com`, author rỗng. RC `ts_podcast_black_list` dùng chung (Android bỏ qua khoá lạ): có khoá `host`/`author` **dạng mảng** thì thay danh sách đóng gói của khoá đó; khoá thiếu hoặc không phải mảng thì giữ file đóng gói (agent chọn: giá trị hỏng không được làm rỗng danh sách chặn). Host chặn cả subdomain; author so bằng cả tên. File: `shared/.../blacklist/BlacklistRepository.kt`.
+- **(M6 T2) Ẩn show:** Detail hỏi xác nhận; long-press ở Home/Search ẩn ngay không hỏi (bỏ ẩn trong Cài đặt → Show đã ẩn). Danh sách chỉ lưu trên máy. Show ẩn được gỡ ngay khỏi Home/Search đang hiện; bỏ ẩn cần kéo làm mới. File: `iosApp/TSPodcast/HiddenShows/`.
+- **(M6 T2) Consent:** gate đóng cho tới khi đọc xong lựa chọn đã lưu (đọc trước màn đầu tiên); khi chưa đồng ý báo cáo sự cố thì lỗi chỉ ghi OSLog trên máy, Install ID không gửi Crashlytics (trước M6 gửi ở mỗi launch, nay chỉ khi đã đồng ý); event `show_search` log một lần mỗi màn Detail kể cả khi 0 kết quả; nút `…` của Player chỉ hiện khi có email báo cáo. File: `iosApp/TSPodcast/Privacy/`, `iosApp/TSPodcast/Detail/PodcastDetailModel.swift`, `iosApp/TSPodcast/Player/PlayerView.swift`.
+- **(M6 T2) Tìm trong show:** request 1 000 tập lỗi thì tìm trong các tập đang hiện kèm chú thích (không alert). File: `iosApp/TSPodcast/Detail/`, `shared/.../detail/ShowEpisodeSearch.kt`.
 
 ### Môi trường test
 
