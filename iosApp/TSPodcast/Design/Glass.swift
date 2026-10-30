@@ -126,11 +126,26 @@ extension View {
         }
     }
 
-    /// Round icon button: circular glass on iOS 26, the plain M3 glyph below.
+    /// Round prominent button (the Player's Play/Pause): tinted interactive glass in `shape` on
+    /// iOS 26; below, the plain style over `shape` filled with `fallbackFill` (the M3 look). The
+    /// label sets the size: unlike `.glassProminent`, no padding is added, so an 84 pt label is an
+    /// 84 pt button on every OS.
+    @ViewBuilder
+    func glassProminentButton(tint: Color, in shape: some Shape, fallbackFill: Color) -> some View {
+        if #available(iOS 26, *) {
+            buttonStyle(.plain).glassEffect(Glass.regular.tint(tint).interactive(), in: shape)
+        } else {
+            buttonStyle(.plain).background { shape.fill(fallbackFill) }
+        }
+    }
+
+    /// Round icon button: circular interactive glass on iOS 26, the plain M3 glyph below. The
+    /// label's frame is the button (no padding added, unlike `.glass`), so a 44/56 pt label keeps
+    /// its exact hit target and the fallback row lays out exactly as in M3.
     @ViewBuilder
     func glassCircleButton() -> some View {
         if #available(iOS 26, *) {
-            buttonStyle(.glass).buttonBorderShape(.circle)
+            buttonStyle(.plain).glassEffect(Glass.regular.interactive(), in: Circle())
         } else {
             buttonStyle(.plain)
         }

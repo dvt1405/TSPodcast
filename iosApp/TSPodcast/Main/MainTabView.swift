@@ -9,7 +9,8 @@ enum AppTab: Hashable, Sendable {
 
 /// Main shell (Android `HomeNavigationScreen` + `BottomAppBarBlur`): Yêu thích / Khám phá
 /// (default) / Tìm kiếm, each with its own `NavigationStack` and a large inline title, plus the
-/// MiniPlayer slot above the tab bar.
+/// MiniPlayer slot above the tab bar (`MiniPlayerSlot`: the iOS 26 accessory, or a floating
+/// Material capsule on iOS 17/18).
 ///
 /// `TabView(selection:)` with `.tabItem`/`.tag` runs on iOS 17; built with the iOS 26 SDK the tab
 /// bar gets Liquid Glass. `Tab(...)` would need iOS 18.
@@ -75,6 +76,10 @@ struct MainTabView: View {
             .tabItem { Label("tab.search", systemImage: "magnifyingglass") }
             .tag(AppTab.search)
         }
+        // iOS 26: the tab bar shrinks while scrolling down and the MiniPlayer accessory moves
+        // inline (compact layout). The tab and navigation bars keep the system glass, with no
+        // custom background behind them (M5 §3.3).
+        .tabBarMinimizesOnScroll()
         .miniPlayerAccessory(isPresented: showsMiniPlayer)
         .sheet(isPresented: $navigation.isShowingSettings) {
             SettingsView(model: environment.makeSettingsModel())

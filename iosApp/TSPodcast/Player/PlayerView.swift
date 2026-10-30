@@ -48,7 +48,8 @@ struct PlayerView: View {
                             .frame(width: 44, height: 44)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    // Glass circle on iOS 26, the plain M3 chevron below (M5 §3.3).
+                    .glassCircleButton()
                     .accessibilityLabel(Text("player.close"))
                     .accessibilityIdentifier("player.close")
                     Spacer()
@@ -243,7 +244,9 @@ private struct PlayerProgressView: View {
     }
 }
 
-/// Favourite · Previous · Play/Pause · Next · Playlist (`PlayerControl`).
+/// Favourite · Previous · Play/Pause · Next · Playlist (`PlayerControl`). On iOS 26 the four
+/// secondary buttons are glass circles and Play/Pause is tinted glass, all in one `GlassGroup` so
+/// they share one glass layer; below, the M3 row (plain glyphs, a `brandSecondary` circle).
 private struct PlayerControlsView: View {
     let engine: AudioEngine
     let state: PlaybackState
@@ -251,58 +254,61 @@ private struct PlayerControlsView: View {
 
     var body: some View {
         let showsPause = state.isPlaying || state.isBuffering
-        HStack {
-            ControlButton(systemImage: state.isFavourite ? "heart.fill" : "heart", label: "player.favourite", identifier: "player.favourite") {
-                engine.toggleFavourite()
-            }
-            .accessibilityAddTraits(state.isFavourite ? .isSelected : [])
-            Spacer(minLength: 0)
-            ControlButton(systemImage: "backward.end.fill", label: "player.previous", identifier: "player.previous") {
-                engine.skipPrevious()
-            }
-            .disabled(!state.hasPrevious)
-            Spacer(minLength: 0)
-            Button {
-                engine.togglePlayPause()
-            } label: {
-                ZStack {
-                    Circle().fill(Color.brandSecondary)
+        GlassGroup(spacing: 8) {
+            HStack {
+                ControlButton(systemImage: state.isFavourite ? "heart.fill" : "heart", label: "player.favourite", identifier: "player.favourite") {
+                    engine.toggleFavourite()
+                }
+                .accessibilityAddTraits(state.isFavourite ? .isSelected : [])
+                Spacer(minLength: 0)
+                ControlButton(systemImage: "backward.end.fill", label: "player.previous", identifier: "player.previous") {
+                    engine.skipPrevious()
+                }
+                .disabled(!state.hasPrevious)
+                Spacer(minLength: 0)
+                Button {
+                    engine.togglePlayPause()
+                } label: {
+                    ZStack {
+                        if state.isBuffering {
+                            ProgressView()
+                                .tint(.white)
+                                .controlSize(.large)
+                        } else {
+                            Image(systemName: showsPause ? "pause.fill" : "play.fill")
+                                .font(.system(size: 34, weight: .bold))
+                                .foregroundStyle(.white)
+                        }
+                    }
+                    .frame(width: 84, height: 84)
+                    .contentShape(Circle())
+                }
+                .glassProminentButton(tint: .brandPrimary, in: Circle(), fallbackFill: .brandSecondary)
+                .accessibilityLabel(Text(showsPause ? "player.pause" : "player.play"))
+                .accessibilityIdentifier("player.playPause")
+                .overlay {
                     if state.isBuffering {
-                        ProgressView()
-                            .tint(.white)
-                            .controlSize(.large)
-                    } else {
-                        Image(systemName: showsPause ? "pause.fill" : "play.fill")
-                            .font(.system(size: 34, weight: .bold))
-                            .foregroundStyle(.white)
+                        Color.clear
+                            .accessibilityElement()
+                            .accessibilityLabel(Text("player.loading"))
+                            .accessibilityIdentifier("player.buffering")
+                            .allowsHitTesting(false)
                     }
                 }
-                .frame(width: 84, height: 84)
-                .contentShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text(showsPause ? "player.pause" : "player.play"))
-            .accessibilityIdentifier("player.playPause")
-            .overlay {
-                if state.isBuffering {
-                    Color.clear
-                        .accessibilityElement()
-                        .accessibilityLabel(Text("player.loading"))
-                        .accessibilityIdentifier("player.buffering")
-                        .allowsHitTesting(false)
+                Spacer(minLength: 0)
+                ControlButton(systemImage: "forward.end.fill", label: "player.next", identifier: "player.next") {
+                    engine.skipNext()
                 }
+                .disabled(!state.hasNext)
+                Spacer(minLength: 0)
+                ControlButton(systemImage: "list.bullet", label: "player.playlist", identifier: "player.playlist", action: openPlaylist)
             }
-            Spacer(minLength: 0)
-            ControlButton(systemImage: "forward.end.fill", label: "player.next", identifier: "player.next") {
-                engine.skipNext()
-            }
-            .disabled(!state.hasNext)
-            Spacer(minLength: 0)
-            ControlButton(systemImage: "list.bullet", label: "player.playlist", identifier: "player.playlist", action: openPlaylist)
         }
     }
 }
 
+/// A 56 pt round button (hit target ≥ 44, M5 §3.5): a glass circle on iOS 26, the plain M3
+/// glyph below.
 private struct ControlButton: View {
     let systemImage: String
     let label: LocalizedStringKey
@@ -316,7 +322,7 @@ private struct ControlButton: View {
                 .frame(width: 56, height: 56)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .glassCircleButton()
         .accessibilityLabel(Text(label))
         .accessibilityIdentifier(identifier)
     }
@@ -332,9 +338,10 @@ private struct PlayerErrorView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("player.error")
+            // Glass prominent on iOS 26, `.borderedProminent` below; `.large` keeps it ≥ 44 pt tall.
             Button("action.retry", action: retry)
-                .buttonStyle(.borderedProminent)
-                .tint(Color.brandPrimary)
+                .glassProminentButton(tint: .brandPrimary)
+                .controlSize(.large)
                 .accessibilityIdentifier("player.retry")
         }
     }
