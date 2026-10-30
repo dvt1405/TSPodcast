@@ -14,7 +14,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | M3 | Audio engine, Player và MiniPlayer | [milestones/M3.md](milestones/M3.md) | Đã nghiệm thu (review round 2, `5b8e26c`). UI suite để QC |
 | M4 | Favourite, lưu trữ, thông báo, deep link, analytics — chốt parity | [milestones/M4.md](milestones/M4.md) | Đã nghiệm thu (review round 1, `9f2f1fb`). Checklist parity §7 ở mục M4 T5; UI suite và bước simulator để QC |
 | M5 | Giao diện Liquid Glass (iOS 26) + Up next peek trên Player | [milestones/M5.md](milestones/M5.md) | Xong phần code + kiểm tĩnh (T1–T4): helper glass + fallback Material, panel Up next peek thay sheet, Player/MiniPlayer/tab bar/chip Tìm kiếm/thanh Lưu/nút "Tải lại" glass, 275 unit test (+32); typecheck Swift 6 toàn app 0 lỗi, 31 test logic pass trên macOS. **Chờ iPhone**: unit test trên máy, build Debug, smoke và danh sách "Owner xem trên iPhone" (platform iOS 26.2 chưa cài xong) |
-| M6 | Thời sự & Bản tin, player cơ bản, App Shortcuts — quick wins trước QC | [milestones/M6.md](milestones/M6.md) | Đang làm. T1 (player cơ bản + tốc độ), T2 (N1 lite, N11 consent lite, N5 tìm trong show) và T3 (N2 shared: cấu hình hub, resolve nguồn, Điểm tin sáng) xong phần code + kiểm tĩnh: shared 380 host test (+135 so với `e80136e`), 334 unit test iOS (+59, chưa chạy), typecheck Swift 6 app + test 0 lỗi, 22 test logic pass trên macOS, `:app:assembleDebug` pass. **Chờ iPhone** (lần kiểm T3: Tun đã có trong destination, SDK iphoneos26.2 có; build/test trên máy để orchestrator chạy chung M5+M6) |
+| M6 | Thời sự & Bản tin, player cơ bản, App Shortcuts — quick wins trước QC | [milestones/M6.md](milestones/M6.md) | Xong T1–T5, chờ PO nghiệm thu: player cơ bản + tốc độ, N1 lite, N11 consent lite, N5 tìm trong show, N2 "Thời sự & Bản tin" (shared + Home + hub + kệ đêm), App Shortcuts. Shared 380 host test (+135 so với `e80136e`); **385/385 unit test iOS trên iPhone Tun** (+110 so với M5), build Debug + smoke OK; typecheck Swift 6 0 lỗi; 39 test logic macOS. Chờ owner: `confirmedAt`/L4 (Release chưa hiện hub), văn bản consent, `CONTENT_REPORT_EMAIL`, Siri vi/en trên máy |
 
 ## M0
 
@@ -1903,7 +1903,7 @@ Giới hạn đã biết của M5 (tổng hợp):
 
 ## M6
 
-Kế hoạch: [milestones/M6.md](milestones/M6.md). Base code `e80136e`. Môi trường: platform iOS 26.2 vẫn chưa cài (kiểm 1 lần đầu T1, xem dưới) nên mọi bước trên iPhone dồn vào "Chờ chạy trên iPhone khi có iOS platform". **Cập nhật T4 (30/10/2026):** platform đã cài, unit test (370/370) + build Debug + smoke đã chạy trên Tun cho M5 + M6 T1–T4 (mục T4).
+Kế hoạch: [milestones/M6.md](milestones/M6.md). Base code `e80136e`. Môi trường: platform iOS 26.2 vẫn chưa cài (kiểm 1 lần đầu T1, xem dưới) nên mọi bước trên iPhone dồn vào "Chờ chạy trên iPhone khi có iOS platform". **Cập nhật T4 (30/10/2026):** platform đã cài, unit test (370/370) + build Debug + smoke đã chạy trên Tun cho M5 + M6 T1–T4 (mục T4). **T5:** 385/385 trên Tun, build + smoke OK; tổng kết §6 ở mục "Tổng kết M6" cuối file.
 
 ### T1 — Player cơ bản + tốc độ (shared + iOS) (xong phần code; bước trên iPhone chờ platform)
 
@@ -2227,3 +2227,81 @@ Debug với `-newshub-include-unconfirmed` (và `-uitest-consent=all` để shee
 - Mỗi lần mở hub thêm một observer `onHide` (closure `weak`, không giữ model) vào `HiddenShowsModel`; vô hại nhưng không bao giờ được dọn trong process.
 - `PodcastDetailFeedTest.anotherFeedIdDoesNotUseTheCache` flaky do `TestGraph.requests` không thread-safe (có từ trước, không thuộc T4).
 - `SHORTCUT_INVOKED` chưa có nơi gọi (App Shortcuts là T5).
+
+### T5 — App Shortcuts, N7, kiểm toàn bộ §6, tài liệu (xong; đã chạy unit test + build + smoke trên iPhone)
+
+Commit: `feat(ios): add app shortcuts to continue, pause and set a sleep timer`, `docs(ios): record M6 progress, handoff and parity notes` (hash ở `git log`). Không đụng `shared/`, Gradle, code Android hay `TSPodcastUITests`; App Shortcuts không bị cắt.
+
+| Thành phần | File | Ghi chú |
+|---|---|---|
+| Logic | `iosApp/TSPodcast/Shortcuts/ShortcutActions.swift` | Swift thuần (không `import Shared`, chạy được trong package macOS). `ShortcutActions` (protocol intent gọi), `ShortcutPlayer`/`ShortcutHistory` (seam, `associatedtype Resume`), `ShortcutActionHandler`: tiếp tục = item đang có → `play()`; không có → `history.lastPlayed()` → `start(resume)` (nếu trong lúc đọc lịch sử đã có item khác thì phát item đó); không có gì → `.nothingToResume`. Tạm dừng = pause của người dùng (huỷ hẹn giờ), không có item thì không làm gì. Hẹn giờ = `SleepTimerSetting.clamped(minutes:)` (1…180) + `origin` `shortcut`. Mỗi lần chạy log `shortcut_invoked` (`intent` = `continue_listening`\|`pause`\|`set_sleep_timer`) đúng một lần. |
+| Cầu nối app | `iosApp/TSPodcast/Shortcuts/ShortcutBridge.swift`, `App/AppEnvironment.swift` | `ShortcutBridge` (`@MainActor`, giữ `weak` `AppEnvironment`, đăng ký cuối `AppEnvironment.init`; iOS 17 nên không dùng `AppDependencyManager`). Trước mỗi intent gọi `consent.load()` (intent có thể khởi động app ở nền khi chưa màn nào đọc consent). `ShortcutEvents.app` lấy tên từ shared `AnalyticsEvents` (`SHORTCUT_INVOKED`, `PARAM_INTENT`, `ORIGIN_SHORTCUT`). `AudioEngine: ShortcutPlayer` (`Resume = PlaybackRequest`). `SharedShortcutHistory`: `PlaybackHistory.currentItemId()` → `FavouriteResolver.resolve(.podcastepisode, id)` → `FavouritePlayback(resolved).request` (danh sách đã lưu của show, mới nhất trước, từ tập cuối; engine tự resume từ `PlaybackPositions`). Event đi qua `AppEnvironment.analytics` (`ConsentGatedAnalyticsTracker`). |
+| Intent + provider | `iosApp/TSPodcast/Shortcuts/ShortcutIntents.swift` | `ContinueListeningIntent: AudioPlaybackIntent`, `PauseIntent: AudioPlaybackIntent`, `SetSleepTimerIntent: AppIntent` với `@Parameter minutes` (mặc định 30, `inclusiveRange (1, 180)`; dialog "Đã hẹn giờ tắt %lld phút" dùng lại khoá `news.toast %lld`). Không có gì để tiếp tục → lỗi `CustomLocalizedStringResourceConvertible` "Chưa có tập nào để tiếp tục" (Siri đọc). `TSPodcastShortcuts: AppShortcutsProvider` 3 `AppShortcut`, mỗi câu có `\(.applicationName)`, `shortTitle` + SF Symbol. |
+| Chuỗi | `Resources/AppShortcuts.xcstrings` (mới), `Resources/Localizable.xcstrings` | `AppShortcuts`: 3 câu, vi "Tiếp tục nghe trên ${applicationName}", "Tạm dừng ${applicationName}", "Hẹn giờ tắt ${applicationName}"; en "Continue listening on ${applicationName}", "Pause ${applicationName}", "Set a sleep timer in ${applicationName}". `Localizable` +8 khoá `shortcut.*` (tiêu đề, mô tả, thông báo, tham số) vi + en → 155 khoá. |
+| Test | `TSPodcastTests/ShortcutActionsTests.swift` (9, fake player/history, cũng chạy trên macOS), `ShortcutWiringTests.swift` (5: tên event = shared; không lưu gì → nil; tập đã lưu → request đúng danh sách + `startItem`, `autoAdvance` false; id lạ → nil; `AudioEngine.hasCurrentItem`), `LocalizationTests.testShortcutStrings` (Localizable + bảng `AppShortcuts` vi/en) | |
+
+Lệnh và kết quả (30/10/2026, ~16:50–17:05):
+
+```bash
+# Kiểm môi trường 1 lần: `xcodebuild -showdestinations` → { platform:iOS, arch:arm64, id:00008110-000878203AC1401E, name:Tun }
+#   (không còn "iOS 26.2 is not installed"); `devicectl list devices` → Tun `connected` → chạy bước trên máy.
+./gradlew :shared:testAndroidHostTest :shared:linkDebugFrameworkIosArm64   # BUILD SUCCESSFUL (shared không đổi trong T5)
+./gradlew :shared:testAndroidHostTest --rerun                               # BUILD SUCCESSFUL; 48 class, 380 test, 0 failure, 0 error
+#   (base e80136e: 245 → +135; AnalyticsEventsTest 3/3 trong đó)
+# :app:assembleDebug không chạy: T5 không đổi file Gradle nào (lần gần nhất: T3, BUILD SUCCESSFUL).
+# Typecheck (m6-typecheck: refresh.sh + run.sh / run-tests.sh, bỏ `import Firebase*` + Stub.swift, -F shared/build/bin/iosArm64/debugFramework):
+#   app 108 file → exit 0, 0 error, 0 warning; app + 56 file test (-D DEBUG) → exit 0, 0 error, 0 warning.
+#   Lỗi cố ý `let deliberateTypeError: Int = "T5"` cuối ShortcutIntents.swift / ShortcutBridge.swift / ShortcutActions.swift
+#   → mỗi lần đúng 1 lỗi ở file đó (đã bỏ).
+swift test   # $OUT/m6-hosttest (+ ShortcutActions.swift, ShortcutActionsTests.swift y nguyên): Executed 39 tests, with 0 failures
+#   Thử đột biến: bỏ clamp (`.minutes(minutes)`) → 4 failures (đã hoàn lại).
+(cd iosApp && xcodegen generate) && git status --porcelain iosApp/iosApp.xcodeproj   # rỗng (project đồng bộ, đã commit cùng code)
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcastUnit -only-testing:TSPodcastTests -destination 'platform=iOS,name=Tun' \
+  -derivedDataPath $OUT/DD-m6 -resultBundlePath $OUT/M6-unit.xcresult $SIGN FIREBASE_PLIST_DIR=$OUT/no-firebase
+#   ** TEST SUCCEEDED ** — Executed 385 tests, 0 failures (T4: 370; +9 ShortcutActionsTests, +5 ShortcutWiringTests, +1 testShortcutStrings)
+#   grep -c "in target 'TSPodcastUITests'" → 0
+xcodebuild build -project iosApp/iosApp.xcodeproj -scheme TSPodcast -configuration Debug -destination 'platform=iOS,name=Tun' \
+  -derivedDataPath $OUT/DD-m6 $SIGN FIREBASE_PLIST_DIR=$OUT/no-firebase            # ** BUILD SUCCEEDED **
+#   TSPodcast.app/Metadata.appintents/extract.actionsdata: ContinueListeningIntent + PauseIntent (systemProtocol AudioStarting),
+#   SetSleepTimerIntent (tham số minutes), 3 autoShortcuts với 3 câu; vi.lproj/AppShortcuts.strings có bản vi.
+xcrun devicectl device install app --device $DEV $OUT/DD-m6/Build/Products/Debug-iphoneos/TSPodcast.app
+xcrun devicectl device process launch --device $DEV --terminate-existing tss.t.podcast
+#   sau ~18 s `devicectl device info processes | grep TSPodcast.app` → còn chạy (pid 26601)
+```
+
+`FIREBASE_PLIST_DIR` rỗng như T4: `FirebaseBootstrapTests.testHostAppHasNoFirebasePlist` giả định bản kiểm không có plist Firebase.
+
+#### Chờ chạy trên iPhone (M6 T5)
+
+- **Siri** (M6-AC20, cần người nói): tiếng Anh "Continue listening on TSPodcast", "Pause TSPodcast", "Set a sleep timer in TSPodcast" (iOS 17+); tiếng Việt khi Siri đặt tiếng Việt (iOS 18.4+): "Tiếp tục nghe trên TSPodcast", "Tạm dừng TSPodcast", "Hẹn giờ tắt TSPodcast". App Phím tắt có 3 phím tắt của TSPodcast. Kết quả: _chưa thử — chờ owner/QC_ (handoff.md "Siri cho App Shortcuts").
+
+#### Để QC (T5)
+
+- Phím tắt "Tiếp tục nghe" khi app đã tắt hẳn → app mở ở nền, phát tập cuối từ vị trí đã lưu, MiniPlayer hiện khi mở app; cài mới chưa nghe gì → Siri nói "Chưa có tập nào để tiếp tục". "Tạm dừng" khi đang hẹn giờ → dừng và hẹn giờ tắt. "Hẹn giờ tắt" → Player hiện thời gian còn lại 30:00.
+- Event `shortcut_invoked` chỉ tới Firebase khi đã đồng ý Analytics (debug view).
+
+Giới hạn đã biết (T5):
+
+- "Tiếp tục nghe" từ lịch sử phát danh sách đã lưu của **show** chứa tập cuối (như tap Favourite), không phải đúng danh sách gốc (vd. Điểm tin sáng nhiều show) và không tự phát tiếp.
+- `ShortcutBridge` giữ `AppEnvironment` yếu; unit test tạo `AppEnvironment` sẽ ghi đè bản đăng ký (vô hại trong app: một environment mỗi process).
+
+### Tổng kết M6 (§6, chạy lại đủ ở T5)
+
+| Hạng mục | Kết quả |
+|---|---|
+| Phạm vi | T1–T5 xong, không cắt hạng mục nào (N5, App Shortcuts, kệ đêm khuya đều có). |
+| Shared | 48 class / **380** host test, 0 failure (base `e80136e`: 245). Mới: `tss.t.shared.playback` (`SleepTimer`, `EndOfItemPolicy`, `PlaybackSpeed`, `PlaybackProfileRepository`), `text` (`VietnameseFold` expect/actual, `EpisodeFilter`), `detail` (`ShowEpisodeSearch`), `newshub` (config, resolver, repository, `MorningBrief`), `blacklist` (host/author, `HiddenShowsRepository`), `privacy` (`ConsentRepository`), `analytics.AnalyticsEvents`. Không kiểu iOS → Android dùng lại được. |
+| iOS unit test trên Tun | **385/385** pass (M5: 275 → M6 +110), 0 dòng `TSPodcastUITests`. Build Debug + cài + smoke OK. |
+| Typecheck + logic macOS | App 108 file + 56 file test: 0 lỗi, 0 cảnh báo; `swift test` 39/39. |
+| AC1 ranh giới | `IPHONEOS_DEPLOYMENT_TARGET` 5 dòng đều `"17.0"`; targets của `project.yml` giống `e80136e` (TSPodcast, TSPodcastNotificationService, TSPodcastTests, TSPodcastUITests); `git diff e80136e..HEAD -- iosApp/project.yml \| grep -c package` → 0; `application-groups` → 0; `git diff --name-only e80136e..HEAD -- app core coreApi podcasts sharedFirebase sharedLibrary sharedResources gradle settings.gradle.kts build.gradle.kts iosApp/TSPodcastUITests` → rỗng; grep `ds_*`/`PodcastDataSource`/`/v1/hubs`/`tspodcast.*/api` → 0; `\bradio\b` trong Swift → 0; `xcodegen generate` không đổi project. |
+| AC2 identifier | `comm -23` (base vs HEAD) → rỗng; `comm -13` có mọi literal §3.9 (`consent.*`, `detail.menu/hide/report`, `hide.confirm`, `hiddenShows.*`, `home.section.news`, `home.news.item.\(index)`, `home.news.seeAll`, `newsHub.*`, `player.more/report/speed/sleepTimer`, `settings.analytics/crash/hiddenShows`, `sleepTimer.*`, `speed.*`). Dạng tham số (không thấy bằng grep literal, đã ghi ở T1/T4): `player.skipBack/skipForward` (`ControlButton`), `speed.minus/plus`, `player.previous/next` (`QueueStepButton`, đã chuyển vào Up next), `home.news.brief`/`newsHub.brief` + `.playAll` (`BriefCard(identifier:)`), `detail.search.empty/footnote`, `home.section.news.loading/error/retry` (helper chung của section). `accessibilityLabel(Text("…")` 9 → 14, `accessibilityHint(Text("…")` 1 → 2, mất 0. Grep tên trong mã: mọi id §3.9 có trong `iosApp/TSPodcast`. |
+| AC19 analytics | 9 hằng đều có nơi gọi: `NEWS_HUB_OPEN` (NewsHubModel), `NEWS_BRIEF_PLAY` (NewsHubActions), `NEWS_SOURCE_UNRESOLVED` (SharedNewsHubDataSource), `SPEED_CHANGE`/`SLEEP_TIMER_SET` (AudioEngine), `SHOW_SEARCH` (PodcastDetailModel), `SHOW_HIDDEN` (HiddenShowsModel), `CONTENT_REPORT` (Report/ContentReporter.swift; grep `CONTENT_REPORT` đầu tiên trúng `CONTENT_REPORT_EMAIL` trong Info.plist), `SHORTCUT_INVOKED` (ShortcutBridge). Tất cả qua `AppEnvironment.analytics` = `ConsentGatedAnalyticsTracker`; không tham số nào là query/tiêu đề/email. |
+| AC20 App Shortcuts | `AudioPlaybackIntent` trong `Shortcuts/ShortcutIntents.swift` (Continue + Pause), `SetSleepTimerIntent(minutes)`, provider 3 câu có `\(.applicationName)`; script `python3 -I` trên `AppShortcuts.xcstrings`: 3 câu đều có vi + en chứa `${applicationName}`. Siri: chờ iPhone (owner/QC). |
+| AC21 N7 | `grep -rniE 'xe máy\|chạy xe\|lái xe' iosApp/TSPodcast/Resources/*.xcstrings fastlane/metadata` → rỗng. |
+| AC23 chuỗi | `Localizable.xcstrings` 155 khoá, `AppShortcuts.xcstrings` 3 khoá: missing_en 0, missing_vi 0. `LocalizationTests`: `testPlayerBasicsStrings`, `testShowSafetyPrivacyAndSearchStrings`, `testNewsHubStrings`, `testShortcutStrings` pass trên Tun. |
+| AC27 vệ sinh | `git log e80136e..HEAD --format=%s` toàn conventional; dòng `Co-Authored-By` = số commit; `git check-ignore -v iosApp/Config/Secrets.xcconfig` → `.gitignore:32`; `git ls-files` không có build/DerivedData/xcuserdata/.gradle/xcresult/Secrets/GoogleService-Info của `Config/Firebase`; key/secret PodcastIndex trong `git log e80136e..HEAD -p` → 0 lần; script resolve T3 (`$OUT/m6-resolve`) không nằm trong repo. |
+| Bảng 8 nguồn | Mục T3 ở trên (5/7 nguồn tin + kệ đêm dùng được ngày 30/10/2026). |
+| Chuỗi chờ luật sư | Mục T2 "Chuỗi chờ luật sư (N11)": mọi `consent.*`. |
+| Chờ iPhone | Các danh sách "Chờ chạy trên iPhone" của T1–T3 đã chạy ở T4/T5 (385/385, smoke OK). Còn lại: Siri (T5) và những gì cần người nhìn/nghe (Để QC). |
+| Để QC | AC7 (Player trên máy: −15/+30, tốc độ 2× không méo, fade 10 s, màn khoá), AC11 (ẩn/bỏ ẩn), AC13 (consent + proxy), AC17 (Home + hub với `-newshub-include-unconfirmed`), AC20 (Siri). UI test cũ có thể vỡ: `PlayerUITests` (prev/next nay trong panel Up next), mọi UI test launch (sheet consent → thêm `-uitest-consent=all`), test cuộn Home khi hub bật. |
+| Chờ owner | handoff.md: cổng L4 + `confirmedAt` (Release chưa có hub), văn bản consent + URL chính sách, RC là "Cần thiết" (L5), `CONTENT_REPORT_EMAIL`, App Privacy "chỉ khi đồng ý", Siri tiếng Việt. |
