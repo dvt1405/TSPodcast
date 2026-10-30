@@ -33,6 +33,9 @@ struct LaunchOptions: Equatable, Sendable {
     /// `-newshub-include-unconfirmed` (M6 §3.4): the news hub also shows sources without
     /// `confirmedAt`, so dev and QC can see it before any publisher confirmed. Release: false.
     var newsHubIncludeUnconfirmed = false
+    /// `-uitest-queue=N` (1…200): once Main shows, play a fixture queue of N items and open the
+    /// Player, so the Up next panel has a list long enough to scroll without the network.
+    var fixtureQueueCount = 0
 
     enum ConsentChoice: String, Equatable, Sendable {
         case all
@@ -68,6 +71,10 @@ struct LaunchOptions: Equatable, Sendable {
             .compactMap { $0.hasPrefix("-uitest-consent=") ? ConsentChoice(rawValue: String($0.dropFirst("-uitest-consent=".count))) : nil }
             .first
         newsHubIncludeUnconfirmed = arguments.contains("-newshub-include-unconfirmed")
+        fixtureQueueCount = arguments.lazy
+            .compactMap { $0.hasPrefix("-uitest-queue=") ? Int($0.dropFirst("-uitest-queue=".count)) : nil }
+            .first
+            .map { min(max($0, 0), 200) } ?? 0
         let baseURL = environment["TSP_UITEST_BASE_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
         baseURLOverride = (baseURL?.isEmpty ?? true) ? nil : baseURL
         #endif

@@ -38,6 +38,9 @@ final class AppEnvironment {
     @ObservationIgnored let shortcutActions: any ShortcutActions
     /// Whether the full-screen Player is shown (Detail, Live and the MiniPlayer open it).
     var isPlayerPresented = false
+    #if DEBUG
+    @ObservationIgnored private var didPlayFixtureQueue = false
+    #endif
     /// Shared by every Detail screen of the process (the fail-once hook counts per process).
     @ObservationIgnored let podcastDetailDataSource: any PodcastDetailDataSource
     /// Search and category lists over shared `SearchFeed`.
@@ -253,6 +256,65 @@ final class AppEnvironment {
         audioEngine.play(request)
         isPlayerPresented = true
     }
+
+    #if DEBUG
+    /// `-uitest-queue=N`: plays N fixture items (no artwork, a silent WAV written by the app, or
+    /// the `TSP_UITEST_AUDIO_URL` audio) and opens the Player, once per process.
+    func playFixtureQueueIfRequested() {
+        let count = launchOptions.fixtureQueueCount
+        guard count > 0, !didPlayFixtureQueue else { return }
+        didPlayFixtureQueue = true
+        play(PlaybackRequest(items: Self.fixtureQueue(count: count), startIndex: 0))
+    }
+
+    /// Items of `-uitest-queue`: every other title is long enough to wrap to two lines.
+    nonisolated static func fixtureQueue(count: Int) -> [PlaybackItem] {
+        let audioURL = fixtureAudioURL()
+        return (0..<count).map { index in
+            PlaybackItem(
+                id: "uitest-\(index)",
+                feedId: 9_000_001,
+                url: audioURL.absoluteString,
+                title: index.isMultiple(of: 2)
+                    ? "Tập \(index + 1): bản tin thử nghiệm"
+                    : "Tập \(index + 1): một tiêu đề dài để kiểm tra dòng thứ hai của danh sách Tiếp theo",
+                podcastTitle: "TSPodcast UI test",
+                artworkURL: nil,
+                referer: nil,
+                durationMs: 60_000,
+                isLive: false
+            )
+        }
+    }
+
+    /// 60 s of silence (8 kHz mono 16-bit WAV) in the app's temporary directory: on a device the
+    /// app cannot read the UI test bundle's `tone-60s.m4a`, so the fixture queue brings its own.
+    nonisolated static func fixtureAudioURL() -> URL {
+        let url = FileManager.default.temporaryDirectory.appending(path: "uitest-silence-60s.wav")
+        guard !FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) else { return url }
+        let rate = 8_000
+        let dataSize = rate * 60 * 2
+        var wav = Data()
+        func append<T: FixedWidthInteger>(_ value: T) {
+            withUnsafeBytes(of: value.littleEndian) { wav.append(contentsOf: $0) }
+        }
+        wav.append(contentsOf: Array("RIFF".utf8))
+        append(UInt32(36 + dataSize))
+        wav.append(contentsOf: Array("WAVEfmt ".utf8))
+        append(UInt32(16))
+        append(UInt16(1))
+        append(UInt16(1))
+        append(UInt32(rate))
+        append(UInt32(rate * 2))
+        append(UInt16(2))
+        append(UInt16(16))
+        wav.append(contentsOf: Array("data".utf8))
+        append(UInt32(dataSize))
+        wav.append(Data(count: dataSize))
+        try? wav.write(to: url, options: .atomic)
+        return url
+    }
+    #endif
 
     /// The Favourite tab over the `FavouriteDTO` table: a tap plays through the player seam
     /// without opening the Player (Android `FavouriteScreen`).

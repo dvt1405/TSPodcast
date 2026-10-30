@@ -99,6 +99,9 @@ struct MainTabView: View {
         }
         // Links that arrived during onboarding or category selection open now (M4 §4.5).
         .task { await environment.deepLinks.mainDidAppear() }
+        #if DEBUG
+        .task { environment.playFixtureQueueIfRequested() }
+        #endif
         .onChange(of: scenePhase) { _, phase in
             if phase == .background {
                 environment.audioEngine.persistPosition()

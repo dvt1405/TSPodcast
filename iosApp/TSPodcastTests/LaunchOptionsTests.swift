@@ -36,6 +36,16 @@ final class LaunchOptionsTests: XCTestCase {
         XCTAssertFalse(LaunchOptions(arguments: ["-newshub-include-unconfirmed"], environment: [:]).shouldReset)
     }
 
+    func testFixtureQueueHook() {
+        XCTAssertEqual(LaunchOptions(arguments: ["-uitest-queue=30"], environment: [:]).fixtureQueueCount, 30)
+        XCTAssertEqual(LaunchOptions(arguments: ["-uitest-queue=999"], environment: [:]).fixtureQueueCount, 200)
+        XCTAssertEqual(LaunchOptions(arguments: ["-uitest-queue=abc"], environment: [:]).fixtureQueueCount, 0)
+        XCTAssertEqual(LaunchOptions(arguments: [], environment: [:]).fixtureQueueCount, 0)
+        let items = AppEnvironment.fixtureQueue(count: 30)
+        XCTAssertEqual(items.count, 30)
+        XCTAssertEqual(Set(items.map(\.id)).count, 30)
+    }
+
     func testSkipOnboardingImpliesReset() {
         let options = LaunchOptions(arguments: ["-uitest-skip-onboarding"], environment: [:])
         XCTAssertTrue(options.skipOnboarding)
