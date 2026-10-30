@@ -57,6 +57,24 @@ jobs:
           echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/tspodcast-web" >> "$GITHUB_OUTPUT"
           echo "tag=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
 
+      - name: Validate compose file and Caddyfile
+        run: |
+          etc="$RUNNER_TEMP/etc-tspodcast"
+          mkdir -p "$etc/caddy"
+          for f in compose web backend; do cp "deploy/env/$f.env.example" "$etc/$f.env"; done
+          printf 'DOMAIN=example.com\nACME_EMAIL=ops@example.com\nWEB_IMAGE=ghcr.io/example/tspodcast-web\n' >> "$etc/compose.env"
+          for profiles in "" backend; do
+            COMPOSE_PROFILES="$profiles" TSP_ETC_DIR="$etc" \
+              docker compose -f deploy/docker-compose.yml --env-file "$etc/compose.env" config --quiet
+            echo "compose config ok (profiles: ${profiles:-none})"
+          done
+          # Main Caddyfile alone, then with the api site enabled.
+          for sites in "$etc/caddy" "$PWD/deploy/caddy/sites-available"; do
+            docker run --rm -e DOMAIN=example.com -e ACME_EMAIL=ops@example.com \
+              -v "$PWD/deploy/caddy:/etc/caddy:ro" -v "$sites:/etc/caddy-sites:ro" \
+              caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          done
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
