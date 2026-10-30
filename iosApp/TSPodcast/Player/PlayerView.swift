@@ -106,7 +106,7 @@ struct PlayerView: View {
                     .layoutPriority(1)
 
                 PlayerControlsView(engine: engine, state: state) {
-                    withAnimation(panelAnimation) { panel.expand() }
+                    UpNextPanelSignpost.animate(panelAnimation) { panel.expand() }
                 }
                 .padding(.horizontal, 8)
                 .padding(.top, 8)

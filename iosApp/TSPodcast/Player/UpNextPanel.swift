@@ -1,4 +1,5 @@
 import SwiftUI
+import os
 
 /// "Tiếp theo" panel at the bottom of the Player (Android `SlideArea`, without its ad; M5 §3.1).
 /// Collapsed, only its header shows: the peek with the playing item (and the next one when it
@@ -32,7 +33,7 @@ struct UpNextPanel: View {
             if panel.isExpanded || isDragging {
                 UpNextList(engine: engine, bottomInset: bottomInset) { index in
                     engine.select(index: index)
-                    withAnimation(animation) { panel.didSelectItem() }
+                    UpNextPanelSignpost.animate(animation) { panel.didSelectItem() }
                 }
                 .transition(.opacity)
             }
@@ -48,7 +49,7 @@ struct UpNextPanel: View {
         .offset(y: panel.offset(forDrag: dragY))
         .accessibilityElement(children: .contain)
         .accessibilityAction(.escape) {
-            withAnimation(animation) { panel.collapse() }
+            UpNextPanelSignpost.animate(animation) { panel.collapse() }
         }
         .onChange(of: state.queue.count) { _, count in
             withAnimation(animation) { panel.queueDidChange(count: count) }
@@ -63,7 +64,7 @@ struct UpNextPanel: View {
     /// Grabber + "Tiếp theo" + the peek rows (collapsed only), one VoiceOver button.
     private func header(state: PlaybackState) -> some View {
         Button {
-            withAnimation(animation) { panel.toggle() }
+            UpNextPanelSignpost.animate(animation) { panel.toggle() }
         } label: {
             VStack(alignment: .leading, spacing: 8) {
                 Capsule()
@@ -100,7 +101,7 @@ struct UpNextPanel: View {
                     dragY = value.translation.height
                 }
                 .onEnded { value in
-                    withAnimation(animation) {
+                    UpNextPanelSignpost.animate(animation) {
                         panel.endDrag(translation: value.translation.height, velocity: value.velocity.height)
                         dragY = 0
                         isDragging = false
@@ -118,6 +119,24 @@ struct UpNextPanel: View {
     /// "Đang phát: <tiêu đề>".
     private func peekValue(state: PlaybackState) -> String {
         String(format: String(localized: "player.upNext.peekValue"), state.current?.title ?? "")
+    }
+}
+
+/// Every animated move of the panel runs inside an os_signpost animation interval
+/// (`tss.t.podcast` / `UpNextPanel` / `panel`), so Instruments and `XCTOSSignpostMetric` report
+/// the hitches of the open/close animation.
+enum UpNextPanelSignpost {
+    static let subsystem = AppLog.subsystem
+    static let category = "UpNextPanel"
+    static let name: StaticString = "panel"
+    private static let signposter = OSSignposter(subsystem: subsystem, category: category)
+
+    @MainActor
+    static func animate(_ animation: Animation, _ change: () -> Void) {
+        let interval = signposter.beginAnimationInterval(name)
+        withAnimation(animation, completionCriteria: .logicallyComplete, change) {
+            signposter.endInterval(name, interval)
+        }
     }
 }
 
