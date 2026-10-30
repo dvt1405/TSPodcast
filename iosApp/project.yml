@@ -127,3 +127,18 @@ schemes:
         - name: TSPodcastUITests
     archive:
       config: Release
+
+  # Chỉ unit test (luật test của owner: không UI test cho tới pha QC cuối, M4 §4.8). Test action chỉ có
+  # TSPodcastTests nên `xcodebuild test -scheme TSPodcastUnit` không build target UI test.
+  TSPodcastUnit:
+    build:
+      targets:
+        TSPodcast: all
+        TSPodcastTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: false
+      targets:
+        - name: TSPodcastTests
