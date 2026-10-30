@@ -12,6 +12,11 @@ import type { NextConfig } from "next";
 // the static site live in ../firebase.json.
 const staticExport = process.env.NEXT_PUBLIC_STATIC_EXPORT === "1";
 
+// The Docker image (web/Dockerfile) sets this: a self-contained server in
+// .next/standalone (server.js + only the traced node_modules). Off by default so
+// `npm run start` keeps working locally, and ignored by the static export.
+const standalone = !staticExport && process.env.NEXT_OUTPUT_STANDALONE === "1";
+
 const SECURITY_HEADERS = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -21,7 +26,10 @@ const SECURITY_HEADERS = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  output: staticExport ? "export" : undefined,
+  output: staticExport ? "export" : standalone ? "standalone" : undefined,
+  // Trace from this folder, not from a package-lock.json further up the disk:
+  // otherwise .next/standalone nests server.js under the parent folders' path.
+  ...(standalone ? { outputFileTracingRoot: __dirname } : {}),
   pageExtensions: staticExport ? ["tsx", "ts"] : ["tsx", "ts", "dynamic.tsx", "dynamic.ts"],
   // Fewer build workers in a static export: together with the per-worker
   // spacing in src/lib/podcastindex.ts this keeps PodcastIndex below its 429 limit.

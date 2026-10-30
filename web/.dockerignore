@@ -1,0 +1,17 @@
+# Build context of web/Dockerfile. Keep secrets and local build output out of
+# the context (and therefore out of every image layer).
+.env
+.env.*
+!.env.example
+*.pem
+node_modules
+.next
+out
+coverage
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+.DS_Store
+Dockerfile
+.dockerignore
