@@ -1,0 +1,18 @@
+# Cron alternative to deploy/systemd/*.timer. Use one or the other, not both.
+# Install: sudo install -m 644 /opt/tspodcast/cron/tspodcast.cron.example /etc/cron.d/tspodcast
+#
+# Ubuntu's cron runs in the server's time zone (usually UTC on a VPS: check
+# with `timedatectl`). The times below are UTC for 04:00 / 02:00 / 07:00 in
+# Vietnam (UTC+7, no daylight saving).
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Nightly Postgres backup, 04:00 ICT (backend profile only).
+0 21 * * * deploy /opt/tspodcast/scripts/backup-postgres.sh >>/var/log/tspodcast-backup.log 2>&1
+
+# Daily crawl, 02:00 ICT, only if the worker has no pg-boss cron (TODO BE-M0).
+# 0 19 * * * deploy /opt/tspodcast/scripts/run-worker-job.sh daily-crawl >>/var/log/tspodcast-crawl.log 2>&1
+
+# Disk usage alert above 80 % (plan web-vps-deploy.md step 11): logs to syslog;
+# wire it to Telegram/healthchecks if you want a push notification.
+0 0 * * * root df --output=pcent / | tail -n 1 | tr -dc '0-9' | awk '$1 > 80 { exit 1 }' || logger -t tspodcast "disk usage above 80 percent"
