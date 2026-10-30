@@ -9,6 +9,9 @@ struct PlaybackRequest: Equatable, Sendable {
     /// The API models written to Room when the request starts (M4 §3.2); nil only writes
     /// `extra:current_item_id`.
     var history: PlaybackHistorySource?
+    /// Moves on to the next item at the end of one (M6 §3.1). False everywhere (Android
+    /// `setPauseAtEndOfMediaItems(true)`) except "Play all" of the morning brief.
+    var autoAdvance = false
 
     /// The tapped item; nil only when `startIndex` is out of range.
     var startItem: PlaybackItem? {

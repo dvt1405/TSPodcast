@@ -3,9 +3,9 @@ import MediaPlayer
 import XCTest
 @testable import TSPodcast
 
-/// M3-AC5: the Now Playing dictionary.
+/// M3-AC5: the Now Playing dictionary. M6-AC6: the rate follows the speed.
 final class NowPlayingInfoTests: XCTestCase {
-    private func state(isLive: Bool = false, isPlaying: Bool = true) -> PlaybackState {
+    private func state(isLive: Bool = false, isPlaying: Bool = true, speedTenths: Int = 10) -> PlaybackState {
         var state = PlaybackState()
         state.current = PlaybackItem(episode: .sample(1), podcast: .sample)
         state.queue = [state.current!, PlaybackItem(episode: .sample(2), podcast: .sample)]
@@ -14,6 +14,7 @@ final class NowPlayingInfoTests: XCTestCase {
         state.isLive = isLive
         state.positionMs = 12_500
         state.durationMs = isLive ? 0 : 1_800_000
+        state.speedTenths = speedTenths
         return state
     }
 
@@ -42,9 +43,23 @@ final class NowPlayingInfoTests: XCTestCase {
         XCTAssertEqual(NowPlayingCenter.info(for: state(isPlaying: false))[MPNowPlayingInfoPropertyPlaybackRate] as? Double, 0)
         XCTAssertTrue(NowPlayingCenter.info(for: PlaybackState()).isEmpty)
     }
+
+    @MainActor
+    func testRateFollowsTheSpeed() {
+        let playing = NowPlayingCenter.info(for: state(speedTenths: 15))
+        XCTAssertEqual(playing[MPNowPlayingInfoPropertyPlaybackRate] as? Double, 1.5)
+        XCTAssertEqual(playing[MPNowPlayingInfoPropertyDefaultPlaybackRate] as? Double, 1.5)
+
+        let paused = NowPlayingCenter.info(for: state(isPlaying: false, speedTenths: 15))
+        XCTAssertEqual(paused[MPNowPlayingInfoPropertyPlaybackRate] as? Double, 0)
+        XCTAssertEqual(paused[MPNowPlayingInfoPropertyDefaultPlaybackRate] as? Double, 1.5)
+
+        XCTAssertEqual(NowPlayingCenter.info(for: state())[MPNowPlayingInfoPropertyDefaultPlaybackRate] as? Double, 1.0)
+    }
 }
 
-/// M3-AC6: which remote commands are enabled, and what their handlers do.
+/// M3-AC6 / M6-AC5: which remote commands are enabled, and what their handlers do. Next and
+/// previous track stay disabled so the Lock Screen shows −15 / +30 (M6 §7 item 5).
 @MainActor
 final class RemoteCommandsTests: XCTestCase {
     private final class Recorder: RemoteCommandHandling {
@@ -52,9 +67,9 @@ final class RemoteCommandsTests: XCTestCase {
         func play() { calls.append("play") }
         func pause() { calls.append("pause") }
         func togglePlayPause() { calls.append("toggle") }
-        func skipNext() { calls.append("next") }
-        func skipPrevious() { calls.append("previous") }
         func seek(toMs positionMs: Int64) { calls.append("seek \(positionMs)") }
+        func skip(bySeconds seconds: Double) { calls.append("skip \(Int(seconds))") }
+        func changeRate(_ rate: Float) { calls.append("rate \(rate)") }
     }
 
     private let center = MPRemoteCommandCenter.shared()
@@ -81,11 +96,16 @@ final class RemoteCommandsTests: XCTestCase {
     }
 
     private func assertUnsupportedDisabled(file: StaticString = #filePath, line: UInt = #line) {
-        XCTAssertFalse(center.skipForwardCommand.isEnabled, file: file, line: line)
-        XCTAssertFalse(center.skipBackwardCommand.isEnabled, file: file, line: line)
+        XCTAssertFalse(center.nextTrackCommand.isEnabled, file: file, line: line)
+        XCTAssertFalse(center.previousTrackCommand.isEnabled, file: file, line: line)
         XCTAssertFalse(center.seekForwardCommand.isEnabled, file: file, line: line)
         XCTAssertFalse(center.seekBackwardCommand.isEnabled, file: file, line: line)
-        XCTAssertFalse(center.changePlaybackRateCommand.isEnabled, file: file, line: line)
+    }
+
+    private func assertSkipAndRate(enabled: Bool, file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertEqual(center.skipBackwardCommand.isEnabled, enabled, file: file, line: line)
+        XCTAssertEqual(center.skipForwardCommand.isEnabled, enabled, file: file, line: line)
+        XCTAssertEqual(center.changePlaybackRateCommand.isEnabled, enabled, file: file, line: line)
     }
 
     func testFirstItem() {
@@ -93,42 +113,61 @@ final class RemoteCommandsTests: XCTestCase {
         XCTAssertTrue(center.playCommand.isEnabled)
         XCTAssertTrue(center.pauseCommand.isEnabled)
         XCTAssertTrue(center.togglePlayPauseCommand.isEnabled)
-        XCTAssertFalse(center.previousTrackCommand.isEnabled)
-        XCTAssertTrue(center.nextTrackCommand.isEnabled)
         XCTAssertTrue(center.changePlaybackPositionCommand.isEnabled)
+        assertSkipAndRate(enabled: true)
         assertUnsupportedDisabled()
     }
 
-    func testLastItem() {
+    func testMiddleAndLastItemStillHaveNoTrackCommands() {
+        commands.configure(for: state(index: 1))
+        assertUnsupportedDisabled()
         commands.configure(for: state(index: 2))
-        XCTAssertTrue(center.previousTrackCommand.isEnabled)
-        XCTAssertFalse(center.nextTrackCommand.isEnabled)
+        assertSkipAndRate(enabled: true)
         assertUnsupportedDisabled()
     }
 
-    func testLiveHasNoPositionCommand() {
+    func testSkipIntervalsAndRates() {
+        XCTAssertEqual(center.skipBackwardCommand.preferredIntervals, [15])
+        XCTAssertEqual(center.skipForwardCommand.preferredIntervals, [30])
+        XCTAssertEqual(center.changePlaybackRateCommand.supportedPlaybackRates, [0.5, 0.8, 1.0, 1.2, 1.5, 2.0, 2.5, 3.0])
+    }
+
+    func testLiveHasNoPositionSkipOrRate() {
         commands.configure(for: state(index: 1, isLive: true))
         XCTAssertFalse(center.changePlaybackPositionCommand.isEnabled)
         XCTAssertTrue(center.togglePlayPauseCommand.isEnabled)
+        assertSkipAndRate(enabled: false)
         assertUnsupportedDisabled()
     }
 
     func testNothingLoaded() {
         commands.configure(for: PlaybackState())
         XCTAssertFalse(center.playCommand.isEnabled)
-        XCTAssertFalse(center.nextTrackCommand.isEnabled)
         XCTAssertFalse(center.changePlaybackPositionCommand.isEnabled)
+        assertSkipAndRate(enabled: false)
+        assertUnsupportedDisabled()
     }
 
     func testHandlersDriveTheEngine() {
         XCTAssertEqual(commands.handlePlay(), .success)
         XCTAssertEqual(commands.handlePause(), .success)
         XCTAssertEqual(commands.handleTogglePlayPause(), .success)
-        XCTAssertEqual(commands.handleNextTrack(), .success)
-        XCTAssertEqual(commands.handlePreviousTrack(), .success)
         XCTAssertEqual(commands.handleChangePosition(seconds: 42.5), .success)
         XCTAssertEqual(commands.handleChangePosition(seconds: .nan), .commandFailed)
-        XCTAssertEqual(recorder.calls, ["play", "pause", "toggle", "next", "previous", "seek 42500"])
+        XCTAssertEqual(commands.handleSkip(seconds: -15), .success)
+        XCTAssertEqual(commands.handleSkip(seconds: 30), .success)
+        XCTAssertEqual(commands.handleSkip(seconds: .infinity), .commandFailed)
+        XCTAssertEqual(commands.handleChangeRate(1.5), .success)
+        XCTAssertEqual(commands.handleChangeRate(.nan), .commandFailed)
+        XCTAssertEqual(commands.handleChangeRate(0), .commandFailed)
+        XCTAssertEqual(recorder.calls, ["play", "pause", "toggle", "seek 42500", "skip -15", "skip 30", "rate 1.5"])
+    }
+
+    func testHandlersWithoutEngineHaveNoItem() {
+        commands.uninstall()
+        let orphan = RemoteCommands(center: center)
+        XCTAssertEqual(orphan.handleSkip(seconds: 30), .noActionableNowPlayingItem)
+        XCTAssertEqual(orphan.handleChangeRate(1.5), .noActionableNowPlayingItem)
     }
 }
 

@@ -4,8 +4,12 @@ import Observation
 
 /// The player of the app (audio-playback-ios §3), Android's `PlayerManager` + `PlayerViewModel`:
 /// **one** `AVPlayer` and a self-managed queue (shared `PlaybackQueue`). Like
-/// `setPauseAtEndOfMediaItems(true)`, it pauses at the end of every episode and never moves on
-/// by itself. It publishes `state` (Android `PlayerControlState`), keeps the listening position
+/// `setPauseAtEndOfMediaItems(true)`, it pauses at the end of every episode and moves on only
+/// when the request asked for it (`autoAdvance`, shared `EndOfItemPolicy`, M6 §3.1). M6 adds
+/// skip ±, the speed per show (shared `PlaybackProfileRepository`, pitch kept with
+/// `.timeDomain`) and the sleep timer (shared `SleepTimer`, ticked by the periodic time
+/// observer, which keeps running in the background while audio plays). It publishes `state`
+/// (Android `PlayerControlState`), keeps the listening position
 /// (shared `PlaybackPositions`, [Sửa] features-spec §3.6), records the history like Android
 /// `SaveCurrentPlayingUseCase` (a new list: playlist + podcast in Room and
 /// `extra:current_item_id`; previous/next/Up next: the id only, shared `PlaybackHistory`), keeps
@@ -56,7 +60,15 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
     @ObservationIgnored private let session: AudioSessionController
     @ObservationIgnored private let nowPlaying: NowPlayingCenter
     @ObservationIgnored private let remoteCommands: RemoteCommands
+    @ObservationIgnored private let profiles: PlaybackProfileRepository
+    @ObservationIgnored private let sleepTimer: SleepTimer
+    @ObservationIgnored private let analytics: (any AnalyticsTracker)?
+    /// `PlaybackRequest.autoAdvance` of the current list.
+    @ObservationIgnored private var autoAdvance = false
     @ObservationIgnored let hooks: Hooks
+
+    /// "Áp dụng cho mọi show" of the speed sheet (shared `PlaybackProfileRepository.isApplyToAll`).
+    private(set) var appliesSpeedToAll = false
     #if DEBUG
     /// Unit-test seam: runs right after the resume seek is sent, while it is still in flight.
     @ObservationIgnored var onStartSeekSent: (() -> Void)?
@@ -66,6 +78,9 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         positions: PlaybackPositions,
         history: PlaybackHistory,
         favourites: FavouriteRepository,
+        profiles: PlaybackProfileRepository,
+        sleepTimer: SleepTimer,
+        analytics: (any AnalyticsTracker)? = nil,
         session: AudioSessionController = AudioSessionController(),
         nowPlaying: NowPlayingCenter = NowPlayingCenter(),
         remoteCommands: RemoteCommands = RemoteCommands(),
@@ -77,11 +92,19 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         self.session = session
         self.nowPlaying = nowPlaying
         self.remoteCommands = remoteCommands
+        self.profiles = profiles
+        self.sleepTimer = sleepTimer
+        self.analytics = analytics
         self.hooks = hooks
         player = Self.makePlayer()
         attachPlayerObservers()
         session.configure(handler: self)
         remoteCommands.install(handler: self)
+        enqueuePersistence { [weak self] in
+            let on = (try? await profiles.isApplyToAll())?.boolValue ?? false
+            self?.appliesSpeedToAll = on
+        }
+        publishSleepTimer()
     }
 
     /// The one place that creates an `AVPlayer` (also after a media services reset).
@@ -103,9 +126,10 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         savePosition()
         items = request.items
         self.queue = queue
+        autoAdvance = request.autoAdvance
         let item = items[Int(queue.index)]
         AppLog.playback.notice(
-            "play feedId=\(item.feedId, privacy: .public) id=\(item.id, privacy: .public) index=\(queue.index, privacy: .public) count=\(request.items.count, privacy: .public) history=\(request.history != nil, privacy: .public)"
+            "play feedId=\(item.feedId, privacy: .public) id=\(item.id, privacy: .public) index=\(queue.index, privacy: .public) count=\(request.items.count, privacy: .public) history=\(request.history != nil, privacy: .public) autoAdvance=\(request.autoAdvance, privacy: .public)"
         )
         load(autoplay: true, history: request.history)
     }
@@ -125,6 +149,11 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
             player.seek(to: .zero)
         }
         wantsToPlay = true
+        // A deadline that passed while an interruption held playback does not stop a play the
+        // user asked for; a fade in progress continues at its volume.
+        if tickSleepTimer(stopping: false) {
+            restoreVolume()
+        }
         if player.currentItem?.status == .readyToPlay, pendingStartMs == 0 {
             session.activate()
             player.play()
@@ -133,9 +162,14 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         refreshSystemControls()
     }
 
+    /// The user paused (Player, MiniPlayer, Lock Screen, Shortcuts): cancels the sleep timer, also
+    /// while it fades. An interruption or a lost route pauses without cancelling.
     func pause() {
         AppLog.playback.notice("command pause")
         wasPlayingBeforeInterruption = false
+        sleepTimer.onManualPause()
+        restoreVolume()
+        publishSleepTimer()
         pausePlayback()
     }
 
@@ -173,6 +207,154 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         }
         refreshSystemControls()
     }
+
+    /// −15 / +30 s (Player and remote commands): clamped to 0…duration (only to 0 while the
+    /// duration is unknown) through `seek(toMs:)`. Ignored for live or without an item.
+    func skip(bySeconds seconds: Double) {
+        guard state.current != nil, !state.isLive, seconds.isFinite else { return }
+        let base = pendingStartMs > 0 ? pendingStartMs : state.positionMs
+        seek(toMs: max(0, base + Int64((seconds * 1000).rounded())))
+    }
+
+    // MARK: - Speed (M6 §3.2)
+
+    /// Lock Screen rate: rounded to 0.1 and clamped (shared `PlaybackSpeed.normalize`).
+    func changeRate(_ rate: Float) {
+        setSpeed(tenths: Int(PlaybackSpeed.shared.normalize(rate: rate)), screen: nil)
+    }
+
+    /// Applies `tenths` now and remembers it for this show (or for every show with
+    /// "apply to all"); logs `speed_change`. Ignored for live, without an item or when unchanged.
+    func setSpeed(tenths: Int, screen: String?) {
+        guard let item = state.current, !isLiveNow else { return }
+        let value = SpeedSteps.clamp(tenths)
+        guard value != state.speedTenths else { return }
+        applySpeed(value)
+        let profiles = profiles
+        enqueuePersistence {
+            do {
+                try await profiles.setSpeed(feedId: item.feedId, tenths: Int32(value))
+            } catch {
+                AppLog.playback.error("speed_save_failed")
+            }
+        }
+        let events = AnalyticsEvents.shared
+        analytics?.trackEvent(
+            name: events.SPEED_CHANGE,
+            screen: screen,
+            params: [
+                events.PARAM_RATE: events.rateValue(tenths: Int32(value)),
+                events.PARAM_SCOPE: appliesSpeedToAll ? events.SCOPE_ALL : events.SCOPE_SHOW,
+            ]
+        )
+    }
+
+    /// "Áp dụng cho mọi show": on, the current speed becomes the global one; off, the show's own
+    /// speed (if any) applies again. Either way the current item then plays at what is stored.
+    func setSpeedAppliesToAll(_ on: Bool) {
+        appliesSpeedToAll = on
+        let profiles = profiles
+        let current = state.speedTenths
+        let feedId = state.current?.feedId
+        let generation = loadGeneration
+        enqueuePersistence { [weak self] in
+            do {
+                try await profiles.setApplyToAll(on: on, currentTenths: Int32(current))
+                guard let feedId else { return }
+                let stored = try await profiles.speedFor(feedId: feedId).int32Value
+                guard let self, generation == self.loadGeneration else { return }
+                self.applySpeed(Int(stored))
+            } catch {
+                AppLog.playback.error("speed_save_failed")
+            }
+        }
+    }
+
+    /// Sets the `AVPlayer` rate: `defaultRate` (used by every `play()`) and `rate` while playing.
+    /// Live always plays at 1.0×.
+    private func applySpeed(_ tenths: Int) {
+        let value = isLiveNow ? SpeedSteps.defaultTenths : SpeedSteps.clamp(tenths)
+        let rate = Float(value) / 10
+        player.defaultRate = rate
+        if player.rate != 0 {
+            player.rate = rate
+        }
+        if state.speedTenths != value {
+            state.speedTenths = value
+        }
+        refreshSystemControls()
+    }
+
+    /// Declared, forced or detected live.
+    private var isLiveNow: Bool {
+        hooks.forceLive || detectedLive || (state.current?.isLive ?? false)
+    }
+
+    // MARK: - Sleep timer (M6 §3.1)
+
+    /// Sets the timer (sheet, night shelf, Shortcuts) and logs `sleep_timer_set` with `origin`
+    /// (`AnalyticsEvents.ORIGIN_*`). The volume comes back to 1 if a fade was running.
+    func setSleepTimer(_ setting: SleepTimerSetting, origin: String) {
+        let option = setting.sharedOption
+        sleepTimer.set(option: option)
+        restoreVolume()
+        publishSleepTimer()
+        AppLog.playback.notice("sleep_timer set=\(setting.identifierSuffix, privacy: .public)")
+        let events = AnalyticsEvents.shared
+        analytics?.trackEvent(
+            name: events.SLEEP_TIMER_SET,
+            screen: origin == events.ORIGIN_PLAYER ? Self.analyticsScreen : nil,
+            params: [
+                events.PARAM_OPTION: events.sleepTimerOption(option: option),
+                events.PARAM_ORIGIN: origin,
+            ]
+        )
+    }
+
+    /// Screen name of the Player in analytics.
+    static let analyticsScreen = "Player"
+
+    /// Runs the timer: a fade sets the volume, a stop pauses (not a manual pause) and restores it.
+    /// With `stopping == false` a stop only turns the timer off. True when it stopped.
+    @discardableResult
+    private func tickSleepTimer(stopping: Bool = true) -> Bool {
+        let action = sleepTimer.tick()
+        switch action {
+        case let fade as SleepTimerActionFade:
+            player.volume = min(max(fade.volume, 0), 1)
+            return false
+        case is SleepTimerActionStop:
+            AppLog.playback.notice("sleep_timer stop")
+            publishSleepTimer()
+            if stopping {
+                wasPlayingBeforeInterruption = false
+                pausePlayback()
+                restoreVolume()
+            }
+            return true
+        default:
+            return false
+        }
+    }
+
+    private func restoreVolume() {
+        if player.volume != 1 {
+            player.volume = 1
+        }
+    }
+
+    private func publishSleepTimer() {
+        let shared = sleepTimer.state
+        let status = SleepTimerStatus(
+            setting: SleepTimerSetting(shared.option),
+            deadline: shared.deadlineMillis.map { Date(timeIntervalSince1970: Double($0.int64Value) / 1000) }
+        )
+        if state.sleepTimer != status {
+            state.sleepTimer = status
+        }
+    }
+
+    // MARK: - Queue
 
     /// Next item of the queue; nothing at the end (Android `hasNextMediaItem()`). Keeps playing
     /// or paused like ExoPlayer's `playWhenReady`.
@@ -247,8 +429,10 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         }
     }
 
+    /// Headphones unplugged: pause like a user would, but the sleep timer keeps running (M6 §7 item 9).
     func audioSessionOldDeviceUnavailable() {
-        pause()
+        wasPlayingBeforeInterruption = false
+        pausePlayback()
     }
 
     func audioSessionMediaServicesWereReset() {
@@ -303,6 +487,9 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         next.positionMs = startAtMs ?? 0
         next.isFavourite = false
         next.isBuffering = autoplay
+        // Kept until the item's own speed is read (no flash of 1.0×); live is always 1.0×.
+        next.speedTenths = next.isLive ? SpeedSteps.defaultTenths : state.speedTenths
+        next.sleepTimer = state.sleepTimer
         state = next
         refreshSystemControls()
 
@@ -322,12 +509,19 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
                 AppLog.playback.error("history_save_failed")
             }
         }
+        let profiles = profiles
         enqueuePersistence { [weak self] in
             var start = startAtMs ?? 0
             if startAtMs == nil, !shared.isLive {
                 start = (try? await positions.resumePositionMs(item: shared))?.int64Value ?? 0
             }
+            var speed = SpeedSteps.defaultTenths
+            if !shared.isLive {
+                speed = Int((try? await profiles.speedFor(feedId: shared.feedId))?.int32Value ?? Int32(speed))
+            }
             guard let self, generation == self.loadGeneration else { return }
+            // Before the item starts, so the first `play()` already uses the show's speed.
+            self.applySpeed(speed)
             self.startItem(item, startMs: start)
         }
     }
@@ -340,6 +534,8 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         }
         // No custom User-Agent or headers for audio hosts (M3 §7 item 9).
         let playerItem = AVPlayerItem(url: url)
+        // Keeps the pitch at any speed, the voice-friendly algorithm (audio-playback-ios §7, N4).
+        playerItem.audioTimePitchAlgorithm = .timeDomain
         attachItemObservers(playerItem)
         pendingStartMs = startMs
         lastSavedPositionMs = startMs
@@ -359,6 +555,9 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         switch status {
         case .readyToPlay:
             detectedLive = PlaybackState.isIndefinite(player.currentItem?.duration ?? .invalid)
+            if detectedLive {
+                applySpeed(SpeedSteps.defaultTenths)
+            }
             seekRequestedDuringStart = false
             applyStartPosition()
         case .failed:
@@ -415,10 +614,29 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         refreshSystemControls()
     }
 
+    /// `actionAtItemEnd = .pause`: stay on this item, like `setPauseAtEndOfMediaItems(true)`,
+    /// unless `EndOfItemPolicy` says to advance (auto-advance list, a next item, no
+    /// "end of episode" timer stopping here).
     private func itemDidPlayToEnd() {
-        // `actionAtItemEnd = .pause`: stay on this item, like `setPauseAtEndOfMediaItems(true)`.
-        wantsToPlay = false
+        let timerStopsHere = sleepTimer.onItemEnded()
+        if timerStopsHere {
+            AppLog.playback.notice("sleep_timer stop end_of_episode")
+            restoreVolume()
+            publishSleepTimer()
+        }
         reachedEnd = true
+        let action = EndOfItemPolicy.shared.decide(
+            autoAdvance: autoAdvance,
+            hasNext: queue?.hasNext ?? false,
+            timerStopsHere: timerStopsHere
+        )
+        if action == .advance, let next = queue?.next() {
+            publish()
+            // `move` saves the finished item first (under 30 s left: its position is cleared).
+            move(to: next, autoplay: true)
+            return
+        }
+        wantsToPlay = false
         player.pause()
         publish()
         savePosition()
@@ -445,6 +663,7 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
     // MARK: - State
 
     private func tick() {
+        tickSleepTimer()
         publish()
         if state.isPlaying, !state.isLive,
            abs(state.positionMs - lastSavedPositionMs) >= PlaybackPositions.companion.SAVE_INTERVAL_MS {
@@ -571,5 +790,31 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
             NotificationCenter.default.removeObserver(token)
         }
         itemTokens = []
+    }
+}
+
+extension SleepTimerSetting {
+    /// The shared option; `.minutes` is clamped again, so a bad value never reaches the Kotlin
+    /// `require` (which would crash from Swift).
+    var sharedOption: any SleepTimerOption {
+        switch self {
+        case .off:
+            SleepTimerOptionOff.shared
+        case let .minutes(minutes):
+            SleepTimerOptionMinutes(minutes: Int32(min(max(minutes, Self.minMinutes), Self.maxMinutes)))
+        case .endOfEpisode:
+            SleepTimerOptionEndOfEpisode.shared
+        }
+    }
+
+    init(_ option: any SleepTimerOption) {
+        switch option {
+        case let minutes as SleepTimerOptionMinutes:
+            self = .minutes(Int(minutes.minutes))
+        case is SleepTimerOptionEndOfEpisode:
+            self = .endOfEpisode
+        default:
+            self = .off
+        }
     }
 }

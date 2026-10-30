@@ -93,6 +93,9 @@ final class AppEnvironment {
             positions: graph.playbackPositions,
             history: graph.playbackHistory,
             favourites: graph.favouriteRepository,
+            profiles: graph.playbackProfiles,
+            sleepTimer: graph.sleepTimer,
+            analytics: services.analytics,
             hooks: Self.audioHooks(launchOptions)
         )
         podcastDetailDataSource = SharedPodcastDetailDataSource(

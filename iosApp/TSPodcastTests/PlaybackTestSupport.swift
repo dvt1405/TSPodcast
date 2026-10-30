@@ -49,12 +49,22 @@ struct PlaybackFixture {
     let history: PlaybackHistory
     let favourites: FavouriteRepository
     let session = AudioSessionController()
+    /// Events the engine logged (speed, sleep timer).
+    let analytics = RecordingAnalyticsTracker()
+    /// The sleep timer's clock: the graph's wall clock unless the test pins one.
+    let sleepTimer: SleepTimer
     let engine: AudioEngine
 
-    init(audioURL: URL? = PlaybackFixture.toneURL, forceLive: Bool = false, files: SharedGraphFixture.Files = .fresh("playback")) {
+    init(
+        audioURL: URL? = PlaybackFixture.toneURL,
+        forceLive: Bool = false,
+        files: SharedGraphFixture.Files = .fresh("playback"),
+        clock: TestEpochClock? = nil
+    ) {
         let shared = SharedGraphFixture(files: files)
         self.files = files
         graph = shared.graph
+        sleepTimer = clock.map { SleepTimer(clock: $0) } ?? shared.graph.sleepTimer
         positions = graph.playbackPositions
         history = graph.playbackHistory
         favourites = graph.favouriteRepository
@@ -62,6 +72,9 @@ struct PlaybackFixture {
             positions: positions,
             history: history,
             favourites: favourites,
+            profiles: graph.playbackProfiles,
+            sleepTimer: sleepTimer,
+            analytics: analytics,
             session: session,
             hooks: AudioEngine.Hooks(audioURLOverride: audioURL, forceLive: forceLive)
         )
@@ -83,6 +96,17 @@ struct PlaybackFixture {
 }
 
 private final class BundleToken {}
+
+/// A shared `EpochClock` the test moves by hand.
+final class TestEpochClock: NSObject, EpochClock, @unchecked Sendable {
+    var now: Int64
+
+    init(now: Int64 = 1_700_000_000_000) {
+        self.now = now
+    }
+
+    func nowMillis() -> Int64 { now }
+}
 
 extension XCTestCase {
     /// Polls `condition` on the main actor every 50 ms.

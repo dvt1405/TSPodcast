@@ -10,6 +10,7 @@ enum PlaybackError: Equatable, Sendable {
 /// `isLoading` → `isBuffering`, `currentMediaItem` → `current`, `mediaType` → `isLive`,
 /// `currentDuration`/`totalDuration`/`currentProgress` → `positionMs`/`durationMs`/`progress`,
 /// `playList` → `queue`, `exception` → `error`. `podcast` is the current item's `podcastTitle`.
+/// M6 adds the playback speed (`speedTenths`, 1.0× for live) and the sleep timer ([iOS+]).
 struct PlaybackState: Equatable, Sendable {
     var current: PlaybackItem?
     var queue: [PlaybackItem] = []
@@ -21,6 +22,12 @@ struct PlaybackState: Equatable, Sendable {
     var durationMs: Int64 = 0
     var isFavourite = false
     var error: PlaybackError?
+    /// Playback speed in tenths (shared `PlaybackSpeed`); always 10 for a live stream.
+    var speedTenths = SpeedSteps.defaultTenths
+    var sleepTimer = SleepTimerStatus()
+
+    /// The `AVPlayer` rate of `speedTenths`.
+    var rate: Double { Double(speedTenths) / 10 }
 
     var hasPrevious: Bool { current != nil && index > 0 }
     var hasNext: Bool { current != nil && index < queue.count - 1 }

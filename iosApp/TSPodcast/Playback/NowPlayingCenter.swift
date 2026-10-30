@@ -2,8 +2,8 @@ import MediaPlayer
 import UIKit
 
 /// Lock Screen / Control Center / Dynamic Island metadata (audio-playback-ios §5.1), Android's
-/// `TSNotificationProvider`. Updated when the item, play/pause or a seek changes, never every
-/// tick: the system interpolates the elapsed time from the rate.
+/// `TSNotificationProvider`. Updated when the item, play/pause, a seek or the speed changes, never
+/// every tick: the system interpolates the elapsed time from the rate.
 @MainActor
 final class NowPlayingCenter {
     private let center: MPNowPlayingInfoCenter
@@ -46,8 +46,9 @@ final class NowPlayingCenter {
             MPNowPlayingInfoPropertyMediaType: MPNowPlayingInfoMediaType.audio.rawValue,
             MPNowPlayingInfoPropertyIsLiveStream: state.isLive,
             MPNowPlayingInfoPropertyElapsedPlaybackTime: Double(state.positionMs) / 1000,
-            MPNowPlayingInfoPropertyPlaybackRate: state.isPlaying ? 1.0 : 0.0,
-            MPNowPlayingInfoPropertyDefaultPlaybackRate: 1.0,
+            // The system interpolates the elapsed time with this rate (1.5× runs 1.5 s per second).
+            MPNowPlayingInfoPropertyPlaybackRate: state.isPlaying ? state.rate : 0.0,
+            MPNowPlayingInfoPropertyDefaultPlaybackRate: state.rate,
         ]
         if !state.isLive, state.durationMs > 0 {
             info[MPMediaItemPropertyPlaybackDuration] = Double(state.durationMs) / 1000
