@@ -18,6 +18,9 @@ import tss.t.shared.network.PodcastIndexAuth
 import tss.t.shared.network.PodcastIndexJson
 import tss.t.shared.network.createHttpClient
 import tss.t.shared.network.defaultHttpClientEngine
+import tss.t.shared.playback.FavouriteStore
+import tss.t.shared.playback.PlaybackHistory
+import tss.t.shared.playback.PlaybackPositions
 import tss.t.shared.preferences.AppPreferences
 import tss.t.shared.preferences.DataStoreKeyValueStore
 import tss.t.shared.preferences.FavouriteCategories
@@ -117,6 +120,15 @@ class SharedGraph(
         preferences = appPreferences,
         clock = clock,
     )
+
+    /** Listening position per episode, in the app's key-value store (M3 §4.3). */
+    val playbackPositions = PlaybackPositions(store)
+
+    /** `extra:current_item_id` (persisted) and the played items (in memory until M4). */
+    val playbackHistory = PlaybackHistory(store)
+
+    /** Favourites toggled from the Player, in memory until M4. */
+    val favouriteStore = FavouriteStore()
 
     /** Releases the HTTP client and the store file. The graph cannot be used afterwards. */
     fun close() {
