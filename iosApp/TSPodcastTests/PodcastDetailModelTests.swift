@@ -121,23 +121,40 @@ final class PodcastDetailModelTests: XCTestCase {
         let model = makeModel(FakePodcastDetailDataSource(.success(threeEpisodes)), playback: playback)
         await model.loadIfNeeded()
 
-        model.play(index: 2)
+        XCTAssertTrue(model.play(index: 2))
 
         XCTAssertEqual(playback.requests.count, 1)
         let request = playback.requests.first
         XCTAssertEqual(request?.startIndex, 2)
-        XCTAssertEqual(request?.episodes, [.sample(1), .sample(2), .sample(3)])
-        XCTAssertEqual(request?.podcast.feedId, 42)
-        XCTAssertEqual(request?.startEpisode, .sample(3))
+        XCTAssertEqual(request?.items.map(\.id), ["1", "2", "3"])
+        XCTAssertEqual(request?.items.map(\.feedId), [42, 42, 42])
+        XCTAssertEqual(request?.items.map(\.podcastTitle), ["Podcast 42", "Podcast 42", "Podcast 42"])
+        XCTAssertEqual(request?.startItem?.id, "3")
+        XCTAssertEqual(request?.startItem?.url, "https://media.example.com/e3.mp3")
+    }
+
+    /// M3-AC14: the row of the item the player holds is marked, only for this podcast.
+    func testNowPlayingEpisodeFollowsThePlayer() async {
+        let playback = RecordingPlaybackController()
+        let model = makeModel(FakePodcastDetailDataSource(.success(threeEpisodes)), playback: playback)
+        await model.loadIfNeeded()
+        XCTAssertNil(model.nowPlayingEpisodeID)
+
+        playback.state.current = PlaybackItem(episode: .sample(2), podcast: .sample)
+        XCTAssertEqual(model.nowPlayingEpisodeID, 2)
+
+        let other = PodcastRoute(feedId: 7, title: "Other", summary: "", imageURL: nil)
+        playback.state.current = PlaybackItem(episode: .sample(2), podcast: other)
+        XCTAssertNil(model.nowPlayingEpisodeID)
     }
 
     func testPlayDoesNothingUnlessLoaded() async {
         let playback = RecordingPlaybackController()
         let model = makeModel(FakePodcastDetailDataSource(.failure(.network)), playback: playback)
 
-        model.play(index: 0)
+        XCTAssertFalse(model.play(index: 0))
         await model.loadIfNeeded()
-        model.play(index: 0)
+        XCTAssertFalse(model.play(index: 0))
 
         XCTAssertTrue(playback.requests.isEmpty)
     }
@@ -147,8 +164,8 @@ final class PodcastDetailModelTests: XCTestCase {
         let model = makeModel(FakePodcastDetailDataSource(.success(threeEpisodes)), playback: playback)
         await model.loadIfNeeded()
 
-        model.play(index: 3)
-        model.play(index: -1)
+        XCTAssertFalse(model.play(index: 3))
+        XCTAssertFalse(model.play(index: -1))
 
         XCTAssertTrue(playback.requests.isEmpty)
     }

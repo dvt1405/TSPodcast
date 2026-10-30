@@ -6,6 +6,8 @@ import SwiftUI
 struct EpisodeRowView: View {
     let row: EpisodeRow
     let index: Int
+    /// The player holds this episode: a `waveform` mark before the title (M3 §3.4).
+    var isNowPlaying = false
 
     @Environment(\.locale) private var locale
 
@@ -15,6 +17,14 @@ struct EpisodeRowView: View {
             ArtworkImage(url: row.imageURL, referer: row.referer, cornerRadius: 12)
                 .frame(width: 60, height: 60)
             VStack(alignment: .leading, spacing: 4) {
+                if isNowPlaying {
+                    Label("player.nowPlaying", systemImage: "waveform")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.brandPrimary)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text("player.nowPlaying"))
+                        .accessibilityIdentifier("detail.episode.\(index).nowPlaying")
+                }
                 Text(verbatim: row.title)
                     .font(.headline)
                     .foregroundStyle(.primary)

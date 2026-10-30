@@ -46,10 +46,11 @@ final class FakePodcastDetailDataSource: PodcastDetailDataSource, @unchecked Sen
     }
 }
 
-/// `PlaybackController` that records every request.
+/// `PlaybackController` that records every request; `state` is set by the test.
 @MainActor
 final class RecordingPlaybackController: PlaybackController {
     private(set) var requests: [PlaybackRequest] = []
+    var state = PlaybackState()
 
     func play(_ request: PlaybackRequest) {
         requests.append(request)

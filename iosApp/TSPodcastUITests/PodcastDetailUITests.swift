@@ -125,28 +125,4 @@ final class PodcastDetailUITests: TSPodcastUITestCase {
         XCTAssertFalse(element(app, "detail.episodes.loading").exists)
         attachScreenshot("M2-detail-explicit")
     }
-
-    @MainActor
-    func testEpisodeTapHandsPlaylistToPlaybackSeam() {
-        let app = launchMain([.playbackProbe])
-        XCTAssertNotNil(openDetailWithEpisodes(app), "no trending podcast with episodes")
-        let count = detailEpisodeCount(app)
-        XCTAssertNotNil(count, "detail.episodes value")
-        guard let count else { return }
-        let index = count >= 2 ? 1 : 0
-
-        let row = element(app, "detail.episode.\(index)")
-        XCTAssertTrue(revealInDetail(app, row), "episode \(index) not reachable")
-        row.tap()
-
-        let probe = element(app, "playback.probe")
-        XCTAssertTrue(
-            poll(timeout: 5) { probe.exists && probe.label.contains("index=\(index);") },
-            "probe: \(probe.exists ? probe.label : "missing")"
-        )
-        XCTAssertTrue(probe.label.contains("count=\(count)"), probe.label)
-        XCTAssertFalse(probe.label.contains("feedId=;"), probe.label)
-        XCTAssertTrue(element(app, "detail.root").exists, "the tap stays on Detail")
-        attachScreenshot("M2-detail-playback-probe")
-    }
 }

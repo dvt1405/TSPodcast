@@ -5,7 +5,8 @@ import SwiftUI
 /// No ad slots and no "Privacy options" link (owner decision D1/D2).
 ///
 /// Podcast taps push Podcast detail (`PodcastRoute`) on this tab's stack, zooming out of the
-/// tapped cover on iOS 18+; a Live tap only logs until the Player milestone.
+/// tapped cover on iOS 18+; a Live tap plays the whole Live list from that item and opens the
+/// Player (Android `playLive(liveEpisode, list)`).
 struct HomeView: View {
     let model: HomeModel
 
@@ -127,6 +128,8 @@ private struct LivePager: View {
     let state: SectionState<[LiveRowItem]>
     let retry: () -> Void
 
+    @Environment(AppEnvironment.self) private var environment
+
     var body: some View {
         switch state {
         case .loading:
@@ -142,7 +145,8 @@ private struct LivePager: View {
                     VStack(alignment: .leading, spacing: 16) {
                         ForEach(Array(page.enumerated()), id: \.offset) { row, item in
                             Button {
-                                AppLog.app.notice("live_tap id=\(item.id, privacy: .public)")
+                                let all = pages.flatMap { $0 }
+                                environment.play(PlaybackRequest(live: all, startIndex: pageIndex * LivePaging.pageSize + row))
                             } label: {
                                 ListRow(imageURL: item.imageURL, title: item.title, subtitle: item.subtitle)
                             }
@@ -158,6 +162,11 @@ private struct LivePager: View {
                     .accessibilityIdentifier("home.live.page.\(pageIndex)")
                 }
             }
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("home.live.pager")
+            #if DEBUG
+            .accessibilityValue(Text(verbatim: "count=\(pages.reduce(0) { $0 + $1.count })"))
+            #endif
         case .empty:
             SectionMessage(section: .live, isFailure: false, retry: retry)
         case .failed:

@@ -1,0 +1,89 @@
+import Foundation
+@preconcurrency import Shared
+
+/// One item of the player queue as the Swift side sees it (views never hold Kotlin objects).
+/// Same fields as shared `PlayableItem`, Android's `Episode.toMediaItem(album)`.
+struct PlaybackItem: Identifiable, Hashable, Sendable {
+    /// Episode id as a string (Android `mediaId`).
+    let id: String
+    let feedId: Int64
+    /// Enclosure URL of the audio.
+    let url: String
+    let title: String
+    /// Podcast name (`albumTitle`): Player subtitle, MiniPlayer subtitle, Now Playing artist.
+    let podcastTitle: String
+    let artworkURL: String?
+    /// Sent as `Referer` with the artwork request.
+    let referer: String?
+    /// Duration announced by the feed, 0 when unknown; the player's own duration wins once known.
+    let durationMs: Int64
+    /// Declared live. Live section items are not: they count as live only when the stream has
+    /// no duration (M3 §3.4), which the engine finds out once the item loads.
+    let isLive: Bool
+}
+
+extension PlaybackItem {
+    /// Detail tap (Android `playerEpisode(episode, podcast, listItems)`).
+    init(episode: EpisodeRow, podcast: PodcastRoute) {
+        self.init(
+            id: String(episode.id),
+            feedId: podcast.feedId,
+            url: episode.enclosureURL,
+            title: episode.title,
+            podcastTitle: podcast.title,
+            artworkURL: episode.imageURL ?? podcast.imageURL,
+            referer: episode.referer,
+            durationMs: max(0, episode.durationSeconds) * 1000,
+            isLive: false
+        )
+    }
+
+    /// Home Live tap (Android `playLive`). The podcast name is `feedTitle`, else the title.
+    init(live: LiveRowItem) {
+        self.init(
+            id: String(live.id),
+            feedId: live.feedId,
+            url: live.enclosureURL,
+            title: live.title,
+            podcastTitle: live.feedTitle ?? live.title,
+            artworkURL: live.imageURL,
+            referer: live.referer,
+            durationMs: max(0, live.durationSeconds) * 1000,
+            isLive: false
+        )
+    }
+
+    init(_ item: PlayableItem) {
+        self.init(
+            id: item.id,
+            feedId: item.feedId,
+            url: item.url,
+            title: item.title,
+            podcastTitle: item.podcastTitle,
+            artworkURL: item.artworkUrl,
+            referer: item.referer,
+            durationMs: item.durationMs,
+            isLive: item.isLive
+        )
+    }
+
+    /// The shared item; `isLive` is the engine's effective value (declared or detected).
+    func shared(isLive: Bool? = nil) -> PlayableItem {
+        PlayableItem(
+            id: id,
+            feedId: feedId,
+            url: url,
+            title: title,
+            podcastTitle: podcastTitle,
+            artworkUrl: artworkURL,
+            referer: referer,
+            durationMs: durationMs,
+            isLive: isLive ?? self.isLive
+        )
+    }
+
+    /// Android `FavouriteDTO` of an episode.
+    var favourite: FavouriteItem {
+        FavouriteItem(id: id, type: .podcastepisode, title: title, image: artworkURL, description: podcastTitle)
+    }
+}

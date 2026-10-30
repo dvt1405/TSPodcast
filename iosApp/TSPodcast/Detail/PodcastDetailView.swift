@@ -123,6 +123,8 @@ private struct HeaderBackdrop: View {
 private struct EpisodesSection: View {
     let model: PodcastDetailModel
 
+    @Environment(AppEnvironment.self) private var environment
+
     var body: some View {
         switch model.state {
         case .loading:
@@ -134,12 +136,15 @@ private struct EpisodesSection: View {
             .accessibilityLabel(Text("detail.loading"))
             .accessibilityIdentifier("detail.episodes.loading")
         case .loaded(let rows):
+            let nowPlayingID = model.nowPlayingEpisodeID
             LazyVStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
                     Button {
-                        model.play(index: index)
+                        if model.play(index: index) {
+                            environment.isPlayerPresented = true
+                        }
                     } label: {
-                        EpisodeRowView(row: row, index: index)
+                        EpisodeRowView(row: row, index: index, isNowPlaying: row.id == nowPlayingID)
                     }
                     .buttonStyle(EpisodeButtonStyle())
                     .accessibilityElement(children: .contain)

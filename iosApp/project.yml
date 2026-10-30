@@ -76,6 +76,9 @@ targets:
     platform: iOS
     sources:
       - path: TSPodcastTests
+      # Fixture audio của M3 (AudioEngineTests); file nằm trong thư mục UI test, chỉ thuộc target test.
+      - path: TSPodcastUITests/Fixtures/tone-60s.m4a
+        buildPhase: resources
     dependencies:
       - target: TSPodcast
     settings:

@@ -61,12 +61,22 @@ final class PodcastDetailModel {
         isShowingErrorAlert = false
     }
 
-    /// Tap on episode `index`: the whole list and the position go to the player seam. M2 stays
-    /// on Detail (the Player screen is M3). Ignored unless episodes are shown.
-    func play(index: Int) {
+    /// Tap on episode `index`: the whole list and the position go to the player (Android
+    /// `playerEpisode(episode, podcast, listItems)`). Returns false, doing nothing, unless
+    /// episodes are shown; the caller then opens the Player.
+    @discardableResult
+    func play(index: Int) -> Bool {
         let rows = episodes
-        guard rows.indices.contains(index) else { return }
+        guard rows.indices.contains(index) else { return false }
         playback.play(PlaybackRequest(podcast: podcast, episodes: rows, startIndex: index))
+        return true
+    }
+
+    /// Id of the episode of this podcast the player holds (playing or paused), for the
+    /// "Đang phát" mark; nil when the player holds nothing or another podcast's episode.
+    var nowPlayingEpisodeID: Int64? {
+        guard let current = playback.state.current, current.feedId == podcast.feedId else { return nil }
+        return Int64(current.id)
     }
 
     private func load() async {

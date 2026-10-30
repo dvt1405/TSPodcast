@@ -123,7 +123,12 @@ extension LiveRowItem {
             id: episode.id,
             title: episode.title,
             subtitle: episode.datePublishedPretty,
-            imageURL: episode.feedImage.nonBlank
+            imageURL: episode.feedImage.nonBlank,
+            feedId: episode.feedId,
+            feedTitle: episode.feedTitle?.nonBlank,
+            enclosureURL: episode.enclosureUrl,
+            referer: episode.link.nonBlank,
+            durationSeconds: episode.duration
         )
     }
 }

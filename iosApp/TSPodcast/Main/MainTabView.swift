@@ -27,10 +27,15 @@ struct MainTabView: View {
         _searchModel = State(initialValue: searchModel)
     }
 
-    /// M1 never plays anything; only the Debug hook shows the placeholder bar.
-    private var showsMiniPlayer: Bool { environment.launchOptions.miniPlayerPlaceholder }
+    @Environment(\.scenePhase) private var scenePhase
+
+    /// While the player holds an item and the Player is closed (features-spec §3.7).
+    private var showsMiniPlayer: Bool {
+        environment.audioEngine.state.current != nil && !environment.isPlayerPresented
+    }
 
     var body: some View {
+        @Bindable var environment = environment
         TabView(selection: $selection) {
             NavigationStack {
                 FavouriteRootView { selection = .home }
@@ -57,40 +62,26 @@ struct MainTabView: View {
             .tag(AppTab.search)
         }
         .miniPlayerAccessory(isPresented: showsMiniPlayer)
+        .fullScreenCover(isPresented: $environment.isPlayerPresented) {
+            PlayerView(engine: environment.audioEngine)
+                .environment(environment)
+                .environment(\.artworkLoader, environment.artworkLoader)
+                .tint(Color.brandPrimary)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background {
+                environment.audioEngine.persistPosition()
+            }
+        }
         #if DEBUG
         .overlay(alignment: .topLeading) {
             if environment.launchOptions.playbackProbe {
-                PlaybackProbe(playback: environment.playback)
+                PlaybackProbe(engine: environment.audioEngine)
             }
         }
         #endif
     }
 }
-
-#if DEBUG
-/// `-uitest-playback-probe` (M2 §4.6): the last `PlaybackRequest` as
-/// `feedId=…;episodeId=…;index=…;count=…`, empty before the first tap, so XCUITest can read
-/// what the seam received.
-private struct PlaybackProbe: View {
-    let playback: any PlaybackController
-
-    private var label: String {
-        guard let request = (playback as? LoggingPlaybackController)?.lastRequest else { return "" }
-        let episodeID = request.startEpisode.map { String($0.id) } ?? "-"
-        return "feedId=\(request.podcast.feedId);episodeId=\(episodeID);index=\(request.startIndex);count=\(request.episodes.count)"
-    }
-
-    var body: some View {
-        Text(verbatim: label.isEmpty ? " " : label)
-            .font(.system(size: 8, design: .monospaced))
-            .foregroundStyle(.secondary)
-            .padding(.leading, 4)
-            .allowsHitTesting(false)
-            .accessibilityLabel(Text(verbatim: label))
-            .accessibilityIdentifier("playback.probe")
-    }
-}
-#endif
 
 private extension View {
     func tabRoot(title: LocalizedStringKey) -> some View {

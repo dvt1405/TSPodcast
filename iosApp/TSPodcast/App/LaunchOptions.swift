@@ -10,8 +10,6 @@ struct LaunchOptions: Equatable, Sendable {
     /// `-uitest-skip-onboarding`: reset, then finish onboarding and save categories 1, 2, 3
     /// through the shared `FavouriteCategories.save`, so the app opens on Main.
     var skipOnboarding = false
-    /// `-uitest-miniplayer-placeholder`: show a fake bar in the MiniPlayer slot.
-    var miniPlayerPlaceholder = false
     /// `-uitest-slow-network`: the Home, Detail and Search data sources wait
     /// (`HomeFeedDataSource.slowNetworkDelay`) before every shared call.
     var slowNetwork = false
@@ -21,8 +19,12 @@ struct LaunchOptions: Equatable, Sendable {
     var detailEmpty = false
     /// `-uitest-detail-explicit`: Detail loads report the feed hidden by D6, without a request.
     var detailExplicit = false
-    /// `-uitest-playback-probe`: `MainTabView` shows the last `PlaybackRequest` as text.
+    /// `-uitest-playback-probe`: Main and the Player show the player state as text (M3 §4.6).
     var playbackProbe = false
+    /// `-uitest-force-live`: every played item counts as a live stream.
+    var forceLive = false
+    /// Env `TSP_UITEST_AUDIO_URL`: audio URL played instead of every item's own (a local fixture).
+    var audioURLOverride: URL?
     /// Env `TSP_UITEST_BASE_URL`: PodcastIndex base URL used instead of the one in Info.plist.
     var baseURLOverride: String?
 
@@ -43,12 +45,14 @@ struct LaunchOptions: Equatable, Sendable {
         #if DEBUG
         resetState = arguments.contains("-uitest-reset")
         skipOnboarding = arguments.contains("-uitest-skip-onboarding")
-        miniPlayerPlaceholder = arguments.contains("-uitest-miniplayer-placeholder")
         slowNetwork = arguments.contains("-uitest-slow-network")
         failDetailOnce = arguments.contains("-uitest-fail-detail-once")
         detailEmpty = arguments.contains("-uitest-detail-empty")
         detailExplicit = arguments.contains("-uitest-detail-explicit")
         playbackProbe = arguments.contains("-uitest-playback-probe")
+        forceLive = arguments.contains("-uitest-force-live")
+        let audioURL = environment["TSP_UITEST_AUDIO_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        audioURLOverride = audioURL.flatMap { $0.isEmpty ? nil : URL(string: $0) }
         let baseURL = environment["TSP_UITEST_BASE_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
         baseURLOverride = (baseURL?.isEmpty ?? true) ? nil : baseURL
         #endif

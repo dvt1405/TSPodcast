@@ -68,4 +68,31 @@ final class LocalizationUITests: TSPodcastUITestCase {
         XCTAssertEqual(message.label, "Couldn't load episodes")
         XCTAssertEqual(app.buttons["detail.episodes.retry"].label, "Retry")
     }
+
+    /// M3-AC16: the English strings of the Player (M3.md §4.8): one launch playing the fixture,
+    /// one with an audio file that does not exist.
+    @MainActor
+    func testEnglishPlayer() {
+        var app = launchWithAudio(language: "en", locale: "en_US")
+        guard playEpisodeFromDetail(app) != nil else { return }
+        XCTAssertTrue(waitForProbe(app) { $0["playing"] == "1" }, "probe: \(probe(app))")
+        XCTAssertEqual(app.buttons["player.close"].label, "Close player")
+        XCTAssertEqual(app.buttons["player.playPause"].label, "Pause")
+        XCTAssertEqual(app.buttons["player.favourite"].label, "Favorite")
+        XCTAssertEqual(app.buttons["player.previous"].label, "Previous episode")
+        XCTAssertEqual(app.buttons["player.next"].label, "Next episode")
+        XCTAssertEqual(app.buttons["player.playlist"].label, "Playlist")
+        app.buttons["player.playlist"].tap()
+        XCTAssertTrue(app.navigationBars["Up next"].waitForExistence(timeout: 5), "sheet title 'Up next'")
+        attachScreenshot("M3-up-next-en")
+        app.terminate()
+
+        app = launchWithAudio(audioURL: Self.missingAudioURL, language: "en", locale: "en_US")
+        guard playEpisodeFromDetail(app) != nil else { return }
+        let error = element(app, "player.error")
+        XCTAssertTrue(error.waitForExistence(timeout: 15), "error, probe: \(probe(app))")
+        XCTAssertEqual(error.label, "Couldn't play this episode")
+        XCTAssertEqual(app.buttons["player.retry"].label, "Retry")
+        attachScreenshot("M3-player-error-en")
+    }
 }

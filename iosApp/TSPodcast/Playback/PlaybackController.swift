@@ -1,8 +1,11 @@
-/// The seam between the screens and the player (audio-playback-ios.md). Screens only call
-/// `play`; `AppEnvironment` owns the one instance. M2 uses `LoggingPlaybackController`; the
-/// Player milestone (M3) swaps in the AVFoundation player without touching the screens.
+/// The seam between the browsing screens and the player (audio-playback-ios.md). Detail only
+/// starts playback and reads the state to mark the playing row; the Player and the MiniPlayer
+/// drive `AudioEngine` directly. `AppEnvironment` owns the one instance.
 @MainActor
 protocol PlaybackController: AnyObject {
-    /// Starts `request.episodes` from `request.startIndex`, replacing whatever played before.
+    /// What plays now (observable on `AudioEngine`).
+    var state: PlaybackState { get }
+
+    /// Starts `request.items` from `request.startIndex`, replacing whatever played before.
     func play(_ request: PlaybackRequest)
 }

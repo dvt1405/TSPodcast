@@ -97,7 +97,17 @@ extension PodcastCard {
 
 extension LiveRowItem {
     static func sample(_ id: Int64) -> LiveRowItem {
-        LiveRowItem(id: id, title: "Live \(id)", subtitle: "Today", imageURL: nil)
+        LiveRowItem(
+            id: id,
+            title: "Live \(id)",
+            subtitle: "Today",
+            imageURL: nil,
+            feedId: 900 + id,
+            feedTitle: "Feed \(id)",
+            enclosureURL: "https://media.example.com/live\(id).mp3",
+            referer: nil,
+            durationSeconds: 0
+        )
     }
 }
 

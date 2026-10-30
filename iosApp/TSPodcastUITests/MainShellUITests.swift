@@ -72,9 +72,13 @@ final class MainShellUITests: TSPodcastUITestCase {
         XCTAssertTrue(firstTrending.exists)
     }
 
+    /// M1-AC15, adapted in M3: the real MiniPlayer (fixture playing, Player closed) sits above
+    /// the tab bar on every tab.
     @MainActor
     func testMiniPlayerSlotSitsAboveTabBar() {
-        let app = launchMain([.miniPlayerPlaceholder])
+        let app = launchWithAudio()
+        guard playEpisodeFromDetail(app) != nil else { return }
+        closePlayer(app)
         let tabBar = app.tabBars.firstMatch
 
         for label in tabLabels {
@@ -82,7 +86,8 @@ final class MainShellUITests: TSPodcastUITestCase {
             XCTAssertTrue(poll(timeout: 5) { self.tabButton(app, label).isSelected }, label)
             let slot = element(app, "miniplayer.slot")
             slot.waitToExist(timeout: 5, "slot on tab \(label)")
-            XCTAssertGreaterThan(slot.frame.height, 0, label)
+            // The accessory re-lays out after a tab switch (Search adds its search bar).
+            XCTAssertTrue(poll(timeout: 5) { slot.frame.height > 0 }, "slot height on \(label): \(slot.frame)")
             XCTAssertLessThanOrEqual(
                 slot.frame.maxY,
                 tabBar.frame.minY + 1,

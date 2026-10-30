@@ -19,6 +19,13 @@ struct LiveRowItem: Identifiable, Hashable, Sendable {
     let subtitle: String
     /// `feedImage`, `nil` when blank.
     let imageURL: String?
+    /// What the player needs (Android `Episode.fromLive`): feed, podcast name (`feedTitle`, nil
+    /// when blank), audio URL, `link` (artwork `Referer`, nil when blank) and duration in seconds.
+    var feedId: Int64 = 0
+    var feedTitle: String? = nil
+    var enclosureURL: String = ""
+    var referer: String? = nil
+    var durationSeconds: Int64 = 0
 }
 
 /// Why a section could not load. Only the error type name is kept, for logs.

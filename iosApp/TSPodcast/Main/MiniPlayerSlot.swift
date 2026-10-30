@@ -7,15 +7,15 @@ import SwiftUI
 ///   plays, so no empty capsule shows.
 /// - iOS 17–18: `safeAreaInset(edge: .bottom)` on each tab's content.
 ///
-/// Nothing plays in M1, so the slot is empty unless the Debug hook `-uitest-miniplayer-placeholder`
-/// asks for a fake bar (`miniplayer.slot`). The Player milestone puts the real MiniPlayer here.
+/// It shows while the player holds an item and the Player is closed (`MainTabView`).
 struct MiniPlayerSlot: View {
+    @Environment(AppEnvironment.self) private var environment
+
     var body: some View {
-        #if DEBUG
-        MiniPlayerPlaceholder()
-        #else
-        EmptyView()
-        #endif
+        MiniPlayerView(engine: environment.audioEngine) {
+            AppLog.playback.notice("miniplayer_open")
+            environment.isPlayerPresented = true
+        }
     }
 }
 
@@ -51,25 +51,3 @@ extension View {
         }
     }
 }
-
-#if DEBUG
-/// Fake MiniPlayer for XCUITest (M1-AC15): a bar the size of the real one.
-private struct MiniPlayerPlaceholder: View {
-    var body: some View {
-        HStack(spacing: 12) {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color.brandPrimary)
-                .frame(width: 36, height: 36)
-            Text(verbatim: "MiniPlayer")
-                .font(.subheadline.weight(.semibold))
-            Spacer(minLength: 0)
-            Image(systemName: "play.fill")
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .frame(maxWidth: .infinity)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("miniplayer.slot")
-    }
-}
-#endif

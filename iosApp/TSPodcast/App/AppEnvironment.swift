@@ -14,9 +14,10 @@ final class AppEnvironment {
     @ObservationIgnored let launchOptions: LaunchOptions
     /// E9 list of this process, prefetched by onboarding and read by the category screen.
     @ObservationIgnored let categoryCatalog: CategoryCatalog
-    /// The one player seam of the app. M2: `LoggingPlaybackController`; M3 swaps in the
-    /// AVFoundation player without touching the screens.
-    @ObservationIgnored let playback: any PlaybackController
+    /// The one player of the app (AVFoundation, M3).
+    @ObservationIgnored let audioEngine: AudioEngine
+    /// Whether the full-screen Player is shown (Detail, Live and the MiniPlayer open it).
+    var isPlayerPresented = false
     /// Shared by every Detail screen of the process (the fail-once hook counts per process).
     @ObservationIgnored let podcastDetailDataSource: any PodcastDetailDataSource
     /// Search and category lists over shared `SearchFeed`.
@@ -39,7 +40,12 @@ final class AppEnvironment {
         )
         analytics = LogAnalyticsTracker()
         categoryCatalog = CategoryCatalog(getCategories: graph.getCategories)
-        playback = LoggingPlaybackController()
+        audioEngine = AudioEngine(
+            positions: graph.playbackPositions,
+            history: graph.playbackHistory,
+            favourites: graph.favouriteStore,
+            hooks: Self.audioHooks(launchOptions)
+        )
         podcastDetailDataSource = SharedPodcastDetailDataSource(
             feed: graph.podcastDetailFeed,
             hooks: Self.detailHooks(launchOptions)
@@ -79,6 +85,15 @@ final class AppEnvironment {
         return HomeModel(dataSource: dataSource)
     }
 
+    /// The player seam the screens use.
+    var playback: any PlaybackController { audioEngine }
+
+    /// Plays `request` and opens the Player (Detail tap, Home Live tap).
+    func play(_ request: PlaybackRequest) {
+        audioEngine.play(request)
+        isPlayerPresented = true
+    }
+
     /// Podcast detail of `route`, over shared `PodcastDetailFeed` and the app's player seam.
     func makePodcastDetailModel(for route: PodcastRoute) -> PodcastDetailModel {
         PodcastDetailModel(podcast: route, dataSource: podcastDetailDataSource, playback: playback)
@@ -93,6 +108,10 @@ final class AppEnvironment {
     /// Podcasts trending in `category`, pushed from a Search category chip.
     func makeCategoryPodcastsModel(for category: CategoryItem) -> CategoryPodcastsModel {
         CategoryPodcastsModel(category: category, dataSource: searchDataSource)
+    }
+
+    private static func audioHooks(_ options: LaunchOptions) -> AudioEngine.Hooks {
+        AudioEngine.Hooks(audioURLOverride: options.audioURLOverride, forceLive: options.forceLive)
     }
 
     private static func detailHooks(_ options: LaunchOptions) -> SharedPodcastDetailDataSource.TestHooks {

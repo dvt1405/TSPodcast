@@ -17,6 +17,6 @@ enum AppLog {
     /// App flow of M2: Podcast detail and Search. Never logs a raw search query (length only).
     static let browse = Logger(subsystem: subsystem, category: "M2")
 
-    /// Requests handed to the `PlaybackController` seam (ids and counts, never URLs).
+    /// The player (M3): requests, interruptions, failures. Ids and counts only, never URLs.
     static let playback = Logger(subsystem: subsystem, category: "Playback")
 }

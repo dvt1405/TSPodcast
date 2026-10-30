@@ -9,7 +9,7 @@ class TSPodcastUITestCase: XCTestCase {
     enum Hook: String {
         case reset = "-uitest-reset"
         case skipOnboarding = "-uitest-skip-onboarding"
-        case miniPlayerPlaceholder = "-uitest-miniplayer-placeholder"
+        case forceLive = "-uitest-force-live"
         case slowNetwork = "-uitest-slow-network"
         case failDetailOnce = "-uitest-fail-detail-once"
         case detailEmpty = "-uitest-detail-empty"
@@ -412,5 +412,103 @@ extension TSPodcastUITestCase {
     @MainActor
     func tapBack(_ app: XCUIApplication) {
         app.navigationBars.buttons.element(boundBy: 0).tap()
+    }
+}
+
+// MARK: - Player and MiniPlayer (M3)
+
+extension TSPodcastUITestCase {
+    /// `file://` URL of the 60 s tone in this bundle (`Fixtures/tone-60s.m4a`).
+    static var fixtureAudioURL: String {
+        guard let url = Bundle(for: TSPodcastUITestCase.self).url(forResource: "tone-60s", withExtension: "m4a") else {
+            XCTFail("tone-60s.m4a missing from the UI test bundle")
+            return ""
+        }
+        return url.absoluteString
+    }
+
+    /// A `file://` URL that does not exist: AVPlayer fails to load it.
+    static let missingAudioURL = "file:///nonexistent/tsp-missing-audio.m4a"
+
+    /// Launches on Main with the playback probe and every item playing `audioURL`.
+    @MainActor
+    @discardableResult
+    func launchWithAudio(
+        _ hooks: [Hook] = [],
+        audioURL: String = fixtureAudioURL,
+        language: String = "vi",
+        locale: String = "vi_VN"
+    ) -> XCUIApplication {
+        launchMain([.playbackProbe] + hooks, language: language, locale: locale, environment: ["TSP_UITEST_AUDIO_URL": audioURL])
+    }
+
+    /// Fields of `playback.probe` (`key=value;…`), empty when nothing is loaded.
+    @MainActor
+    func probe(_ app: XCUIApplication) -> [String: String] {
+        let element = element(app, "playback.probe")
+        guard element.exists else { return [:] }
+        var fields: [String: String] = [:]
+        for pair in element.label.split(separator: ";") {
+            let parts = pair.split(separator: "=", maxSplits: 1).map(String.init)
+            if parts.count == 2 { fields[parts[0]] = parts[1] }
+        }
+        return fields
+    }
+
+    /// Waits until the probe satisfies `condition`.
+    @MainActor
+    func waitForProbe(_ app: XCUIApplication, timeout: TimeInterval = 10, _ condition: @escaping ([String: String]) -> Bool) -> Bool {
+        poll(timeout: timeout) { condition(self.probe(app)) }
+    }
+
+    /// Probe field `key` as an integer.
+    @MainActor
+    func probeInt(_ app: XCUIApplication, _ key: String) -> Int? {
+        probe(app)[key].flatMap(Int.init)
+    }
+
+    /// Opens a trending Detail with episodes, taps episode `preferredIndex` (or 0 when the list
+    /// is shorter) and waits for the Player. Returns the index, the list size and the titles.
+    @MainActor
+    func playEpisodeFromDetail(
+        _ app: XCUIApplication,
+        preferredIndex: Int = 1,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) -> (index: Int, count: Int, episodeTitle: String, podcastTitle: String)? {
+        guard openDetailWithEpisodes(app) != nil else {
+            XCTFail("no trending podcast with episodes", file: file, line: line)
+            return nil
+        }
+        guard let count = detailEpisodeCount(app) else {
+            XCTFail("detail.episodes value", file: file, line: line)
+            return nil
+        }
+        let podcastTitle = element(app, "detail.title").label
+        let index = count > preferredIndex ? preferredIndex : 0
+        let row = element(app, "detail.episode.\(index)")
+        XCTAssertTrue(revealInDetail(app, row), "episode \(index) not reachable", file: file, line: line)
+        let episodeTitle = element(app, "detail.episode.\(index).title").label
+        row.tap()
+        XCTAssertTrue(element(app, "player.root").waitForExistence(timeout: 10), "tap must open the Player", file: file, line: line)
+        return (index, count, episodeTitle, podcastTitle)
+    }
+
+    /// Taps the Player's close chevron and waits for the Player to go.
+    @MainActor
+    func closePlayer(_ app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+        app.buttons["player.close"].tap()
+        let root = element(app, "player.root")
+        XCTAssertTrue(poll(timeout: 5) { !root.exists }, "the Player must close", file: file, line: line)
+        // The MiniPlayer slides into the tab bar accessory after the cover goes: a tap sent
+        // during that animation is dropped, so wait until its frame stops moving.
+        let button = app.buttons["miniplayer.playPause"]
+        var lastFrame = CGRect.null
+        _ = poll(timeout: 5) {
+            guard button.exists, !button.frame.isEmpty, button.isHittable else { return false }
+            defer { lastFrame = button.frame }
+            return button.frame == lastFrame
+        }
+        RunLoop.current.run(until: Date().addingTimeInterval(0.5))
     }
 }
