@@ -189,6 +189,17 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 
 **Không** bật `NSAllowsArbitraryLoads` toàn cục; nếu bật thì phải ghi lý do trong review notes.
 
+**Universal Link (M4 T5):** Info.plist có `TSAppLinkHost = $(APP_LINK_HOST)`; build setting `APP_LINK_HOST` ở `iosApp/Config/Shared.xcconfig`, mặc định rỗng nên app không nhận link nào. Khi owner có domain: điền host (không có `https://`), thêm entitlement `com.apple.developer.associated-domains` = `applinks:<host>` (cần capability Associated Domains trên App ID) và phục vụ `https://<host>/.well-known/apple-app-site-association` (handoff). Route: `/podcast/<feedId>-<slug>` → Podcast detail ở tab Khám phá; `/episode/<id>-<slug>` → phát + Detail; có thể có tiền tố `/en`.
+
+**Privacy manifest (M4 T5):** `iosApp/TSPodcast/PrivacyInfo.xcprivacy` (nằm trong Resources của app). Sau mỗi bản Release, kiểm required-reason API trên binary thật:
+
+```bash
+iosApp/scripts/check-required-reason-apis.sh <DerivedData>/Build/Products/Release-iphonesimulator/TSPodcast.app
+# in bảng bundle → nhóm → symbol → reason; "REQUIRED REASON CHECK PASS", exit 0
+```
+
+Script fail khi binary dùng một nhóm (FileTimestamp, SystemBootTime, DiskSpace, ActiveKeyboards, UserDefaults) mà manifest không khai, khi manifest khai nhóm thừa, hoặc khi reason không thuộc danh sách của Apple. Đổi dependency (Firebase, Kotlin, Room…) thì chạy lại và sửa manifest.
+
 ## 4. Firebase iOS
 
 1. Firebase Console → (project **release** hiện có của Android) → Add app → iOS, bundle `tss.t.podcast`. Làm tương tự với project **debug** nếu muốn tách môi trường như Android (Android đang dùng 2 project Firebase riêng cho debug và release).

@@ -12,7 +12,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đã nghiệm thu (review round 1) |
 | M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đã nghiệm thu (review round 1) |
 | M3 | Audio engine, Player và MiniPlayer | [milestones/M3.md](milestones/M3.md) | Đã nghiệm thu (review round 2, `5b8e26c`). UI suite để QC |
-| M4 | Favourite, lưu trữ, thông báo, deep link, analytics — chốt parity | [milestones/M4.md](milestones/M4.md) | Đang làm (base `5b8e26c`): T1 xong (`90c82f0`, `ac416f8`); T2–T5 chưa làm |
+| M4 | Favourite, lưu trữ, thông báo, deep link, analytics — chốt parity | [milestones/M4.md](milestones/M4.md) | Developer xong T1–T5 (base `5b8e26c`), chờ PO nghiệm thu. Checklist parity §7 ở mục M4 T5; UI suite và bước simulator để QC |
 
 ## M0
 
@@ -1073,7 +1073,7 @@ Ghi chú: một lần chạy cả suite của developer trước review round 1 
 
 Kế hoạch: [milestones/M4.md](milestones/M4.md) (revision 2: không UI test, chỉ unit test + smoke check). Base `5b8e26c`.
 
-Trạng thái: **T1, T2, T3, T4 xong**, T5 chưa làm. Mục này được bổ sung sau mỗi task; tóm tắt + checklist parity §7 viết ở T5.
+Trạng thái: **T1–T5 xong**, M4-AC1 … AC26 đã tự kiểm, chờ PO nghiệm thu. Tóm tắt, checklist parity §7 và danh sách "Để QC" ở mục T5 (cuối mục M4).
 
 ### T1 — Shared: Room KMP, PruneApiCache, favourite, lịch sử, fallback offline; hạ tầng kiểm tra (xong)
 
@@ -1376,3 +1376,163 @@ Giới hạn đã biết sau T4:
 - Background push không tap → không có event `fcm_*` (plan §7 mục 8).
 - Để QC: (AC18) launch lần đầu không có hộp thoại quyền; favourite đầu tiên ở Player → alert `notifications.prompt`; "Bật thông báo" → hộp thoại iOS; `xcrun simctl push $SIM tss.t.podcast iosApp/scripts/push-new-podcast.apns` → banner có ảnh (NSE); favourite thứ hai → không hỏi lại. (AC21) bánh răng `settings.open` → sheet, bật `settings.explicit`, kéo Home tải lại → không lỗi; tắt/bật `settings.notifications`; `settings.version` = "1.0.0 (1)"; không có `settings.privacy` khi `PRIVACY_POLICY_URL` rỗng.
 - UI test cũ có thể bị ảnh hưởng: toolbar tab Khám phá có thêm nút `settings.open`; Player có thêm 2 alert (chỉ hiện khi có trigger). Không sửa XCUITest (để QC).
+
+### T5 — iOS: deep link, PrivacyInfo, localization, đi hết checklist §7, tài liệu (xong)
+
+Thoả M4-AC20, M4-AC22 … M4-AC26 phần unit test + build + smoke + kiểm tĩnh (tự kiểm, chờ PO). Bước simulator là "để QC"; Universal Link thật, Crashlytics/Remote Config thật, push thật, máy thật là "chặn bởi owner" (handoff). Không viết/sửa XCUITest, không build/chạy `TSPodcastUITests`, không thêm hook UI test.
+
+Commit: `1b9180b` feat(shared) `DeepLinkTargets`; `25a3d4b` feat(ios) `DeepLinkRouter`; `b65f3df` fix(ios) (khoảng trống tìm thấy khi đi checklist); `6f33d15` feat(ios) PrivacyInfo + script + `LocalizationTests`; commit docs này.
+
+| Thành phần | File | Ghi chú |
+|---|---|---|
+| Đích của link (shared) | `shared/src/commonMain/kotlin/tss/t/shared/deeplink/DeepLinkTargets.kt`, `SharedGraph.deepLinkTargets` | Link đến từ ngoài app nên qua blacklist + D6. `podcast(feedId)`: feed id trong blacklist → từ chối không gọi API; E11 (cache 15 phút) → `Podcast.fromFeed`, từ khoá blacklist trong title → từ chối; E11 lỗi/không biết id → podcast đã lưu trong DB; không có → lỗi. Feed explicit **không** bị từ chối (Detail tự hiện trạng thái ẩn explicit của M2). `episode(id)`: E12 → từ chối khi feed id/từ khoá trong title hoặc description bị blacklist (luật E2), hoặc khi chưa bật explicit mà episode `explicit = 1` hoặc feed E11 explicit (vì episode phát ngay); podcast = E11 → DB → dựng từ episode (`id = feedId`, ảnh `feedImage`). Từ chối = `Error(DeepLinkRefusedException(reason))`. |
+| Router | `iosApp/TSPodcast/DeepLink/DeepLinkRouter.swift` | `MainNavigation` (`@Observable`: tab đang chọn, stack Khám phá, sheet Cài đặt; chuyển từ `@State` của `MainTabView`). `DeepLinkRouter(hosts:dataSource:playback:navigation:now:)`: parse bằng shared `DeepLinkParser(allowedHosts:)`; link không phải của app (host khác, `http`, `tss://`, path lạ, **host rỗng**) → bỏ qua, chỉ log host. Chưa vào Main → giữ link mới nhất (`pending`), `mainDidAppear()` mở đúng 1 lần. Podcast → `willReveal` (đóng Player) → đóng Cài đặt → tab Khám phá → push `PodcastRoute`. Episode → 1 `PlaybackRequest` qua seam player (không mở Player, MiniPlayer hiện) + push Detail của `feedId`. Không mở được → `isShowingError` (alert `deeplink.error`). Kết quả cũ về muộn bị bỏ (đếm thế hệ); cùng URL lặp lại trong 2 s chỉ mở 1 lần (đến qua cả `onOpenURL` và user activity). `AppLinkHost.hosts(from:)` đọc `TSAppLinkHost`. |
+| Data source | `iosApp/TSPodcast/DeepLink/SharedDeepLinkDataSource.swift` | Map `DeepLinkTargets` sang `PodcastRoute` / (`PlaybackRequest` 1 tập, `history = .playlist(podcast, [episode])` để lưu Room như tap favourite, route Detail). Log `deeplink_unavailable kind= id= reason=` (lý do từ chối hoặc tên lớp lỗi), không log URL. |
+| Nối vào app | `App/TSPodcastApp.swift`, `App/AppEnvironment.swift`, `Main/MainTabView.swift`, `App/AppLog.swift` | `.onOpenURL` và `.onContinueUserActivity(NSUserActivityTypeBrowsingWeb)` trên `RootView` cùng gọi `deepLinks.handle(url)`. `MainTabView` bind tab/stack/sheet vào `environment.navigation`, `.task { await deepLinks.mainDidAppear() }`, alert `deeplink.error.title` + message `deeplink.error.message` (identifier `deeplink.error`) + "Đóng". OSLog category `DeepLink`. |
+| Host | `TSPodcast/Info.plist`, `Config/Shared.xcconfig` | `TSAppLinkHost = $(APP_LINK_HOST)`, build setting rỗng mặc định ⇒ không nhận link nào. **Không** có entitlement Associated Domains (handoff). |
+| Privacy manifest | `iosApp/TSPodcast/PrivacyInfo.xcprivacy` (Resources của app) | `NSPrivacyTracking = false`, `NSPrivacyTrackingDomains` rỗng. Thu thập: `DeviceID` (Linked, không Tracking, AppFunctionality + Analytics), `ProductInteraction` (Linked, Analytics), `CrashData` (Linked, AppFunctionality), `OtherDiagnosticData` (Linked, AppFunctionality). Required-reason API theo lần quét binary Release: FileTimestamp `C617.1`, DiskSpace `E174.1`, UserDefaults `CA92.1`. |
+| Script quét | `iosApp/scripts/check-required-reason-apis.sh <.app>` | Quét binary app + `PlugIns/*.appex` + `Frameworks/*.framework` (stub không symbol thì bỏ qua) bằng `nm -u` và `strings`; 5 nhóm của Apple. Fail khi nhóm tìm thấy mà manifest của bundle không khai, khi manifest khai nhóm không tìm thấy, khi reason rỗng/không thuộc danh sách Apple. In bảng bundle → nhóm → symbol → reason. |
+| Chuỗi | `TSPodcast/Resources/Localizable.xcstrings` | `deeplink.error.title` "Không mở được liên kết" / "Couldn't open the link" (bảng §4.7); `deeplink.error.message` "Nội dung này không còn hoặc không xem được trong ứng dụng." / "This content is no longer available or can't be shown in the app." (thêm để gắn identifier). |
+| Docs | `docs/ios/setup-and-build.md` §3.3, `docs/ios/handoff.md` | Ghi chú `APP_LINK_HOST`/AASA và cách chạy script; handoff thêm NSE provisioning, domain/AASA/`APP_LINK_HOST`, nhãn App Privacy khớp manifest, quyết định deep link (plan §7 mục 6). |
+
+**Test**
+
+| Test | AC | Nội dung |
+|---|---|---|
+| `DeepLinkTargetsTest` (shared, 11 × 2 target) | AC20 | podcast từ E11; offline → podcast đã lưu; không có gì → `NoSuchElementException`; feed id blacklist → từ chối, 0 request; từ khoá blacklist → từ chối; feed explicit vẫn trả (để Detail xử lý); episode kèm podcast E11; fallback podcast đã lưu rồi dựng từ episode; lỗi E12 giữ exception; blacklist theo feed id/từ khoá episode/từ khoá feed; episode hoặc feed explicit bị từ chối khi chưa bật, bật thì qua. |
+| `DeepLinkRouterTests` (14) | AC20 | link podcast → tab Khám phá được chọn, path thêm `PodcastRoute(feedId: 123)`, sheet Cài đặt đóng, Player đóng (`willReveal` 1 lần), không phát; push lên trên stack đang có (`/en/podcast/123/`); link episode → resolve qua data source (E12) → đúng 1 `PlaybackRequest` bắt đầu ở tập 456 + path Detail feed 123; không mở được → `isShowingError`, không phát, không push; link lúc onboarding → giữ, không resolve, `mainDidAppear` ×2 mở đúng 1 lần; chỉ giữ link mới nhất; host `[]`, `[""]`, `["  "]` → bỏ qua mọi link, không alert; link lạ (host khác, `http`, `tss://`, `/category`, `abc-123`, id 0) → bỏ qua im lặng; host không phân biệt hoa thường, `%34%35%36`; cùng URL trong 2 s mở 1 lần, sau 2 s mở lại; kết quả E12 cũ về muộn không đè link mới; `AppLinkHost.hosts`; Info.plist của app có `TSAppLinkHost` và rỗng; `SharedDeepLinkDataSource.episodeTarget` dựng request 1 tập + history `.playlist` + route. |
+| `LocalizationTests` (+1, cập nhật 2) | AC23 | `testEveryM4KeyHasVietnameseAndEnglish`: 19 key M4 (§4.7 + 3 message alert) có vi và en, en khác vi; bảng vi/en có thêm `notifications.prompt.message`, `notifications.denied.hint`, `deeplink.error.*`. |
+
+**Lệnh và kết quả §6** (`OUT` = scratchpad/ios, `SIM` = NovaTest iPhone 17, iOS 26.3; mọi build dùng `FIREBASE_PLIST_DIR=$OUT/no-firebase` và `-disablePackageRepositoryCache`)
+
+```bash
+./gradlew :shared:allTests
+#   BUILD SUCCESSFUL; iosSimulatorArm64Test: 40 class, 280 test; testAndroidHostTest: 33 class, 245 test; failures=0 errors=0
+#   (T4: 39/269 và 32/234); DeepLinkTargetsTest 11/11 mỗi target
+# Không đổi file Gradle ở T5 (git diff 5b8e26c..HEAD chỉ có shared/build.gradle.kts, gradle/libs.versions.toml của T1) → không chạy :app:assembleDebug
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcastUnit -destination "id=$SIM" -derivedDataPath $OUT/DD-m4 \
+  -resultBundlePath $OUT/M4-unit.xcresult -only-testing:TSPodcastTests 2>&1 | tee $OUT/M4-unit.log
+#   ** TEST SUCCEEDED **, Executed 243 tests, 0 failures (M3: 152; T4: 228); grep -c "in target 'TSPodcastUITests'" → 0
+#   xcresulttool: DeepLinkRouterTests 14, LocalizationTests 5, PersistenceWiringTests 4, FavouriteModelTests 8, AudioEngineTests 14,
+#   FirebaseBootstrapTests 6, AnalyticsMappingTests 6, CrashWiringTests 4, RemoteConfigLoaderTests 6, NotificationsModelTests 12,
+#   NotificationPresentationTests 6, RichNotificationTests 10, SettingsModelTests 5 — tất cả Passed; tổng 243
+xcodebuild build -project iosApp/iosApp.xcodeproj -scheme TSPodcast -configuration Debug -destination "id=$SIM" -derivedDataPath $OUT/DD-m4 2>&1 | tee $OUT/M4-build.log
+#   ** BUILD SUCCEEDED **; grep -c "in target 'TSPodcastUITests'" → 0
+iosApp/scripts/smoke-launch.sh $SIM $OUT/DD-m4/Build/Products/Debug-iphonesimulator/TSPodcast.app --check-db
+#   process running / no new crash report / database file exists / SMOKE PASS
+rm -rf $OUT/DD-m4/Build    # Release sạch (giữ SourcePackages)
+xcodebuild build -project iosApp/iosApp.xcodeproj -scheme TSPodcast -configuration Release -sdk iphonesimulator \
+  -destination "generic/platform=iOS Simulator" -derivedDataPath $OUT/DD-m4 2>&1 | tee $OUT/M4-rel.log     # ** BUILD SUCCEEDED **
+R=$OUT/DD-m4/Build/Products/Release-iphonesimulator/TSPodcast.app
+plutil -lint iosApp/TSPodcast/PrivacyInfo.xcprivacy; plutil -lint $R/PrivacyInfo.xcprivacy   # OK, OK (file có trong .app)
+iosApp/scripts/check-required-reason-apis.sh $R
+#   TSPodcast.app  FileTimestamp  _NSURLCreationDateKey, _fstat, _lstat, _stat  C617.1
+#   TSPodcast.app  DiskSpace      _fstatfs, _statfs                             E174.1
+#   TSPodcast.app  UserDefaults   _OBJC_CLASS_$_NSUserDefaults                  CA92.1
+#   PlugIns/TSPodcastNotificationService.appex  (no required-reason API)  no manifest needed
+#   Frameworks/FirebaseAnalytics.framework, GoogleAppMeasurement.framework  (stub, no symbols)
+#   REQUIRED REASON CHECK PASS, exit 0
+#   (kiểm âm: bản Release cũ chưa có manifest → 3 lỗi "used … but not declared", exit 1; bản sao có thêm SystemBootTime
+#    và reason "XXXX.1" → "declared … but not found" + "unapproved reason", FAIL)
+strings $R/TSPodcast | grep -c -e "uitest-" -e "TSP_UITEST_" -e "playback.probe" -e "uitest.example"   # 0
+plutil -extract TSAppLinkHost raw $R/Info.plist                                                         # "" (rỗng)
+codesign -d --entitlements - $R | grep -c associated                                                    # 0
+otool -L $R/TSPodcast | grep -c -E "AdSupport|AppTrackingTransparency|FBSDK"                            # 0
+cd iosApp && xcodegen generate && git status --porcelain iosApp.xcodeproj                              # rỗng
+git diff --name-only 5b8e26c..HEAD -- iosApp/TSPodcastUITests                                           # rỗng
+grep -rIin "radio\|vov\|voh" iosApp/TSPodcast iosApp/TSPodcastNotificationService | wc -l                # 0 (sau b65f3df)
+grep -rIin "applovin\|admob\|GADMobileAds\|ATTrackingManager\|FBSDK" iosApp shared/src | wc -l          # 0
+grep -rIn "device_id" shared/src iosApp --exclude-dir=build | wc -l                                     # 0
+grep -rn "FavouriteStore\|recentItems" iosApp/TSPodcast iosApp/TSPodcastTests shared/src | wc -l        # 0
+python3 -I -c '…missing_en…' iosApp/TSPodcast/Resources/Localizable.xcstrings                           # keys 80, vi True, missing_en 0, missing_vi 0
+git check-ignore -v iosApp/Config/Secrets.xcconfig                                                      # .gitignore:32:iosApp/Config/Secrets.xcconfig
+# key/secret (đọc từ Secrets.xcconfig, chỉ in số) trong git log main..HEAD -p                           # 0 và 0
+git ls-files | grep -E '(^|/)(build|DerivedData|xcuserdata|\.gradle)/|\.xcresult|GoogleService-Info\.plist|Secrets\.xcconfig$' | wc -l   # 0
+git log 5b8e26c..HEAD --format='%s'      # mọi subject conventional; số Co-Authored-By = git rev-list --count 5b8e26c..HEAD
+```
+
+Ghi chú build: lần build Release đầu của T5 fail (`module file … ExplicitPrecompiledModules/_Builtin_stdint-….pcm not found`) vì đợt dọn cache ở T4 xoá module precompiled mà build graph vẫn trỏ tới. Xoá cả `DD-m4/Build` rồi build lại: Release sạch `BUILD SUCCEEDED`; Debug/unit/smoke chạy sau đó trên cùng thư mục. Release build vào `$OUT/DD-m4` (không phải `DD-rel-m4` như lệnh trong AC24) để dùng lại SourcePackages đã tải (1,2 GB) thay vì tải lại, vì máy còn ít dung lượng; build vẫn là build sạch.
+
+#### Checklist parity §7 (features-spec §7)
+
+Trạng thái: **Đạt** (milestone + bằng chứng đã chạy), **Đạt (để QC)** (code + unit test; bước simulator ở danh sách "Để QC" bên dưới), **Chặn bởi owner** (code sẵn, phần còn lại ở [handoff.md](handoff.md)), **Không áp dụng**.
+
+| # | Mục §7 | Trạng thái | Bằng chứng / chỗ còn lại |
+|---|---|---|---|
+| 1 | Onboarding 4 trang → chọn ≥ 3 danh mục → Home; mở lại vào thẳng Home | Đạt | M1 (nghiệm thu round 1): `StartDestinationTest`, `OnboardingModelTests`, `CategorySelectionModelTests`; `OnboardingUITests`, `CategorySelectionUITests` pass ở M1 T5. M4 chỉ thêm việc giữ deep link tới khi vào Main. QC chạy lại UI suite ở pha cuối. |
+| 2 | Home 5 section, shimmer, pull-to-refresh, attribution PodcastIndex | Đạt | M1: `HomeFeedTest`, `HomeModelTests`, `HomeUITests`, `HomeErrorUITests` (M1 T5). M4: toolbar Khám phá thêm nút `settings.open` (UI test cũ có thể cần chỉnh, để QC). |
+| 3 | Blacklist lọc feed theo id và từ khoá (thử bằng Remote Config) | Chặn bởi owner | Lọc theo id/từ khoá: M0 `BlacklistRepositoryTest`/`BlacklistFilteringTest`, M2 `SearchUITests.testBlacklistedResultsHidden`; M4: giá trị Remote Config thay asset và `reload()` (`RemoteConfigLoaderTests`), deep link cũng qua blacklist (`DeepLinkTargetsTest`). Thử bằng Remote Config **thật** cần plist + console: handoff "Firebase iOS app". |
+| 4 | Detail: HTML description, danh sách episode, dialog lỗi có reload | Đạt | M2: `PodcastDetailFeedTest`, `PodcastDetailModelTests`, `DescriptionTextTests`, `PodcastDetailUITests`, `PodcastDetailErrorUITests`. M4 thêm danh sách DB khi offline (`detail.offlineBanner`, M4-AC7). |
+| 5 | Player: play/pause/seek/prev/next/favourite, playlist; hết episode thì dừng | Đạt (để QC) | M3 (nghiệm thu round 2): `AudioEngineTests`, `RemoteCommandsTests`, `PlaybackStateTests`, shared `PlaybackQueueTest`; favourite giờ lưu Room (`AudioEngineTests` M4-AC13). UI suite M3 (`PlayerUITests`, `MiniPlayerUITests`…) chưa chạy theo luật test → QC. |
+| 6 | Background audio, Lock Screen, Control Center, Bluetooth, AirPods | Chặn bởi owner | M3: `UIBackgroundModes = audio`, `AudioSessionControllerTests`, `RemoteCommands`/`NowPlayingCenter` có unit test. Checklist máy thật (AirPods, tai nghe, cuộc gọi, Lock Screen) cần iPhone thật: handoff "Checklist audio trên máy thật". |
+| 7 | Favourite: thêm/xoá, list cập nhật, mở được khi offline | Đạt (để QC) | M4 T1/T3: `FavouriteRepositoryTest`, `FavouriteResolverTest`, `PruneApiCacheTest` ([Sửa] giữ podcast của episode favourite), `PodcastDetailFeedTest` (offline), `FavouriteModelTests` (list tự cập nhật, alert "Bỏ yêu thích"), `AudioEngineTests` (favourite bền qua `SharedGraph` mới). Bước simulator: Để QC AC13, AC14. |
+| 8 | Search: Tất cả/Nhạc, debounce, trạng thái rỗng | Đạt | M2: `SearchFeedTest`, `SearchModelTests` (debounce 200 ms), `SearchUITests` (M2 T4). |
+| 9 | (Nếu có) Radio VOV + VOH | Không áp dụng | D1: iOS v1 không có Radio, không tab, không code path (`grep -rIin "radio\|vov\|voh" iosApp/TSPodcast iosApp/TSPodcastNotificationService` → 0; bảng `RadioChannel` không có trong DB iOS). |
+| 10 | Cache: trending 15 phút, prune 7 ngày | Đạt | 15 phút: M0 `InMemoryTtlCacheTest`, M1 `TrendingDiskCacheTest`; 7 ngày: M4 `PruneApiCacheTest` (iosTest, Room thật), `PersistenceWiringTests` (prune 1 lần/launch, ngoài main actor, DB loại khỏi backup), smoke `--check-db` (log `prune_api_cache …`). |
+| 11 | Crashlytics nhận crash Swift **và** Kotlin, userId = InstallId | Chặn bởi owner | Code: `FirebaseCrashReporter` (+ `recordFatal` với địa chỉ stack), hook Kotlin tự viết thay CrashKiOS (plan §7 mục 7), `CrashWiringTests` (userId = `InstallId` đúng 1 lần, thứ tự cài), shared `KotlinCrashHookTest`, `InstallIdTest`. Crash thật lên Crashlytics cần plist + dSYM Release: handoff "Firebase iOS app". |
+| 12a | Remote Config `ts_podcast_black_list` | Chặn bởi owner | `RemoteConfigLoader` (20 lần, 30 s × n, reload blacklist 1 lần), `FirebaseRemoteConfigAPI` chỉ trả giá trị `.remote`, `RemoteConfigLoaderTests`; không Firebase thì asset đóng gói. Áp giá trị thật cho app iOS trên console: handoff. |
+| 12b | Remote Config `ads_enable` | Không áp dụng | D2: iOS v1 không có ads. |
+
+Dòng ngoài §7 mà M4 phụ trách:
+
+| Mục | Trạng thái | Bằng chứng / chỗ còn lại |
+|---|---|---|
+| Luồng launch §1 (Firebase → `Crash.install` → userId → Remote Config → `PruneApiCache`; start destination) | Đạt | `CrashWiringTests` (thứ tự `LaunchSteps`), `FirebaseBootstrapTests`, `PersistenceWiringTests`; smoke T4/T5 (log `firebase=disabled reason=missing_plist`, `crash_user_id set`, `prune_api_cache`). FCM token chỉ có sau opt-in (quyết định T4). Đường có Firebase thật: chặn bởi owner. |
+| Ghi DB §3.5 (playlist + podcast + `extra:current_item_id`) | Đạt | `PlaybackHistoryTest` (Detail, Live, prev/next), `AudioEngineTests` (Detail ghi playlist + podcast), deep link episode ghi qua `history = .playlist` (`DeepLinkRouterTests.testSharedEpisodeTargetBuildsTheRequestAndTheRoute`). |
+| Tab Yêu thích §3.8 (list, rỗng, tap phát + Detail, [Sửa] observe, offline) | Đạt (để QC) | `FavouriteModelTests` 8, `FavouriteResolverTest`; identifier `favourite.list`, `favourite.item.<i>`, `favourite.unavailable(.remove/.close)`. Bước: Để QC AC14. |
+| Push §3.11 (chỉ `new_podcasts`, opt-in theo ngữ cảnh, toggle Cài đặt, NSE ảnh lớn) | Đạt (để QC) | `NotificationsModelTests` 12, `NotificationPresentationTests` 6, `RichNotificationTests` 10, `SettingsModelTests`; NSE nhúng trong Release. Gửi thật qua APNs/FCM + provisioning NSE: chặn bởi owner (handoff). |
+| Deep link §3.12 (Universal Link `/podcast/`, `/episode/`, parser chung) | Chặn bởi owner | Code + test đủ (`DeepLinkParserTest`, `DeepLinkTargetsTest`, `DeepLinkRouterTests`); `APP_LINK_HOST` rỗng ⇒ chưa nhận link. Cần domain + Associated Domains + AASA (handoff "Domain cho Universal Link"); sau đó QC chạy bước AC20. |
+| Analytics §4 (`onboarding_screen`, `OnboardingFinished`, `fcm_<type>_message_receive`, thuộc tính mặc định không `device_id`) | Đạt | `AnalyticsDefaultsTest`, `AnalyticsMappingTests`, `NotificationPresentationTests`, `LogAnalyticsTrackerTests`; `grep device_id` → 0. Event trên Firebase thật: chặn bởi owner. Push đến lúc app nền không tap thì không có event (plan §7 mục 8). |
+| Cài đặt (toggle thông báo, explicit D6, chính sách bảo mật, phiên bản) | Đạt (để QC) | `SettingsModelTests` 5. URL chính sách bảo mật: chặn bởi owner (`PRIVACY_POLICY_URL` rỗng → dòng ẩn). |
+| Localization §5 (vi nguồn + en) | Đạt (để QC) | `LocalizationTests` 5 (19 key M4), `missing_en 0`. Bước: Để QC AC23. |
+| `PrivacyInfo.xcprivacy` + required-reason API | Đạt | `plutil -lint` OK, có trong Release `.app`, `check-required-reason-apis.sh` PASS. Nhãn App Privacy trên App Store Connect + Privacy Report của bản archive: chặn bởi owner. |
+
+Khoảng trống tìm thấy khi đi checklist:
+
+- `FavouriteDataSource.swift` (T3) có chú thích nhắc tới radio, làm grep AC24 ra 1 dòng → sửa ở `b65f3df` (`fix(ios): keep the word radio out of the app sources`).
+- `-uitest-reset` chỉ xoá DataStore và cache ảnh, **không** xoá DB Room: favourite của lần chạy UI test trước vẫn còn, nên UI test giả định tab Yêu thích rỗng (`favourite.empty`) có thể fail khi chạy sau test favourite. Không sửa vì là hook UI test (luật test: QC thêm/sửa hook ở pha cuối); ghi vào "Để QC".
+- Không còn dòng nào "chưa làm".
+
+#### Để QC (bước simulator cho pha QC cuối)
+
+Chạy trên `SIM` với bản Debug (không plist trừ khi QC có Firebase); UI test viết ở pha QC dựa trên các identifier đã có.
+
+1. **AC13 favourite/lịch sử bền:** phát một episode từ Detail, tap `player.favourite` (selected) → `xcrun simctl terminate $SIM tss.t.podcast` → mở lại → tab Yêu thích có `favourite.item.0` là episode đó → phát lại → `player.favourite` vẫn selected.
+2. **AC14 tab Yêu thích:** (1) DB rỗng (cài mới) → `favourite.empty`, tap `favourite.discoverMore` → tab Khám phá; (2) favourite ở Player, đóng Player, sang tab Yêu thích → dòng mới có ngay; (3) tap dòng → Podcast detail trong stack tab Yêu thích, MiniPlayer hiện và đang phát, Player không mở; (4) bỏ favourite ở Player → dòng biến mất; (5) tắt mạng máy Mac, tap dòng → Detail có `detail.offlineBanner` + danh sách tập đã lưu; (6) mục không còn dữ liệu → alert `favourite.unavailable`, `favourite.unavailable.remove` xoá dòng.
+3. **AC18 push opt-in:** cài mới, launch → không có hộp thoại quyền; favourite đầu tiên → alert `notifications.prompt` ("Nhận thông báo khi có podcast mới?"); `notifications.prompt.enable` → hộp thoại iOS → Allow; `xcrun simctl push $SIM tss.t.podcast iosApp/scripts/push-new-podcast.apns` → banner có ảnh (NSE); favourite thứ hai → không hỏi lại; từ chối ở hộp thoại → alert có `notifications.denied.openSettings`.
+4. **AC20 deep link** (chỉ chạy được sau khi owner có domain + Associated Domains + AASA; trước đó `simctl openurl` một URL https mở Safari): build với `APP_LINK_HOST=<host>` → `xcrun simctl openurl $SIM https://<host>/podcast/<feedId>-x` → Podcast detail của feed ở tab Khám phá; `/episode/<id>-x` → Detail của feed + MiniPlayer đang phát, Player đóng; id không tồn tại → alert `deeplink.error`; cài mới rồi mở link khi đang ở onboarding → sau khi lưu danh mục, Main mở đúng Detail đó một lần. QC có thể thử `XCUIApplication.open(_:)` trong XCUITest nếu muốn kiểm router trước khi có AASA.
+5. **AC21 Cài đặt:** bánh răng `settings.open` → sheet `settings.root`; bật `settings.explicit`, kéo Home tải lại → không lỗi; tắt/bật `settings.notifications` theo luồng AC18; `settings.version` = "1.0.0 (1)"; không có `settings.privacy` khi `PRIVACY_POLICY_URL` rỗng; `settings.close` đóng sheet.
+6. **AC23 tiếng Anh:** launch với `-AppleLanguages (en) -AppleLocale en_US` → tab Yêu thích ("Favorites", "No favourite shows yet."), alert mục hỏng ("Couldn't open this item", "Remove from favorites", "Close"), Cài đặt ("Settings", "New podcast notifications", "Show explicit content", "Version"), prompt thông báo ("Get notified about new podcasts?", "Turn on", "Not now"), alert deep link ("Couldn't open the link").
+7. **UI test cũ M1–M3 có thể bị M4 ảnh hưởng:** (a) toolbar Khám phá có thêm `settings.open`; (b) tap favourite lần đầu ở Player bật alert `notifications.prompt` (chặn tương tác tiếp theo nếu test không đóng nó); (c) `-uitest-reset` không xoá DB Room nên favourite còn giữa các lần launch (test cần `favourite.empty` nên chạy với simulator cài mới hoặc QC mở rộng hook reset); (d) tab Yêu thích giờ có danh sách thật thay vì chỉ view rỗng; (e) `MainTabView` lấy tab/stack từ `MainNavigation` (identifier không đổi).
+
+#### Tóm tắt M4 (M4-AC26)
+
+| Task | AC | Commit |
+|---|---|---|
+| T1 Shared: Room KMP, prune, favourite, lịch sử, offline; hạ tầng kiểm tra | AC1–AC7 | `90c82f0`, `ac416f8`, docs `a6c8f8e` |
+| T2 Shared: Install ID, crash, analytics, deep link parser, E12, khoá thông báo, retry Remote Config | AC8–AC11 | `ac3cf1d`, docs `d62b505` |
+| T3 iOS: lưu trữ, Player favourite bền, lịch sử, tab Yêu thích, Detail offline | AC12–AC14 | `3447cb6`, `374d36f`, docs `a76e492` |
+| T4 iOS: Firebase tuỳ chọn, analytics, crash, Remote Config, push opt-in, NSE, Cài đặt | AC15–AC19, AC21 | `2a5a0d0`, docs `3bd56e8` |
+| T5 iOS: deep link, PrivacyInfo, localization, checklist §7, tài liệu | AC20, AC22–AC26 | `1b9180b`, `25a3d4b`, `b65f3df`, `6f33d15`, docs (commit này) |
+
+Quyết định trong T5 (chi tiết trong handoff):
+
+| Hạng mục | Quyết định | Lý do |
+|---|---|---|
+| Lọc deep link | Blacklist + D6 áp cho link (shared `DeepLinkTargets`) | Link đến từ ngoài app, chưa qua bộ lọc của list nào; E11/E12 không lọc. |
+| Link podcast explicit | Vẫn mở Detail (Detail hiện trạng thái ẩn explicit) | Giống khi mở feed đó từ Home; link episode explicit thì từ chối vì sẽ phát ngay. |
+| Playlist của link episode | 1 tập, lưu kèm podcast | Không tải cả feed trước khi phát; Detail của feed tự tải danh sách tập. |
+| Link đến trước Main | Giữ link mới nhất, mở khi `MainTabView` xuất hiện | Plan §4.5; nhiều link liên tiếp lúc onboarding thì link sau thắng. |
+| Trùng lặp | Cùng URL trong 2 s mở 1 lần | `onOpenURL` và `onContinueUserActivity` cùng được nối theo plan. |
+| Required-reason | Khai đúng nhóm tìm thấy (FileTimestamp, DiskSpace, UserDefaults); bỏ SystemBootTime của mẫu §5 | Binary Release không import `mach_absolute_time`/`systemUptime` (Kotlin 2.2 dùng `clock_gettime`); AC22 cấm khai nhóm thừa. DiskSpace chỉ `E174.1` vì app không hiện dung lượng (bỏ `85F4.1` của mẫu). |
+| Data type | Không khai `PerformanceData` | Không bật Performance Monitoring; AC22 liệt kê đúng 4 loại. |
+
+Giới hạn đã biết của M4 (tổng hợp):
+
+- **Chưa chạy UI test nào của M4** và không chạy lại UI suite M1–M3 (luật test). Bước simulator ở "Để QC" trên.
+- **Firebase chưa từng bật lúc chạy** (mọi build kiểm dùng `FIREBASE_PLIST_DIR` rỗng); Crashlytics/Analytics/Remote Config/FCM thật, APNs, provisioning NSE, Universal Link thật, nhãn App Privacy: chặn bởi owner (handoff).
+- **Universal Link chưa nhận link nào** cho tới khi có `APP_LINK_HOST` + Associated Domains + AASA; trước đó cả bước QC deep link cũng chờ.
+- **Script required-reason là kiểm tĩnh** (`nm -u` + `strings`); Apple vẫn có thể báo `ITMS-91053` cho API gọi gián tiếp. Đối chiếu Privacy Report của bản archive và email sau mỗi lần upload.
+- **`-uitest-reset` không xoá DB Room** (xem "Để QC" mục 7c).
+- Lệch nhỏ so với lệnh của plan: `plutil -lint` không đọc JSON nên AC19 kiểm `push-new-podcast.apns` bằng `plutil -convert` + `json.tool` (T4); Release build vào `$OUT/DD-m4` thay vì `$OUT/DD-rel-m4` (dùng lại SourcePackages, vẫn build sạch).
+- Không khôi phục item cuối lúc cold start (Android cũng không, plan §2); background push không tap thì không có event `fcm_*` (plan §7 mục 8).
