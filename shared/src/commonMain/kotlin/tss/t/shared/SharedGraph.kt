@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import kotlinx.serialization.json.Json
 import tss.t.shared.blacklist.BlacklistRepository
+import tss.t.shared.blacklist.HiddenShowsRepository
 import tss.t.shared.cache.InMemoryTtlCache
 import tss.t.shared.config.ConfigAPI
 import tss.t.shared.crash.Crash
@@ -32,6 +33,7 @@ import tss.t.shared.preferences.DataStoreKeyValueStore
 import tss.t.shared.preferences.FavouriteCategories
 import tss.t.shared.preferences.InstallId
 import tss.t.shared.preferences.KeyValueStore
+import tss.t.shared.privacy.ConsentRepository
 import tss.t.shared.search.SearchFeed
 import tss.t.shared.storage.PodcastDaos
 import tss.t.shared.storage.PodcastDatabase
@@ -104,6 +106,12 @@ class SharedGraph(
     val appPreferences: AppPreferences = AppPreferences(store, json)
     val favouriteCategories: FavouriteCategories = FavouriteCategories(appPreferences)
 
+    /** Shows the user hid, dropped by Home, Search and the news hub (M6 §3.5). */
+    val hiddenShows: HiddenShowsRepository = HiddenShowsRepository(store, json, clock)
+
+    /** Analytics and crash report consent, version and time (M6 §3.6). */
+    val consentRepository: ConsentRepository = ConsentRepository(store, clock)
+
     private val trendingCache =
         InMemoryTtlCache<String, TrendingPodcastRes>(InMemoryTtlCache.API_CACHE_TTL, clock)
     private val episodesByFeedCache =
@@ -142,6 +150,7 @@ class SharedGraph(
         getLiveEpisodes = getLiveEpisodes,
         getRecentFeeds = getRecentFeeds,
         preferences = appPreferences,
+        hiddenShows = hiddenShows,
         clock = clock,
     )
 
@@ -159,6 +168,7 @@ class SharedGraph(
         searchMusicFeeds = searchMusicFeeds,
         getTrendingPodcasts = getTrendingPodcasts,
         preferences = appPreferences,
+        hiddenShows = hiddenShows,
         clock = clock,
     )
 

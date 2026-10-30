@@ -147,6 +147,94 @@ class BlacklistRepositoryTest {
         assertTrue(repository.isInBlacklist("1"))
     }
 
+    // M6-AC10: host and author lists (N1 lite).
+
+    @Test
+    fun bundledExtraBlocksNgocbaomediaAndItsSubdomains() {
+        val repository = BlacklistRepository(FakeConfig())
+
+        assertTrue(repository.isBlockedHost("https://ngocbaomedia.com/feed/x.xml"))
+        assertTrue(repository.isBlockedHost("https://www.ngocbaomedia.com/podcast/1"))
+        assertTrue(repository.isBlockedHost("https://abc.ngocbaomedia.com/a.mp3"))
+        assertTrue(repository.isBlockedHost("HTTP://Media.NgocBaoMedia.com:8080/a.mp3?x=1"))
+        assertTrue(repository.isBlockedHost("https://user@ngocbaomedia.com./feed"))
+        assertFalse(repository.isBlockedHost("https://notngocbaomedia.com/feed"))
+        assertFalse(repository.isBlockedHost("https://ngocbaomedia.com.example.org/feed"))
+        assertFalse(repository.isBlockedHost("https://example.org/ngocbaomedia.com"))
+        assertFalse(repository.isBlockedHost("not a url"))
+        assertFalse(repository.isBlockedHost("ngocbaomedia.com/feed"))
+        assertFalse(repository.isBlockedHost(""))
+        assertFalse(repository.isBlockedHost(null))
+        assertEquals(1, repository.hostCount)
+        assertEquals(0, repository.authorCount)
+    }
+
+    @Test
+    fun remoteWithoutHostOrAuthorKeysKeepsTheBundledExtra() {
+        // The UAT value today: only feedId/filterText.
+        listOf(override, "{}", "not json").forEach { value ->
+            val repository = BlacklistRepository(FakeConfig.blacklist(value))
+            assertTrue(repository.isBlockedHost("https://ngocbaomedia.com/feed"), "value <$value>")
+        }
+    }
+
+    @Test
+    fun remoteHostListReplacesTheBundledOne() {
+        val repository = BlacklistRepository(
+            FakeConfig.blacklist("""{"feedId":[],"host":["Spam.example", "*.junk.test", "https://www.bad.test/feed", " ", 7]}""")
+        )
+
+        assertTrue(repository.isBlockedHost("https://spam.example/a"))
+        assertTrue(repository.isBlockedHost("https://cdn.spam.example/a.mp3"))
+        assertTrue(repository.isBlockedHost("https://x.junk.test/a"))
+        assertTrue(repository.isBlockedHost("https://junk.test/a"))
+        assertTrue(repository.isBlockedHost("https://bad.test/rss"))
+        assertFalse(repository.isBlockedHost("https://ngocbaomedia.com/feed"), "the remote list replaced the bundled one")
+        assertEquals(4, repository.hostCount, "blank dropped, the number kept as text")
+    }
+
+    @Test
+    fun emptyRemoteHostListUnblocksEveryHost() {
+        val repository = BlacklistRepository(FakeConfig.blacklist("""{"host":[]}"""))
+
+        assertFalse(repository.isBlockedHost("https://ngocbaomedia.com/feed"))
+        assertEquals(0, repository.hostCount)
+    }
+
+    @Test
+    fun authorsMatchWholeNamesIgnoringCaseAndSpaces() {
+        val repository = BlacklistRepository(FakeConfig.blacklist("""{"author":["Ngọc Bảo Media", ""]}"""))
+
+        assertTrue(repository.isBlockedAuthor("ngọc bảo media"))
+        assertTrue(repository.isBlockedAuthor("  NGỌC BẢO MEDIA "))
+        assertFalse(repository.isBlockedAuthor("Ngọc Bảo Media Official"), "no substring match")
+        assertFalse(repository.isBlockedAuthor("Bảo"))
+        assertFalse(repository.isBlockedAuthor(""))
+        assertFalse(repository.isBlockedAuthor(null))
+        assertEquals(1, repository.authorCount)
+        assertTrue(repository.isBlockedHost("https://ngocbaomedia.com/feed"), "no host key: bundled hosts")
+    }
+
+    @Test
+    fun reloadReadsTheHostListAgain() {
+        val config = FakeConfig()
+        val repository = BlacklistRepository(config)
+        config.values = mapOf(ConfigKeys.KEY_BLACK_LIST to """{"host":["other.test"]}""")
+
+        repository.reload()
+
+        assertFalse(repository.isBlockedHost("https://ngocbaomedia.com/feed"))
+        assertTrue(repository.isBlockedHost("https://other.test/feed"))
+    }
+
+    @Test
+    fun bundledExtraFileHasTheSeedHostAndNoAuthor() {
+        val extra = Json.parseToJsonElement(BundledAssets.blacklistExtra).jsonObject
+
+        assertEquals(listOf("ngocbaomedia.com"), extra.getValue("host").jsonArray.map { it.jsonPrimitive.content })
+        assertEquals(0, extra.getValue("author").jsonArray.size)
+    }
+
     private fun distinctAssetValues(key: String): Int =
         Json.parseToJsonElement(BundledAssets.blacklist).jsonObject.getValue(key).jsonArray
             .map { it.jsonPrimitive.content }

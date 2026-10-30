@@ -145,4 +145,36 @@ class DeepLinkTargetsTest {
         allowed.graph.appPreferences.saveAllowExplicitContent(true)
         assertEquals(456L, allowed.graph.deepLinkTargets.episode(456).data().episode.id)
     }
+
+    // M6-AC10: a feed on a blocked host or by a blocked author is refused like a blacklisted one.
+
+    @Test
+    fun feedOnABlockedHostIsRefused() = runTest {
+        val spamFeed = """{"feed":{"id":42,"title":"Show","url":"https://rss.ngocbaomedia.com/42"},"query":{"id":"42"}}"""
+
+        val podcast = graph(feed = spamFeed)
+        assertEquals(DeepLinkTargets.Reason.Blacklisted, podcast.graph.deepLinkTargets.podcast(42).refusal())
+
+        val episode = graph(feed = spamFeed)
+        assertEquals(DeepLinkTargets.Reason.Blacklisted, episode.graph.deepLinkTargets.episode(456).refusal())
+    }
+
+    @Test
+    fun episodeOnABlockedHostIsRefused() = runTest {
+        val spamEpisode = """{"episode":{"id":456,"feedId":42,"title":"Tập 1","enclosureUrl":"https://ngocbaomedia.com/1.mp3"}}"""
+
+        val test = graph(episode = spamEpisode)
+
+        assertEquals(DeepLinkTargets.Reason.Blacklisted, test.graph.deepLinkTargets.episode(456).refusal())
+    }
+
+    @Test
+    fun feedByABlockedAuthorIsRefused() = runTest {
+        val test = graph(
+            feed = """{"feed":{"id":42,"title":"Show","author":"Spam Author"},"query":{"id":"42"}}""",
+            blacklist = """{"feedId":[],"filterText":[],"author":["spam author"]}""",
+        )
+
+        assertEquals(DeepLinkTargets.Reason.Blacklisted, test.graph.deepLinkTargets.podcast(42).refusal())
+    }
 }

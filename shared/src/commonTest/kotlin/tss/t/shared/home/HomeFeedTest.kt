@@ -221,4 +221,68 @@ class HomeFeedTest {
         assertIs<TSDataState.Error<*>>(feed.music())
         assertIs<TSDataState.Error<*>>(feed.recent("1,2,3"))
     }
+
+    // M6-AC10 / AC11: blocked hosts and hidden shows never reach Home.
+
+    private val spamTrendingBody = """{"count":3,"feeds":[
+        {"id":1,"title":"Clean","url":"https://ok.example/1"},
+        {"id":2,"title":"Spam","url":"https://ngocbaomedia.com/2"},
+        {"id":3,"title":"Spam audio","url":"https://ok.example/3","enclosureUrl":"https://a.ngocbaomedia.com/3.mp3"}]}"""
+    private val spamMusicBody = """{"count":2,"feeds":[
+        {"id":20,"title":"Clean music","url":"https://ok.example/20"},
+        {"id":21,"title":"Spam music","url":"https://www.ngocbaomedia.com/21"}]}"""
+    private val spamLiveBody = """{"count":2,"items":[
+        {"id":1,"feedId":10,"title":"Clean live","enclosureUrl":"https://ok.example/l.mp3"},
+        {"id":2,"feedId":11,"title":"Spam live","enclosureUrl":"https://ngocbaomedia.com/l.mp3"}]}"""
+
+    private fun spamGraph() = TestGraph(handler = { request ->
+        respondJson(
+            when (request.path()) {
+                "episodes/live" -> spamLiveBody
+                "podcasts/bymedium" -> spamMusicBody
+                else -> spamTrendingBody
+            },
+        )
+    })
+
+    @Test
+    fun blockedHostsNeverReachAnySection() = runTest {
+        val feed = spamGraph().graph.homeFeed
+
+        val sections = feed.trendingSections("1,2,3")
+        assertEquals(listOf(1L), ids(sections.trending))
+        assertEquals(listOf(1L), ids(sections.forYou))
+        assertEquals(listOf(1L), ids(feed.recent("1,2,3")))
+        assertEquals(listOf(20L), ids(feed.music()))
+        assertEquals(listOf(10L), liveIds(feed.live()))
+    }
+
+    @Test
+    fun hiddenShowsAreDroppedFromEverySection() = runTest {
+        val test = TestGraph(handler = { request ->
+            respondJson(
+                when (request.path()) {
+                    "episodes/live" -> liveBody
+                    "podcasts/bymedium" -> musicBody
+                    else -> trendingBody
+                },
+            )
+        })
+        val hidden = test.graph.hiddenShows
+        hidden.hide(feedId = 1, title = "Trending A", imageUrl = null)
+        hidden.hide(feedId = 20, title = "Clean music", imageUrl = null)
+        hidden.hide(feedId = 10, title = "Live feed", imageUrl = null)
+        val feed = test.graph.homeFeed
+
+        val sections = feed.trendingSections("1,2,3")
+        assertEquals(listOf(2L), ids(sections.trending))
+        assertEquals(listOf(2L), ids(sections.forYou))
+        assertEquals(listOf(2L), ids(feed.recent("1,2,3")))
+        assertEquals(listOf(22L), ids(feed.music()), "21 is explicit (D6), no blacklist here")
+        assertEquals(listOf(12L), liveIds(feed.live()), "11 is explicit (D6)")
+
+        // Relaunch on the same store: still hidden.
+        val relaunch = TestGraph(store = test.store, handler = { respondJson(trendingBody) })
+        assertEquals(listOf(2L), ids(relaunch.graph.homeFeed.recent("1,2,3")))
+    }
 }

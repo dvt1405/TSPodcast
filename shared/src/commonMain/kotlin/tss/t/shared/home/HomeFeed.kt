@@ -2,6 +2,8 @@ package tss.t.shared.home
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import tss.t.shared.blacklist.HiddenShowsRepository
+import tss.t.shared.blacklist.withoutHidden
 import tss.t.shared.model.LiveEpisode
 import tss.t.shared.model.Podcast
 import tss.t.shared.model.TSDataState
@@ -20,7 +22,9 @@ import tss.t.shared.util.EpochClock
  * Every list is blacklist-filtered by its use case and then, unless
  * [AppPreferences.allowExplicitContent], loses its explicit items (D6). E1 trending and E5
  * recent feeds do not send `explicit`, so their items always pass that filter (an API limit,
- * see handoff). E3 `recent/episodes` and E4 `recent/newfeeds` are never called ([Sửa]).
+ * see handoff). Last, the shows the user hid ([HiddenShowsRepository], M6 §3.5) are dropped:
+ * podcasts by `id`/`feedId`, live items by `feedId`. E3 `recent/episodes` and E4
+ * `recent/newfeeds` are never called ([Sửa]).
  */
 class HomeFeed internal constructor(
     private val getTrendingPodcasts: GetTrendingPodcasts,
@@ -28,6 +32,7 @@ class HomeFeed internal constructor(
     private val getLiveEpisodes: GetLiveEpisodes,
     private val getRecentFeeds: GetRecentFeeds,
     private val preferences: AppPreferences,
+    private val hiddenShows: HiddenShowsRepository,
     private val clock: EpochClock,
 ) {
     /**
@@ -49,8 +54,9 @@ class HomeFeed internal constructor(
             )
         }
         val allowExplicit = preferences.allowExplicitContent()
-        val trending = trendingCall.await().toPodcasts(allowExplicit)
-        val forYou = forYouCall.await().toPodcasts(allowExplicit)
+        val hidden = hiddenShows.hiddenIds()
+        val trending = trendingCall.await().toPodcasts(allowExplicit, hidden)
+        val forYou = forYouCall.await().toPodcasts(allowExplicit, hidden)
 
         when {
             trending is TSDataState.Success && forYou is TSDataState.Success -> TrendingSections(trending, forYou)
@@ -64,7 +70,9 @@ class HomeFeed internal constructor(
     suspend fun music(): TSDataState<List<Podcast>> {
         val allowExplicit = preferences.allowExplicitContent()
         return when (val result = getMusicFeeds(max = MAX_MUSIC)) {
-            is TSDataState.Success -> TSDataState.Success(result.data.filterExplicit(allowExplicit))
+            is TSDataState.Success -> TSDataState.Success(
+                result.data.filterExplicit(allowExplicit).withoutHidden(hiddenShows.hiddenIds()),
+            )
             else -> result
         }
     }
@@ -73,9 +81,12 @@ class HomeFeed internal constructor(
     suspend fun live(): TSDataState<List<LiveEpisode>> {
         val allowExplicit = preferences.allowExplicitContent()
         return when (val result = getLiveEpisodes(max = MAX_LIVE)) {
-            is TSDataState.Success -> TSDataState.Success(
-                result.data.items.filter { allowExplicit || it.explicit != EXPLICIT }
-            )
+            is TSDataState.Success -> {
+                val hidden = hiddenShows.hiddenIds()
+                TSDataState.Success(
+                    result.data.items.filter { (allowExplicit || it.explicit != EXPLICIT) && it.feedId !in hidden },
+                )
+            }
 
             is TSDataState.Error -> TSDataState.Error(result.exception)
             is TSDataState.Loading -> TSDataState.Loading()
@@ -86,13 +97,14 @@ class HomeFeed internal constructor(
     suspend fun recent(favouriteCatIds: String?): TSDataState<List<Podcast>> {
         val allowExplicit = preferences.allowExplicitContent()
         val result = getRecentFeeds(max = MAX_RECENT, lang = LANG, cat = favouriteCatIds, notcat = null)
-        return result.toPodcasts(allowExplicit)
+        return result.toPodcasts(allowExplicit, hiddenShows.hiddenIds())
     }
 
     private fun TSDataState<TrendingPodcastRes>.toPodcasts(
         allowExplicit: Boolean,
+        hidden: Set<Long>,
     ): TSDataState<List<Podcast>> = when (this) {
-        is TSDataState.Success -> TSDataState.Success(data.items.filterExplicit(allowExplicit))
+        is TSDataState.Success -> TSDataState.Success(data.items.filterExplicit(allowExplicit).withoutHidden(hidden))
         is TSDataState.Error -> TSDataState.Error(exception)
         is TSDataState.Loading -> TSDataState.Loading()
     }

@@ -91,11 +91,15 @@ abstract class GenerateJsonSourcesTask : DefaultTask() {
     }
 }
 
-// Fallback data that Android ships as assets (features-spec §2, M0 §3.4): read from the same files.
+// Fallback data that Android ships as assets (features-spec §2, M0 §3.4): read from the same files,
+// plus the shared-only `blacklist_extra.json`.
 val generateBundledAssets by tasks.registering(GenerateJsonSourcesTask::class) {
     jsonFiles.from(
         rootProject.file("coreApi/src/main/assets/categories.json"),
         rootProject.file("coreApi/src/main/assets/blacklist.json"),
+        // iOS-owned defaults for the `host`/`author` lists of the same Remote Config key (M6 §3.5).
+        // Kept out of Android's asset on purpose: Android does not read these lists yet.
+        file("assets/blacklist_extra.json"),
     )
     packageName.set("tss.t.shared.generated")
     objectName.set("BundledAssets")

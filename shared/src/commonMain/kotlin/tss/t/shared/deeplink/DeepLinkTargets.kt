@@ -1,6 +1,7 @@
 package tss.t.shared.deeplink
 
 import tss.t.shared.blacklist.BlacklistRepository
+import tss.t.shared.blacklist.isBlockedSource
 import tss.t.shared.crash.safeCallOrNull
 import tss.t.shared.model.Episode
 import tss.t.shared.model.Feed
@@ -17,7 +18,7 @@ import tss.t.shared.usecase.GetPodcastByFeedID
  *
  * - [podcast]: the podcast of `/podcast/<feedId>` for the Detail route (title and cover). E11
  *   `podcasts/byfeedid` (15-minute cache), else the podcast saved earlier (offline). A blacklisted
- *   feed is refused. An explicit feed is **not** refused here: Detail already shows its
+ *   feed is refused, including one on a blocked host or by a blocked author (M6 §3.5). An explicit feed is **not** refused here: Detail already shows its
  *   "explicit hidden" state (M2).
  * - [episode]: E12 `episodes/byid` of `/episode/<id>`, plus the podcast to save and show with it
  *   (E11, else the saved row, else built from the episode). Refused when the feed id or a keyword
@@ -73,15 +74,20 @@ class DeepLinkTargets internal constructor(
         safeCallOrNull(TAG, mapOf("feedId" to feedId.toString())) { storage.podcastById(feedId) }
 
     private fun Feed.isBlocked(): Boolean =
-        blacklist.isInBlacklist(id.toString()) || blacklist.isContainKeywordsBlacklist(title)
+        blacklist.isInBlacklist(id.toString()) ||
+            blacklist.isContainKeywordsBlacklist(title) ||
+            isBlockedSource(blacklist)
 
     private fun Podcast.isBlocked(): Boolean =
-        blacklist.isInBlacklist(id.toString()) || blacklist.isContainKeywordsBlacklist(title)
+        blacklist.isInBlacklist(id.toString()) ||
+            blacklist.isContainKeywordsBlacklist(title) ||
+            isBlockedSource(blacklist)
 
     private fun Episode.isBlocked(): Boolean =
         blacklist.isInBlacklist(feedId.toString()) ||
             blacklist.isContainKeywordsBlacklist(title) ||
-            blacklist.isContainKeywordsBlacklist(description)
+            blacklist.isContainKeywordsBlacklist(description) ||
+            isBlockedSource(blacklist)
 
     private fun <T : Any> refused(reason: Reason): TSDataState<T> =
         TSDataState.Error(DeepLinkRefusedException(reason))

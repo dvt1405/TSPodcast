@@ -218,6 +218,44 @@ class SearchFeedTest {
         assertFalse("cachedTrending_55" in (test.store as InMemoryKeyValueStore).snapshot().keys)
     }
 
+    // M6-AC10 / AC11: blocked hosts never reach Search, hidden shows are dropped last.
+
+    private val spamSearchBody = """{"count":3,"feeds":[
+        {"id":11,"title":"Vietnam stories","url":"https://ok.example/rss","explicit":false},
+        {"id":15,"title":"Spam","url":"https://feeds.ngocbaomedia.com/rss","explicit":false},
+        {"id":16,"title":"Moved spam","url":"https://ok.example/16","originalUrl":"https://ngocbaomedia.com/16","explicit":false}]}"""
+    private val spamTrendingBody = """{"count":3,"feeds":[
+        {"id":21,"title":"Arts A","url":"https://ok.example/a"},
+        {"id":24,"title":"Spam","url":"https://ngocbaomedia.com/24"},
+        {"id":25,"title":"Spam audio","enclosureUrl":"https://www.ngocbaomedia.com/25.mp3"}]}"""
+
+    @Test
+    fun blockedHostsNeverReachSearchOrCategories() = runTest {
+        val test = TestGraph(handler = { request ->
+            respondJson(if (request.path() == TRENDING) spamTrendingBody else spamSearchBody)
+        })
+        val feed = test.graph.searchFeed
+
+        assertEquals(listOf(11L), feed.search("q", SearchMode.All).data().map { it.id })
+        assertEquals(listOf(11L), feed.search("q", SearchMode.Music).data().map { it.id })
+        assertEquals(listOf(21L), feed.categoryPodcasts(55).data().map { it.id })
+    }
+
+    @Test
+    fun hiddenShowsAreDroppedFromSearchAndCategories() = runTest {
+        val test = graph()
+        test.graph.hiddenShows.hide(feedId = 11, title = "Vietnam stories", imageUrl = null)
+        test.graph.hiddenShows.hide(feedId = 23, title = "Arts B", imageUrl = null)
+        test.graph.appPreferences.saveAllowExplicitContent(true)
+        val feed = test.graph.searchFeed
+
+        assertEquals(listOf(13L), feed.search("vietnam", SearchMode.All).data().map { it.id })
+        assertEquals(listOf(21L), feed.categoryPodcasts(55).data().map { it.id })
+
+        test.graph.hiddenShows.unhide(11)
+        assertEquals(listOf(11L, 13L), feed.search("vietnam", SearchMode.All).data().map { it.id })
+    }
+
     private companion object {
         const val TRENDING = "podcasts/trending"
     }

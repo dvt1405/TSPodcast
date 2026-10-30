@@ -1,7 +1,10 @@
 package tss.t.shared.blacklist
 
+import tss.t.shared.model.Episode
 import tss.t.shared.model.Feed
+import tss.t.shared.model.LiveEpisode
 import tss.t.shared.model.LiveResponse
+import tss.t.shared.model.Podcast
 import tss.t.shared.model.SearchResponse
 import tss.t.shared.model.TrendingPodcastRes
 
@@ -17,6 +20,10 @@ import tss.t.shared.model.TrendingPodcastRes
  * | E6, E7, E8        | feed.id listed, or a keyword in title (not description)    |
  * | E9, E10, E11      | not filtered                                               |
  *
+ * M6 (N1 lite, §3.5) adds the host and author lists on top, on every URL and name each model
+ * carries: E1/E5 `url`, `enclosureUrl`, `author`; E2 `enclosureUrl` (a live item has no feed
+ * URL); E6–E8 `url`, `originalUrl`, `author`, `ownerName`.
+ *
  * `count` always becomes the number of items left.
  */
 
@@ -26,7 +33,8 @@ internal fun TrendingPodcastRes.filterTrending(blacklist: BlacklistRepository): 
         blacklist.isInBlacklist(podcast.id.toString()) ||
             podcast.feedId?.let { blacklist.isInBlacklist(it.toString()) } == true ||
             blacklist.isContainKeywordsBlacklist(podcast.title) ||
-            blacklist.isContainKeywordsBlacklist(podcast.description)
+            blacklist.isContainKeywordsBlacklist(podcast.description) ||
+            podcast.isBlockedSource(blacklist)
     }
     return copy(count = kept.size, items = kept)
 }
@@ -36,7 +44,8 @@ internal fun TrendingPodcastRes.filterRecentFeeds(blacklist: BlacklistRepository
     val kept = items.filterNot { podcast ->
         blacklist.isInBlacklist(podcast.id.toString()) ||
             blacklist.isContainKeywordsBlacklist(podcast.title) ||
-            blacklist.isContainKeywordsBlacklist(podcast.description)
+            blacklist.isContainKeywordsBlacklist(podcast.description) ||
+            podcast.isBlockedSource(blacklist)
     }
     return copy(count = kept.size, items = kept)
 }
@@ -46,7 +55,8 @@ internal fun LiveResponse.filterLive(blacklist: BlacklistRepository): LiveRespon
     val kept = items.filterNot { episode ->
         blacklist.isInBlacklist(episode.feedId.toString()) ||
             blacklist.isContainKeywordsBlacklist(episode.title) ||
-            blacklist.isContainKeywordsBlacklist(episode.description)
+            blacklist.isContainKeywordsBlacklist(episode.description) ||
+            episode.isBlockedSource(blacklist)
     }
     return copy(count = kept.size, items = kept)
 }
@@ -59,4 +69,27 @@ internal fun SearchResponse.filterFeeds(blacklist: BlacklistRepository): SearchR
 
 /** E6 `podcasts/bymedium`, and every feed-shaped result (E7, E8). */
 internal fun Feed.isBlocked(blacklist: BlacklistRepository): Boolean =
-    blacklist.isInBlacklist(id.toString()) || blacklist.isContainKeywordsBlacklist(title)
+    blacklist.isInBlacklist(id.toString()) ||
+        blacklist.isContainKeywordsBlacklist(title) ||
+        isBlockedSource(blacklist)
+
+/** Feed URL, original URL (before a redirect), author or owner on the host/author lists. */
+internal fun Feed.isBlockedSource(blacklist: BlacklistRepository): Boolean =
+    blacklist.isBlockedHost(url) ||
+        blacklist.isBlockedHost(originalUrl) ||
+        blacklist.isBlockedAuthor(author) ||
+        blacklist.isBlockedAuthor(ownerName)
+
+/** Feed URL, enclosure URL or author of an E1/E5 podcast (or a saved one) on the lists. */
+internal fun Podcast.isBlockedSource(blacklist: BlacklistRepository): Boolean =
+    blacklist.isBlockedHost(url) ||
+        blacklist.isBlockedHost(enclosureUrl) ||
+        blacklist.isBlockedAuthor(author)
+
+/** E2 items only carry the audio URL. */
+internal fun LiveEpisode.isBlockedSource(blacklist: BlacklistRepository): Boolean =
+    blacklist.isBlockedHost(enclosureUrl)
+
+/** Audio URL or feed URL of an episode (E12, deep links). */
+internal fun Episode.isBlockedSource(blacklist: BlacklistRepository): Boolean =
+    blacklist.isBlockedHost(enclosureUrl) || blacklist.isBlockedHost(feedUrl)

@@ -137,6 +137,46 @@ class BlacklistFilteringTest {
         assertEquals(111L, podcast.feed?.id)
     }
 
+    // M6-AC10: host (feed or enclosure URL, subdomains too) and author, from the bundled extra.
+
+    private fun spamGraph(
+        handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData,
+    ) = TestGraph(
+        config = FakeConfig.blacklist("""{"feedId":[],"filterText":[],"author":["Spam Author"]}"""),
+        handler = handler,
+    ).graph
+
+    @Test
+    fun trendingAndRecentDropBlockedHostsAndAuthors() = runTest {
+        val trending = spamGraph { respondJson(SPAM_PODCASTS) }.getTrendingPodcasts(max = 100, since = 1L).data()
+        val recent = spamGraph { respondJson(SPAM_PODCASTS) }.getRecentFeeds(cat = null).data()
+
+        assertEquals(listOf(5L), trending.items.map { it.id })
+        assertEquals(1, trending.count)
+        assertEquals(listOf(5L), recent.items.map { it.id })
+        assertEquals(1, recent.count)
+    }
+
+    @Test
+    fun liveDropsBlockedEnclosureHosts() = runTest {
+        val result = spamGraph { respondJson(SPAM_LIVE) }.getLiveEpisodes().data()
+
+        assertEquals(listOf(3L), result.items.map { it.id })
+        assertEquals(1, result.count)
+    }
+
+    @Test
+    fun feedShapedResultsDropBlockedHostsAndAuthors() = runTest {
+        val music = spamGraph { respondJson(SPAM_FEEDS) }.getMusicFeeds().data()
+        val search = spamGraph { respondJson(SPAM_FEEDS) }.searchPodcasts(query = "q").data()
+        val musicSearch = spamGraph { respondJson(SPAM_FEEDS) }.searchMusicFeeds(query = "q").data()
+
+        assertEquals(listOf(6L), music.map { it.id })
+        assertEquals(listOf(6L), search.feeds.map { it.id })
+        assertEquals(1, search.count)
+        assertEquals(listOf(6L), musicSearch.feeds.map { it.id })
+    }
+
     private companion object {
         /** id 111, feedId 111, title, description, clean. */
         const val TRENDING = """{"count":5,"max":100,"feeds":[
@@ -171,6 +211,31 @@ class BlacklistFilteringTest {
             {"id":2,"title":"Casino Royale FM","explicit":false},
             {"id":3,"title":"Feed 3","description":"casino talk","explicit":true},
             {"id":4,"title":"Feed 4","explicit":false}
+        ]}"""
+
+        /** Feed URL, subdomain feed URL, enclosure URL, author, and a clean one (E1/E5 shape). */
+        const val SPAM_PODCASTS = """{"count":5,"feeds":[
+            {"id":1,"title":"A","url":"https://ngocbaomedia.com/feed/1.xml"},
+            {"id":2,"title":"B","url":"https://rss.ngocbaomedia.com/2"},
+            {"id":3,"title":"C","url":"https://ok.example/3","enclosureUrl":"https://www.ngocbaomedia.com/3.mp3"},
+            {"id":4,"title":"D","url":"https://ok.example/4","author":" spam author "},
+            {"id":5,"title":"E","url":"https://notngocbaomedia.com/5","author":"Spam Author Fan"}
+        ]}"""
+
+        /** E2: the enclosure URL is the only URL. */
+        const val SPAM_LIVE = """{"count":3,"items":[
+            {"id":1,"feedId":10,"title":"L1","enclosureUrl":"https://ngocbaomedia.com/live.mp3"},
+            {"id":2,"feedId":11,"title":"L2","enclosureUrl":"https://cdn.ngocbaomedia.com/live.mp3"},
+            {"id":3,"feedId":12,"title":"L3","enclosureUrl":"https://ok.example/live.mp3"}
+        ]}"""
+
+        /** E6–E8: url, originalUrl, author, ownerName, and a clean one. */
+        const val SPAM_FEEDS = """{"count":5,"feeds":[
+            {"id":2,"title":"F2","url":"https://ngocbaomedia.com/rss"},
+            {"id":3,"title":"F3","url":"https://ok.example/rss","originalUrl":"https://old.ngocbaomedia.com/rss"},
+            {"id":4,"title":"F4","url":"https://ok.example/rss","author":"SPAM AUTHOR"},
+            {"id":5,"title":"F5","url":"https://ok.example/rss","ownerName":"Spam Author"},
+            {"id":6,"title":"F6","url":"https://ok.example/rss","author":"Someone"}
         ]}"""
     }
 }

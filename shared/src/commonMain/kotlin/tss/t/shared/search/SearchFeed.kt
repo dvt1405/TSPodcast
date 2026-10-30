@@ -1,5 +1,8 @@
 package tss.t.shared.search
 
+import tss.t.shared.blacklist.HiddenShowsRepository
+import tss.t.shared.blacklist.withoutHidden
+import tss.t.shared.blacklist.withoutHiddenFeeds
 import tss.t.shared.model.Feed
 import tss.t.shared.model.Podcast
 import tss.t.shared.model.SearchResponse
@@ -23,12 +26,14 @@ enum class SearchMode { All, Music }
  * [AppPreferences.allowExplicitContent]: the request carries `clean=true` and feeds with
  * `explicit == true` are dropped after the blacklist. With D6 off no `clean` parameter is sent
  * at all: PodcastIndex treats `clean` as a presence flag, so `clean=false` would still filter.
+ * Last, the shows the user hid ([HiddenShowsRepository], M6 §3.5) are dropped.
  */
 class SearchFeed internal constructor(
     private val searchPodcasts: SearchPodcasts,
     private val searchMusicFeeds: SearchMusicFeeds,
     private val getTrendingPodcasts: GetTrendingPodcasts,
     private val preferences: AppPreferences,
+    private val hiddenShows: HiddenShowsRepository,
     private val clock: EpochClock,
 ) {
     /**
@@ -61,7 +66,7 @@ class SearchFeed internal constructor(
                 fulltext = true,
             )
         }
-        return result.toFeeds(allowExplicit)
+        return result.toFeeds(allowExplicit, hiddenShows.hiddenIds())
     }
 
     /**
@@ -83,16 +88,21 @@ class SearchFeed internal constructor(
         )
         val allowExplicit = preferences.allowExplicitContent()
         return when (result) {
-            is TSDataState.Success -> TSDataState.Success(result.data.podcasts(allowExplicit))
+            is TSDataState.Success -> TSDataState.Success(
+                result.data.podcasts(allowExplicit).withoutHidden(hiddenShows.hiddenIds()),
+            )
             is TSDataState.Error -> TSDataState.Error(result.exception)
             is TSDataState.Loading -> TSDataState.Loading()
         }
     }
 
-    private fun TSDataState<SearchResponse>.toFeeds(allowExplicit: Boolean): TSDataState<List<Feed>> =
+    private fun TSDataState<SearchResponse>.toFeeds(
+        allowExplicit: Boolean,
+        hidden: Set<Long>,
+    ): TSDataState<List<Feed>> =
         when (this) {
             is TSDataState.Success -> TSDataState.Success(
-                if (allowExplicit) data.feeds else data.feeds.filterNot { it.explicit },
+                (if (allowExplicit) data.feeds else data.feeds.filterNot { it.explicit }).withoutHiddenFeeds(hidden),
             )
 
             is TSDataState.Error -> TSDataState.Error(exception)
