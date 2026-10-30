@@ -13,7 +13,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đã nghiệm thu (review round 1) |
 | M3 | Audio engine, Player và MiniPlayer | [milestones/M3.md](milestones/M3.md) | Đã nghiệm thu (review round 2, `5b8e26c`). UI suite để QC |
 | M4 | Favourite, lưu trữ, thông báo, deep link, analytics — chốt parity | [milestones/M4.md](milestones/M4.md) | Đã nghiệm thu (review round 1, `9f2f1fb`). Checklist parity §7 ở mục M4 T5; UI suite và bước simulator để QC |
-| M5 | Giao diện Liquid Glass (iOS 26) + Up next peek trên Player | [milestones/M5.md](milestones/M5.md) | Đang làm: T1 xong (`999b1ac`, `b0de8a0`), T2 xong phần code (Player/MiniPlayer/tab bar glass); bước trên iPhone của T1–T2 chờ iOS platform; T3–T4 chưa làm |
+| M5 | Giao diện Liquid Glass (iOS 26) + Up next peek trên Player | [milestones/M5.md](milestones/M5.md) | Đang làm: T1 xong (`999b1ac`, `b0de8a0`), T2 xong phần code (Player/MiniPlayer/tab bar glass), T3 xong phần code (chip Tìm kiếm, thanh Lưu, nút "Tải lại" glass); bước trên iPhone của T1–T3 chờ iOS platform; T4 chưa làm |
 
 ## M0
 
@@ -1673,3 +1673,71 @@ Giới hạn đã biết (T2):
 
 - Chưa build/chạy trên máy: bằng chứng là typecheck Swift 6 với SDK iOS 26.2 + 4 test logic trên macOS + đọc code. Kích thước accessory inline của iOS 26 (cao ~44–48 pt) và độ tương phản glyph trắng trên glass tint `brandPrimary` cần nhìn trên iPhone.
 - Nhánh fallback iOS 17/18 không có máy để xem (Tun iOS 27).
+
+### T3 — Tìm kiếm, các thanh và nút phụ theo Liquid Glass (xong phần code; bước trên iPhone chờ platform)
+
+Commit: `feat(ios): apply Liquid Glass to search chips, bars and secondary buttons`, `fix(ios): size the play/pause glyph with largeTitle instead of a fixed size` (hash ở `git log`).
+
+| Thành phần | File | Ghi chú |
+|---|---|---|
+| Tìm kiếm | `iosApp/TSPodcast/Search/SearchView.swift` | `.searchable(placement: .navigationBarDrawer(displayMode: .always))` giữ nguyên. Bỏ `VStack` chip-trên-ScrollView: `ScrollView` là gốc, chip đặt qua `.topBar { SearchModeChips }` (26: `safeAreaBar(edge: .top)` → kết quả cuộn dưới chip, scroll edge effect của hệ thống; 17/18: `safeAreaInset` trên nền trang). `search.root` (container) bọc cả chip. `SearchModeChips`: `GlassGroup(spacing: 4)` + `HStack(spacing: 8)`; mỗi chip `Text` subheadline (semibold khi chọn), padding 16/8, `glassSurface(in: Capsule(), tint: isSelected ? .brandPrimary : nil, interactive: true)`, thêm 4 pt dọc ngoài capsule làm vùng chạm (~44 pt). `search.mode.*`, `.isSelected`, animation 0.2 s giữ nguyên. |
+| "Tải lại" | `Home/HomeView.swift` (`SectionMessage`), `Detail/PodcastDetailView.swift` (`DetailMessage`), `Search/SearchView.swift` (`LoadErrorMessage`, dùng cho Search và danh sách podcast theo danh mục) | `.buttonStyle(.bordered)` → `.glassButton()` (26: `.glass`; dưới: `.bordered`), giữ `.tint(Color.brandPrimary)` và identifier. Hộp thông báo bao quanh (nền `quaternary`) là nội dung nên không đổi. Alert lỗi của Detail là alert hệ thống, không đổi. |
+| Thanh "Lưu" chọn danh mục | `Categories/CategorySelectionView.swift` | `safeAreaInset(edge: .bottom)` + `.background(.bar)` → `.bottomBar { saveBar }` (26: `safeAreaBar`, không nền tự vẽ, scroll edge effect làm mờ lưới; 17/18: `safeAreaInset` + `.bar` như trước). Property đổi tên `bottomBar` → `saveBar` để không trùng tên helper. Badge, `category.save` (GradientButtonStyle) giữ nguyên. |
+| Helper | `Design/Glass.swift` | `topBar` fallback thêm `.background(.background)` (nền trang hệ thống): T1 để không nền, nhưng khi chip thành inset của ScrollView thì nội dung cuộn sẽ lộ ra giữa các chip trên iOS 17/18; có nền thì giống hệt M4 (chip nằm trên ScrollView). |
+| Play/Pause | `Player/PlayerView.swift` | `.font(.system(size: 34, weight: .bold))` → `.font(.largeTitle.weight(.bold))`: cùng 34 pt ở cỡ chữ mặc định, theo Dynamic Type (cỡ AX5 ~60 pt vẫn vừa vòng 84 pt). Dòng này có từ M3 nhưng T2 dời/đổi thụt lề nên lệnh AC10 (`git diff f6fc292..HEAD … | grep -c 'font(.system(size'`) đếm 1; giờ là 0. |
+
+Quyết định trong T3:
+
+| Hạng mục | Quyết định | Lý do |
+|---|---|---|
+| Màu chữ chip đang chọn | `.foregroundStyle(.background)` (trắng ở Light, đen ở Dark); chip thường `.primary` | `brandPrimary` Dark là `#6E97F0` (sáng): chữ trắng trên đó chỉ ~2.9:1, không đạt 4.5:1 cho chữ 15 pt. Chữ đen trên `#6E97F0` ~7.3:1, chữ trắng trên `#184BB4` (Light) ~8:1. Không thêm màu cứng (dùng style hệ thống). Trên iOS 26 glass tint là bán trong suốt nên độ tương phản thật cần owner xem trên máy (Dark Mode). |
+| `GlassGroup` của chip | `spacing: 4` < khoảng cách 8 pt giữa chip | Hai capsule là hai shape riêng (không dính vào nhau), vẫn chung một container để đổi chọn có hiệu ứng glass thống nhất. |
+| Vùng chạm chip | Capsule giữ ~36 pt như M4; thêm 4 pt dọc trong label + `contentShape(Capsule())` | Chạm ≥ 44 pt mà không đổi kích thước nhìn thấy. |
+| Viền chip M4 | Bỏ (`stroke`/`brandPrimary 50 %`) | Glass/Material tự có cạnh; Increase Contrast thêm viền qua `glassSurface`. |
+| `LoadErrorMessage` (Search, danh sách theo danh mục) | Cũng dùng `glassButton()` | Cùng loại nút "Tải lại" với Home/Detail; giữ nhất quán. |
+| Nền sau thanh hệ thống | Không có gì để bỏ ngoài `.background(.bar)` của thanh Lưu | `grep toolbarBackground\|background(.bar)` toàn `iosApp/TSPodcast` (trừ `Glass.swift`) → 0. Nền mờ cover của Detail (`HeaderBackdrop`) là nội dung cuộn, chạy dưới navigation bar như trước. `CategorySelectionView` giữ `.background(Color(.systemBackground))` (nền trang, không có thanh hệ thống ở màn này). |
+| Ô nội dung | Không đổi | Card/hàng Home, hàng live/ForYou, `EpisodeRowView`, `SearchResultRow`, hàng Yêu thích, `CategoryCell`, chip danh mục E9, hàng Up next không dùng helper glass (HIG). CTA gradient `onboarding.continue`, `category.save`, `favourite.discoverMore` giữ `GradientButtonStyle`. |
+
+Lệnh và kết quả (30/10/2026):
+
+```bash
+xcodebuild -showsdks | grep iphoneos     # iOS 26.2 -sdk iphoneos26.2
+xcrun simctl runtime list                # Total Disk Images: 0 (không dùng simulator)
+xcrun devicectl list devices             # Tun … 56DE0E78-9436-5BFB-8F79-E68AB560B730   available (paired)
+xcodebuild -project iosApp/iosApp.xcodeproj -scheme TSPodcast -showdestinations
+#   { platform:iOS, arch:arm64e, id:00008110-000878203AC1401E, name:Tun,
+#     error:iOS 26.2 is not installed. Please download and install the platform from Xcode > Settings > Components. }
+# → không build/test/cài trên máy (luật tạm thời). Kiểm thay thế:
+# typecheck toàn bộ source app (79 file, bản copy trong scratchpad, bỏ `import Firebase*` + 1 file stub API Firebase):
+#   swiftc -typecheck -swift-version 6 -target arm64-apple-ios17.0-simulator (SDK iphonesimulator26.2)
+#     -F shared/build/xcode-frameworks/Debug/iphonesimulator26.2 → exit 0, 0 error, 0 warning.
+#   Cùng lệnh với SDK iphoneos26.2, -target arm64-apple-ios17.0 → exit 0.
+#   Kiểm typecheck có đọc file đã sửa: chèn 1 lỗi cố ý vào SearchView, CategorySelectionView, HomeView,
+#     PodcastDetailView, PlayerView, Glass (+ -continue-building-after-errors) → báo đúng 6 lỗi đó.
+# AC10: git diff f6fc292..HEAD -- iosApp/TSPodcast | grep '^+' | grep -c 'font(.system(size' → 0
+#       grep -rn brandAccent iosApp/TSPodcast → AppColors.swift + UpNextPanel.swift:172 (1 chỗ)
+#       helper glass trong EpisodeRowView/SearchResultRow/FavouriteRootView/CategoryCell/card-hàng Home → 0
+#       (chỉ còn retry của Home/Detail/LoadErrorMessage, bottomBar thanh Lưu, chip + topBar của Search).
+# AC9: git diff --stat f6fc292..HEAD -- SearchModel/HomeModel/PodcastDetailModel/CategorySelectionModel → rỗng.
+# AC2: comm -23 identifier f6fc292 vs HEAD → rỗng; comm -13 → chỉ upNext.peek.
+# AC6: token iOS 26 ngoài Glass.swift/MiniPlayerSlot.swift → 2 dòng comment (SearchView, CategorySelectionView)
+#      + 2 dòng `.glassProminentButton(` của T2 trong PlayerView (tên helper khớp regex `\.glassProminent`).
+```
+
+`shared/`, Gradle, Android và UI test không đổi nên không chạy Gradle.
+
+#### Chờ chạy trên iPhone khi có iOS platform (thêm cho T3)
+
+1. Unit test trên máy (lệnh ở mục T1): thêm kỳ vọng `SearchModelTests`, `HomeModelTests`, `PodcastDetailModelTests`, `CategorySelectionModelTests` Passed (AC9; model không đổi).
+2. Build + smoke như mục T1.
+3. Owner xem trên máy: tab Tìm kiếm (ô tìm kiếm glass của hệ thống; chip "Tất cả"/"Nhạc" glass, chip chọn tint xanh; cuộn kết quả → chạy dưới chip có mờ cạnh; Light **và** Dark Mode — chữ chip đang chọn đủ tương phản); Khám phá / Detail khi lỗi mạng → "Tải lại" glass; chọn danh mục lần đầu → thanh Lưu không nền riêng, lưới mờ dần dưới thanh; Play/Pause glyph như cũ.
+
+#### Để QC (T3)
+
+- `SearchUITests` dùng `search.mode.all/music` + `isSelected`: identifier và trait giữ nguyên; chip giờ nằm trong safe-area bar (vẫn là con của `search.root`).
+- Hit target chip ≥ 44 pt (Accessibility Inspector).
+
+Giới hạn đã biết (T3):
+
+- Chưa build/chạy trên máy: bằng chứng là typecheck toàn app Swift 6 (SDK iOS 26.2, deployment 17) + đọc code. Độ tương phản chữ trên chip glass tint ở Dark Mode và mức mờ scroll edge dưới chip/thanh Lưu cần nhìn trên iPhone.
+- Nhánh fallback iOS 17/18 (chip Material, thanh Lưu `.bar`) không có máy để xem (Tun iOS 27).
