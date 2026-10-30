@@ -3,6 +3,7 @@ package tss.t.shared.network
 import io.ktor.client.request.HttpRequestData
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
+import tss.t.shared.model.EpisodeByIdRes
 import tss.t.shared.model.SearchResponse
 import tss.t.shared.model.TSDataState
 import tss.t.shared.model.TrendingPodcastRes
@@ -171,6 +172,38 @@ class PodcastIndexApiTest {
         api.getPodcastByFeedId("75075")
 
         assertRequest("podcasts/byfeedid", mapOf("id" to "75075", "pretty" to "true"))
+    }
+
+    @Test
+    fun e12EpisodeById() = runTest {
+        api.getEpisodeById(456)
+
+        assertRequest("episodes/byid", mapOf("id" to "456", "fulltext" to "true"))
+    }
+
+    @Test
+    fun e12EpisodeObjectIsParsed() = runTest {
+        val ok = MockApi { respondJson("""{"status":"true","id":"456","episode":{"id":456,"title":"Tập 1","feedId":75075,"enclosureUrl":"https://cdn.example.test/1.mp3","explicit":0},"description":"Found"}""") }
+
+        val result = ok.api.getEpisodeById(456)
+
+        val episode = (assertIs<TSDataState.Success<*>>(result).data as EpisodeByIdRes).episode!!
+        assertEquals(456L, episode.id)
+        assertEquals(75075L, episode.feedId)
+        assertEquals("Tập 1", episode.title)
+        assertRequest("episodes/byid", mapOf("id" to "456", "fulltext" to "true"), ok.requests.single())
+    }
+
+    @Test
+    fun e12UnknownIdReadsAsNoEpisode() = runTest {
+        val empty = MockApi { respondJson("""{"status":"true","id":"9","episode":[],"description":"No episodes match this id."}""") }
+        val list = MockApi { respondJson("""{"status":"true","episode":[{"id":9,"title":"First"},{"id":10}]}""") }
+
+        assertNull((assertIs<TSDataState.Success<*>>(empty.api.getEpisodeById(9)).data as EpisodeByIdRes).episode)
+        assertEquals(
+            "First",
+            (assertIs<TSDataState.Success<*>>(list.api.getEpisodeById(9)).data as EpisodeByIdRes).episode?.title,
+        )
     }
 
     @Test

@@ -19,4 +19,22 @@ final class LogAnalyticsTrackerTests: XCTestCase {
             "analytics event=OnboardingFinished screen=Onboarding"
         )
     }
+
+    func testEventLineWithParamsSortedByName() {
+        XCTAssertEqual(
+            LogAnalyticsTracker.eventLine(
+                name: "fcm_new_podcasts_message_receive",
+                screen: "Home",
+                params: ["type": "new_podcasts", "big_image": "x"]
+            ),
+            "analytics event=fcm_new_podcasts_message_receive screen=Home big_image=x type=new_podcasts"
+        )
+    }
+
+    func testEventLineWithoutScreen() {
+        XCTAssertEqual(
+            LogAnalyticsTracker.eventLine(name: "fcm_null_message_receive", screen: nil, params: [:]),
+            "analytics event=fcm_null_message_receive"
+        )
+    }
 }

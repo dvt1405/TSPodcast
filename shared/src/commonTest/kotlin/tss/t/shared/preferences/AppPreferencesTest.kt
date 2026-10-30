@@ -92,6 +92,41 @@ class AppPreferencesTest {
     }
 
     @Test
+    fun notificationKeysDefaultToFalseAndAreReadBack() = runTest {
+        val first = open()
+        prefs(first).apply {
+            assertFalse(notificationsOptIn())
+            assertFalse(notificationsPromptShown())
+            saveNotificationsOptIn(true)
+            saveNotificationsPromptShown(true)
+        }
+        first.closeAndJoin()
+
+        val second = open()
+        val prefs = prefs(second)
+        assertTrue(prefs.notificationsOptIn())
+        assertTrue(prefs.notificationsPromptShown())
+        assertEquals(true, second.getBoolean("NotificationsOptIn"))
+        assertEquals(true, second.getBoolean("NotificationsPromptShown"))
+
+        prefs.saveNotificationsOptIn(false)
+        assertFalse(prefs.notificationsOptIn(), "opting out is stored too")
+        assertTrue(prefs.notificationsPromptShown())
+    }
+
+    @Test
+    fun clearResetsNotificationKeys() = runTest {
+        val prefs = prefs(open())
+        prefs.saveNotificationsOptIn(true)
+        prefs.saveNotificationsPromptShown(true)
+
+        prefs.clear()
+
+        assertFalse(prefs.notificationsOptIn())
+        assertFalse(prefs.notificationsPromptShown())
+    }
+
+    @Test
     fun corruptFileReadsAsDefaultsWithoutThrowing() = runTest {
         fs.createDirectories(dir)
         fs.write(file) { write(ByteArray(64) { 0xFF.toByte() }) }

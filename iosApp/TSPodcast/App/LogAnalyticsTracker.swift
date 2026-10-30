@@ -10,18 +10,24 @@ final class LogAnalyticsTracker: NSObject, AnalyticsTracker, Sendable {
         AppLog.analytics.notice("\(line, privacy: .public)")
     }
 
-    func trackEvent(name: String, screen: String) {
-        let line = Self.eventLine(name: name, screen: screen)
+    func trackEvent(name: String, screen: String?, params: [String: String]) {
+        let line = Self.eventLine(name: name, screen: screen, params: params)
         AppLog.analytics.notice("\(line, privacy: .public)")
     }
 
     /// Parameters are sorted by name so a line is stable and easy to grep.
     static func screenLine(screen: String, params: [String: String]) -> String {
-        let pairs = params.sorted { $0.key < $1.key }.map { "\($0.key)=\($0.value)" }
-        return (["analytics screen=\(screen)"] + pairs).joined(separator: " ")
+        (["analytics screen=\(screen)"] + sortedPairs(params)).joined(separator: " ")
     }
 
-    static func eventLine(name: String, screen: String) -> String {
-        "analytics event=\(name) screen=\(screen)"
+    /// `screen=` is left out when no screen is known (a push handled outside any screen).
+    static func eventLine(name: String, screen: String?, params: [String: String] = [:]) -> String {
+        var parts = ["analytics event=\(name)"]
+        if let screen { parts.append("screen=\(screen)") }
+        return (parts + sortedPairs(params)).joined(separator: " ")
+    }
+
+    private static func sortedPairs(_ params: [String: String]) -> [String] {
+        params.sorted { $0.key < $1.key }.map { "\($0.key)=\($0.value)" }
     }
 }

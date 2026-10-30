@@ -7,6 +7,7 @@ import io.ktor.client.statement.HttpResponse
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.json.Json
 import tss.t.shared.model.CategoryRes
+import tss.t.shared.model.EpisodeByIdRes
 import tss.t.shared.model.EpisodeResponse
 import tss.t.shared.model.LiveResponse
 import tss.t.shared.model.PodcastByFeedIdRes
@@ -15,7 +16,7 @@ import tss.t.shared.model.TSDataState
 import tss.t.shared.model.TrendingPodcastRes
 
 /**
- * PodcastIndex endpoints the app uses (features-spec §2): E1, E2, E5–E11. Same paths and
+ * PodcastIndex endpoints the app uses (features-spec §2): E1, E2, E5–E12. Same paths and
  * defaults as Android's Retrofit `API` and the use cases that call it.
  *
  * - `null` parameters are not sent (Retrofit behaves the same); blank `cat`/`notcat` neither.
@@ -157,6 +158,20 @@ class PodcastIndexApi(
         client.get("podcasts/byfeedid") {
             parameter("id", id)
             parameter("pretty", pretty)
+        }
+    }
+
+    /**
+     * E12 `episodes/byid`, for episode deep links (M4 §4.2). `fulltext=true` like the web's
+     * episode page, so the description is not cut at ~100 words.
+     */
+    suspend fun getEpisodeById(
+        id: Long,
+        fulltext: Boolean? = true,
+    ): TSDataState<EpisodeByIdRes> = call(EpisodeByIdRes.serializer()) {
+        client.get("episodes/byid") {
+            parameter("id", id)
+            parameter("fulltext", fulltext)
         }
     }
 

@@ -66,6 +66,23 @@ class AppPreferences(
         store.putBoolean(KEY_ALLOW_EXPLICIT_CONTENT, allow)
     }
 
+    /**
+     * The user turned on new-podcast notifications in the app (M4 §4.4). Defaults to false:
+     * nothing is asked or subscribed at launch. iOS only (Android has no opt-in).
+     */
+    suspend fun notificationsOptIn(): Boolean = store.getBoolean(KEY_NOTIFICATIONS_OPT_IN) ?: false
+
+    suspend fun saveNotificationsOptIn(optIn: Boolean) {
+        store.putBoolean(KEY_NOTIFICATIONS_OPT_IN, optIn)
+    }
+
+    /** The in-app notification prompt was shown once already. Defaults to false. */
+    suspend fun notificationsPromptShown(): Boolean = store.getBoolean(KEY_NOTIFICATIONS_PROMPT_SHOWN) ?: false
+
+    suspend fun saveNotificationsPromptShown(shown: Boolean) {
+        store.putBoolean(KEY_NOTIFICATIONS_PROMPT_SHOWN, shown)
+    }
+
     /** Removes every key (UI test reset). */
     suspend fun clear() {
         store.clear()
@@ -87,6 +104,8 @@ class AppPreferences(
         const val KEY_CACHED_TRENDING = "cachedTrending"
         const val KEY_LAST_UPDATE_TRENDING = "lastUpdateTrending"
         const val KEY_ALLOW_EXPLICIT_CONTENT = "AllowExplicitContent"
+        const val KEY_NOTIFICATIONS_OPT_IN = "NotificationsOptIn"
+        const val KEY_NOTIFICATIONS_PROMPT_SHOWN = "NotificationsPromptShown"
 
         /** `cachedTrending` without a category, `cachedTrending_<cat>` with one, like Android. */
         fun cachedTrendingKey(cat: String?): String = withCategory(KEY_CACHED_TRENDING, cat)

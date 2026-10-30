@@ -6,6 +6,7 @@ class FakeCrashReporter : CrashReporter {
     val records = mutableListOf<Record>()
     val keys = mutableListOf<Pair<String, Any>>()
     val userIds = mutableListOf<String>()
+    val fatals = mutableListOf<Pair<Throwable, List<Long>>>()
 
     data class Record(val throwable: Throwable, val tag: String, val keys: Map<String, String>)
 
@@ -31,5 +32,9 @@ class FakeCrashReporter : CrashReporter {
 
     override fun userId(id: String) {
         userIds += id
+    }
+
+    override fun recordFatal(throwable: Throwable, stackAddresses: List<Long>) {
+        fatals += throwable to stackAddresses
     }
 }

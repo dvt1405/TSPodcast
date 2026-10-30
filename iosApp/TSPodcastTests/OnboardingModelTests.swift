@@ -6,14 +6,14 @@ import XCTest
 /// Records analytics calls instead of logging them.
 final class RecordingAnalyticsTracker: NSObject, AnalyticsTracker, @unchecked Sendable {
     private(set) var screens: [(screen: String, params: [String: String])] = []
-    private(set) var events: [(name: String, screen: String)] = []
+    private(set) var events: [(name: String, screen: String?, params: [String: String])] = []
 
     func trackScreen(screen: String, params: [String: String]) {
         screens.append((screen, params))
     }
 
-    func trackEvent(name: String, screen: String) {
-        events.append((name, screen))
+    func trackEvent(name: String, screen: String?, params: [String: String]) {
+        events.append((name, screen, params))
     }
 }
 
@@ -104,6 +104,7 @@ final class OnboardingModelTests: XCTestCase {
         XCTAssertEqual(saves, 1)
         XCTAssertEqual(tracker.events.map(\.name), ["OnboardingFinished"])
         XCTAssertEqual(tracker.events.map(\.screen), ["Onboarding"])
+        XCTAssertEqual(tracker.events.map(\.params), [[:]], "Android sends no extra props")
     }
 
     func testFailedSaveDoesNotFinishOrTrack() async {

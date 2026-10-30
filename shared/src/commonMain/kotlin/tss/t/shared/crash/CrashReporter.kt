@@ -27,6 +27,18 @@ interface CrashReporter {
     fun key(name: String, value: Boolean)
 
     fun userId(id: String)
+
+    /**
+     * A Kotlin exception nobody caught, reported by the iOS crash hook (`installKotlinCrashHook`)
+     * right before the process ends. Not in Android's interface: on the JVM Crashlytics sees
+     * uncaught exceptions itself, on Kotlin/Native it does not.
+     *
+     * Must be quick and must not throw: the process terminates as soon as this returns.
+     *
+     * @param stackAddresses raw return addresses (`Throwable.getStackTraceAddresses()`), which
+     *   Crashlytics symbolicates with the app's dSYM.
+     */
+    fun recordFatal(throwable: Throwable, stackAddresses: List<Long>)
 }
 
 /** Fallback before [Crash.install] and in tests: prints, so a missing install is visible. */
@@ -40,6 +52,9 @@ object LogCrashReporter : CrashReporter {
     override fun key(name: String, value: Long) = Unit
     override fun key(name: String, value: Boolean) = Unit
     override fun userId(id: String) = Unit
+
+    override fun recordFatal(throwable: Throwable, stackAddresses: List<Long>) =
+        println("CrashReporter: fatal ${throwable::class.simpleName} (${stackAddresses.size} frames)")
 }
 
 /** Process-global facade (Android `Crash`): for call sites that cannot be injected. */
@@ -65,6 +80,9 @@ object Crash : CrashReporter {
     override fun key(name: String, value: Boolean) = delegate.key(name, value)
 
     override fun userId(id: String) = delegate.userId(id)
+
+    override fun recordFatal(throwable: Throwable, stackAddresses: List<Long>) =
+        delegate.recordFatal(throwable, stackAddresses)
 }
 
 /**
@@ -84,3 +102,20 @@ inline fun <T> safeCall(
     reporter.record(throwable, tag, keys)
     Result.failure(throwable)
 }
+
+/** [safeCall] discarding the failure. Use when the caller has a null path already. */
+inline fun <T> safeCallOrNull(
+    tag: String,
+    keys: Map<String, String> = emptyMap(),
+    reporter: CrashReporter = Crash,
+    block: () -> T,
+): T? = safeCall(tag, keys, reporter, block).getOrNull()
+
+/** [safeCall] with a fallback value. */
+inline fun <T> safeCallOr(
+    tag: String,
+    default: T,
+    keys: Map<String, String> = emptyMap(),
+    reporter: CrashReporter = Crash,
+    block: () -> T,
+): T = safeCall(tag, keys, reporter, block).getOrDefault(default)

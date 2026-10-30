@@ -9,6 +9,7 @@ import kotlinx.serialization.descriptors.nullable
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonObject
 
@@ -67,6 +68,17 @@ data class PodcastByFeedIdRes(
     )
 }
 
+/**
+ * Response of `episodes/byid` (E12, deep links). For an unknown id PodcastIndex answers
+ * `"episode": []`, which reads as `episode = null`; an array with items gives its first one,
+ * like the web's `single(data.episode)`.
+ */
+@Serializable
+data class EpisodeByIdRes(
+    @Serializable(with = EpisodeOrEmptySerializer::class)
+    val episode: Episode? = null,
+)
+
 /** Response of `categories/list` (E9). */
 @Serializable
 data class CategoryRes(
@@ -112,5 +124,25 @@ internal object FeedOrEmptySerializer : KSerializer<Feed?> {
 
     override fun serialize(encoder: Encoder, value: Feed?) {
         if (value == null) encoder.encodeNull() else Feed.serializer().serialize(encoder, value)
+    }
+}
+
+/** Reads an episode object, the first object of an array, or null for anything else. */
+@OptIn(ExperimentalSerializationApi::class)
+internal object EpisodeOrEmptySerializer : KSerializer<Episode?> {
+    override val descriptor: SerialDescriptor = Episode.serializer().descriptor.nullable
+
+    override fun deserialize(decoder: Decoder): Episode? {
+        val jsonDecoder = decoder as? JsonDecoder ?: return Episode.serializer().deserialize(decoder)
+        val element = when (val raw = jsonDecoder.decodeJsonElement()) {
+            is JsonObject -> raw
+            is JsonArray -> raw.firstOrNull() as? JsonObject
+            else -> null
+        } ?: return null
+        return jsonDecoder.json.decodeFromJsonElement(Episode.serializer(), element)
+    }
+
+    override fun serialize(encoder: Encoder, value: Episode?) {
+        if (value == null) encoder.encodeNull() else Episode.serializer().serialize(encoder, value)
     }
 }

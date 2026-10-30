@@ -51,7 +51,7 @@ final class OnboardingModel {
             AppLog.app.error("onboarding_save_failed type=\(String(describing: type(of: error)), privacy: .public)")
             return false
         }
-        analytics.trackEvent(name: Self.finishedEvent, screen: Self.screenName)
+        analytics.trackEvent(name: Self.finishedEvent, screen: Self.screenName, params: [:])
         AppLog.app.notice("onboarding_finished")
         return true
     }

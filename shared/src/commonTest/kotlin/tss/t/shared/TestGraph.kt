@@ -6,6 +6,7 @@ import io.ktor.client.request.HttpRequestData
 import io.ktor.client.request.HttpResponseData
 import tss.t.shared.config.ConfigAPI
 import tss.t.shared.config.ConfigKeys
+import tss.t.shared.crash.FakeCrashReporter
 import tss.t.shared.network.CredentialsProvider
 import tss.t.shared.network.FakeCredentials
 import tss.t.shared.network.FixedClock
@@ -25,8 +26,8 @@ class FakeConfig(var values: Map<String, String?> = emptyMap()) : ConfigAPI {
 }
 
 /**
- * A real [SharedGraph] on a [MockEngine], a fake clock, an in-memory store and in-memory DAOs;
- * records every request. Pass the [store] of another `TestGraph` to model a relaunch on the same file.
+ * A real [SharedGraph] on a [MockEngine], a fake clock, an in-memory store, in-memory DAOs and a
+ * recording crash reporter; records every request. Pass the [store] of another `TestGraph` to model a relaunch on the same file.
  */
 class TestGraph(
     config: ConfigAPI = FakeConfig(),
@@ -34,6 +35,7 @@ class TestGraph(
     val clock: FixedClock = FixedClock(START_MILLIS),
     val store: KeyValueStore = InMemoryKeyValueStore(),
     val database: FakePodcastDaos = FakePodcastDaos(),
+    val crash: FakeCrashReporter = FakeCrashReporter(),
     private val handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData = {
         respondJson("{}")
     },
@@ -45,7 +47,7 @@ class TestGraph(
         handler(request)
     }
 
-    val graph = SharedGraph(credentials, config, engine, clock, store, database)
+    val graph = SharedGraph(credentials, config, engine, clock, store, database, crash)
 
     /** Requests whose path ends with [path], e.g. `"podcasts/trending"`. */
     fun requestsTo(path: String): Int = requests.count { it.url.encodedPath.endsWith("/$path") }

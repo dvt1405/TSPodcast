@@ -6,6 +6,8 @@ import kotlinx.serialization.json.Json
 import tss.t.shared.blacklist.BlacklistRepository
 import tss.t.shared.cache.InMemoryTtlCache
 import tss.t.shared.config.ConfigAPI
+import tss.t.shared.crash.Crash
+import tss.t.shared.crash.CrashReporter
 import tss.t.shared.detail.PodcastDetailFeed
 import tss.t.shared.favourite.FavouriteRepository
 import tss.t.shared.favourite.FavouriteResolver
@@ -25,6 +27,7 @@ import tss.t.shared.playback.PlaybackPositions
 import tss.t.shared.preferences.AppPreferences
 import tss.t.shared.preferences.DataStoreKeyValueStore
 import tss.t.shared.preferences.FavouriteCategories
+import tss.t.shared.preferences.InstallId
 import tss.t.shared.preferences.KeyValueStore
 import tss.t.shared.search.SearchFeed
 import tss.t.shared.storage.PodcastDaos
@@ -33,6 +36,7 @@ import tss.t.shared.storage.PodcastStorage
 import tss.t.shared.storage.openPodcastDatabase
 import tss.t.shared.usecase.GetCategories
 import tss.t.shared.usecase.GetEpisodeByFeedId
+import tss.t.shared.usecase.GetEpisodeById
 import tss.t.shared.usecase.GetLiveEpisodes
 import tss.t.shared.usecase.GetMusicFeeds
 import tss.t.shared.usecase.GetPodcastByFeedID
@@ -63,6 +67,7 @@ class SharedGraph(
     clock: EpochClock,
     private val store: KeyValueStore,
     private val database: PodcastDaos,
+    crash: CrashReporter = Crash,
 ) {
     /**
      * Platform engine (OkHttp / Darwin), the system clock, a DataStore file at [preferencesPath]
@@ -108,18 +113,24 @@ class SharedGraph(
     val getTrendingPodcasts = GetTrendingPodcasts(api, blacklistRepository, trendingCache, appPreferences, clock)
     val getLiveEpisodes = GetLiveEpisodes(api, blacklistRepository)
     val getRecentFeeds = GetRecentFeeds(api, blacklistRepository)
-    val getMusicFeeds = GetMusicFeeds(api, blacklistRepository)
+    val getMusicFeeds = GetMusicFeeds(api, blacklistRepository, crash)
     val searchPodcasts = SearchPodcasts(api, blacklistRepository)
     val searchMusicFeeds = SearchMusicFeeds(api, blacklistRepository)
     val getCategories = GetCategories(api, categoriesCache, appPreferences, json)
     val getEpisodeByFeedId = GetEpisodeByFeedId(api, episodesByFeedCache)
     val getPodcastByFeedID = GetPodcastByFeedID(api, podcastByFeedCache)
 
+    /** E12, for episode deep links (M4 §4.2). */
+    val getEpisodeById = GetEpisodeById(api)
+
+    /** Android `getOrCreateInstallId()`: the crash reporter's user id (M4 §3.4). */
+    val installId = InstallId(store)
+
     /** Podcast/Episode/Feed tables, written with `cachedAt = now` (M4 §3.1). */
     val podcastStorage = PodcastStorage(database, clock)
 
     /** Run once per launch, off the main thread (features-spec §1). */
-    val pruneApiCache = PruneApiCache(database, clock)
+    val pruneApiCache = PruneApiCache(database, clock, crash)
 
     /** Every call behind Home/Discover (M1 §4.2). */
     val homeFeed = HomeFeed(
