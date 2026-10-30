@@ -2,7 +2,8 @@ import XCTest
 @testable import TSPodcast
 
 /// M1-AC8: the String Catalog compiles into vi and en tables with the §4.5 texts; M2 §4.8
-/// adds the Podcast detail and Search texts; M4-AC23 every M4 key (§4.7) in both languages.
+/// adds the Podcast detail and Search texts; M4-AC23 every M4 key (§4.7) in both languages;
+/// M5-AC11 the Up next peek strings.
 final class LocalizationTests: XCTestCase {
     private func bundle(_ language: String) throws -> Bundle {
         let path = try XCTUnwrap(Bundle.main.path(forResource: language, ofType: "lproj"), "\(language).lproj missing")
@@ -163,6 +164,21 @@ final class LocalizationTests: XCTestCase {
             XCTAssertNotEqual(english, "<missing>", "en \(key)")
             XCTAssertNotEqual(english, vietnamese, "en of \(key) is translated")
         }
+    }
+
+    /// M5-AC11: the Up next peek strings (plan §4), exactly as in the table.
+    func testUpNextPeekStrings() throws {
+        let expected: [String: (vi: String, en: String)] = [
+            "player.upNext.peekValue": ("Đang phát: %@", "Now playing: %@"),
+            "player.upNext.expandHint": ("Mở danh sách tiếp theo", "Opens the up next list"),
+            "player.upNext.collapseHint": ("Thu gọn danh sách tiếp theo", "Collapses the up next list"),
+        ]
+        for (key, value) in expected {
+            XCTAssertEqual(try text(key, "vi"), value.vi, "vi \(key)")
+            XCTAssertEqual(try text(key, "en"), value.en, "en \(key)")
+        }
+        let vietnamese = try text("player.upNext.peekValue", "vi")
+        XCTAssertEqual(String(format: vietnamese, "Tập 1"), "Đang phát: Tập 1")
     }
 
     func testOnboardingHighlightsAppearInTheirTitles() throws {

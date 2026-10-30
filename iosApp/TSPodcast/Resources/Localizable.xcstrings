@@ -1046,7 +1046,7 @@
       }
     },
     "player.upNext" : {
-      "comment" : "Title of the Up next sheet (Android UP NEXT).",
+      "comment" : "Title of the Up next panel on the Player (Android UP NEXT).",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -1059,6 +1059,60 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tiếp theo"
+          }
+        }
+      }
+    },
+    "player.upNext.collapseHint" : {
+      "comment" : "VoiceOver hint of the Up next header while the list is open.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collapses the up next list"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thu gọn danh sách tiếp theo"
+          }
+        }
+      }
+    },
+    "player.upNext.expandHint" : {
+      "comment" : "VoiceOver hint of the collapsed Up next peek header.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens the up next list"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở danh sách tiếp theo"
+          }
+        }
+      }
+    },
+    "player.upNext.peekValue" : {
+      "comment" : "VoiceOver value of the Up next peek header: the playing episode title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now playing: %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang phát: %@"
           }
         }
       }
