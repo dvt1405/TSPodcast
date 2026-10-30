@@ -33,6 +33,10 @@ final class AppEnvironment {
     @ObservationIgnored let podcastDetailDataSource: any PodcastDetailDataSource
     /// Search and category lists over shared `SearchFeed`.
     @ObservationIgnored let searchDataSource: any SearchDataSource
+    /// Tab, Discover stack and Settings sheet of Main, which Universal Links drive too.
+    @ObservationIgnored let navigation: MainNavigation
+    /// Universal Links (`.onOpenURL` / `.onContinueUserActivity`), host from `TSAppLinkHost` (M4 §4.5).
+    @ObservationIgnored let deepLinks: DeepLinkRouter
 
     var preferences: AppPreferences { graph.appPreferences }
     var favouriteCategories: FavouriteCategories { graph.favouriteCategories }
@@ -99,6 +103,14 @@ final class AppEnvironment {
             feed: graph.searchFeed,
             delay: launchOptions.slowNetwork ? HomeFeedDataSource.slowNetworkDelay : nil
         )
+        navigation = MainNavigation()
+        deepLinks = DeepLinkRouter(
+            hosts: AppLinkHost.hosts(from: Bundle.main.infoDictionary ?? [:]),
+            dataSource: SharedDeepLinkDataSource(targets: graph.deepLinkTargets),
+            playback: audioEngine,
+            navigation: navigation
+        )
+        deepLinks.willReveal = { [weak self] in self?.isPlayerPresented = false }
         let favouriteCounter = SharedFavouriteDataSource(repository: graph.favouriteRepository, resolver: graph.favouriteResolver)
         let notifications = notifications
         favouriteCountObservation = favouriteCounter.observe { rows in

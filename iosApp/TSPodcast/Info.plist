@@ -41,6 +41,8 @@
 	<string>$(PODCASTINDEX_BASE_URL)</string>
 	<key>PODCASTINDEX_USER_AGENT</key>
 	<string>$(PODCASTINDEX_USER_AGENT)</string>
+	<key>TSAppLinkHost</key>
+	<string>$(APP_LINK_HOST)</string>
 	<key>TSPrivacyPolicyURL</key>
 	<string>$(PRIVACY_POLICY_URL)</string>
 	<key>UIApplicationSceneManifest</key>

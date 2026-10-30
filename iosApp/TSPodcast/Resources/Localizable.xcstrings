@@ -127,6 +127,42 @@
         }
       }
     },
+    "deeplink.error.message" : {
+      "comment" : "Message of the deep link error alert (carries the deeplink.error identifier).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This content is no longer available or can't be shown in the app."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nội dung này không còn hoặc không xem được trong ứng dụng."
+          }
+        }
+      }
+    },
+    "deeplink.error.title" : {
+      "comment" : "Alert title when a shared podcast/episode link cannot be opened (M4 §4.7).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't open the link"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không mở được liên kết"
+          }
+        }
+      }
+    },
     "detail.episodes.empty" : {
       "comment" : "Podcast detail when the podcast has no episode.",
       "extractionState" : "manual",

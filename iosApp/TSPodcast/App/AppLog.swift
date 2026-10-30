@@ -28,4 +28,7 @@ enum AppLog {
 
     /// Push opt-in, APNs/FCM registration and received notifications (types only, no payload).
     static let notifications = Logger(subsystem: subsystem, category: "Notifications")
+
+    /// Universal Links (M4): kind and id of a link, the host of an ignored one; never the full URL.
+    static let deepLink = Logger(subsystem: subsystem, category: "DeepLink")
 }

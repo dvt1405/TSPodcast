@@ -9,3 +9,8 @@ PODCASTINDEX_USER_AGENT =
 // URL chính sách bảo mật (màn Cài đặt, guideline 5.1.1). Rỗng = ẩn dòng "Chính sách bảo mật" (handoff).
 // Bẫy "//" như trên: viết https:/$()/example.com/privacy.
 PRIVACY_POLICY_URL =
+
+// Host của Universal Link (deep link /podcast/<feedId>-<slug>, /episode/<id>-<slug>, M4 §4.5), ví dụ
+// tspodcast.example.com (không có https://). Rỗng = app không nhận link nào cho tới khi owner có domain,
+// entitlement Associated Domains và file apple-app-site-association (handoff).
+APP_LINK_HOST =

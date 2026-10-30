@@ -28,6 +28,7 @@
 		1E7625073379E3B656AEA02B /* SharedPodcastDetailDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9519D14FD4572C00095CC7 /* SharedPodcastDetailDataSource.swift */; };
 		20B4DE65222ED4EE0BE8EDF9 /* ArtworkImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3BCA873E8A639BF959A8BE /* ArtworkImage.swift */; };
 		21C7C2A31ED0F7F7540BD701 /* CrashWiringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2860C90529F4E01EF701115F /* CrashWiringTests.swift */; };
+		25588859731C6E1E0DB2C4DB /* DeepLinkRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E82C71B4C0F4DB7232C8A93F /* DeepLinkRouterTests.swift */; };
 		25C5F693901DB0A9F784BD45 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B287BA65B3E7F75F20D9E30E /* MainTabView.swift */; };
 		26027E9FDE500D1EFB637AAD /* NotificationSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D95C0E92D095BDF23ABD837 /* NotificationSystem.swift */; };
 		26DB5B30BFA24A54B76185F9 /* PodcastDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC6422AAD68C376A3FAE07AD /* PodcastDetailView.swift */; };
@@ -56,7 +57,9 @@
 		5138BB6C2C21815DE66AF34B /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87FC0EB7B7912C197D92A4D9 /* SearchView.swift */; };
 		53C04B1019B92E0B1B02BF19 /* SearchModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35F43B1B50F5803F8496E8CD /* SearchModel.swift */; };
 		553F51AAD9A420600AD37038 /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B8C368AC966443C4F820A93 /* AppRoute.swift */; };
+		571A8A559E3D91D0DFC48A5F /* DeepLinkRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55E6BA81E700E5BB14EA50F1 /* DeepLinkRouter.swift */; };
 		5C2BE0ADE17975C940CF4871 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 087B204142EC24D7A7CFCA6C /* FirebaseCore */; };
+		5C351B287D545C3F343DA79B /* SharedDeepLinkDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB36120E86B405CD6EDB74BD /* SharedDeepLinkDataSource.swift */; };
 		5C8A61E93D9F24AAB0774243 /* SharedSearchDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3DA906823A01E79D107AA06 /* SharedSearchDataSource.swift */; };
 		5D44445DBA3898C62DE1ACCE /* ArtworkLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB43318D75C23101CB314ED /* ArtworkLoader.swift */; };
 		5E12DF0CE75B35A82381A69C /* LogAnalyticsTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36831C5E5166B35A9FC3E7D6 /* LogAnalyticsTrackerTests.swift */; };
@@ -237,6 +240,7 @@
 		51018AECAE8274A481914CFD /* CategorySelectionUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategorySelectionUITests.swift; sourceTree = "<group>"; };
 		53BDB473685EF448E7D3458B /* LaunchOptionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchOptionsTests.swift; sourceTree = "<group>"; };
 		55AF8094E6A0C9DACFB6DB48 /* SearchDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchDataSource.swift; sourceTree = "<group>"; };
+		55E6BA81E700E5BB14EA50F1 /* DeepLinkRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkRouter.swift; sourceTree = "<group>"; };
 		5B0BA8508ED1B490B0B46B73 /* AudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioEngine.swift; sourceTree = "<group>"; };
 		5B2A553ED2FA02E56DAF6F49 /* CrashReporters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReporters.swift; sourceTree = "<group>"; };
 		5BB43318D75C23101CB314ED /* ArtworkLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkLoader.swift; sourceTree = "<group>"; };
@@ -315,8 +319,10 @@
 		E6834D6458DB1916F68771D7 /* PlaybackSystemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackSystemTests.swift; sourceTree = "<group>"; };
 		E6C428C4497F4BB9F9BDB531 /* RichNotificationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RichNotificationTests.swift; sourceTree = "<group>"; };
 		E6C9EA78B92C48EC5A860400 /* SearchErrorUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchErrorUITests.swift; sourceTree = "<group>"; };
+		E82C71B4C0F4DB7232C8A93F /* DeepLinkRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkRouterTests.swift; sourceTree = "<group>"; };
 		E958D268B5F0620A42BCECF1 /* DescriptionText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DescriptionText.swift; sourceTree = "<group>"; };
 		EA4575E9F0F10869A78C04CB /* Shimmer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shimmer.swift; sourceTree = "<group>"; };
+		EB36120E86B405CD6EDB74BD /* SharedDeepLinkDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDeepLinkDataSource.swift; sourceTree = "<group>"; };
 		F0932CE59CE42E97E557E219 /* CategoryPodcastsModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryPodcastsModelTests.swift; sourceTree = "<group>"; };
 		F1671639803232BC4E2F523E /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		F324F03A995605989B99BF89 /* NoOpConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoOpConfig.swift; sourceTree = "<group>"; };
@@ -396,6 +402,7 @@
 				F0932CE59CE42E97E557E219 /* CategoryPodcastsModelTests.swift */,
 				D0ACB71E449E97C37DB2EBF6 /* CategorySelectionModelTests.swift */,
 				2860C90529F4E01EF701115F /* CrashWiringTests.swift */,
+				E82C71B4C0F4DB7232C8A93F /* DeepLinkRouterTests.swift */,
 				32A8735B8B28784EBEBC9B80 /* DescriptionTextTests.swift */,
 				2178EC9D8225DCE1FC02DCCD /* EpisodeRowTests.swift */,
 				DD92DFFF0A0F7C87EB6F4A54 /* FakeHomeDataSource.swift */,
@@ -487,6 +494,15 @@
 				38C54AE8F2F34674DDEDE9C2 /* RemoteConfig.swift */,
 			);
 			path = Firebase;
+			sourceTree = "<group>";
+		};
+		7F371DF746C6573B0EC8F773 /* DeepLink */ = {
+			isa = PBXGroup;
+			children = (
+				55E6BA81E700E5BB14EA50F1 /* DeepLinkRouter.swift */,
+				EB36120E86B405CD6EDB74BD /* SharedDeepLinkDataSource.swift */,
+			);
+			path = DeepLink;
 			sourceTree = "<group>";
 		};
 		85E5F50E71653A0ABCE3BF7D /* Categories */ = {
@@ -584,6 +600,7 @@
 				EDE301742AB76878E341085C /* App */,
 				85E5F50E71653A0ABCE3BF7D /* Categories */,
 				078720D5E8ECEC3DEB030C1F /* Config */,
+				7F371DF746C6573B0EC8F773 /* DeepLink */,
 				2590CD9D7041F21AD65AB3A4 /* Design */,
 				1C11146814F52C0FAD79C24C /* Detail */,
 				8D86DE9E797975A34C209392 /* Favourite */,
@@ -963,6 +980,7 @@
 				D310A8617304085F3A008DD2 /* CategorySelectionView.swift in Sources */,
 				C4841A7502F4C29FD259E6C1 /* CrashReporters.swift in Sources */,
 				1E4475C6EE78D3CCF1B15879 /* DatabaseLocation.swift in Sources */,
+				571A8A559E3D91D0DFC48A5F /* DeepLinkRouter.swift in Sources */,
 				F134BA3ED3EB413158ED2EB0 /* DescriptionText.swift in Sources */,
 				C75F1F15C406234019EF59A8 /* EpisodeRow.swift in Sources */,
 				B238459EFDD6DBCF0E30755A /* EpisodeRowView.swift in Sources */,
@@ -1012,6 +1030,7 @@
 				5138BB6C2C21815DE66AF34B /* SearchView.swift in Sources */,
 				F36A842F69C7211C229BEB61 /* SettingsModel.swift in Sources */,
 				9662AFC92C34B22DEDC9601E /* SettingsView.swift in Sources */,
+				5C351B287D545C3F343DA79B /* SharedDeepLinkDataSource.swift in Sources */,
 				1E7625073379E3B656AEA02B /* SharedPodcastDetailDataSource.swift in Sources */,
 				5C8A61E93D9F24AAB0774243 /* SharedSearchDataSource.swift in Sources */,
 				E9E7AF603F848720D7699268 /* Shimmer.swift in Sources */,
@@ -1033,6 +1052,7 @@
 				1460F32D4D574EB8F31299A5 /* CategoryPodcastsModelTests.swift in Sources */,
 				D5FF06CE99F1166249779109 /* CategorySelectionModelTests.swift in Sources */,
 				21C7C2A31ED0F7F7540BD701 /* CrashWiringTests.swift in Sources */,
+				25588859731C6E1E0DB2C4DB /* DeepLinkRouterTests.swift in Sources */,
 				BF3267DBAEE5C52583DC91E6 /* DescriptionTextTests.swift in Sources */,
 				5F9392F4EEB702329476CFCD /* EpisodeRowTests.swift in Sources */,
 				06CEB3CE6540AACC34335084 /* FakeHomeDataSource.swift in Sources */,

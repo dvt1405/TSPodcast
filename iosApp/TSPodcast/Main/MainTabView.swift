@@ -15,16 +15,12 @@ enum AppTab: Hashable, Sendable {
 /// bar gets Liquid Glass. `Tab(...)` would need iOS 18.
 struct MainTabView: View {
     @Environment(AppEnvironment.self) private var environment
-    @State private var selection: AppTab = .home
     /// Favourite list and its stack (Podcast detail of a tapped favourite).
     @State private var favouriteModel: FavouriteModel
-    @State private var homePath: [PodcastRoute] = []
     @State private var homeModel: HomeModel
     /// Search stack: Podcast detail and category lists (two value types).
     @State private var searchPath = NavigationPath()
     @State private var searchModel: SearchModel
-    /// Settings sheet, opened from the gear of the Discover tab (M4 §4.4).
-    @State private var showsSettings = false
 
     init(favouriteModel: FavouriteModel, homeModel: HomeModel, searchModel: SearchModel) {
         _favouriteModel = State(initialValue: favouriteModel)
@@ -41,22 +37,24 @@ struct MainTabView: View {
 
     var body: some View {
         @Bindable var environment = environment
-        TabView(selection: $selection) {
+        @Bindable var navigation = environment.navigation
+        @Bindable var deepLinks = environment.deepLinks
+        TabView(selection: $navigation.selectedTab) {
             NavigationStack(path: $favouriteModel.path) {
-                FavouriteRootView(model: favouriteModel) { selection = .home }
+                FavouriteRootView(model: favouriteModel) { navigation.selectedTab = .home }
                     .tabRoot(title: "tab.favourite")
             }
             .miniPlayerInset(isPresented: showsMiniPlayer)
             .tabItem { Label("tab.favourite", systemImage: "heart") }
             .tag(AppTab.favourite)
 
-            NavigationStack(path: $homePath) {
+            NavigationStack(path: $navigation.homePath) {
                 HomeView(model: homeModel)
                     .tabRoot(title: "tab.home")
                     .toolbar {
                         ToolbarItem(placement: .topBarTrailing) {
                             Button {
-                                showsSettings = true
+                                navigation.isShowingSettings = true
                             } label: {
                                 Image(systemName: "gearshape")
                             }
@@ -78,7 +76,7 @@ struct MainTabView: View {
             .tag(AppTab.search)
         }
         .miniPlayerAccessory(isPresented: showsMiniPlayer)
-        .sheet(isPresented: $showsSettings) {
+        .sheet(isPresented: $navigation.isShowingSettings) {
             SettingsView(model: environment.makeSettingsModel())
                 .tint(Color.brandPrimary)
         }
@@ -88,6 +86,14 @@ struct MainTabView: View {
                 .environment(\.artworkLoader, environment.artworkLoader)
                 .tint(Color.brandPrimary)
         }
+        .alert(Text("deeplink.error.title"), isPresented: $deepLinks.isShowingError) {
+            Button("action.close", role: .cancel) {}
+        } message: {
+            Text("deeplink.error.message")
+                .accessibilityIdentifier("deeplink.error")
+        }
+        // Links that arrived during onboarding or category selection open now (M4 §4.5).
+        .task { await environment.deepLinks.mainDidAppear() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background {
                 environment.audioEngine.persistPosition()
