@@ -7,7 +7,8 @@ import Observation
 /// `setPauseAtEndOfMediaItems(true)`, it pauses at the end of every episode and never moves on
 /// by itself. It publishes `state` (Android `PlayerControlState`), keeps the listening position
 /// (shared `PlaybackPositions`, [Sửa] features-spec §3.6), records `extra:current_item_id`
-/// (shared `PlaybackHistory`) and feeds Now Playing and the remote commands.
+/// (shared `PlaybackHistory`), keeps the favourite flag in Room (shared `FavouriteRepository`)
+/// and feeds Now Playing and the remote commands.
 @MainActor
 @Observable
 final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSessionEventHandling {
@@ -39,7 +40,8 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
     @ObservationIgnored private var seekRequestedDuringStart = false
     @ObservationIgnored private var lastSavedPositionMs: Int64 = 0
     @ObservationIgnored private var loadGeneration = 0
-    /// Position and history writes run one after the other, so a read never overtakes a write.
+    /// Position, history and favourite reads/writes run one after the other, so a read never
+    /// overtakes a write.
     @ObservationIgnored private var persistence: Task<Void, Never>?
     @ObservationIgnored private var timeObserver: Any?
     @ObservationIgnored private var playerObservation: NSKeyValueObservation?
@@ -48,7 +50,7 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
 
     @ObservationIgnored private let positions: PlaybackPositions
     @ObservationIgnored private let history: PlaybackHistory
-    @ObservationIgnored private let favourites: FavouriteStore
+    @ObservationIgnored private let favourites: FavouriteRepository
     @ObservationIgnored private let session: AudioSessionController
     @ObservationIgnored private let nowPlaying: NowPlayingCenter
     @ObservationIgnored private let remoteCommands: RemoteCommands
@@ -61,7 +63,7 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
     init(
         positions: PlaybackPositions,
         history: PlaybackHistory,
-        favourites: FavouriteStore,
+        favourites: FavouriteRepository,
         session: AudioSessionController = AudioSessionController(),
         nowPlaying: NowPlayingCenter = NowPlayingCenter(),
         remoteCommands: RemoteCommands = RemoteCommands(),
@@ -194,9 +196,22 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         load(autoplay: true, startAtMs: state.positionMs)
     }
 
+    /// Android `onFavouriteChanged`: flips the row in Room, then shows the stored value. Queued
+    /// behind the read of the current item, so a quick tap never acts on a stale flag.
     func toggleFavourite() {
         guard let item = state.current else { return }
-        state.isFavourite = favourites.toggle(item: item.favourite)
+        let favourites = favourites
+        let favourite = item.favourite
+        let generation = loadGeneration
+        enqueuePersistence { [weak self] in
+            do {
+                let isFavourite = try await favourites.toggle(item: favourite).boolValue
+                guard let self, generation == self.loadGeneration else { return }
+                self.state.isFavourite = isFavourite
+            } catch {
+                AppLog.playback.error("favourite_save_failed")
+            }
+        }
     }
 
     /// App going to the background (M3 §4.3).
@@ -282,7 +297,7 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         next.isLive = hooks.forceLive || item.isLive
         next.durationMs = next.isLive ? 0 : item.durationMs
         next.positionMs = startAtMs ?? 0
-        next.isFavourite = favourites.isFavourite(type: .podcastepisode, id: item.id)
+        next.isFavourite = false
         next.isBuffering = autoplay
         state = next
         refreshSystemControls()
@@ -290,9 +305,15 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         let shared = item.shared(isLive: next.isLive)
         let history = history
         let positions = positions
+        let favourites = favourites
+        enqueuePersistence { [weak self] in
+            let isFavourite = (try? await favourites.isFavourite(type: .podcastepisode, id: shared.id))?.boolValue ?? false
+            guard let self, generation == self.loadGeneration else { return }
+            self.state.isFavourite = isFavourite
+        }
         enqueuePersistence {
             do {
-                try await history.saveCurrent(item: shared)
+                try await history.saveCurrentId(itemId: shared.id)
             } catch {
                 AppLog.playback.error("history_save_failed")
             }

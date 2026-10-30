@@ -3,7 +3,8 @@ import Observation
 @preconcurrency import Shared
 
 /// Composition root of the app: one `SharedGraph` per process (it owns the HTTP client, the
-/// caches and the DataStore file, and DataStore allows one open instance per file), plus the
+/// caches, the DataStore file and the Room database, and DataStore allows one open instance per
+/// file), plus the
 /// Swift-side services. Injected with `.environment(_:)`; views never create a graph.
 @MainActor
 @Observable
@@ -36,14 +37,15 @@ final class AppEnvironment {
         graph = SharedGraph(
             credentials: credentials,
             config: NoOpConfig(),
-            preferencesPath: Self.preferencesPath()
+            preferencesPath: Self.preferencesPath(),
+            databasePath: Self.databasePath()
         )
         analytics = LogAnalyticsTracker()
         categoryCatalog = CategoryCatalog(getCategories: graph.getCategories)
         audioEngine = AudioEngine(
             positions: graph.playbackPositions,
             history: graph.playbackHistory,
-            favourites: graph.favouriteStore,
+            favourites: graph.favouriteRepository,
             hooks: Self.audioHooks(launchOptions)
         )
         podcastDetailDataSource = SharedPodcastDetailDataSource(
@@ -164,12 +166,21 @@ final class AppEnvironment {
 
     /// `Application Support/ts_prefs.preferences_pb`; the directory is created when missing.
     private static func preferencesPath() -> String {
+        applicationSupportFile(DataStoreKeyValueStore.companion.FILE_NAME)
+    }
+
+    /// `Application Support/TSPodcastDatabase.db` (M4 §3.1). Room opens it on the first query.
+    private static func databasePath() -> String {
+        applicationSupportFile(PodcastDatabase.companion.FILE_NAME)
+    }
+
+    private static func applicationSupportFile(_ name: String) -> String {
         let directory = URL.applicationSupportDirectory
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         } catch {
-            AppLog.app.error("preferences_dir_failed type=\(String(describing: type(of: error)), privacy: .public)")
+            AppLog.app.error("app_support_dir_failed type=\(String(describing: type(of: error)), privacy: .public)")
         }
-        return directory.appending(path: DataStoreKeyValueStore.companion.FILE_NAME).path(percentEncoded: false)
+        return directory.appending(path: name).path(percentEncoded: false)
     }
 }

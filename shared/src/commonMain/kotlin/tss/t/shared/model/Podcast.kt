@@ -72,5 +72,31 @@ data class Podcast(
             itunesId = feed.itunesId,
             newestItemPublishTime = feed.newestItemPubdate,
         )
+
+        /**
+         * The podcast Android `PlayerViewModel.playLive` saves with a live item: `id` is the
+         * feed id and `title`/`feedTitle` are the live item's title.
+         */
+        fun fromLive(live: LiveEpisode): Podcast = Podcast(
+            categories = live.categories,
+            dateCrawled = live.dateCrawled,
+            datePublished = live.datePublished,
+            datePublishedPretty = live.datePublishedPretty,
+            enclosureLength = live.enclosureLength,
+            enclosureType = live.enclosureType,
+            enclosureUrl = live.enclosureUrl,
+            explicit = live.explicit,
+            feedId = live.feedId,
+            feedImage = live.feedImage,
+            feedItunesId = live.feedItunesId,
+            feedLanguage = live.feedLanguage,
+            feedTitle = live.title,
+            guid = live.guid,
+            id = live.feedId,
+            image = live.image,
+            link = live.link,
+            title = live.title,
+            description = live.description,
+        )
     }
 }

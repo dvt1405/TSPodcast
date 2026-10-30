@@ -5,9 +5,12 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import tss.t.shared.TestGraph
+import tss.t.shared.model.Episode
 import tss.t.shared.model.TSDataState
 import tss.t.shared.network.PodcastIndexHttpException
 import tss.t.shared.network.respondJson
+import tss.t.shared.storage.EpisodeDao
+import tss.t.shared.storage.FakePodcastDaos
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -18,7 +21,10 @@ import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-/** M2-AC1: `PodcastViewModel.getEpisodes` (E10 ‖ E11, E10 decides), retry, cache and D6. */
+/**
+ * M2-AC1: `PodcastViewModel.getEpisodes` (E10 ‖ E11, E10 decides), retry, cache and D6.
+ * M4-AC7: saved episodes when E10 fails ([Sửa], `isFromCache`).
+ */
 class PodcastDetailFeedTest {
 
     private val episodesBody = """{"count":3,"items":[
@@ -242,6 +248,89 @@ class PodcastDetailFeedTest {
         assertEquals(listOf(1L, 2L, 3L), detail.episodes.map { it.id })
         assertEquals(0, detail.hiddenExplicitCount)
         assertFalse(detail.isExplicitFeedHidden)
+    }
+
+    // M4-AC7: offline fallback to the episodes saved on the device
+
+    private fun saved(id: Long, feedId: Long = 42, explicit: Int = 0, published: Long = id * 100) =
+        Episode(id = id, feedId = feedId, title = "Saved $id", explicit = explicit, datePublished = published)
+
+    @Test
+    fun e10FailingWithSavedEpisodesShowsThemFromTheDatabase() = runTest {
+        val test = graph(episodes = null, podcast = null)
+        test.graph.podcastStorage.insertEpisodes(
+            listOf(saved(11), saved(12, explicit = 1), saved(13), saved(99, feedId = 7)),
+        )
+
+        val detail = test.graph.podcastDetailFeed.load(42).data()
+
+        assertTrue(detail.isFromCache)
+        assertEquals(listOf(13L, 11L), detail.episodes.map { it.id }, "newest first, D6 drops the explicit one")
+        assertEquals(1, detail.hiddenExplicitCount)
+        assertNull(detail.feed)
+    }
+
+    @Test
+    fun savedEpisodesStillFollowAnExplicitFeedFromE11() = runTest {
+        val test = graph(episodes = null, podcast = explicitFeedBody)
+        test.graph.podcastStorage.insertEpisodes(listOf(saved(11), saved(13)))
+
+        val detail = test.graph.podcastDetailFeed.load(42).data()
+
+        assertTrue(detail.isFromCache)
+        assertTrue(detail.isExplicitFeedHidden)
+        assertTrue(detail.episodes.isEmpty())
+    }
+
+    @Test
+    fun savedEpisodesWithExplicitAllowedAreAllShown() = runTest {
+        val test = graph(episodes = null, podcast = null)
+        test.allowExplicit()
+        test.graph.podcastStorage.insertEpisodes(listOf(saved(11), saved(12, explicit = 1), saved(13)))
+
+        val detail = test.graph.podcastDetailFeed.load(42).data()
+
+        assertEquals(listOf(13L, 12L, 11L), detail.episodes.map { it.id })
+        assertTrue(detail.isFromCache)
+    }
+
+    @Test
+    fun e10FailingWithNothingSavedIsStillTheE10Error() = runTest {
+        val test = graph(episodes = null)
+        test.graph.podcastStorage.insertEpisodes(listOf(saved(99, feedId = 7)))
+
+        val result = test.graph.podcastDetailFeed.load(42)
+
+        val error = assertIs<TSDataState.Error<PodcastDetail>>(result)
+        assertEquals(500, assertIs<PodcastIndexHttpException>(error.exception).code)
+        assertEquals(1, test.database.episodeReads)
+    }
+
+    @Test
+    fun aDatabaseErrorKeepsTheE10Error() = runTest {
+        val broken = object : FakePodcastDaos() {
+            override fun episodeDao(): EpisodeDao = throw IllegalStateException("db closed")
+        }
+        val test = TestGraph(database = broken, handler = { request ->
+            if (request.path() == EPISODES) respondJson(serverError, HttpStatusCode.InternalServerError)
+            else respondJson(cleanFeedBody)
+        })
+
+        val result = test.graph.podcastDetailFeed.load(42)
+
+        assertIs<PodcastIndexHttpException>(assertIs<TSDataState.Error<PodcastDetail>>(result).exception)
+    }
+
+    @Test
+    fun e10SucceedingNeverReadsTheDatabase() = runTest {
+        val test = graph()
+        test.graph.podcastStorage.insertEpisodes(listOf(saved(11)))
+
+        val detail = test.graph.podcastDetailFeed.load(42).data()
+
+        assertFalse(detail.isFromCache)
+        assertEquals(listOf(1L, 3L), detail.episodes.map { it.id })
+        assertEquals(0, test.database.episodeReads)
     }
 
     private companion object {

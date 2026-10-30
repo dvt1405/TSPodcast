@@ -5,8 +5,10 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
  * Android and iOS read the very same file (a static framework carries no resources) and
  * nobody keeps a hand-made copy in `shared/`.
  *
- * Each file becomes `val <camelCaseName>: String` on [objectName]. Long files are split into
- * chunks because one JVM string constant is limited to 65535 bytes.
+ * Each file becomes `val <camelCaseName>: String` on [objectName], or the name given in
+ * [propertyNames] (keyed by `<parent directory>/<file name>`, for files such as Room schemas whose
+ * name is a number). Long files are split into chunks because one JVM string constant is limited
+ * to 65535 bytes.
  */
 abstract class GenerateJsonSourcesTask : DefaultTask() {
     @get:InputFiles
@@ -19,6 +21,9 @@ abstract class GenerateJsonSourcesTask : DefaultTask() {
     @get:Input
     abstract val objectName: Property<String>
 
+    @get:Input
+    abstract val propertyNames: MapProperty<String, String>
+
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
 
@@ -30,8 +35,9 @@ abstract class GenerateJsonSourcesTask : DefaultTask() {
         val target = File(dir, pkg.replace('.', '/') + "/" + objectName.get() + ".kt")
         target.parentFile.mkdirs()
 
+        val renames = propertyNames.getOrElse(emptyMap())
         val properties = jsonFiles.files.sortedBy { it.name }.joinToString("\n\n") { file ->
-            val name = file.nameWithoutExtension
+            val name = renames["${file.parentFile.name}/${file.name}"] ?: file.nameWithoutExtension
                 .split('_', '-', ' ')
                 .filter { it.isNotEmpty() }
                 .mapIndexed { index, part ->
@@ -96,6 +102,9 @@ val generateBundledAssets by tasks.registering(GenerateJsonSourcesTask::class) {
     outputDir.set(layout.buildDirectory.dir("generated/bundledAssets/commonMain/kotlin"))
 }
 
+val ANDROID_SCHEMA = "core/schemas/tss.t.core.storage.PodcastDatabase/6.json"
+val SHARED_SCHEMA = "schemas/tss.t.shared.storage.PodcastDatabase/1.json"
+
 // Real PodcastIndex payloads that the Android debug build uses, as test fixtures.
 val generateTestFixtures by tasks.registering(GenerateJsonSourcesTask::class) {
     jsonFiles.from(
@@ -105,7 +114,15 @@ val generateTestFixtures by tasks.registering(GenerateJsonSourcesTask::class) {
         rootProject.file("podcasts/src/debug/assets/RecentFeeds.json"),
         // Android's browser User-Agent constant, so SharedConstantsTest compares against the source.
         rootProject.file("sharedResources/src/main/java/tss/t/sharedresources/SharedConstants.kt"),
+        // Room schemas: Android v6 and the shared one, for DatabaseSchemaParityTest (M4-AC2).
+        // The shared file is the committed export. No ordering with copyRoomSchemas (it runs after
+        // the test KSP tasks, which need these fixtures): after a schema change, the test reads
+        // the new file from the next build on.
+        rootProject.file(ANDROID_SCHEMA),
+        file(SHARED_SCHEMA),
     )
+    propertyNames.put(ANDROID_SCHEMA.substringBeforeLast('/').substringAfterLast('/') + "/6.json", "androidDatabaseSchemaV6")
+    propertyNames.put(SHARED_SCHEMA.substringBeforeLast('/').substringAfterLast('/') + "/1.json", "sharedDatabaseSchemaV1")
     packageName.set("tss.t.shared.fixtures")
     objectName.set("Fixtures")
     outputDir.set(layout.buildDirectory.dir("generated/testFixtures/commonTest/kotlin"))
@@ -115,6 +132,13 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.kotlin.serilization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
+}
+
+// Room KMP (M4 §4.1): the schema is exported here and committed (DatabaseSchemaParityTest reads it).
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 kotlin {
@@ -156,6 +180,8 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.okio)
             implementation(libs.androidx.datastore.preferences.core)
+            implementation(libs.androidx.room.runtime)
+            implementation(libs.androidx.sqlite.bundled)
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
@@ -169,4 +195,11 @@ kotlin {
             implementation(libs.ktor.client.mock)
         }
     }
+}
+
+dependencies {
+    // Room's compiler for every target that compiles the database (Android, device, simulator).
+    add("kspAndroid", libs.androidx.room.room.compiler)
+    add("kspIosSimulatorArm64", libs.androidx.room.room.compiler)
+    add("kspIosArm64", libs.androidx.room.room.compiler)
 }

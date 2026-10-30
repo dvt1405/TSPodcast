@@ -47,6 +47,8 @@ kotlinxCoroutinesCore = "1.10.2"
 okio = "3.15.0"
 # DataStore Preferences KMP for the shared key-value store; 1.2.1 needs kotlin-stdlib 2.0.21 (1.3.0 needs 2.2.20).
 datastore = "1.2.1"
+# Room KMP driver for :shared (architecture §7). Room itself reuses roomPaging.
+sqliteBundled = "2.6.2"
 [bundles]
 dagger = ["dagger-android", "dagger-android-support"]
 
@@ -138,6 +140,7 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 androidx-datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqliteBundled" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

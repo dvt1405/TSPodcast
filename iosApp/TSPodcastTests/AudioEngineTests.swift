@@ -84,8 +84,6 @@ final class AudioEngineTests: XCTestCase {
         await engine.waitForPersistence()
         var current = try await fixture.history.currentItemId()
         XCTAssertEqual(current, "2")
-        let stored = try await fixture.store.getString(key: "extra:current_item_id")
-        XCTAssertEqual(stored, "2")
 
         engine.skipNext()
         await engine.waitForPersistence()
@@ -97,8 +95,6 @@ final class AudioEngineTests: XCTestCase {
         await engine.waitForPersistence()
         current = try await fixture.history.currentItemId()
         XCTAssertEqual(current, "1")
-        let recent = try await fixture.history.recentItems().map(\.id)
-        XCTAssertEqual(recent, ["1", "2", "3"])
     }
 
     /// M3 §4.3: the position saved when the episode changes is used to resume it.
@@ -149,15 +145,20 @@ final class AudioEngineTests: XCTestCase {
         XCTAssertLessThan(engine.state.positionMs, 5_000)
     }
 
-    func testFavouriteFollowsTheItem() async {
+    func testFavouriteFollowsTheItem() async throws {
         engine.play(PlaybackFixture.request(startIndex: 0))
+        await engine.waitForPersistence()
         XCTAssertFalse(engine.state.isFavourite)
         engine.toggleFavourite()
+        await engine.waitForPersistence()
         XCTAssertTrue(engine.state.isFavourite)
-        XCTAssertTrue(fixture.favourites.isFavourite(type: .podcastepisode, id: "1"))
+        let stored = try await fixture.favourites.isFavourite(type: .podcastepisode, id: "1").boolValue
+        XCTAssertTrue(stored)
         engine.skipNext()
+        await engine.waitForPersistence()
         XCTAssertFalse(engine.state.isFavourite)
         engine.skipPrevious()
+        await engine.waitForPersistence()
         XCTAssertTrue(engine.state.isFavourite)
     }
 

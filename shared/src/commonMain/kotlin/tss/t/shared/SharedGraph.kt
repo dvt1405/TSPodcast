@@ -7,6 +7,8 @@ import tss.t.shared.blacklist.BlacklistRepository
 import tss.t.shared.cache.InMemoryTtlCache
 import tss.t.shared.config.ConfigAPI
 import tss.t.shared.detail.PodcastDetailFeed
+import tss.t.shared.favourite.FavouriteRepository
+import tss.t.shared.favourite.FavouriteResolver
 import tss.t.shared.home.HomeFeed
 import tss.t.shared.model.CategoryRes
 import tss.t.shared.model.EpisodeResponse
@@ -18,7 +20,6 @@ import tss.t.shared.network.PodcastIndexAuth
 import tss.t.shared.network.PodcastIndexJson
 import tss.t.shared.network.createHttpClient
 import tss.t.shared.network.defaultHttpClientEngine
-import tss.t.shared.playback.FavouriteStore
 import tss.t.shared.playback.PlaybackHistory
 import tss.t.shared.playback.PlaybackPositions
 import tss.t.shared.preferences.AppPreferences
@@ -26,6 +27,10 @@ import tss.t.shared.preferences.DataStoreKeyValueStore
 import tss.t.shared.preferences.FavouriteCategories
 import tss.t.shared.preferences.KeyValueStore
 import tss.t.shared.search.SearchFeed
+import tss.t.shared.storage.PodcastDaos
+import tss.t.shared.storage.PodcastDatabase
+import tss.t.shared.storage.PodcastStorage
+import tss.t.shared.storage.openPodcastDatabase
 import tss.t.shared.usecase.GetCategories
 import tss.t.shared.usecase.GetEpisodeByFeedId
 import tss.t.shared.usecase.GetLiveEpisodes
@@ -33,6 +38,7 @@ import tss.t.shared.usecase.GetMusicFeeds
 import tss.t.shared.usecase.GetPodcastByFeedID
 import tss.t.shared.usecase.GetRecentFeeds
 import tss.t.shared.usecase.GetTrendingPodcasts
+import tss.t.shared.usecase.PruneApiCache
 import tss.t.shared.usecase.SearchMusicFeeds
 import tss.t.shared.usecase.SearchPodcasts
 import tss.t.shared.util.EpochClock
@@ -40,14 +46,15 @@ import kotlin.time.Duration
 
 /**
  * Hand-written composition root of the shared module (M0 §3.6; no Koin yet). Create **one**
- * per process and keep it: it owns the `HttpClient`, the blacklist, the in-memory caches and
- * the key-value store, and DataStore allows only one open instance per file.
+ * per process and keep it: it owns the `HttpClient`, the blacklist, the in-memory caches, the
+ * key-value store and the Room database, and DataStore allows only one open instance per file.
  *
  * The blacklist is loaded synchronously while the graph is built, so the first request
  * made through it is already filtered.
  *
  * From Swift: `SharedGraph(credentials: BundleCredentialsProvider(), config: NoOpConfig(),
- * preferencesPath: <Application Support>/ts_prefs.preferences_pb)`.
+ * preferencesPath: <Application Support>/ts_prefs.preferences_pb,
+ * databasePath: <Application Support>/TSPodcastDatabase.db)`.
  */
 class SharedGraph(
     credentials: CredentialsProvider,
@@ -55,13 +62,26 @@ class SharedGraph(
     engine: HttpClientEngine,
     clock: EpochClock,
     private val store: KeyValueStore,
+    private val database: PodcastDaos,
 ) {
     /**
-     * Platform engine (OkHttp / Darwin), the system clock and a DataStore file at
-     * [preferencesPath] (see [DataStoreKeyValueStore.FILE_NAME]).
+     * Platform engine (OkHttp / Darwin), the system clock, a DataStore file at [preferencesPath]
+     * (see [DataStoreKeyValueStore.FILE_NAME]) and the Room database at [databasePath]
+     * (see [PodcastDatabase.FILE_NAME]; iOS only). The database opens on its first query.
      */
-    constructor(credentials: CredentialsProvider, config: ConfigAPI, preferencesPath: String) :
-        this(credentials, config, defaultHttpClientEngine(), EpochClock.System, DataStoreKeyValueStore(preferencesPath))
+    constructor(
+        credentials: CredentialsProvider,
+        config: ConfigAPI,
+        preferencesPath: String,
+        databasePath: String,
+    ) : this(
+        credentials,
+        config,
+        defaultHttpClientEngine(),
+        EpochClock.System,
+        DataStoreKeyValueStore(preferencesPath),
+        openPodcastDatabase(databasePath),
+    )
 
     private val json: Json = PodcastIndexJson
 
@@ -95,6 +115,12 @@ class SharedGraph(
     val getEpisodeByFeedId = GetEpisodeByFeedId(api, episodesByFeedCache)
     val getPodcastByFeedID = GetPodcastByFeedID(api, podcastByFeedCache)
 
+    /** Podcast/Episode/Feed tables, written with `cachedAt = now` (M4 §3.1). */
+    val podcastStorage = PodcastStorage(database, clock)
+
+    /** Run once per launch, off the main thread (features-spec §1). */
+    val pruneApiCache = PruneApiCache(database, clock)
+
     /** Every call behind Home/Discover (M1 §4.2). */
     val homeFeed = HomeFeed(
         getTrendingPodcasts = getTrendingPodcasts,
@@ -110,6 +136,7 @@ class SharedGraph(
         getEpisodeByFeedId = getEpisodeByFeedId,
         getPodcastByFeedID = getPodcastByFeedID,
         preferences = appPreferences,
+        storage = podcastStorage,
     )
 
     /** Search tab: E7/E8 with D6, and trending per category (M2 §4.1). */
@@ -124,15 +151,19 @@ class SharedGraph(
     /** Listening position per episode, in the app's key-value store (M3 §4.3). */
     val playbackPositions = PlaybackPositions(store)
 
-    /** `extra:current_item_id` (persisted) and the played items (in memory until M4). */
-    val playbackHistory = PlaybackHistory(store)
+    /** `extra:current_item_id` plus the playlist and podcast in Room (M4 §3.2). */
+    val playbackHistory = PlaybackHistory(store, podcastStorage)
 
-    /** Favourites toggled from the Player, in memory until M4. */
-    val favouriteStore = FavouriteStore()
+    /** The `FavouriteDTO` table, observable (M4 §4.2). */
+    val favouriteRepository = FavouriteRepository(database.favouriteDao())
 
-    /** Releases the HTTP client and the store file. The graph cannot be used afterwards. */
+    /** Favourite row → podcast, sorted episodes and start index (M4 §3.3). */
+    val favouriteResolver = FavouriteResolver(podcastStorage)
+
+    /** Releases the HTTP client, the store file and the database. The graph cannot be used afterwards. */
     fun close() {
         httpClient.close()
         (store as? DataStoreKeyValueStore)?.close()
+        (database as? PodcastDatabase)?.close()
     }
 }

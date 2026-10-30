@@ -3,23 +3,29 @@ import XCTest
 @preconcurrency import Shared
 @testable import TSPodcast
 
-/// Shared stores on a fresh DataStore file, and an engine playing the 60 s fixture tone.
+/// A `SharedGraph` on a fresh DataStore file and a fresh Room database file, and an engine
+/// playing the 60 s fixture tone.
 @MainActor
 struct PlaybackFixture {
-    let store: DataStoreKeyValueStore
+    let graph: SharedGraph
     let positions: PlaybackPositions
     let history: PlaybackHistory
-    let favourites = FavouriteStore()
+    let favourites: FavouriteRepository
     let session = AudioSessionController()
     let engine: AudioEngine
 
     init(audioURL: URL? = PlaybackFixture.toneURL, forceLive: Bool = false) {
-        let path = FileManager.default.temporaryDirectory
-            .appending(path: "playback-\(UUID().uuidString).preferences_pb")
-            .path(percentEncoded: false)
-        store = DataStoreKeyValueStore(path: path)
-        positions = PlaybackPositions(store: store)
-        history = PlaybackHistory(store: store)
+        let directory = FileManager.default.temporaryDirectory
+        let name = "playback-\(UUID().uuidString)"
+        graph = SharedGraph(
+            credentials: BundleCredentialsProvider(),
+            config: NoOpConfig(),
+            preferencesPath: directory.appending(path: "\(name).preferences_pb").path(percentEncoded: false),
+            databasePath: directory.appending(path: "\(name).db").path(percentEncoded: false)
+        )
+        positions = graph.playbackPositions
+        history = graph.playbackHistory
+        favourites = graph.favouriteRepository
         engine = AudioEngine(
             positions: positions,
             history: history,
@@ -40,7 +46,7 @@ struct PlaybackFixture {
 
     func close() {
         engine.shutdown()
-        store.close()
+        graph.close()
     }
 }
 

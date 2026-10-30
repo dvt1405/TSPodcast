@@ -1,35 +1,48 @@
 package tss.t.shared.playback
 
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import tss.t.shared.model.Episode
+import tss.t.shared.model.LiveEpisode
+import tss.t.shared.model.Podcast
 import tss.t.shared.preferences.KeyValueStore
+import tss.t.shared.storage.PodcastStorage
 
 /**
- * What Android's `HistoryRepository.saveCurrentPlaying` records when an item starts: the id of
- * the current item under `extra:current_item_id` (persisted), plus the played episodes. Android
- * writes the episodes and the podcast to Room; until Room KMP lands (M4) they stay in memory
- * here ([recentItems], newest first, at most [MAX_RECENT_ITEMS]).
+ * Android `HistoryRepository.saveCurrentPlaying` (features-spec §3.5 "Ghi DB", M4 §3.2):
+ *
+ * - a tap that starts a list (Detail, Favourite, deep link) writes the whole playlist and the
+ *   podcast to Room (`cachedAt = now`) and the id of the episode under `extra:current_item_id`
+ *   ([savePlaying]); a Home Live tap does the same through `PlayerViewModel.playLive` ([saveLive]);
+ * - moving inside the queue (previous, next, Up next) only changes the key ([saveCurrentId]).
  */
-class PlaybackHistory(private val store: KeyValueStore) {
-    private val mutex = Mutex()
-    private val recent = ArrayDeque<PlayableItem>()
+class PlaybackHistory(
+    private val store: KeyValueStore,
+    private val storage: PodcastStorage,
+) {
+    /** Android `saveCurrentPlaying(episode, podcast, listItem)`: episodes, podcast, then the key. */
+    suspend fun savePlaying(episode: Episode, podcast: Podcast?, playlist: List<Episode>) {
+        storage.insertEpisodes(playlist)
+        if (podcast != null) storage.insertPodcast(podcast)
+        store.putString(KEY_CURRENT_ITEM_ID, episode.id.toString())
+    }
 
-    suspend fun saveCurrent(item: PlayableItem) {
-        store.putString(KEY_CURRENT_ITEM_ID, item.id)
-        mutex.withLock {
-            recent.removeAll { it.id == item.id }
-            recent.addFirst(item)
-            while (recent.size > MAX_RECENT_ITEMS) recent.removeLast()
-        }
+    /** Android `playLive`: every live item as an `Episode` and a podcast built from [live]. */
+    suspend fun saveLive(live: LiveEpisode, playlist: List<LiveEpisode>) {
+        savePlaying(
+            episode = Episode.fromLive(live),
+            podcast = Podcast.fromLive(live),
+            playlist = playlist.map(Episode::fromLive),
+        )
+    }
+
+    /** Android `saveCurrentPlaying(mediaItem)`: previous/next/Up next, the key only. */
+    suspend fun saveCurrentId(itemId: String) {
+        store.putString(KEY_CURRENT_ITEM_ID, itemId)
     }
 
     suspend fun currentItemId(): String? = store.getString(KEY_CURRENT_ITEM_ID)
 
-    suspend fun recentItems(): List<PlayableItem> = mutex.withLock { recent.toList() }
-
     companion object {
         /** Key of Android `HistoryRepository.EXTRA_CURRENT_ITEM_ID`. */
         const val KEY_CURRENT_ITEM_ID = "extra:current_item_id"
-        const val MAX_RECENT_ITEMS = 100
     }
 }
