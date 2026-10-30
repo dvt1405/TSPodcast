@@ -35,6 +35,8 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
     @ObservationIgnored private var detectedLive = false
     /// Resume position applied once the item is ready (seeking earlier throws).
     @ObservationIgnored private var pendingStartMs: Int64 = 0
+    /// The slider moved while the resume seek was in flight: `pendingStartMs` holds the new target.
+    @ObservationIgnored private var seekRequestedDuringStart = false
     @ObservationIgnored private var lastSavedPositionMs: Int64 = 0
     @ObservationIgnored private var loadGeneration = 0
     /// Position and history writes run one after the other, so a read never overtakes a write.
@@ -51,6 +53,10 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
     @ObservationIgnored private let nowPlaying: NowPlayingCenter
     @ObservationIgnored private let remoteCommands: RemoteCommands
     @ObservationIgnored let hooks: Hooks
+    #if DEBUG
+    /// Unit-test seam: runs right after the resume seek is sent, while it is still in flight.
+    @ObservationIgnored var onStartSeekSent: (() -> Void)?
+    #endif
 
     init(
         positions: PlaybackPositions,
@@ -150,6 +156,7 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         reachedEnd = false
         guard player.currentItem?.status == .readyToPlay, pendingStartMs == 0 else {
             pendingStartMs = target
+            seekRequestedDuringStart = true
             publish()
             return
         }
@@ -265,6 +272,7 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         detectedLive = false
         wantsToPlay = autoplay
         pendingStartMs = 0
+        seekRequestedDuringStart = false
         lastSavedPositionMs = startAtMs ?? 0
 
         var next = PlaybackState()
@@ -326,18 +334,8 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         switch status {
         case .readyToPlay:
             detectedLive = PlaybackState.isIndefinite(player.currentItem?.duration ?? .invalid)
-            let start = pendingStartMs
-            if start > 0, !(hooks.forceLive || detectedLive || (state.current?.isLive ?? false)) {
-                player.seek(to: CMTime(value: start, timescale: 1000), toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
-                    Task { @MainActor in
-                        self?.pendingStartMs = 0
-                        self?.startIfWanted()
-                    }
-                }
-            } else {
-                pendingStartMs = 0
-                startIfWanted()
-            }
+            seekRequestedDuringStart = false
+            applyStartPosition()
         case .failed:
             AppLog.playback.error("playback_failed id=\(self.state.current?.id ?? "-", privacy: .public) reason=item_failed")
             fail()
@@ -346,6 +344,41 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         @unknown default:
             publish()
         }
+    }
+
+    /// Seeks to `pendingStartMs` once the item is ready, then starts if wanted. A slider seek made
+    /// while that seek is in flight replaces the target instead of being dropped (M3 review round 1).
+    private func applyStartPosition() {
+        let start = pendingStartMs
+        guard start > 0, !(hooks.forceLive || detectedLive || (state.current?.isLive ?? false)) else {
+            pendingStartMs = 0
+            startIfWanted()
+            return
+        }
+        let generation = loadGeneration
+        player.seek(to: CMTime(value: start, timescale: 1000), toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
+            Task { @MainActor in
+                guard let self, generation == self.loadGeneration else { return }
+                self.startSeekFinished(start: start)
+            }
+        }
+        #if DEBUG
+        onStartSeekSent?()
+        #endif
+    }
+
+    private func startSeekFinished(start: Int64) {
+        let moved = seekRequestedDuringStart && pendingStartMs != start
+        seekRequestedDuringStart = false
+        if moved, pendingStartMs > 0 {
+            applyStartPosition()
+            return
+        }
+        if moved {
+            player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
+        }
+        pendingStartMs = 0
+        startIfWanted()
     }
 
     private func startIfWanted() {

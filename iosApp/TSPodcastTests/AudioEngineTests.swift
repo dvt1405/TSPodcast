@@ -120,6 +120,35 @@ final class AudioEngineTests: XCTestCase {
         XCTAssertLessThan(engine.state.positionMs, 30_000)
     }
 
+    /// M3 review round 1: a slider seek made while the resume seek is still in flight wins;
+    /// before the fix the resume seek's completion reset the target and playback started at 20 s.
+    func testSeekDuringTheResumeSeekIsKept() async throws {
+        let first = PlaybackItem(episode: .sample(1), podcast: .sample).shared()
+        try await fixture.positions.record(item: first, positionMs: 20_000, durationMs: 60_000)
+        var sent = 0
+        engine.onStartSeekSent = { [unowned engine] in
+            sent += 1
+            if sent == 1 { engine.seek(toMs: 40_000) }
+        }
+
+        engine.play(PlaybackFixture.request(startIndex: 0))
+        await waitUntil(timeout: 5, "playing") { engine.state.isPlaying && engine.state.positionMs > 0 }
+        XCTAssertEqual(sent, 2, "the new target is applied with a second seek")
+        XCTAssertGreaterThanOrEqual(engine.state.positionMs, 39_500)
+        XCTAssertLessThan(engine.state.positionMs, 45_000)
+    }
+
+    func testSeekToStartDuringTheResumeSeekIsKept() async throws {
+        let first = PlaybackItem(episode: .sample(1), podcast: .sample).shared()
+        try await fixture.positions.record(item: first, positionMs: 20_000, durationMs: 60_000)
+        engine.onStartSeekSent = { [unowned engine] in engine.seek(toMs: 0) }
+
+        engine.play(PlaybackFixture.request(startIndex: 0))
+        await waitUntil(timeout: 5, "playing") { engine.state.isPlaying }
+        await waitUntil(timeout: 3, "position published") { engine.state.positionMs > 0 }
+        XCTAssertLessThan(engine.state.positionMs, 5_000)
+    }
+
     func testFavouriteFollowsTheItem() async {
         engine.play(PlaybackFixture.request(startIndex: 0))
         XCTAssertFalse(engine.state.isFavourite)
