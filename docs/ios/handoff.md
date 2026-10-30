@@ -6,6 +6,10 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
 
 ## Cần owner xử lý / quyết định
 
+### Máy và môi trường
+
+- **iPhone "Tun" chưa build/cài được (M5 T1–T2).** Xcode báo `iOS 26.2 is not installed` cho destination Tun (component platform iOS đang tải lại) (lúc 13:3x ngày 30/10/2026 `devicectl` có lúc báo Tun `unavailable`, kiểm lại thì `available (paired)`, nên chỉ còn thiếu platform). Trong lúc chờ: code M5 T1–T2 đã commit, kiểm bằng typecheck Swift 6 + test logic trên macOS. Cần: platform iOS cài xong trong Xcode > Settings > Components; iPhone mở khoá khi chạy. Các bước còn lại: `docs/ios/progress.md` mục M5 "Chờ chạy trên iPhone khi có iOS platform".
+
 ### Tài khoản và cloud resource
 
 - **Firebase iOS app** (bundle `tss.t.podcast`) và file `GoogleService-Info.plist` (setup-and-build §4).

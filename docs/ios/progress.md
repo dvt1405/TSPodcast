@@ -13,7 +13,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đã nghiệm thu (review round 1) |
 | M3 | Audio engine, Player và MiniPlayer | [milestones/M3.md](milestones/M3.md) | Đã nghiệm thu (review round 2, `5b8e26c`). UI suite để QC |
 | M4 | Favourite, lưu trữ, thông báo, deep link, analytics — chốt parity | [milestones/M4.md](milestones/M4.md) | Đã nghiệm thu (review round 1, `9f2f1fb`). Checklist parity §7 ở mục M4 T5; UI suite và bước simulator để QC |
-| M5 | Giao diện Liquid Glass (iOS 26) + Up next peek trên Player | [milestones/M5.md](milestones/M5.md) | Đang làm: T1 xong (`999b1ac`, `b0de8a0`), bước trên iPhone chờ iOS platform; T2–T4 chưa làm |
+| M5 | Giao diện Liquid Glass (iOS 26) + Up next peek trên Player | [milestones/M5.md](milestones/M5.md) | Đang làm: T1 xong (`999b1ac`, `b0de8a0`), T2 xong phần code (Player/MiniPlayer/tab bar glass); bước trên iPhone của T1–T2 chờ iOS platform; T3–T4 chưa làm |
 
 ## M0
 
@@ -1608,3 +1608,68 @@ Giới hạn đã biết (T1):
 - Chưa build/chạy trên máy nào: bằng chứng hiện có là typecheck Swift 6 với SDK iOS 26.2 (deployment 17) + 27 test logic chạy trên macOS + đọc code. Bố cục thật (đo `onGeometryChange`, `ignoresSafeArea` đáy panel, `contentMargins`) cần nhìn trên iPhone.
 - Thay đổi Dynamic Type trong lúc panel đang mở chỉ cập nhật chiều cao vùng peek khi panel thu lại.
 
+
+### T2 — Player, MiniPlayer và khung tab theo Liquid Glass (xong phần code; bước trên iPhone chờ platform)
+
+Commit: `feat(ios): restyle the player, mini player and tab bar with Liquid Glass` (hash ở `git log`).
+
+| Thành phần | File | Ghi chú |
+|---|---|---|
+| Helper nút tròn | `iosApp/TSPodcast/Design/Glass.swift` | `glassCircleButton()` (26) đổi từ `.glass` + `.buttonBorderShape(.circle)` sang `.plain` + `glassEffect(.regular.interactive(), in: Circle())`. Thêm overload `glassProminentButton(tint:in:fallbackFill:)`: 26 → `.plain` + `glassEffect(.regular.tint(tint).interactive(), in: shape)`; dưới 26 → `.plain` + `shape.fill(fallbackFill)` phía sau (đúng vòng tròn M3). Fallback `glassCircleButton` vẫn là `.plain` như M3. |
+| Player | `iosApp/TSPodcast/Player/PlayerView.swift` | `player.close`: `glassCircleButton()`, khung 44×44. Hàng điều khiển bọc trong **một** `GlassGroup(spacing: 8)`: Favourite / Previous / Next / Playlist là `ControlButton` 56×56 + `glassCircleButton()`; Play/Pause 84×84 `glassProminentButton(tint: .brandPrimary, in: Circle(), fallbackFill: .brandSecondary)`, spinner trắng khi buffering, overlay `player.buffering`, nhãn và identifier giữ nguyên. "Tải lại" (`player.retry`): `glassProminentButton(tint: .brandPrimary)` + `.controlSize(.large)`. Hành vi phát không đổi (cùng lời gọi `engine.*`). |
+| Khung tab | `iosApp/TSPodcast/Main/MainTabView.swift` | `TabView` gọi `.tabBarMinimizesOnScroll()` trước `.miniPlayerAccessory`. Không có `toolbarBackground` hay nền `.bar` nào trong `Main/`. |
+| Bố cục MiniPlayer | `iosApp/TSPodcast/Main/MiniPlayerSlot.swift` | `MiniPlayerLayout { regular, compact }` + `resolve(isInlineAccessory:isAccessibilitySize:)` (inline **hoặc** cỡ accessibility → `.compact`). `MiniPlayerSlot(isInlineAccessory:)` đọc `dynamicTypeSize`. iOS 26: accessory là `AccessoryMiniPlayer` (`@available(iOS 26.0, *)`, đọc `@Environment(\.tabViewBottomAccessoryPlacement)`, `== .inline`). iOS 17/18: `safeAreaInset` → capsule nổi `glassSurface(in: Capsule())` (= `.regularMaterial`; Reduce Transparency → nền đặc; Increase Contrast → viền), bóng `black 12 %` r 8 y 2, cách hai bên 12 pt, đáy 8 pt — thay dải `.bar` tràn viền của M3. |
+| MiniPlayer | `iosApp/TSPodcast/Main/MiniPlayerView.swift` | Tham số `layout` (mặc định `.regular`). `.compact`: artwork 28 (bo 6), chỉ tiêu đề, khoảng cách 8, padding dọc 0 (cao 44 = nút play/pause). `.regular` như M3; thanh progress lùi vào 22 pt hai bên + 3 pt đáy để không lòi ra ngoài đầu bo của capsule. `miniplayer.slot/open/playPause` có ở cả hai bố cục; `miniplayer.progress` chỉ ở `.regular` và không live. Nhãn VoiceOver của `miniplayer.open` vẫn đọc cả tên podcast khi bố cục gọn ẩn nó. |
+| Unit test mới | `iosApp/TSPodcastTests/MiniPlayerLayoutTests.swift` | 4 case: (false,false) → `.regular`; (true,false), (false,true), (true,true) → `.compact`. Thêm vào project bằng `xcodegen generate` (pbxproj +4 dòng). |
+
+Quyết định trong T2:
+
+| Hạng mục | Quyết định | Lý do |
+|---|---|---|
+| Nút tròn glass | `.plain` + `glassEffect(… .interactive(), in: Circle())` thay cho button style `.glass`/`.glassProminent` | Style `.glass`/`.glassProminent` tự thêm padding quanh label, nên nút 56/84 pt sẽ to hơn và hàng 5 nút có thể tràn trên iPhone 375 pt. Với `glassEffect` thì khung label là kích thước nút trên mọi OS: 44/56/84 pt đúng như M3, hit target giữ nguyên, glass vẫn interactive (phản hồi khi chạm). |
+| Play/Pause | Overload `glassProminentButton(tint:in:fallbackFill:)` | `glassProminentButton(tint:)` của T1 có fallback `.borderedProminent` (hình chữ nhật bo, `brandPrimary`), khác M3. Overload giữ tên helper theo plan, fallback ra đúng vòng tròn `brandSecondary` của M3. Khác biệt nhỏ: ở fallback vòng tròn nằm ở background nên không mờ đi khi nhấn (M3 mờ cả vòng tròn); glyph vẫn mờ. |
+| `GlassGroup` | Bọc cả hàng 5 nút (gồm Play/Pause), `spacing: 8` | 4 nút phụ nằm trong một group như AC7; Play/Pause ở giữa hàng nên không tách được mà không đổi layout. Khoảng cách giữa các nút ≥ 13 pt trên iPhone 375 pt nên các glass không dính vào nhau. |
+| "Tải lại" | `.controlSize(.large)` | `.borderedProminent`/`.glassProminent` cỡ thường cao ~34 pt < 44. Fallback vẫn `.borderedProminent` tint `brandPrimary` như M3, chỉ cao hơn. |
+| Hit area | Giữ `contentShape(Rectangle())` cho nút đóng và 4 nút phụ | Glass vẽ hình tròn nhưng vùng chạm vẫn là ô vuông 44/56 như M3. |
+| Identifier | Không thêm, không bỏ | `player.*` và `miniplayer.*` giữ nguyên; `AccessoryMiniPlayer` không thêm identifier. |
+
+Lệnh và kết quả (30/10/2026, 13:3x):
+
+```bash
+xcodebuild -showsdks | grep iphoneos     # iOS 26.2 -sdk iphoneos26.2 ; Simulator - iOS 26.2 (SDK có)
+xcrun simctl runtime list                # Total Disk Images: 0 (không dùng simulator)
+xcodebuild -project iosApp/iosApp.xcodeproj -scheme TSPodcast -showdestinations
+#   Ineligible: { platform:iOS, arch:arm64e, id:00008110-000878203AC1401E, name:Tun,
+#     error:iOS 26.2 is not installed. Please download and install the platform from Xcode > Settings > Components. }
+xcrun devicectl list devices             # Tun … 56DE0E78-9436-5BFB-8F79-E68AB560B730   unavailable lần đầu, kiểm lại cuối task: available (paired)
+# → không build/test/cài trên máy (luật tạm thời). Kiểm thay thế:
+# typecheck toàn bộ source app (bản copy trong scratchpad, bỏ dòng import Firebase*), SDK iphonesimulator26.2,
+#   -target arm64-apple-ios17.0-simulator, -swift-version 6, -F shared/build/xcode-frameworks/Debug/iphonesimulator26.2
+#   → chỉ 3 lỗi FirebaseApp/FirebaseOptions (do bỏ import, giống T1); 0 lỗi/cảnh báo ở Design/, Main/, Player/.
+# typecheck riêng Glass + Main + Player với SDK iphoneos26.2, -target arm64-apple-ios17.0 (stub cho AppEnvironment/AudioEngine)
+#   → 0 lỗi ngoài PlaybackProgressKt (framework iosArm64 trong shared/build cũ hơn code); các API iOS 26 mới
+#   (tabViewBottomAccessoryPlacement, glassEffect(...interactive(), in:)) đều được gate đúng.
+# MiniPlayerLayoutTests y nguyên + enum MiniPlayerLayout trong Swift package tạm (macOS): swift test → Executed 4 tests, with 0 failures.
+# Luật một chỗ: grep token iOS 26 ngoài Glass.swift/MiniPlayerSlot.swift → chỉ 2 dòng `.glassProminentButton(` trong PlayerView
+#   (tên helper khớp regex `\.glassProminent`, không phải API).
+# grep 'toolbarBackground\|background(.bar)' iosApp/TSPodcast/Main → 0.
+```
+
+`shared/`, Gradle, Android và UI test không đổi nên không chạy Gradle.
+
+#### Chờ chạy trên iPhone khi có iOS platform (thêm cho T2)
+
+1. Unit test trên máy (lệnh ở mục T1): thêm kỳ vọng `MiniPlayerLayoutTests` (4) Passed; `AudioEngineTests`, `PlaybackSystemTests` vẫn Passed (AC7).
+2. Build + smoke như mục T1.
+3. Owner xem trên máy: Player (nút đóng tròn glass; 4 nút phụ glass tròn; Play/Pause glass tint `brandPrimary`, spinner khi buffering; lỗi phát → "Tải lại" glass prominent); tab Khám phá cuộn xuống → tab bar thu nhỏ, MiniPlayer vào inline và còn artwork nhỏ + tiêu đề + play/pause; cuộn lên → MiniPlayer đầy đủ có progress; Dynamic Type cỡ accessibility → MiniPlayer gọn.
+
+#### Để QC (T2)
+
+- `MiniPlayerUITests` (có dùng `miniplayer.progress`): ở iOS 26 khi tab bar đã thu nhỏ hoặc cỡ chữ accessibility thì `miniplayer.progress` không có (bố cục gọn). `miniplayer.slot/open/playPause` vẫn có.
+- Kiểm hit target ≥ 44 pt bằng Accessibility Inspector cho `player.close`, 4 nút phụ, `player.playPause`, `player.retry`, `miniplayer.playPause`.
+- Fallback iOS 17/18 (capsule MiniPlayer, Player kiểu M3) chỉ kiểm được trên máy/simulator iOS 17/18; Tun chạy iOS 27 nên chỉ thấy nhánh glass.
+
+Giới hạn đã biết (T2):
+
+- Chưa build/chạy trên máy: bằng chứng là typecheck Swift 6 với SDK iOS 26.2 + 4 test logic trên macOS + đọc code. Kích thước accessory inline của iOS 26 (cao ~44–48 pt) và độ tương phản glyph trắng trên glass tint `brandPrimary` cần nhìn trên iPhone.
+- Nhánh fallback iOS 17/18 không có máy để xem (Tun iOS 27).
