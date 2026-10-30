@@ -1073,7 +1073,7 @@ Ghi chú: một lần chạy cả suite của developer trước review round 1 
 
 Kế hoạch: [milestones/M4.md](milestones/M4.md) (revision 2: không UI test, chỉ unit test + smoke check). Base `5b8e26c`.
 
-Trạng thái: **T1, T2 xong**, T3–T5 chưa làm. Mục này được bổ sung sau mỗi task; tóm tắt + checklist parity §7 viết ở T5.
+Trạng thái: **T1, T2, T3 xong**, T4–T5 chưa làm. Mục này được bổ sung sau mỗi task; tóm tắt + checklist parity §7 viết ở T5.
 
 ### T1 — Shared: Room KMP, PruneApiCache, favourite, lịch sử, fallback offline; hạ tầng kiểm tra (xong)
 
@@ -1225,3 +1225,61 @@ Giới hạn đã biết sau T2:
 - Hook crash Kotlin, `InstallId`, `RemoteConfigRetry`, `AnalyticsDefaults`, notification prefs và `DeepLinkParser` mới có ở shared; app chưa dùng (T4 nối Firebase/crash/push, T5 nối deep link).
 - `KotlinCrashHookTest` chỉ gọi thân hook; việc runtime thật sự gọi hook và kết thúc process chưa kiểm (kết thúc process trong test là không được). QC/T4 có thể kiểm bằng một crash cố ý ở bản Debug khi đã có Crashlytics.
 - Reporter Firebase ở T4 phải ghi đồng bộ trong `recordFatal` vì process kết thúc ngay sau khi hook trả về.
+
+### T3 — iOS: lưu trữ, Player favourite bền, lịch sử, tab Yêu thích, Detail offline (xong)
+
+Thoả M4-AC12 … M4-AC14 phần unit test + smoke (tự kiểm, chờ PO); các bước simulator của AC13/AC14 là "để QC". Không đổi file Gradle nào nên không chạy `:app:assembleDebug`. Không thêm hook UI test, không viết/sửa XCUITest.
+
+| Thành phần | File (`iosApp/TSPodcast/`) | Ghi chú |
+|---|---|---|
+| DB + prune lúc launch | `App/DatabaseLocation.swift`, `App/AppEnvironment.swift` | `DatabaseLocation.url` = `Application Support/TSPodcastDatabase.db` (tên lấy từ `PodcastDatabase.FILE_NAME`). `AppEnvironment` mở **một** `SharedGraph` trên file này; init chính nhận `graph` + `LaunchCachePruning` (test truyền fake) và chạy `prune()` một lần trong `Task.detached(priority: .utility)`, không chờ. `SharedCachePruner` gọi `PruneApiCache` (query đầu tiên → Room tạo file), log số row đã xoá, rồi đặt `isExcludedFromBackup` cho file DB và các file `-wal`/`-shm`/`-journal` đang có. |
+| Lịch sử phát | `Playback/PlaybackHistorySource.swift`, `PlaybackRequest.swift`, `AudioEngine.swift` | `PlaybackRequest.history`: `.playlist(podcast, episodes)` (Detail, Favourite) hoặc `.live([LiveEpisode])` (Home Live) — giữ nguyên model Kotlin của E10/E2/Room (bọc trong `KotlinValue`), không dựng lại từ `PlaybackItem`. Engine gọi `PlaybackHistory.record(source, itemId:)` trên hàng đợi persistence: request mới → `savePlaying`/`saveLive` (playlist + podcast + `extra:current_item_id`, như `SaveCurrentPlayingUseCase`/`playLive`); prev/next/Up next → chỉ `saveCurrentId`. |
+| Podcast lưu kèm | shared `detail/PodcastDetailFeed.kt` | `PodcastDetail.podcast`: `Podcast.fromFeed` của E11, offline thì row podcast đã lưu; `podcastToSave(feedId, title, image, description)` dựng từ route khi không có cả hai (Android lưu `Podcast` nó navigate tới, route iOS chỉ có 4 field). |
+| Player favourite bền | `Playback/AudioEngine.swift`, `PlaybackItem.swift` | Từ T1 đã đi qua `FavouriteRepository`. T3 thêm `PlaybackItem.summary` (mô tả plain text của episode/live) để row `FavouriteDTO` có `description` như `MediaItem.toFavouriteDTO()`; thiếu mô tả thì dùng tên podcast. |
+| Tab Yêu thích | `Favourite/FavouriteModel.swift`, `FavouriteDataSource.swift`, `FavouriteRootView.swift`, `Main/MainTabView.swift`, `App/RootView.swift` | `FavouriteModel` (`@Observable`): observe `FavouriteRepository.items` qua `watch` suốt đời model ([Sửa] cập nhật ngay, không cần mở lại); state `loading`/`empty`/`loaded`. `select(index)` → `FavouriteResolver` → một `PlaybackRequest` (episodes đã lưu, mới nhất trước, `startIndex` của mục favourite; ghi lại playlist như `playerEpisode`) + push `PodcastRoute` vào `path` của tab, **không** mở Player. Không resolve được → `unavailable` → alert "Không mở được mục này" với "Bỏ yêu thích" (`setFavourite(false)`) và "Đóng". Một tap đang resolve thì tap khác bị bỏ qua. Row: `ArtworkImage` 60 pt, tiêu đề 2 dòng, mô tả HTML → text 2 dòng; không ad banner. |
+| Detail offline | `Detail/PodcastDetailModel.swift`, `PodcastDetailView.swift`, `SharedPodcastDetailDataSource.swift`, `PodcastDetailDataSource.swift` | `isFromCache` của shared → `isShowingSavedEpisodes` → banner `detail.offlineBanner` (icon `wifi.slash`) trên danh sách; retry thành công thì banner mất. |
+| Chuỗi | `Resources/Localizable.xcstrings` | `favourite.unavailable.title`, `.message`, `.remove`, `action.close`, `detail.offlineBanner` (vi nguồn, en đúng bảng §4.7). |
+
+accessibilityIdentifier mới (cho QC): `favourite.list` (ScrollView), `favourite.item.<index>` (label "`<tiêu đề>, <mô tả>`", Debug có value `count=`), `favourite.unavailable` (message của alert), `favourite.unavailable.remove`, `favourite.unavailable.close`, `detail.offlineBanner`; giữ `favourite.root`, `favourite.empty`, `favourite.discoverMore`.
+
+**Test**
+
+| Test | AC | Nội dung |
+|---|---|---|
+| `PersistenceWiringTests` (4) | AC12 | `DatabaseLocation.url` trong Application Support, tên `TSPodcastDatabase.db`; pruner thật trên file tạm tạo file và đặt `isExcludedFromBackup == true` (cả file phụ); `AppEnvironment` với pruner giả → prune đúng 1 lần, không trên main thread; file không tồn tại không phải lỗi. |
+| `AudioEngineTests` (+4) | AC13 | toggle → row `FavouriteDTO(PodcastEpisode, "1")`; graph + engine mới trên cùng file → `isFavourite == true`; toggle lại → row bị xoá. Detail play → 3 episode + podcast trong DB, `current_item_id = 2`, skipNext → `3`. Live play → episode + podcast như `playLive`. Request không có history → không ghi row. |
+| `FavouriteModelTests` (8) | AC14 | loading → empty; Flow giả phát thêm mục **không gọi lại load** → `items` cập nhật, chỉ 1 observation; `select` resolve được → đúng 1 request, `startItem` đúng, `path == [route]`; không resolve → `unavailable`, `remove()` xoá và list theo bảng; "Đóng" giữ mục; tap ngoài range; nhả model thì dừng observe; 1 test trên Room thật (`watch` + `FavouriteResolver`, mô tả HTML → text, mục mồ côi → alert → xoá). |
+| `PodcastDetailModelTests` (+3), `PlaybackItemTests` (sửa 1), `LocalizationTests` (+5 key mỗi ngôn ngữ) | AC13/AC14 | banner offline, retry bỏ banner, tap mang history Room; `summary` không qua `PlayableItem` của shared (chỉ favourite dùng). |
+| shared `PodcastDetailFeedTest` (+1, sửa 2) | AC13 | podcast lưu kèm từ E11 / row đã lưu / route. |
+
+**Lệnh và kết quả**
+
+```bash
+./gradlew :shared:allTests   # BUILD SUCCESSFUL
+#   iosSimulatorArm64Test: 39 class, 269 test; testAndroidHostTest: 32 class, 234 test; failures=0 errors=0 (T2: 268/233)
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcastUnit -destination "id=$SIM" \
+  -derivedDataPath $OUT/DD-m4 -resultBundlePath $OUT/M4T3-unit.xcresult -only-testing:TSPodcastTests
+#   ** TEST SUCCEEDED **, Executed 173 tests, 0 failures (T2: 154); grep -c "in target 'TSPodcastUITests'" → 0
+xcodebuild build -project iosApp/iosApp.xcodeproj -scheme TSPodcast -configuration Debug -destination "id=$SIM" -derivedDataPath $OUT/DD-m4
+#   ** BUILD SUCCEEDED **; grep -c "in target 'TSPodcastUITests'" → 0
+iosApp/scripts/smoke-launch.sh $SIM $OUT/DD-m4/Build/Products/Debug-iphonesimulator/TSPodcast.app --check-db
+#   SMOKE PASS (process running, no new crash report, database file exists); log: prune_api_cache …, db_backup_excluded files=3
+grep -rn "FavouriteStore\|recentItems" iosApp/TSPodcast iosApp/TSPodcastTests shared/src | wc -l   # 0
+```
+
+Quyết định trong T3:
+
+| Hạng mục | Quyết định | Lý do |
+|---|---|---|
+| Model lưu lịch sử | `PlaybackRequest` mang model Kotlin (`KotlinValue`, `@unchecked Sendable`) | Plan §3.2: row Room phải là model đầy đủ của E10/E2, không dựng lại từ `PlaybackItem`. Data class Kotlin bất biến nên chuyển giữa actor an toàn; view không đọc chúng. |
+| Backup exclusion | Đặt sau prune (file đã có) và cho cả file `-wal`/`-shm`/`-journal` | Room chỉ tạo file ở query đầu; WAL chứa dữ liệu mới chưa checkpoint. |
+| Mô tả favourite từ Player | Mô tả episode (plain text), thiếu thì tên podcast | Android `toFavouriteDTO()` dùng `MediaMetadata.description`; dòng trống trông như lỗi. |
+| Tap trùng | Bỏ qua tap khi một tap đang resolve | Tránh hai request phát + hai lần push Detail. |
+| Alert có thêm id `favourite.unavailable.close` | Thêm ngoài danh sách §4.6 | QC cần bấm "Đóng" ổn định; không đổi id nào có sẵn. |
+
+Giới hạn đã biết sau T3:
+
+- Các bước simulator của AC13 (favourite → kill → mở lại) và AC14 (1)–(5) chưa chạy: để QC.
+- `PodcastRoute` khi tap favourite lấy tiêu đề/ảnh/mô tả từ row Podcast đã lưu; podcast được lưu từ route (lúc E11 lỗi) chỉ có tiêu đề, ảnh, mô tả, nên các field khác của row đó trống tới lần E11 thành công sau.
+- Không khôi phục item đang phát sau khi kill app (Android cũng chỉ khôi phục qua notification; M4 §2 ngoài phạm vi).
+- Xoá favourite của một episode ở tab Yêu thích chỉ qua alert mục hỏng hoặc Player (như Android: không có swipe-to-delete).
