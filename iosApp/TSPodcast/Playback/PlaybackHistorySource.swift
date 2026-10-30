@@ -20,6 +20,9 @@ enum PlaybackHistorySource: Hashable, @unchecked Sendable {
     case playlist(podcast: Podcast, episodes: [Episode])
     /// Home Live tap: `saveLive(live, playlist)` (Android `playLive`).
     case live([LiveEpisode])
+    /// News hub (brief, "Mới nhất", night shelf, M6 §3.4): episodes of several shows, each saved
+    /// with the podcast of its own feed, so "Tiếp tục nghe" and Favourite resolve every item.
+    case news([NewsEpisode])
 
     /// Detail: the E10 episodes on screen and the podcast from E11, the saved row or the route.
     static func detail(_ detail: PodcastDetail, route: PodcastRoute) -> PlaybackHistorySource {
@@ -50,9 +53,30 @@ extension PlaybackHistory {
                 try await saveLive(live: live, playlist: items)
                 return
             }
+        case .news(let items):
+            if let start = items.firstIndex(where: { String($0.episode.id) == itemId }) {
+                try await saveNews(items, startIndex: start)
+                return
+            }
         case nil:
             break
         }
         try await saveCurrentId(itemId: itemId)
+    }
+
+    /// One `savePlaying` per show (`NewsHistoryOrder`): the other shows first, the show of the
+    /// started episode last, so `extra:current_item_id` ends on that episode.
+    private func saveNews(_ items: [NewsEpisode], startIndex: Int) async throws {
+        let groups = NewsHistoryOrder.groups(feedIds: items.map(\.feed.id), startIndex: startIndex)
+        for group in groups {
+            let episodes = group.indices.map { items[$0] }
+            guard let first = episodes.first else { continue }
+            let episode = group.indices.contains(startIndex) ? items[startIndex] : first
+            try await savePlaying(
+                episode: episode.episode,
+                podcast: Podcast.companion.fromFeed(feed: first.feed),
+                playlist: episodes.map(\.episode)
+            )
+        }
     }
 }

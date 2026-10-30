@@ -38,4 +38,16 @@ extension PlaybackRequest {
             history: sources.isEmpty ? nil : .live(sources)
         )
     }
+
+    /// A list of the news hub (M6 §3.4) from `startIndex`. Only "Phát tất cả" of the morning brief
+    /// turns auto-advance on; "Mới nhất" and the night shelf play one episode at a time.
+    init(news: [NewsItem], startIndex: Int, autoAdvance: Bool = false) {
+        let sources = news.compactMap { $0.source?.value }
+        self.init(
+            items: news.map(PlaybackItem.init(news:)),
+            startIndex: startIndex,
+            history: sources.count == news.count && !sources.isEmpty ? .news(sources) : nil,
+            autoAdvance: autoAdvance
+        )
+    }
 }

@@ -40,6 +40,8 @@ final class AppEnvironment {
     @ObservationIgnored let podcastDetailDataSource: any PodcastDetailDataSource
     /// Search and category lists over shared `SearchFeed`.
     @ObservationIgnored let searchDataSource: any SearchDataSource
+    /// "Thời sự & Bản tin" over shared `NewsHubRepository` (M6 §3.4), for Home and the hub screen.
+    @ObservationIgnored let newsHubDataSource: any NewsHubDataSource
     /// Tab, Discover stack and Settings sheet of Main, which Universal Links drive too.
     @ObservationIgnored let navigation: MainNavigation
     /// Universal Links (`.onOpenURL` / `.onContinueUserActivity`), host from `TSAppLinkHost` (M4 §4.5).
@@ -137,6 +139,11 @@ final class AppEnvironment {
             feed: graph.searchFeed,
             delay: launchOptions.slowNetwork ? HomeFeedDataSource.slowNetworkDelay : nil
         )
+        newsHubDataSource = SharedNewsHubDataSource(
+            repository: graph.newsHub,
+            analytics: analytics,
+            delay: launchOptions.slowNetwork ? HomeFeedDataSource.slowNetworkDelay : nil
+        )
         navigation = MainNavigation()
         deepLinks = DeepLinkRouter(
             hosts: AppLinkHost.hosts(from: Bundle.main.infoDictionary ?? [:]),
@@ -150,9 +157,10 @@ final class AppEnvironment {
         favouriteCountObservation = favouriteCounter.observe { rows in
             Task { await notifications.favouritesChanged(count: rows.count) }
         }
-        let blacklist = graph.blacklistRepository
+        // Every value shared caches from Remote Config: the blacklist and the news hub config.
+        let sharedGraph = graph
         let remoteConfig = services.remoteConfig.map { source in
-            RemoteConfigLoader(source: source, crash: crash, onActivated: { blacklist.reload() })
+            RemoteConfigLoader(source: source, crash: crash, onActivated: { sharedGraph.reloadRemoteConfig() })
         }
         Task.detached(priority: .utility) {
             if let remoteConfig {
@@ -204,7 +212,25 @@ final class AppEnvironment {
             favourites: favouriteCategories,
             delay: launchOptions.slowNetwork ? HomeFeedDataSource.slowNetworkDelay : nil
         )
-        let model = HomeModel(dataSource: dataSource)
+        let model = HomeModel(dataSource: dataSource, newsHub: newsHubDataSource)
+        hiddenShows.onHide { [weak model] feedId in model?.removeShow(feedId: feedId) }
+        return model
+    }
+
+    /// "Phát tất cả", "Mới nhất" and the night shelf, for the Home section (M6 §3.4).
+    var newsHubActions: NewsHubActions {
+        NewsHubActions(playback: self, analytics: analytics)
+    }
+
+    /// The hub screen, starting from what the Home section shows when it has it.
+    func makeNewsHubModel(entry: NewsHubEntry, initial: NewsHubContent?) -> NewsHubModel {
+        let model = NewsHubModel(
+            entry: entry,
+            initial: initial,
+            dataSource: newsHubDataSource,
+            playback: self,
+            analytics: analytics
+        )
         hiddenShows.onHide { [weak model] feedId in model?.removeShow(feedId: feedId) }
         return model
     }
@@ -343,6 +369,20 @@ final class AppEnvironment {
         } catch {
             AppLog.app.error("app_support_dir_failed type=\(String(describing: type(of: error)), privacy: .public)")
         }
+    }
+}
+
+extension AppEnvironment: NewsHubPlayback {
+    func play(_ request: PlaybackRequest, presentsPlayer: Bool) {
+        if presentsPlayer {
+            play(request)
+        } else {
+            audioEngine.play(request)
+        }
+    }
+
+    func setSleepTimer(_ setting: SleepTimerSetting, origin: String) {
+        audioEngine.setSleepTimer(setting, origin: origin)
     }
 }
 

@@ -1,10 +1,13 @@
 import Foundation
 import Observation
 
-/// The five Home sections, in Android's order (`DiscoverPodcastsScreen`, without the ad slots).
-/// The raw value is the accessibility id part: `home.section.<rawValue>`.
+/// The Home sections in display order: Android's five (`DiscoverPodcastsScreen`, without the
+/// ad slots) with "Thời sự & Bản tin" right after trending (M6 §3.4). The raw value is the
+/// accessibility id part: `home.section.<rawValue>`.
 enum HomeSection: String, CaseIterable, Sendable {
     case trending
+    /// "Thời sự & Bản tin": absent while the news hub is off (`NewsSectionState.absent`).
+    case news
     case music
     case live
     case recent
@@ -30,6 +33,20 @@ enum SectionState<Item: Hashable & Sendable>: Hashable, Sendable {
     var isLoaded: Bool {
         if case .loaded = self { return true }
         return false
+    }
+}
+
+/// State of the "Thời sự & Bản tin" section. Unlike the other sections it has no empty state:
+/// while the hub is off, or nothing loaded, the section is not there at all (M6 §3.4).
+enum NewsSectionState: Hashable, Sendable {
+    case absent
+    case loading
+    case loaded(NewsHubContent)
+    case failed
+
+    var content: NewsHubContent? {
+        if case .loaded(let content) = self { return content }
+        return nil
     }
 }
 
@@ -64,6 +81,8 @@ final class HomeModel {
     private(set) var live: SectionState<[LiveRowItem]> = .loading
     private(set) var recent: SectionState<PodcastCard> = .loading
     private(set) var forYou: SectionState<PodcastCard> = .loading
+    /// "Thời sự & Bản tin" (M6 §3.4).
+    private(set) var news: NewsSectionState
     /// Completed full loads: 1 after the first load, +1 per refresh (`home.list` value in Debug).
     private(set) var generation = 0
 
@@ -73,15 +92,20 @@ final class HomeModel {
         case music
         case live
         case recent
+        /// The news hub (`NewsHubDataSource`).
+        case news
     }
 
     @ObservationIgnored private let dataSource: any HomeDataSource
+    @ObservationIgnored private let newsHub: (any NewsHubDataSource)?
     @ObservationIgnored private var hasStarted = false
     /// Latest request per loader; an older result that arrives late is dropped.
     @ObservationIgnored private var latestRequest: [Loader: Int] = [:]
 
-    init(dataSource: any HomeDataSource) {
+    init(dataSource: any HomeDataSource, newsHub: (any NewsHubDataSource)? = nil) {
         self.dataSource = dataSource
+        self.newsHub = newsHub
+        news = newsHub?.isEnabled == true ? .loading : .absent
     }
 
     /// First load, once per model (`.task` may run again when the view reappears).
@@ -108,6 +132,7 @@ final class HomeModel {
         case .music: .music
         case .live: .live
         case .recent: .recent
+        case .news: .news
         }
     }
 
@@ -119,6 +144,10 @@ final class HomeModel {
         music = Self.removing(feedId, from: music)
         recent = Self.removing(feedId, from: recent)
         forYou = Self.removing(feedId, from: forYou)
+        if let content = news.content {
+            let kept = content.removing(feedId: feedId)
+            news = kept.hasNews ? .loaded(kept) : .absent
+        }
         if case .loaded(let pages) = live {
             let items = pages.flatMap { $0 }
             let kept = items.filter { $0.feedId != feedId }
@@ -142,7 +171,8 @@ final class HomeModel {
         async let music: Void = load(.music, keepingContent: keepingContent)
         async let live: Void = load(.live, keepingContent: keepingContent)
         async let recent: Void = load(.recent, keepingContent: keepingContent)
-        _ = await (trendingSections, music, live, recent)
+        async let news: Void = load(.news, keepingContent: keepingContent)
+        _ = await (trendingSections, music, live, recent, news)
         generation += 1
         AppLog.app.notice("home_loaded generation=\(self.generation, privacy: .public)")
     }
@@ -175,6 +205,32 @@ final class HomeModel {
             let result = await dataSource.recent()
             guard latestRequest[loader] == request else { return }
             recent = Self.next(recent, SectionState(result), keepingContent)
+        case .news:
+            await loadNews(request: request, keepingContent: keepingContent)
+        }
+    }
+
+    /// The hub may have been turned on or off by Remote Config since the last load, so each load
+    /// asks again. A failed refresh keeps the content on screen, like the other sections.
+    private func loadNews(request: Int, keepingContent: Bool) async {
+        guard let newsHub, newsHub.isEnabled else {
+            news = .absent
+            return
+        }
+        if !(keepingContent && news.content != nil) {
+            news = .loading
+        }
+        let result = await newsHub.load()
+        guard latestRequest[.news] == request else { return }
+        switch result {
+        case .success(let content?):
+            news = .loaded(content)
+        case .success(nil):
+            news = .absent
+        case .failure:
+            if !(keepingContent && news.content != nil) {
+                news = .failed
+            }
         }
     }
 

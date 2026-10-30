@@ -58,6 +58,22 @@ extension PlaybackItem {
         )
     }
 
+    /// News hub tap (M6 §3.4): the show's name and the publisher's feed artwork.
+    init(news item: NewsItem) {
+        self.init(
+            id: String(item.id),
+            feedId: item.feedId,
+            url: item.enclosureURL,
+            title: item.title,
+            podcastTitle: item.feedTitle,
+            artworkURL: item.imageURL,
+            referer: item.referer,
+            durationMs: max(0, item.durationSeconds) * 1000,
+            isLive: false,
+            summary: item.summary
+        )
+    }
+
     init(_ item: PlayableItem) {
         self.init(
             id: item.id,

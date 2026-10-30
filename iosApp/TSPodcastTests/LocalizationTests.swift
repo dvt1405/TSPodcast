@@ -3,7 +3,7 @@ import XCTest
 
 /// M1-AC8: the String Catalog compiles into vi and en tables with the §4.5 texts; M2 §4.8
 /// adds the Podcast detail and Search texts; M4-AC23 every M4 key (§4.7) in both languages;
-/// M5-AC11 the Up next peek strings; M6-AC23 the Player basics.
+/// M5-AC11 the Up next peek strings; M6-AC23 the Player basics, show safety, consent and the news hub.
 final class LocalizationTests: XCTestCase {
     private func bundle(_ language: String) throws -> Bundle {
         let path = try XCTUnwrap(Bundle.main.path(forResource: language, ofType: "lproj"), "\(language).lproj missing")
@@ -233,6 +233,43 @@ final class LocalizationTests: XCTestCase {
         for key in ["consent.title", "consent.intro", "consent.necessary.detail", "consent.analytics.detail", "consent.crash.detail", "consent.footnote",
                     "report.fallback.title", "report.fallback.message %@", "report.fallback.copy", "detail.hide.confirmTitle",
                     "detail.hide.confirm", "detail.hide.confirmMessage", "hiddenShows.empty", "hiddenShows.footer", "detail.search.onScreenOnly"] {
+            for language in ["vi", "en"] {
+                XCTAssertNotEqual(try text(key, language), "<missing>", "\(language) \(key)")
+            }
+        }
+    }
+
+    /// M6-AC23: "Thời sự & Bản tin", word for word (the footer is the §3.4 text).
+    func testNewsHubStrings() throws {
+        let expected: [String: (vi: String, en: String)] = [
+            "news.title": ("Thời sự & Bản tin", "News & Bulletins"),
+            "news.seeAll": ("Xem tất cả", "See all"),
+            "news.brief.title %@": ("Điểm tin sáng · %@", "Morning brief · %@"),
+            "news.brief.minutes %lld": ("%lld phút", "%lld min"),
+            "news.brief.playAll": ("Phát tất cả", "Play all"),
+            "news.latest": ("Mới nhất", "Latest"),
+            "news.sources": ("Nguồn", "Sources"),
+            "news.night": ("Truyện đêm khuya", "Bedtime stories"),
+            "news.toast.change": ("Đổi", "Change"),
+            "news.footer": (
+                "Nội dung do các cơ quan báo chí phát hành qua RSS và được phát từ địa chỉ gốc của nhà xuất bản.",
+                "Content is published by news organisations through RSS and played from the publisher's original address."
+            ),
+            "news.report": ("Báo cáo / yêu cầu gỡ", "Report / request removal"),
+        ]
+        for (key, value) in expected {
+            XCTAssertEqual(try text(key, "vi"), value.vi, "vi \(key)")
+            XCTAssertEqual(try text(key, "en"), value.en, "en \(key)")
+        }
+        let vi = Locale(identifier: "vi")
+        let en = Locale(identifier: "en")
+        XCTAssertEqual(String(format: try text("news.brief.episodes %lld", "vi"), locale: vi, 5), "5 tập")
+        XCTAssertEqual(String(format: try text("news.brief.episodes %lld", "en"), locale: en, 1), "1 episode")
+        XCTAssertEqual(String(format: try text("news.brief.episodes %lld", "en"), locale: en, 5), "5 episodes")
+        XCTAssertEqual(String(format: try text("news.toast %lld", "vi"), locale: vi, 30), "Đã hẹn giờ tắt 30 phút")
+        XCTAssertEqual(String(format: try text("news.toast %lld", "en"), locale: en, 30), "Sleep timer set for 30 minutes")
+        XCTAssertEqual(String(format: try text("news.night.subtitle %lld", "vi"), locale: vi, 30), "Tự tắt sau 30 phút")
+        for key in ["news.error", "news.unavailable"] {
             for language in ["vi", "en"] {
                 XCTAssertNotEqual(try text(key, language), "<missing>", "\(language) \(key)")
             }

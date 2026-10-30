@@ -1,12 +1,14 @@
 import SwiftUI
 
-/// Home/Discover (Android `DiscoverPodcastsScreen`): trending, music (+ subtitle), live, recent
-/// and "Có thể bạn yêu thích", then the Podcast Index attribution required by its terms (7.2).
-/// No ad slots and no "Privacy options" link (owner decision D1/D2).
+/// Home/Discover (Android `DiscoverPodcastsScreen`): trending, "Thời sự & Bản tin" (M6 §3.4,
+/// only while the news hub is on), music (+ subtitle), live, recent and "Có thể bạn yêu thích",
+/// then the Podcast Index attribution required by its terms (7.2). No ad slots and no "Privacy
+/// options" link (owner decision D1/D2).
 ///
-/// Podcast taps push Podcast detail (`PodcastRoute`) on this tab's stack, zooming out of the
-/// tapped cover on iOS 18+; a Live tap plays the whole Live list from that item and opens the
-/// Player (Android `playLive(liveEpisode, list)`).
+/// Podcast taps push Podcast detail (`DiscoverRoute.podcast`) on this tab's stack, zooming out of
+/// the tapped cover on iOS 18+; the news section pushes the hub (`DiscoverRoute.newsHub`); a Live
+/// tap plays the whole Live list from that item and opens the Player (Android
+/// `playLive(liveEpisode, list)`).
 struct HomeView: View {
     let model: HomeModel
 
@@ -21,6 +23,8 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 0) {
                 SectionHeader(section: .trending, title: "home.section.trending")
                 PodcastCarousel(section: .trending, state: model.trending, zoomNamespace: zoomNamespace, retry: retry(.trending))
+
+                HomeNewsSection(state: model.news, retry: retry(.news))
 
                 SectionHeader(section: .music, title: "home.section.music", subtitle: "home.section.music.subtitle")
                 PodcastCarousel(section: .music, state: model.music, zoomNamespace: zoomNamespace, retry: retry(.music))
@@ -45,9 +49,14 @@ struct HomeView: View {
         #endif
         .refreshable { await model.refresh() }
         .task { await model.loadIfNeeded() }
-        .navigationDestination(for: PodcastRoute.self) { route in
-            PodcastDetailDestination(route: route)
-                .zoomTransition(sourceID: route.transitionSourceID, in: zoomNamespace)
+        .navigationDestination(for: DiscoverRoute.self) { route in
+            switch route {
+            case .podcast(let podcast):
+                PodcastDetailDestination(route: podcast)
+                    .zoomTransition(sourceID: podcast.transitionSourceID, in: zoomNamespace)
+            case .newsHub(let entry):
+                NewsHubDestination(entry: entry, initial: model.news.content)
+            }
         }
     }
 
@@ -109,7 +118,7 @@ private struct PodcastCarousel: View {
             HorizontalRow {
                 ForEach(Array(cards.enumerated()), id: \.offset) { index, card in
                     let sourceID = "\(section.rawValue).\(index)"
-                    NavigationLink(value: PodcastRoute(card, transitionSourceID: sourceID)) {
+                    NavigationLink(value: DiscoverRoute.podcast(PodcastRoute(card, transitionSourceID: sourceID))) {
                         PodcastCardView(card: card, zoomSourceID: sourceID, zoomNamespace: zoomNamespace)
                     }
                     .buttonStyle(PressableStyle())
@@ -205,7 +214,7 @@ private struct ForYouList: View {
             LazyVStack(alignment: .leading, spacing: 16) {
                 ForEach(Array(cards.enumerated()), id: \.offset) { index, card in
                     let sourceID = "\(HomeSection.forYou.rawValue).\(index)"
-                    NavigationLink(value: PodcastRoute(card, transitionSourceID: sourceID)) {
+                    NavigationLink(value: DiscoverRoute.podcast(PodcastRoute(card, transitionSourceID: sourceID))) {
                         ListRow(
                             imageURL: card.imageURL,
                             title: card.title,
@@ -245,7 +254,7 @@ private struct AttributionFooter: View {
 }
 
 /// Empty or failed section: a message and its own "Tải lại".
-private struct SectionMessage: View {
+struct SectionMessage: View {
     let section: HomeSection
     let isFailure: Bool
     let retry: () -> Void
@@ -277,7 +286,7 @@ private struct SectionMessage: View {
 // MARK: - Building blocks
 
 /// Horizontally scrolling row with 16 pt side margins and 12 pt spacing, snapping to items.
-private struct HorizontalRow<Content: View>: View {
+struct HorizontalRow<Content: View>: View {
     var isScrollEnabled = true
     @ViewBuilder let content: Content
 
@@ -374,7 +383,7 @@ private struct ListRow: View {
     }
 }
 
-private struct ListRowPlaceholder: View {
+struct ListRowPlaceholder: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -392,7 +401,7 @@ private struct ListRowPlaceholder: View {
 }
 
 /// Slight scale while pressed, like the cards on Android.
-private struct PressableStyle: ButtonStyle {
+struct PressableStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
@@ -410,6 +419,9 @@ private extension View {
         }
     }
 
+}
+
+extension View {
     /// One accessibility element `home.section.<name>.loading` over a shimmering placeholder
     /// (the shimmer hides its own content from VoiceOver).
     func sectionLoading(_ section: HomeSection) -> some View {

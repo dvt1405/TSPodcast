@@ -8,15 +8,15 @@ import Observation
 @Observable
 final class MainNavigation {
     var selectedTab: AppTab = .home
-    /// Discover stack (Podcast detail).
-    var homePath: [PodcastRoute] = []
+    /// Discover stack (Podcast detail, news hub).
+    var homePath: [DiscoverRoute] = []
     var isShowingSettings = false
 
     /// Shows `route` on top of the Discover tab, over whatever sheet was open.
     func revealInDiscover(_ route: PodcastRoute) {
         isShowingSettings = false
         selectedTab = .home
-        homePath.append(route)
+        homePath.append(.podcast(route))
     }
 }
 

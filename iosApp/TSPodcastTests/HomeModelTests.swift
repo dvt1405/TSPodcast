@@ -2,7 +2,8 @@ import XCTest
 @testable import TSPodcast
 
 /// M1-AC17, M1-AC18: per-section state, isolated failures, per-section retry and
-/// pull-to-refresh of Home (`MainViewModel` with the features-spec §3.4 [Sửa]).
+/// pull-to-refresh of Home (`MainViewModel` with the features-spec §3.4 [Sửa]); M6-AC17 the
+/// "Thời sự & Bản tin" section.
 @MainActor
 final class HomeModelTests: XCTestCase {
     func testEverySectionStartsLoading() {
@@ -177,7 +178,100 @@ final class HomeModelTests: XCTestCase {
         XCTAssertEqual(HomeModel.loader(for: .music), .music)
         XCTAssertEqual(HomeModel.loader(for: .live), .live)
         XCTAssertEqual(HomeModel.loader(for: .recent), .recent)
-        XCTAssertEqual(HomeSection.allCases, [.trending, .music, .live, .recent, .forYou], "Android order")
+        XCTAssertEqual(HomeModel.loader(for: .news), .news)
+        XCTAssertEqual(
+            HomeSection.allCases,
+            [.trending, .news, .music, .live, .recent, .forYou],
+            "Android order, with the news section right after trending (M6 §3.4)"
+        )
+    }
+
+    // MARK: - "Thời sự & Bản tin" (M6-AC17)
+
+    func testNewsSectionLoadsWithTheOthers() async {
+        let news = FakeNewsHubDataSource()
+        let model = HomeModel(dataSource: FakeHomeDataSource(), newsHub: news)
+        XCTAssertEqual(model.news, .loading)
+
+        await model.loadIfNeeded()
+
+        XCTAssertEqual(model.news, .loaded(.sample))
+        XCTAssertEqual(news.loads, 1)
+        XCTAssertEqual(model.generation, 1)
+    }
+
+    func testNoNewsSectionWhileTheHubIsOff() async {
+        let news = FakeNewsHubDataSource(isEnabled: false)
+        let model = HomeModel(dataSource: FakeHomeDataSource(), newsHub: news)
+        XCTAssertEqual(model.news, .absent, "not even a shimmer")
+
+        await model.loadIfNeeded()
+
+        XCTAssertEqual(model.news, .absent)
+        XCTAssertEqual(news.loads, 0, "no request")
+        XCTAssertEqual(HomeModel(dataSource: FakeHomeDataSource()).news, .absent, "no hub at all")
+    }
+
+    func testNoNewsSectionWhenNothingLoaded() async {
+        let model = HomeModel(dataSource: FakeHomeDataSource(), newsHub: FakeNewsHubDataSource(result: .success(nil)))
+
+        await model.loadIfNeeded()
+
+        XCTAssertEqual(model.news, .absent, "no empty state for the hub")
+    }
+
+    func testNewsFailureOffersRetry() async {
+        let news = FakeNewsHubDataSource(result: .failure(.network))
+        let model = HomeModel(dataSource: FakeHomeDataSource(), newsHub: news)
+
+        await model.loadIfNeeded()
+        XCTAssertEqual(model.news, .failed)
+        XCTAssertEqual(model.trending, .loaded([.sample(1)]), "isolated from the other sections")
+
+        news.setResult(.success(.sample))
+        await model.retry(.news)
+        XCTAssertEqual(model.news, .loaded(.sample))
+        XCTAssertEqual(news.loads, 2)
+    }
+
+    func testRefreshFollowsTheHubSwitch() async {
+        let news = FakeNewsHubDataSource()
+        let model = HomeModel(dataSource: FakeHomeDataSource(), newsHub: news)
+        await model.loadIfNeeded()
+
+        news.setEnabled(false)
+        await model.refresh()
+        XCTAssertEqual(model.news, .absent, "Remote Config turned the hub off")
+
+        news.setEnabled(true)
+        await model.refresh()
+        XCTAssertEqual(model.news, .loaded(.sample))
+    }
+
+    func testFailedNewsRefreshKeepsTheSection() async {
+        let news = FakeNewsHubDataSource()
+        let model = HomeModel(dataSource: FakeHomeDataSource(), newsHub: news)
+        await model.loadIfNeeded()
+
+        news.setResult(.failure(.network))
+        await model.refresh()
+
+        XCTAssertEqual(model.news, .loaded(.sample))
+    }
+
+    func testHidingAShowRemovesItFromTheNewsSection() async {
+        let model = HomeModel(dataSource: FakeHomeDataSource(), newsHub: FakeNewsHubDataSource())
+        await model.loadIfNeeded()
+
+        model.removeShow(feedId: 7)
+
+        let content = model.news.content
+        XCTAssertNotNil(content)
+        XCTAssertFalse(content?.latest.contains { $0.feedId == 7 } ?? true)
+        XCTAssertFalse(content?.brief.contains { $0.feedId == 7 } ?? true)
+
+        model.removeShow(feedId: 8)
+        XCTAssertEqual(model.news, .absent)
     }
 
     /// Yields to other tasks until `condition` holds (fails after 2 s).

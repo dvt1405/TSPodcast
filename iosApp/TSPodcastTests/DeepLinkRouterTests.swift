@@ -49,7 +49,7 @@ final class DeepLinkRouterTests: XCTestCase {
 
         XCTAssertEqual(source.resolved, [.podcast(feedId: 123)])
         XCTAssertEqual(router.navigation.selectedTab, .home, "Khám phá is selected")
-        XCTAssertEqual(router.navigation.homePath, [Self.route123])
+        XCTAssertEqual(router.navigation.homePath, [.podcast(Self.route123)])
         XCTAssertFalse(router.navigation.isShowingSettings, "the Settings sheet closes")
         XCTAssertEqual(revealed, 1, "the Player is closed before the route shows")
         XCTAssertTrue(playback.requests.isEmpty)
@@ -59,12 +59,12 @@ final class DeepLinkRouterTests: XCTestCase {
     func testPodcastLinkPushesOnTopOfTheCurrentDiscoverStack() async {
         let router = await makeRouter()
         let earlier = PodcastRoute(feedId: 7, title: "Earlier", summary: "", imageURL: nil)
-        router.navigation.homePath = [earlier]
+        router.navigation.homePath = [.podcast(earlier)]
         source.targets[.podcast(feedId: 123)] = .podcast(Self.route123)
 
         await router.handle(url("https://example.com/en/podcast/123/"))
 
-        XCTAssertEqual(router.navigation.homePath, [earlier, Self.route123])
+        XCTAssertEqual(router.navigation.homePath, [.podcast(earlier), .podcast(Self.route123)])
     }
 
     func testEpisodeLinkPlaysThroughE12AndOpensDetailOfTheFeed() async throws {
@@ -78,7 +78,7 @@ final class DeepLinkRouterTests: XCTestCase {
         XCTAssertEqual(playback.requests.count, 1, "exactly one request")
         XCTAssertEqual(playback.requests.first?.startItem?.id, "456")
         XCTAssertEqual(router.navigation.selectedTab, .home)
-        XCTAssertEqual(router.navigation.homePath.map(\.feedId), [123], "Detail of the episode's feed")
+        XCTAssertEqual(router.navigation.homePath.compactMap(\.podcast?.feedId), [123], "Detail of the episode's feed")
     }
 
     func testLinkThatCannotBeOpenedShowsTheError() async {
@@ -106,7 +106,7 @@ final class DeepLinkRouterTests: XCTestCase {
         await router.mainDidAppear()
 
         XCTAssertEqual(source.resolved, [.podcast(feedId: 123)], "opened exactly once")
-        XCTAssertEqual(router.navigation.homePath, [Self.route123])
+        XCTAssertEqual(router.navigation.homePath, [.podcast(Self.route123)])
         XCTAssertNil(router.pending)
     }
 
@@ -189,7 +189,7 @@ final class DeepLinkRouterTests: XCTestCase {
         source.release()
         await slow.value
 
-        XCTAssertEqual(router.navigation.homePath, [Self.route123])
+        XCTAssertEqual(router.navigation.homePath, [.podcast(Self.route123)])
         XCTAssertTrue(playback.requests.isEmpty, "the older episode link does not play")
     }
 

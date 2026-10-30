@@ -130,6 +130,35 @@ final class RemoteConfigLoaderTests: XCTestCase {
         XCTAssertTrue(blacklist.isInBlacklist(id: "222"))
     }
 
+    /// M6 §3.4: the app's `onActivated` (`SharedGraph.reloadRemoteConfig`) also reads
+    /// `news_hub_v1` again, so a hub turned on remotely appears without a new launch.
+    func testActivationReloadsTheNewsHubConfigToo() async throws {
+        let remote = #"{"version":1,"enabled":true,"sections":[{"id":"news","sources":[{"key":"remote_news","feedUrl":"https://news.example.com/feed.rss","confirmedAt":"2026-11-02","brief":{"take":1}}]}]}"#
+        let source = FakeSource(failures: 0, values: [ConfigKeys.shared.KEY_NEWS_HUB: remote])
+        let files = SharedGraphFixture.Files.fresh("remote-config-news")
+        let graph = SharedGraph(
+            credentials: BundleCredentialsProvider(),
+            config: FirebaseRemoteConfigAPI(source: source),
+            preferencesPath: files.preferences.path(percentEncoded: false),
+            databasePath: files.database.path(percentEncoded: false)
+        )
+        defer { graph.close() }
+        XCTAssertFalse(graph.newsHubConfig.isEnabled, "bundled config: no source confirmed yet")
+
+        let loader = RemoteConfigLoader(
+            source: source,
+            crash: RecordingCrashReporter(),
+            onActivated: { graph.reloadRemoteConfig() },
+            sleep: { _ in }
+        )
+        let activated = await loader.run()
+
+        XCTAssertTrue(activated)
+        XCTAssertTrue(graph.newsHubConfig.isEnabled)
+        XCTAssertTrue(graph.newsHubConfig.usesRemoteValue)
+        XCTAssertEqual(graph.newsHubConfig.config.newsSources.map(\.key), ["remote_news"])
+    }
+
     /// Without Firebase (`NoOpConfig`) shared keeps the bundled asset (M0 behaviour).
     func testWithoutFirebaseTheBundledBlacklistIsUsed() {
         let fixture = SharedGraphFixture()
