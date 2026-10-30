@@ -25,6 +25,8 @@ import tss.t.shared.network.createHttpClient
 import tss.t.shared.network.defaultHttpClientEngine
 import tss.t.shared.playback.PlaybackHistory
 import tss.t.shared.playback.PlaybackPositions
+import tss.t.shared.playback.PlaybackProfileRepository
+import tss.t.shared.playback.SleepTimer
 import tss.t.shared.preferences.AppPreferences
 import tss.t.shared.preferences.DataStoreKeyValueStore
 import tss.t.shared.preferences.FavouriteCategories
@@ -162,6 +164,12 @@ class SharedGraph(
 
     /** Listening position per episode, in the app's key-value store (M3 §4.3). */
     val playbackPositions = PlaybackPositions(store)
+
+    /** Playback speed per show, global and "apply to all" (M6 §3.2). */
+    val playbackProfiles = PlaybackProfileRepository(store)
+
+    /** The one sleep timer of the process, driven by the player (M6 §3.1). */
+    val sleepTimer = SleepTimer(clock)
 
     /** `extra:current_item_id` plus the playlist and podcast in Room (M4 §3.2). */
     val playbackHistory = PlaybackHistory(store, podcastStorage)
