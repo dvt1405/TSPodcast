@@ -372,7 +372,8 @@ struct LaunchSteps {
                     credentials: credentials,
                     config: config,
                     preferencesPath: AppEnvironment.preferencesPath(),
-                    databasePath: databaseURL.path(percentEncoded: false)
+                    databasePath: databaseURL.path(percentEncoded: false),
+                    includeUnconfirmedNews: options.newsHubIncludeUnconfirmed
                 )
                 return (graph, SharedCachePruner(pruneApiCache: graph.pruneApiCache, databaseURL: databaseURL))
             }

@@ -30,6 +30,9 @@ struct LaunchOptions: Equatable, Sendable {
     /// `-uitest-consent=all|necessary` (M6 §3.6): saves that consent decision before routing, so
     /// the first-launch privacy sheet does not show.
     var consentChoice: ConsentChoice?
+    /// `-newshub-include-unconfirmed` (M6 §3.4): the news hub also shows sources without
+    /// `confirmedAt`, so dev and QC can see it before any publisher confirmed. Release: false.
+    var newsHubIncludeUnconfirmed = false
 
     enum ConsentChoice: String, Equatable, Sendable {
         case all
@@ -64,6 +67,7 @@ struct LaunchOptions: Equatable, Sendable {
         consentChoice = arguments.lazy
             .compactMap { $0.hasPrefix("-uitest-consent=") ? ConsentChoice(rawValue: String($0.dropFirst("-uitest-consent=".count))) : nil }
             .first
+        newsHubIncludeUnconfirmed = arguments.contains("-newshub-include-unconfirmed")
         let baseURL = environment["TSP_UITEST_BASE_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
         baseURLOverride = (baseURL?.isEmpty ?? true) ? nil : baseURL
         #endif

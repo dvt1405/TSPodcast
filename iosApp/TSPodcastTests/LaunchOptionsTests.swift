@@ -29,6 +29,13 @@ final class LaunchOptionsTests: XCTestCase {
         XCTAssertFalse(LaunchOptions(arguments: ["-uitest-consent=all"], environment: [:]).shouldReset)
     }
 
+    func testNewsHubIncludeUnconfirmedHook() {
+        XCTAssertTrue(LaunchOptions(arguments: ["-newshub-include-unconfirmed"], environment: [:]).newsHubIncludeUnconfirmed)
+        XCTAssertFalse(LaunchOptions(arguments: [], environment: [:]).newsHubIncludeUnconfirmed)
+        XCTAssertFalse(LaunchOptions.none.newsHubIncludeUnconfirmed)
+        XCTAssertFalse(LaunchOptions(arguments: ["-newshub-include-unconfirmed"], environment: [:]).shouldReset)
+    }
+
     func testSkipOnboardingImpliesReset() {
         let options = LaunchOptions(arguments: ["-uitest-skip-onboarding"], environment: [:])
         XCTAssertTrue(options.skipOnboarding)

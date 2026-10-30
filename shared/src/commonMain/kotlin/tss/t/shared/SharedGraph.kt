@@ -19,6 +19,9 @@ import tss.t.shared.model.CategoryRes
 import tss.t.shared.model.EpisodeResponse
 import tss.t.shared.model.PodcastByFeedIdRes
 import tss.t.shared.model.TrendingPodcastRes
+import tss.t.shared.newshub.NewsHubConfigRepository
+import tss.t.shared.newshub.NewsHubRepository
+import tss.t.shared.newshub.NewsSourceResolver
 import tss.t.shared.network.CredentialsProvider
 import tss.t.shared.network.PodcastIndexApi
 import tss.t.shared.network.PodcastIndexAuth
@@ -64,7 +67,11 @@ import kotlin.time.Duration
  *
  * From Swift: `SharedGraph(credentials: BundleCredentialsProvider(), config: NoOpConfig(),
  * preferencesPath: <Application Support>/ts_prefs.preferences_pb,
- * databasePath: <Application Support>/TSPodcastDatabase.db)`.
+ * databasePath: <Application Support>/TSPodcastDatabase.db)`, plus `includeUnconfirmedNews:` for
+ * the Debug news hub hook.
+ *
+ * @param includeUnconfirmedNews keeps news hub sources without `confirmedAt` (M6 §3.4). Only the
+ *   Debug launch argument `-newshub-include-unconfirmed` sets it; Release always passes false.
  */
 class SharedGraph(
     credentials: CredentialsProvider,
@@ -74,6 +81,7 @@ class SharedGraph(
     private val store: KeyValueStore,
     private val database: PodcastDaos,
     crash: CrashReporter = Crash,
+    includeUnconfirmedNews: Boolean = false,
 ) {
     /**
      * Platform engine (OkHttp / Darwin), the system clock, a DataStore file at [preferencesPath]
@@ -85,6 +93,15 @@ class SharedGraph(
         config: ConfigAPI,
         preferencesPath: String,
         databasePath: String,
+    ) : this(credentials, config, preferencesPath, databasePath, includeUnconfirmedNews = false)
+
+    /** Same as above; a separate constructor because Swift does not see Kotlin default values. */
+    constructor(
+        credentials: CredentialsProvider,
+        config: ConfigAPI,
+        preferencesPath: String,
+        databasePath: String,
+        includeUnconfirmedNews: Boolean,
     ) : this(
         credentials,
         config,
@@ -92,6 +109,8 @@ class SharedGraph(
         EpochClock.System,
         DataStoreKeyValueStore(preferencesPath),
         openPodcastDatabase(databasePath),
+        Crash,
+        includeUnconfirmedNews,
     )
 
     private val json: Json = PodcastIndexJson
@@ -206,6 +225,32 @@ class SharedGraph(
         preferences = appPreferences,
         storage = podcastStorage,
     )
+
+    /** "Thời sự & Bản tin" configuration: Remote Config `news_hub_v1` or the bundled file (M6 §3.4). */
+    val newsHubConfig: NewsHubConfigRepository =
+        NewsHubConfigRepository(config, includeUnconfirmed = includeUnconfirmedNews)
+
+    /** One per process: it reports each unresolved source once. */
+    private val newsSourceResolver = NewsSourceResolver(api, store, clock, blacklistRepository, json, crash)
+
+    /** The news hub, morning brief and night shelf (M6 §3.4). */
+    val newsHub = NewsHubRepository(
+        config = newsHubConfig,
+        resolver = newsSourceResolver,
+        getEpisodeByFeedId = getEpisodeByFeedId,
+        preferences = appPreferences,
+        hiddenShows = hiddenShows,
+        blacklist = blacklistRepository,
+    )
+
+    /**
+     * Reads every Remote Config value shared caches again (blacklist and news hub), after
+     * Remote Config activated new values.
+     */
+    fun reloadRemoteConfig() {
+        blacklistRepository.reload()
+        newsHubConfig.reload()
+    }
 
     /** Releases the HTTP client, the store file and the database. The graph cannot be used afterwards. */
     fun close() {

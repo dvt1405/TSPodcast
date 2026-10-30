@@ -16,7 +16,8 @@ import tss.t.shared.model.TSDataState
 import tss.t.shared.model.TrendingPodcastRes
 
 /**
- * PodcastIndex endpoints the app uses (features-spec §2): E1, E2, E5–E12. Same paths and
+ * PodcastIndex endpoints the app uses (features-spec §2): E1, E2, E5–E12, plus the news hub's
+ * `podcasts/byitunesid` and `podcasts/byfeedurl` (M6). Same paths and
  * defaults as Android's Retrofit `API` and the use cases that call it.
  *
  * - `null` parameters are not sent (Retrofit behaves the same); blank `cat`/`notcat` neither.
@@ -160,6 +161,28 @@ class PodcastIndexApi(
             parameter("pretty", pretty)
         }
     }
+
+    /**
+     * `podcasts/byitunesid` (M6 §3.4, news hub). Same response shape as E11; an unknown id may
+     * still return some feed, so the caller checks where it lives.
+     */
+    suspend fun getPodcastByItunesId(id: Long): TSDataState<PodcastByFeedIdRes> =
+        call(PodcastByFeedIdRes.serializer()) {
+            client.get("podcasts/byitunesid") {
+                parameter("id", id)
+            }
+        }
+
+    /**
+     * `podcasts/byfeedurl` (M6 §3.4, news hub). Same response shape as E11. PodcastIndex answers
+     * an unknown URL with HTTP 400 ("Feed url not found."). The feed itself is never downloaded.
+     */
+    suspend fun getPodcastByFeedUrl(url: String): TSDataState<PodcastByFeedIdRes> =
+        call(PodcastByFeedIdRes.serializer()) {
+            client.get("podcasts/byfeedurl") {
+                parameter("url", url)
+            }
+        }
 
     /**
      * E12 `episodes/byid`, for episode deep links (M4 §4.2). `fulltext=true` like the web's

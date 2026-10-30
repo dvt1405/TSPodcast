@@ -17,4 +17,10 @@ interface ConfigAPI {
 object ConfigKeys {
     /** `{"feedId": [..], "filterText": [..]}`; replaces the bundled `blacklist.json`. */
     const val KEY_BLACK_LIST = "ts_podcast_black_list"
+
+    /**
+     * The news hub configuration (M6 §3.4), same schema as `shared/assets/news_hub_default.json`;
+     * replaces it when it decodes. Not read by Android.
+     */
+    const val KEY_NEWS_HUB = "news_hub_v1"
 }

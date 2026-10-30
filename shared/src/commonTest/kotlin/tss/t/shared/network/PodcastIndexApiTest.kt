@@ -4,6 +4,7 @@ import io.ktor.client.request.HttpRequestData
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import tss.t.shared.model.EpisodeByIdRes
+import tss.t.shared.model.PodcastByFeedIdRes
 import tss.t.shared.model.SearchResponse
 import tss.t.shared.model.TSDataState
 import tss.t.shared.model.TrendingPodcastRes
@@ -165,6 +166,32 @@ class PodcastIndexApiTest {
         api.getEpisodesByFeedId("75075")
 
         assertRequest("episodes/byfeedid", mapOf("id" to "75075", "max" to "100"))
+    }
+
+    @Test
+    fun newsHubPodcastByItunesId() = runTest {
+        api.getPodcastByItunesId(1448565355)
+
+        assertRequest("podcasts/byitunesid", mapOf("id" to "1448565355"))
+    }
+
+    @Test
+    fun newsHubPodcastByFeedUrl() = runTest {
+        api.getPodcastByFeedUrl("https://feeds.example.test/a b.rss?x=1")
+
+        assertRequest("podcasts/byfeedurl", mapOf("url" to "https://feeds.example.test/a b.rss?x=1"))
+    }
+
+    @Test
+    fun newsHubLookupReadsANumericQueryIdAndAnEmptyFeed() = runTest {
+        val found = MockApi(credentials = credentials) {
+            respondJson("""{"status":"true","query":{"id":1448565355},"feed":{"id":101,"url":"https://a.example.test/rss"}}""")
+        }
+        val empty = MockApi(credentials = credentials) { respondJson("""{"status":"true","feed":[]}""") }
+
+        val feed = assertIs<TSDataState.Success<PodcastByFeedIdRes>>(found.api.getPodcastByItunesId(1448565355)).data.feed
+        assertEquals(101, feed?.id)
+        assertNull(assertIs<TSDataState.Success<PodcastByFeedIdRes>>(empty.api.getPodcastByFeedUrl("https://a.example.test/rss")).data.feed)
     }
 
     @Test
