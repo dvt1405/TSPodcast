@@ -12,7 +12,7 @@ Quyết định owner đã chốt (không mở lại): Android giữ nguyên, kh
 | M1 | Onboarding, chọn danh mục, khung tab, Home/Discover | [milestones/M1.md](milestones/M1.md) | Đã nghiệm thu (review round 1) |
 | M2 | Podcast detail và Search | [milestones/M2.md](milestones/M2.md) | Đã nghiệm thu (review round 1) |
 | M3 | Audio engine, Player và MiniPlayer | [milestones/M3.md](milestones/M3.md) | Đã nghiệm thu (review round 2, `5b8e26c`). UI suite để QC |
-| M4 | Favourite, lưu trữ, thông báo, deep link, analytics — chốt parity | [milestones/M4.md](milestones/M4.md) | Đã lập kế hoạch (base `5b8e26c`; plan sửa lần 2 theo luật test mới: unit test + smoke check, không UI test); chờ developer làm T1–T5 |
+| M4 | Favourite, lưu trữ, thông báo, deep link, analytics — chốt parity | [milestones/M4.md](milestones/M4.md) | Đang làm (base `5b8e26c`): T1 xong (`90c82f0`, `ac416f8`); T2–T5 chưa làm |
 
 ## M0
 
@@ -1068,3 +1068,93 @@ Ghi chú: một lần chạy cả suite của developer trước review round 1 
 - **Favourite và lịch sử chỉ trong bộ nhớ** tới M4; sau khi kill app chưa khôi phục item cuối (Android cũng chỉ khôi phục qua notification).
 - **UI test vẫn gọi PodcastIndex thật** cho danh sách episode/Live (audio luôn là fixture); fail nếu API chậm hơn 30 s hoặc không có Live/episode.
 - Lệch nhỏ so với §4.2 PO đã chấp nhận: `PlaybackRequest` không có `feedId` riêng (nằm trong từng `PlaybackItem`), `PlayerPresentation` gộp thành `AppEnvironment.isPlayerPresented`, không có `PlaybackState.derive` (thay bằng hàm thuần `isBuffering`/`milliseconds`, có test).
+
+## M4
+
+Kế hoạch: [milestones/M4.md](milestones/M4.md) (revision 2: không UI test, chỉ unit test + smoke check). Base `5b8e26c`.
+
+Trạng thái: **T1 xong**, T2–T5 chưa làm. Mục này được bổ sung sau mỗi task; tóm tắt + checklist parity §7 viết ở T5.
+
+### T1 — Shared: Room KMP, PruneApiCache, favourite, lịch sử, fallback offline; hạ tầng kiểm tra (xong)
+
+Thoả M4-AC1 … M4-AC7 (tự kiểm, chờ PO). Commit `90c82f0` (hạ tầng), `ac416f8` (shared + chỗ Swift tối thiểu).
+
+**Hạ tầng kiểm tra (§4.8)**
+
+- Scheme `TSPodcastUnit` trong `iosApp/project.yml`: build `TSPodcast` (all) + `TSPodcastTests` (test); test action **chỉ** `TSPodcastTests`. Scheme `TSPodcast` không đổi. `xcodegen generate`, đã commit `iosApp.xcodeproj/xcshareddata/xcschemes/TSPodcastUnit.xcscheme`.
+- `iosApp/scripts/smoke-launch.sh <udid> <.app> [--check-db]`: `simctl bootstatus -b`, marker, `install`, `launch tss.t.podcast`, chờ 15 s (`SMOKE_WAIT_SECONDS` đổi được), kiểm `launchctl list` + crash report `*TSPodcast*` mới hơn marker trong `~/Library/Logs/DiagnosticReports`; `--check-db` kiểm thêm `Library/Application Support/TSPodcastDatabase.db` trong data container. In `SMOKE PASS`/`SMOKE FAIL` (exit 0/1). Đã thử nhánh fail: trên bản chưa mở DB, `--check-db` → `database file missing` + `SMOKE FAIL`, exit 1.
+- Chạy thử trên HEAD trước T1 (M3): `TSPodcastUnit` 152 test pass, log 0 dòng `in target 'TSPodcastUITests'`, smoke `SMOKE PASS`.
+
+**Shared (§4.1, §4.2)**
+
+| Thành phần | File | Ghi chú |
+|---|---|---|
+| Gradle | `gradle/libs.versions.toml` (chỉ thêm `sqliteBundled = "2.6.2"` + `androidx-sqlite-bundled`), `shared/build.gradle.kts` | Plugin `ksp` + `androidx.room` (đã khai `apply false` ở gốc từ trước, không đổi `build.gradle.kts` gốc), `room { schemaDirectory("$projectDir/schemas") }`, `room-runtime` + `sqlite-bundled` ở commonMain, `room-compiler` cho `kspAndroid`, `kspIosSimulatorArm64`, `kspIosArm64`. **Không** nâng Kotlin 2.2.0 / KSP 2.2.0-2.0.2 / AGP 8.13.2 / Room 2.8.4: build được nguyên bộ. |
+| Entity | `storage/Entities.kt` | `PodcastEntity`, `FeedEntity`, `EpisodeEntity`, `FavouriteEntity` (bảng `Podcast`, `Feed`, `Episode`, `FavouriteDTO`) + `PodcastWithEpisodes` (`@Relation` `Podcast.id` → `Episode.feedId` như `PodcastAndEpisode`). Class riêng, không annotate model API, vì `Podcast.feedId`, `Episode.feedItunesId` là NOT NULL ở Android nhưng optional trong JSON. Mapper ở `StorageMappers.kt` (`feedId` thiếu → `id`, `feedItunesId` thiếu → 0). |
+| Converter | `storage/StorageConverters.kt` | Cột JSON bằng kotlinx.serialization; đọc/ghi lỗi → `null` như Gson `runCatching` của Android. `type` của favourite dùng built-in enum converter (lưu tên enum). |
+| DB | `storage/PodcastDatabase.kt`, `PodcastDatabase.ios.kt`, `PodcastDatabase.android.kt` | `@Database(4 entity, version = 1)`, `@ConstructedBy`, `BundledSQLiteDriver`, `setQueryCoroutineContext(Dispatchers.IO)`. `openPodcastDatabase(path)` (iOS), `inMemoryPodcastDatabase()` (test). Android `actual` ném `UnsupportedOperationException` (Android dùng DB của `:core`, không có `Context`). Interface `PodcastDaos` để `commonTest` dùng fake. Schema: `shared/schemas/tss.t.shared.storage.PodcastDatabase/1.json` (đã commit; `createSql` của 4 bảng trùng từng ký tự với `6.json`). |
+| DAO | `storage/Daos.kt` | `PodcastDao` (`insertRows` REPLACE, `selectById`, `selectAllEpisodeById`, `deleteExpired` + [Sửa]), `EpisodeDao` (`insertRows`, `selectById`, `selectByFeedId` mới nhất trước, `deleteExpired`), `FeedDao`, `FavouriteDao` (`insert`, `delete(type, id)`, `selectById(id, type)`, `observeAll(): Flow` + `getAll()` `ORDER BY rowid DESC`, `count`). |
+| `PodcastStorage` | `storage/PodcastStorage.kt` | Phần `insert`/`inserts` của DAO Android: gán `cachedAt = clock.nowMillis()` rồi REPLACE; đọc theo model API (`podcastById`, `episodeById`, `feedById`, `podcastWithEpisodes`, `episodesOfFeed`). |
+| `PruneApiCache` | `usecase/PruneApiCache.kt` | `TTL_MS = 7 ngày`, xoá Podcast → Episode → Feed, trả `PruneResult`; log `PruneApiCache: removed …` khi > 0; lỗi → `record(tag = "PruneApiCache")`, không ném ra. Chưa gọi lúc launch (T3). |
+| Crash seam (tối thiểu) | `crash/CrashReporter.kt` | `CrashReporter`, `LogCrashReporter`, `Crash` (facade, `install`), `safeCall(tag, keys, reporter)` — port `sharedLibrary/crash`. Làm sớm trong T1 vì AC4 cần `Crash.log`/`record`; T2 bổ sung `KotlinCrashHook`, dùng ở `GetMusicFeeds`, `CrashTest`. |
+| Favourite | `favourite/FavouriteRepository.kt`, `FavouriteResolver.kt` | `FavouriteType { Podcast, PodcastEpisode }`, `FavouriteItem` (chuyển từ `playback`), `FavouriteRepository` (`items: Flow` mới nhất trước, `isFavourite`, `setFavourite`, `toggle`, `count`; suspend) thay `FavouriteStore` (đã xoá). `FavouriteResolver.resolve(item)` → `ResolvedFavourite(podcast, episodes sắp datePublished giảm dần, startIndex)` hoặc `null`. |
+| Lịch sử | `playback/PlaybackHistory.kt` | `savePlaying(episode, podcast, playlist)` (episodes → podcast → khoá, như `HistoryRepository`), `saveLive(live, list)` (`Episode.fromLive` + `Podcast.fromLive` như `playLive`), `saveCurrentId(id)` (prev/next: chỉ khoá), `currentItemId()`. Bỏ `recentItems`. |
+| Model | `model/Episode.kt`, `model/Podcast.kt` | `Episode.fromLive` (giữ nguyên mapping Android, kể cả `image = feedImage`, `feedUrl = chaptersUrl ?: ""`), `Podcast.fromLive` (`id = feedId`, `title`/`feedTitle` = tiêu đề live). |
+| Detail offline | `detail/PodcastDetailFeed.kt` | E10 lỗi → đọc `episodesOfFeed(feedId)`; có → `Success` với `isFromCache = true`, D6 vẫn áp dụng (kể cả ẩn cả feed nếu E11 nói explicit); rỗng hoặc DB lỗi → lỗi E10 như M2. E10 thành công thì không đọc DB. |
+| `watch` | `flow/Watch.kt`, `flow/Watch.ios.kt` | `watch(flow, onEach): Closeable` (iOS: `Dispatchers.Main`; Swift: `Watch_iosKt.watch(flow:onEach:)`, giá trị là `Any?`). Lỗi của flow → `Crash.record(tag = "watch")`, không crash. |
+| `SharedGraph` | `SharedGraph.kt` | Constructor mới `(credentials, config, preferencesPath, databasePath)` (bỏ constructor 3 tham số); constructor chính nhận thêm `database: PodcastDaos`. Có `podcastStorage`, `pruneApiCache`, `playbackHistory`, `favouriteRepository`, `favouriteResolver`; `close()` đóng cả DB. Tham số `crashReporter` của plan §4.2 để T2 (cùng `InstallId`). |
+
+**Swift (chỉ đủ để build, logic iOS ở T3)**
+
+- `AppEnvironment`: truyền `databasePath` = `Application Support/TSPodcastDatabase.db` (`PodcastDatabase.companion.FILE_NAME`); dùng `graph.favouriteRepository`. Chưa đặt `isExcludedFromBackup`, chưa chạy prune (T3, `DatabaseLocation`).
+- `AudioEngine`: `FavouriteRepository` thay `FavouriteStore`; đọc cờ favourite khi đổi item và `toggleFavourite()` đều chạy trong hàng đợi persistence tuần tự (toggle không thể chạy trước lần đọc của item mới; kết quả bỏ qua nếu item đã đổi). Lịch sử gọi `saveCurrentId` (chỉ khoá) — ghi playlist + podcast vào Room từ Detail/Live là T3 (`PlaybackRequest` mang nguồn lịch sử). Favourite bấm ở Player **đã lưu bền** trong Room.
+- Test: `PlaybackFixture` dựng `SharedGraph` trên file DataStore + file DB tạm; `testFavouriteFollowsTheItem` chờ `waitForPersistence()` và đọc lại từ repository; bỏ assert `recentItems` và đọc khoá trực tiếp từ store (khoá Android đã được `PlaybackHistoryTest` của shared kiểm).
+
+**Test**
+
+| Test | Nơi | AC | Số test |
+|---|---|---|---|
+| `DatabaseSchemaParityTest` | iosTest | AC2 | 5 (version 1; 4 bảng, không `RadioChannel`; cột (tên, affinity, notNull) + khoá chính từng bảng bằng `6.json`; `cachedAt` NOT NULL; `type` đọc thô bằng SQL là `"Podcast"`/`"PodcastEpisode"`) |
+| `PodcastDatabaseTest` | iosTest (Room in-memory, clock giả) | AC3 | 7 |
+| `PruneApiCacheTest` | iosTest | AC4 | 7 (now = ngày 30; 8 ngày xoá, 6 ngày còn; episode favourite còn; podcast favourite giữ podcast + episode + feed; [Sửa] podcast của episode favourite còn; log 1 dòng / 0 dòng; DAO ném lỗi → `record` tag `PruneApiCache`) |
+| `PlaybackHistoryTest` | iosTest (chuyển từ commonTest) | AC5 | 5 |
+| `FavouriteResolverTest` | iosTest | AC6 | 5 |
+| `FavouriteRepositoryTest` | iosTest (thay `FavouriteStoreTest`) | — | 3 |
+| `PodcastDetailFeedTest` | commonTest (+6 case, DAO fake) | AC7 | 20 (M2: 14) |
+| `WatchTest` | commonTest | — | 2 |
+
+Fixture: `generateTestFixtures` thêm `core/schemas/.../6.json` và `shared/schemas/.../1.json` (tên property `androidDatabaseSchemaV6`, `sharedDatabaseSchemaV1` qua `propertyNames`, vì tên file là số).
+
+**Lệnh và kết quả** (`OUT` = scratchpad `ios/`, simulator `4FB8953E-…`)
+
+```bash
+./gradlew :shared:allTests :shared:linkDebugFrameworkIosSimulatorArm64 :app:assembleDebug   # BUILD SUCCESSFUL
+#   iosSimulatorArm64Test: 32 class, 225 test; testAndroidHostTest: 26 class, 193 test; failures=0 errors=0 (M3: 27 class, 191 test mỗi target)
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme TSPodcastUnit -destination "id=$SIM" \
+  -derivedDataPath $OUT/DD-m4 -resultBundlePath $OUT/M4-unit.xcresult -only-testing:TSPodcastTests
+#   ** TEST SUCCEEDED **, Executed 152 tests, 0 failures; grep -c "in target 'TSPodcastUITests'" → 0
+xcodebuild build -project iosApp/iosApp.xcodeproj -scheme TSPodcast -configuration Debug -destination "id=$SIM" -derivedDataPath $OUT/DD-m4
+#   ** BUILD SUCCEEDED **; grep -c "in target 'TSPodcastUITests'" → 0
+iosApp/scripts/smoke-launch.sh $SIM $OUT/DD-m4/Build/Products/Debug-iphonesimulator/TSPodcast.app   # SMOKE PASS
+git diff --name-only 5b8e26c..HEAD -- '*.gradle.kts' gradle/ settings.gradle.kts   # gradle/libs.versions.toml, shared/build.gradle.kts
+git diff --name-only 5b8e26c..HEAD -- app core coreApi podcasts sharedFirebase sharedLibrary iosApp/TSPodcastUITests   # rỗng
+```
+
+Quyết định trong T1:
+
+| Hạng mục | Quyết định | Lý do |
+|---|---|---|
+| Entity riêng + mapper | Không annotate model API | Schema phải bằng `6.json` (NOT NULL khác JSON); model API giữ các field Android không lưu (author, artwork…). |
+| DAO là interface, `cachedAt` gán ở `PodcastStorage` | Thay vì abstract class tự đọc `System.currentTimeMillis()` | Đồng hồ inject được (plan §3.1 "test được"); `commonTest` fake được DAO. |
+| Test DB thật chỉ ở `iosTest` | `commonTest` dùng `FakePodcastDaos` cho `TestGraph` | Android host test không có `Context` để dựng Room (plan §4.1). SQL thật (prune, relation, order) chỉ được kiểm trên iOS simulator. |
+| Crash seam làm sớm | `CrashReporter`/`Crash`/`safeCall` ở T1 | AC4 cần `Crash.log`/`record`. T2 không phải làm lại phần này. |
+| Fixture schema không xếp thứ tự với `copyRoomSchemas` | Bỏ `mustRunAfter` | `copyRoomSchemas` phụ thuộc task KSP của test, mà task đó cần fixture → vòng phụ thuộc. Test đọc file schema đã commit; nếu đổi schema, test thấy file mới từ lần build sau. |
+| Typealias `Categories` trong entity | Dùng `Map<String, String>` | KSP (Room) báo "MissingType" với typealias/kiểu suy luận từ serializer sinh bởi plugin; property serializer trong converter được ghi kiểu tường minh vì lý do đó. |
+
+Giới hạn đã biết sau T1 (T3 xử lý):
+
+- App chưa ghi playlist + podcast vào Room khi phát từ Detail/Live (shared đã có `savePlaying`/`saveLive`, Swift chưa gọi) và chưa chạy `PruneApiCache` lúc launch; file DB chỉ được tạo khi có truy vấn đầu tiên (đọc cờ favourite khi phát), nên `smoke-launch.sh --check-db` chưa pass ở T1.
+- `isExcludedFromBackup` cho file DB chưa đặt (T3, `DatabaseLocation`).
+- Tab Yêu thích vẫn là view rỗng của M1; Detail chưa có banner offline (`isFromCache` đã có trong shared).
+- Hook `-uitest-reset` (M1) xoá DataStore + cache ảnh nhưng **không** xoá DB Room mới, nên favourite giờ còn lại giữa các lần launch của UI test. `PlayerUITests.testFavouriteToggles` bật rồi tắt nên tự dọn, nhưng một lần chạy bị ngắt giữa chừng sẽ để lại `fav=1` cho lần sau. Chưa sửa (không đụng UI test, không thêm hook ở T1); T3 cân nhắc cho reset xoá luôn bảng `FavouriteDTO`, nếu không thì QC xoá app trước khi chạy suite. Cờ favourite trên Player giờ cập nhật sau một lần ghi DB (vài ms); test trên đã chờ bằng `waitForProbe`/`poll`.
+
