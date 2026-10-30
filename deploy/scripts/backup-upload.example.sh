@@ -17,7 +17,8 @@ set -euo pipefail
 FILE="${1:?usage: backup-upload.sh <dump file>}"
 ENV_FILE="${TSP_ETC_DIR:-/etc/tspodcast}/backend.env"
 
-get() { grep -E "^$1=" "$ENV_FILE" | tail -n 1 | cut -d= -f2-; }
+# KEY=value, with one level of surrounding quotes removed.
+get() { grep -E "^$1=" "$ENV_FILE" | tail -n 1 | cut -d= -f2- | sed -E "s/^'(.*)'\$/\1/; s/^\"(.*)\"\$/\1/"; }
 
 R2_ACCOUNT_ID="$(get R2_ACCOUNT_ID)"
 R2_BUCKET="$(get R2_BUCKET)"

@@ -85,6 +85,9 @@ jobs:
           push: false
           provenance: false
           tags: ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+          # Links the GHCR package to this repository (access follows the repo).
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           build-args: |
             NEXT_PUBLIC_SITE_URL=${{ vars.SITE_URL }}
             NEXT_PUBLIC_SITE_LOCALE=${{ vars.SITE_LOCALE || 'vi' }}
