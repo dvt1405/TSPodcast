@@ -45,6 +45,7 @@
 		35F3308EDBF14B9A94ECD4AF /* StubURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71CE43CDB0181E04DC900E9E /* StubURLProtocol.swift */; };
 		3A32347821D6F4909355D1D9 /* PlayerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958E5EDF804F070C10C4C6DE /* PlayerUITests.swift */; };
 		3B67870E8C198F4F20EBC886 /* PlayerErrorUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CA857DAC193DF18B069FA85 /* PlayerErrorUITests.swift */; };
+		3DC71C4A482049B26AD75FAC /* Glass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA5FB15DFC13B3B2F5E8DD6 /* Glass.swift */; };
 		410425C1DE400809AE4F7468 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2E112A17C0F7D7AB7ECA401 /* AppEnvironment.swift */; };
 		41D9E2FF0C458E752D9F4A08 /* BundleCredentialsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAC1EDF62A23A795161BE3A /* BundleCredentialsProvider.swift */; };
 		4393E88A2B805EB91303CF95 /* ZoomTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66CAC250CC60F5235E5A7D2B /* ZoomTransition.swift */; };
@@ -69,6 +70,7 @@
 		615BA249C9025C9EE9D75D73 /* PlaybackState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF04A2763817F80D3DFF6B2A /* PlaybackState.swift */; };
 		63472A08B7A203A294C3CFEC /* SearchResultItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0E681B9A861CE6E5179E4CB /* SearchResultItemTests.swift */; };
 		6376C826EC53ADD10BE4BF9D /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 1979479388477543B8CAD128 /* FirebaseMessaging */; };
+		653887CF0757661EF0FC2B0B /* GlassSurfaceStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93739A2209DFD1E7476803AF /* GlassSurfaceStyleTests.swift */; };
 		6587BE574D14BD915151EFE0 /* CategoryCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFCE351C2B1B5C90F742D246 /* CategoryCatalog.swift */; };
 		67AF04EA106EC4103F52451B /* RemoteConfigLoaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7774A37568AAA9A88E9C00F8 /* RemoteConfigLoaderTests.swift */; };
 		6946A7AEE12BA52721C987F7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = CA2B04D1BB9872254B5998A6 /* PrivacyInfo.xcprivacy */; };
@@ -212,6 +214,7 @@
 		26D36F3DE76A1979F4DF3AA1 /* AudioSessionControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionControllerTests.swift; sourceTree = "<group>"; };
 		2860C90529F4E01EF701115F /* CrashWiringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashWiringTests.swift; sourceTree = "<group>"; };
 		2C045ED33307688BD094EC24 /* UpNextSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpNextSheet.swift; sourceTree = "<group>"; };
+		2CA5FB15DFC13B3B2F5E8DD6 /* Glass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glass.swift; sourceTree = "<group>"; };
 		2F539EE9F1D6F2673C17B31E /* SharedModelFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedModelFactory.swift; sourceTree = "<group>"; };
 		2FB49E53E2E97FB591CF095E /* FirebaseBootstrapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseBootstrapTests.swift; sourceTree = "<group>"; };
 		2FC29CFA48D6B06C5641111C /* PlaybackRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackRequest.swift; sourceTree = "<group>"; };
@@ -273,6 +276,7 @@
 		8E56D0E732FD41C3690BB7F0 /* CategoryIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryIcon.swift; sourceTree = "<group>"; };
 		8FF5D285107C6E9372705887 /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
 		92CA2E173F12EB09F9EF3524 /* PodcastDetailUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastDetailUITests.swift; sourceTree = "<group>"; };
+		93739A2209DFD1E7476803AF /* GlassSurfaceStyleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassSurfaceStyleTests.swift; sourceTree = "<group>"; };
 		94C1E387B85D5DED23A41444 /* NotificationPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPresentationTests.swift; sourceTree = "<group>"; };
 		94CEEF3574545C7E2E010C89 /* PlaybackHistorySource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackHistorySource.swift; sourceTree = "<group>"; };
 		958E5EDF804F070C10C4C6DE /* PlayerUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerUITests.swift; sourceTree = "<group>"; };
@@ -386,6 +390,7 @@
 			children = (
 				8FF5D285107C6E9372705887 /* AppColors.swift */,
 				197FD7896BDF3A3E48BE5C8F /* FlowLayout.swift */,
+				2CA5FB15DFC13B3B2F5E8DD6 /* Glass.swift */,
 				FCB71B2F7830EEE139A96A4B /* GradientButtonStyle.swift */,
 				EA4575E9F0F10869A78C04CB /* Shimmer.swift */,
 				66CAC250CC60F5235E5A7D2B /* ZoomTransition.swift */,
@@ -412,6 +417,7 @@
 				81A9303C7739D5AB332E7BF7 /* FakeSearchDataSource.swift */,
 				171CA030CBBA8F5B5E661BCC /* FavouriteModelTests.swift */,
 				2FB49E53E2E97FB591CF095E /* FirebaseBootstrapTests.swift */,
+				93739A2209DFD1E7476803AF /* GlassSurfaceStyleTests.swift */,
 				B6D8F57E265FBBE18F88BEF2 /* HomeModelTests.swift */,
 				53BDB473685EF448E7D3458B /* LaunchOptionsTests.swift */,
 				379839F4CD0763CE7EA0E333 /* LivePagingTests.swift */,
@@ -994,6 +1000,7 @@
 				AE34DCB003BB7132FDB4A858 /* FirebaseAnalyticsTracker.swift in Sources */,
 				EB5CF0F70DDDCD6F209E76BD /* FirebaseBootstrap.swift in Sources */,
 				F787A9FD15AC992AB8DEDF66 /* FlowLayout.swift in Sources */,
+				3DC71C4A482049B26AD75FAC /* Glass.swift in Sources */,
 				6E9035A635BC0C046F04E56B /* GradientButtonStyle.swift in Sources */,
 				29C300BA31C84C739FBEB727 /* HomeDataSource.swift in Sources */,
 				4DC3097F246B01CD1AF49936 /* HomeFeedDataSource.swift in Sources */,
@@ -1064,6 +1071,7 @@
 				CA2D201E574AF0C96E7E102B /* FakeSearchDataSource.swift in Sources */,
 				3532E42F35BED4CB0FE5BEC4 /* FavouriteModelTests.swift in Sources */,
 				A408B1D71EF7A24B2B8242EF /* FirebaseBootstrapTests.swift in Sources */,
+				653887CF0757661EF0FC2B0B /* GlassSurfaceStyleTests.swift in Sources */,
 				7CABF84F634082ED5115BF13 /* HomeModelTests.swift in Sources */,
 				D88793C3B92A564897CDFD74 /* LaunchOptionsTests.swift in Sources */,
 				C17E73822135F46976C2A7D7 /* LivePagingTests.swift in Sources */,

@@ -12,4 +12,7 @@ extension Color {
     static let textTitle = Color("TextTitle")
     /// `#007AFF` at 15 % (Android `StrokeColor`), borders of category cells.
     static let stroke = Color("Stroke")
+    /// Cam San Hô `#FF7A59` (same in Dark), brand accent (BRAND §2). Decoration only: the 6 pt dot
+    /// next to "Đang phát" in Up next. Never a text colour or a background behind text (contrast).
+    static let brandAccent = Color("BrandAccent")
 }
