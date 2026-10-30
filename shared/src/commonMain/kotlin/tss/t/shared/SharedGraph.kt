@@ -11,6 +11,7 @@ import tss.t.shared.crash.Crash
 import tss.t.shared.crash.CrashReporter
 import tss.t.shared.deeplink.DeepLinkTargets
 import tss.t.shared.detail.PodcastDetailFeed
+import tss.t.shared.detail.ShowEpisodeSearch
 import tss.t.shared.favourite.FavouriteRepository
 import tss.t.shared.favourite.FavouriteResolver
 import tss.t.shared.home.HomeFeed
@@ -160,6 +161,13 @@ class SharedGraph(
         getPodcastByFeedID = getPodcastByFeedID,
         preferences = appPreferences,
         storage = podcastStorage,
+    )
+
+    /** "Tìm trong show": up to 1 000 episodes, own cache entry, D6 (M6 §3.3). */
+    val showEpisodeSearch = ShowEpisodeSearch(
+        getEpisodeByFeedId = getEpisodeByFeedId,
+        getPodcastByFeedID = getPodcastByFeedID,
+        preferences = appPreferences,
     )
 
     /** Search tab: E7/E8 with D6, and trending per category (M2 §4.1). */
