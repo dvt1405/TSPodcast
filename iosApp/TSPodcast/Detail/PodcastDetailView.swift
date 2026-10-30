@@ -216,7 +216,7 @@ private struct DetailMessage: View {
                 .accessibilityIdentifier(identifier)
             if let retry {
                 Button("action.retry", action: retry)
-                    .buttonStyle(.bordered)
+                    .glassButton()
                     .tint(Color.brandPrimary)
                     .accessibilityIdentifier("detail.episodes.retry")
             }

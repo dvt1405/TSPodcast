@@ -173,15 +173,16 @@ extension View {
         }
     }
 
-    /// A bar pinned to the top: `safeAreaBar` on iOS 26, `safeAreaInset` below (no background,
-    /// as the M4 chips sat directly under the search field).
+    /// A bar pinned to the top: `safeAreaBar` on iOS 26 (system scroll edge effect under it),
+    /// `safeAreaInset` on the page background below, so content scrolling under the bar is hidden
+    /// as when the M4 chips sat above the scroll view.
     @ViewBuilder
     func topBar<Bar: View>(@ViewBuilder _ bar: () -> Bar) -> some View {
         let content = bar()
         if #available(iOS 26, *) {
             safeAreaBar(edge: .top, spacing: 0) { content }
         } else {
-            safeAreaInset(edge: .top, spacing: 0) { content }
+            safeAreaInset(edge: .top, spacing: 0) { content.background(.background) }
         }
     }
 }

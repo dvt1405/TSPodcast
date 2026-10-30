@@ -26,8 +26,10 @@ struct CategorySelectionView: View {
             .accessibilityIdentifier("category.grid")
         }
         .background(Color(.systemBackground))
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            bottomBar
+        // M5: `safeAreaBar` on iOS 26 (the system scroll edge effect fades the grid under the
+        // bar, no background of our own); `safeAreaInset` on `.bar` below, as before.
+        .bottomBar {
+            saveBar
         }
         .task {
             await model.loadIfNeeded()
@@ -73,7 +75,7 @@ struct CategorySelectionView: View {
     }
 
     /// Badges of the selection (wrapping, scrollable past ~3 lines) and the save button.
-    private var bottomBar: some View {
+    private var saveBar: some View {
         VStack(spacing: 12) {
             if !model.selected.isEmpty {
                 ScrollView {
@@ -109,7 +111,6 @@ struct CategorySelectionView: View {
         .padding(.horizontal, 16)
         .padding(.top, 12)
         .padding(.bottom, 8)
-        .background(.bar)
     }
 }
 

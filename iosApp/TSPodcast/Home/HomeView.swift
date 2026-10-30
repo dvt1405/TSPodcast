@@ -252,7 +252,7 @@ private struct SectionMessage: View {
                 .multilineTextAlignment(.center)
                 .accessibilityIdentifier("home.section.\(section.rawValue).\(isFailure ? "error" : "empty")")
             Button("action.retry", action: retry)
-                .buttonStyle(.bordered)
+                .glassButton()
                 .tint(Color.brandPrimary)
                 .accessibilityIdentifier("home.section.\(section.rawValue).retry")
         }

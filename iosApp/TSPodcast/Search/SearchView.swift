@@ -16,15 +16,17 @@ struct SearchView: View {
     @State private var categories: [CategoryItem] = []
 
     var body: some View {
-        VStack(spacing: 0) {
+        ScrollView {
+            content
+                .padding(.bottom, 24)
+        }
+        .scrollDismissesKeyboard(.immediately)
+        // M5: the chips float over the results (`safeAreaBar` on iOS 26, so the system scroll edge
+        // effect fades what scrolls under them); on iOS 17/18 they sit on the page background.
+        .topBar {
             SearchModeChips(selected: model.mode) { mode in
                 model.select(mode: mode)
             }
-            ScrollView {
-                content
-                    .padding(.bottom, 24)
-            }
-            .scrollDismissesKeyboard(.immediately)
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("search.root")
@@ -72,40 +74,44 @@ struct SearchView: View {
 
 // MARK: - Mode chips
 
-/// Android `SearchModeFilter`: two pill chips, the selected one tinted.
+/// Android `SearchModeFilter`: two pill chips, the selected one tinted. M5: interactive glass
+/// capsules in one `GlassGroup` (Material on iOS 17/18, solid with Reduce Transparency), the
+/// selected one tinted `brandPrimary` (a solid `brandPrimary` fill on the fallback). Its label uses
+/// the page background colour (white in Light, black in Dark), which keeps text contrast on both
+/// the Light `#184BB4` and the lighter Dark `#6E97F0` primary.
 private struct SearchModeChips: View {
     let selected: SearchScope
     let select: (SearchScope) -> Void
 
     var body: some View {
-        HStack(spacing: 8) {
-            ForEach(SearchScope.allCases, id: \.self) { mode in
-                let isSelected = mode == selected
-                Button {
-                    select(mode)
-                } label: {
-                    Text(mode.title)
-                        .font(isSelected ? .subheadline.weight(.semibold) : .subheadline)
-                        .foregroundStyle(isSelected ? Color.brandPrimary : Color.secondary)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(isSelected ? Color.brandPrimary.opacity(0.1) : Color.clear, in: Capsule())
-                        .overlay {
-                            Capsule()
-                                .strokeBorder(isSelected ? Color.brandPrimary.opacity(0.5) : Color.stroke, lineWidth: 1)
-                        }
-                        .contentShape(Capsule())
+        // Container spacing below the 8 pt gap: the two capsules stay separate shapes.
+        GlassGroup(spacing: 4) {
+            HStack(spacing: 8) {
+                ForEach(SearchScope.allCases, id: \.self) { mode in
+                    let isSelected = mode == selected
+                    Button {
+                        select(mode)
+                    } label: {
+                        Text(mode.title)
+                            .font(isSelected ? .subheadline.weight(.semibold) : .subheadline)
+                            .foregroundStyle(isSelected ? AnyShapeStyle(.background) : AnyShapeStyle(.primary))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .glassSurface(in: Capsule(), tint: isSelected ? .brandPrimary : nil, interactive: true)
+                            // A 44 pt tall hit target around the ~36 pt capsule.
+                            .padding(.vertical, 4)
+                            .contentShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .animation(.easeInOut(duration: 0.2), value: isSelected)
+                    .accessibilityAddTraits(isSelected ? .isSelected : [])
+                    .accessibilityIdentifier("search.mode.\(mode.rawValue)")
                 }
-                .buttonStyle(.plain)
-                .animation(.easeInOut(duration: 0.2), value: isSelected)
-                .accessibilityAddTraits(isSelected ? .isSelected : [])
-                .accessibilityIdentifier("search.mode.\(mode.rawValue)")
+                Spacer(minLength: 0)
             }
-            Spacer(minLength: 0)
         }
         .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .padding(.bottom, 4)
+        .padding(.top, 4)
     }
 }
 
@@ -280,7 +286,7 @@ struct LoadErrorMessage: View {
                 .multilineTextAlignment(.center)
                 .accessibilityIdentifier(textIdentifier)
             Button("action.retry", action: retry)
-                .buttonStyle(.bordered)
+                .glassButton()
                 .tint(Color.brandPrimary)
                 .accessibilityIdentifier(retryIdentifier)
         }
