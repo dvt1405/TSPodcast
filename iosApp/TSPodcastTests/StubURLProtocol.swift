@@ -7,6 +7,8 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     enum Response: Sendable {
         case data(Data, statusCode: Int = 200)
         case failure(URLError.Code)
+        /// Never answers (a server that is too slow); the request ends only when cancelled.
+        case hang
     }
 
     private static let lock = NSLock()
@@ -54,6 +56,8 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
             client?.urlProtocolDidFinishLoading(self)
         case let .failure(code):
             client?.urlProtocol(self, didFailWithError: URLError(code))
+        case .hang:
+            break
         }
     }
 

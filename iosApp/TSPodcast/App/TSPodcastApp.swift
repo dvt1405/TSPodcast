@@ -2,14 +2,14 @@ import SwiftUI
 
 @main
 struct TSPodcastApp: App {
-    /// Created once per process; owns the single `SharedGraph`.
-    @State private var environment = AppEnvironment()
+    /// Owns the one `AppEnvironment` (and so the single `SharedGraph`) and receives the APNs token.
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
         WindowGroup {
             RootView()
-                .environment(environment)
-                .environment(\.artworkLoader, environment.artworkLoader)
+                .environment(appDelegate.environment)
+                .environment(\.artworkLoader, appDelegate.environment.artworkLoader)
                 .tint(Color.brandPrimary)
         }
     }

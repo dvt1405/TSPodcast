@@ -1,0 +1,13 @@
+{
+  "Simulator Target Bundle": "tss.t.podcast",
+  "aps": {
+    "alert": {
+      "title": "Podcast mới",
+      "body": "Có podcast mới trong danh mục bạn yêu thích."
+    },
+    "sound": "default",
+    "mutable-content": 1
+  },
+  "type": "new_podcasts",
+  "big_image": "https://picsum.photos/seed/tspodcast/600/300.jpg"
+}

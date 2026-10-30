@@ -487,6 +487,132 @@
         }
       }
     },
+    "notifications.denied.hint" : {
+      "comment" : "Alert body when iOS refused the notification permission.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings to turn notifications back on for TSPodcast."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở Cài đặt để bật lại thông báo cho TSPodcast."
+          }
+        }
+      }
+    },
+    "notifications.denied.message" : {
+      "comment" : "Alert title when iOS refused the notification permission.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications are turned off in iPhone Settings."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thông báo đang bị tắt trong Cài đặt của iPhone."
+          }
+        }
+      }
+    },
+    "notifications.denied.openSettings" : {
+      "comment" : "Button opening the iOS Settings app.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở Cài đặt"
+          }
+        }
+      }
+    },
+    "notifications.prompt.enable" : {
+      "comment" : "Accept button of the notification prompt.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bật thông báo"
+          }
+        }
+      }
+    },
+    "notifications.prompt.later" : {
+      "comment" : "Decline button of the notification prompt.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not now"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Để sau"
+          }
+        }
+      }
+    },
+    "notifications.prompt.message" : {
+      "comment" : "Body of the one-time notification prompt.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only when new podcasts arrive. You can turn this off anytime in Settings."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chỉ gửi khi có podcast mới. Bạn có thể tắt bất cứ lúc nào trong Cài đặt."
+          }
+        }
+      }
+    },
+    "notifications.prompt.title" : {
+      "comment" : "In-app prompt after the first favourite (M4 §4.4).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get notified about new podcasts?"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhận thông báo khi có podcast mới?"
+          }
+        }
+      }
+    },
     "onboarding.continue" : {
       "comment" : "Button on the last onboarding page.",
       "extractionState" : "manual",
@@ -1131,6 +1257,96 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Không tải được nội dung"
+          }
+        }
+      }
+    },
+    "settings.explicit" : {
+      "comment" : "Settings toggle for explicit content (D6).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show explicit content"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiện nội dung người lớn (explicit)"
+          }
+        }
+      }
+    },
+    "settings.notifications" : {
+      "comment" : "Settings toggle for new-podcast push notifications.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New podcast notifications"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thông báo podcast mới"
+          }
+        }
+      }
+    },
+    "settings.privacy" : {
+      "comment" : "Settings link to the privacy policy.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy Policy"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chính sách bảo mật"
+          }
+        }
+      }
+    },
+    "settings.title" : {
+      "comment" : "Title of the Settings sheet and label of the gear button.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cài đặt"
+          }
+        }
+      }
+    },
+    "settings.version" : {
+      "comment" : "Settings row with the app version.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phiên bản"
           }
         }
       }

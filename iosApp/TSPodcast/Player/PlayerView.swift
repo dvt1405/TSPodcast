@@ -77,6 +77,9 @@ struct PlayerView: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("player.root")
+        // The first favourite is set here, so the one-time push prompt shows here (M4 §4.4).
+        .notificationsPrompt(environment.notifications)
+        .notificationsDeniedAlert(environment.notifications)
         #if DEBUG
         .overlay(alignment: .topTrailing) {
             if environment.launchOptions.playbackProbe {

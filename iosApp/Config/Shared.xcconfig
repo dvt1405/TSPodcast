@@ -5,3 +5,7 @@ PODCASTINDEX_API_KEY =
 PODCASTINDEX_API_SECRET =
 PODCASTINDEX_BASE_URL =
 PODCASTINDEX_USER_AGENT =
+
+// URL chính sách bảo mật (màn Cài đặt, guideline 5.1.1). Rỗng = ẩn dòng "Chính sách bảo mật" (handoff).
+// Bẫy "//" như trên: viết https:/$()/example.com/privacy.
+PRIVACY_POLICY_URL =

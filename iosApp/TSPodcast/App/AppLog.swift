@@ -8,7 +8,7 @@ enum AppLog {
     /// App flow of M1: launch, routing, onboarding, categories, Home.
     static let app = Logger(subsystem: subsystem, category: "M1")
 
-    /// Analytics calls, until Firebase Analytics exists on iOS (see `LogAnalyticsTracker`).
+    /// Analytics calls when Firebase is not configured (see `LogAnalyticsTracker`).
     static let analytics = Logger(subsystem: subsystem, category: "Analytics")
 
     /// Cover images (`ArtworkLoader`).
@@ -19,4 +19,13 @@ enum AppLog {
 
     /// The player (M3): requests, interruptions, failures. Ids and counts only, never URLs.
     static let playback = Logger(subsystem: subsystem, category: "Playback")
+
+    /// Firebase bootstrap and Remote Config (M4): `firebase=enabled` / `firebase=disabled reason=…`.
+    static let firebase = Logger(subsystem: subsystem, category: "Firebase")
+
+    /// `OSLogCrashReporter`: breadcrumbs and errors when Crashlytics is not configured.
+    static let crash = Logger(subsystem: subsystem, category: "Crash")
+
+    /// Push opt-in, APNs/FCM registration and received notifications (types only, no payload).
+    static let notifications = Logger(subsystem: subsystem, category: "Notifications")
 }

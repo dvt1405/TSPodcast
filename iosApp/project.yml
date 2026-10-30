@@ -10,6 +10,13 @@ options:
   createIntermediateGroups: true
   generateEmptyDirectories: false
 
+# Firebase (M4 §4.3): ghim exact version (bản 12.x phát hành ≥ 2 tuần trước khi thêm). Chỉ target app link;
+# NSE không link Firebase. FirebaseAnalyticsCore = Analytics không kèm IDFA/AdSupport.
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    exactVersion: 12.19.2
+
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -27,6 +34,19 @@ targets:
       - path: TSPodcast
         excludes:
           - Info.plist
+          - TSPodcast.entitlements
+    dependencies:
+      - target: TSPodcastNotificationService
+      - package: Firebase
+        product: FirebaseCore
+      - package: Firebase
+        product: FirebaseAnalyticsCore
+      - package: Firebase
+        product: FirebaseCrashlytics
+      - package: Firebase
+        product: FirebaseRemoteConfig
+      - package: Firebase
+        product: FirebaseMessaging
     configFiles:
       Debug: Config/Debug.xcconfig
       Release: Config/Release.xcconfig
@@ -41,6 +61,8 @@ targets:
         ENABLE_USER_SCRIPT_SANDBOXING: NO
         INFOPLIST_FILE: TSPodcast/Info.plist
         GENERATE_INFOPLIST_FILE: NO
+        # aps-environment = development; bản archive lấy giá trị của provisioning profile (M4 §4.3).
+        CODE_SIGN_ENTITLEMENTS: TSPodcast/TSPodcast.entitlements
         MARKETING_VERSION: 1.0.0
         CURRENT_PROJECT_VERSION: "1"
         SUPPORTS_MACCATALYST: NO
@@ -68,6 +90,45 @@ targets:
         script: '"$SRCROOT/scripts/compile-kotlin.sh"'
         basedOnDependencyAnalysis: false
         showEnvVars: false
+    postCompileScripts:
+      # GoogleService-Info.plist (gitignored) chỉ được chép vào app khi có; thiếu thì app chạy không Firebase.
+      - name: Copy GoogleService-Info.plist
+        script: '"$SRCROOT/scripts/copy-firebase-plist.sh"'
+        basedOnDependencyAnalysis: false
+        showEnvVars: false
+    postBuildScripts:
+      # Upload dSYM cho Crashlytics; bỏ qua (không fail build) khi thiếu plist.
+      - name: Crashlytics dSYM
+        script: '"$SRCROOT/scripts/crashlytics-upload-symbols.sh"'
+        basedOnDependencyAnalysis: false
+        showEnvVars: false
+
+  # Notification Service Extension (M4 §4.4): gắn ảnh `big_image` vào push `new_podcasts`. Chỉ Foundation +
+  # UserNotifications, không Shared, không Firebase. Logic tải/gắn nằm ở file dùng chung với target app để
+  # TSPodcastTests test được.
+  TSPodcastNotificationService:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: TSPodcastNotificationService
+        excludes:
+          - Info.plist
+      - path: TSPodcast/Notifications/RichNotification.swift
+    settings:
+      base:
+        PRODUCT_NAME: TSPodcastNotificationService
+        PRODUCT_BUNDLE_IDENTIFIER: tss.t.podcast.NotificationService
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+        SWIFT_VERSION: "6.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        INFOPLIST_FILE: TSPodcastNotificationService/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        MARKETING_VERSION: 1.0.0
+        CURRENT_PROJECT_VERSION: "1"
+        APPLICATION_EXTENSION_API_ONLY: YES
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
+        DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
 
   # Unit test, chạy trong app (host = TSPodcast). Không link Shared lần nữa: symbol Kotlin lấy từ app
   # qua BUNDLE_LOADER, chỉ cần FRAMEWORK_SEARCH_PATHS để `import Shared`.

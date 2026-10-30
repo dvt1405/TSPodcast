@@ -34,3 +34,5 @@ iosApp/Config/Secrets.xcconfig
 DerivedData/
 iosApp/build/
 shared/build/
+# Firebase iOS config (M4 §4.3): owner tải từ console, không commit
+iosApp/Config/Firebase/*/GoogleService-Info.plist

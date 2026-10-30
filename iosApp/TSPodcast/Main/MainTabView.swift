@@ -23,6 +23,8 @@ struct MainTabView: View {
     /// Search stack: Podcast detail and category lists (two value types).
     @State private var searchPath = NavigationPath()
     @State private var searchModel: SearchModel
+    /// Settings sheet, opened from the gear of the Discover tab (M4 §4.4).
+    @State private var showsSettings = false
 
     init(favouriteModel: FavouriteModel, homeModel: HomeModel, searchModel: SearchModel) {
         _favouriteModel = State(initialValue: favouriteModel)
@@ -51,6 +53,17 @@ struct MainTabView: View {
             NavigationStack(path: $homePath) {
                 HomeView(model: homeModel)
                     .tabRoot(title: "tab.home")
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button {
+                                showsSettings = true
+                            } label: {
+                                Image(systemName: "gearshape")
+                            }
+                            .accessibilityLabel(Text("settings.title"))
+                            .accessibilityIdentifier("settings.open")
+                        }
+                    }
             }
             .miniPlayerInset(isPresented: showsMiniPlayer)
             .tabItem { Label("tab.home", systemImage: "house") }
@@ -65,6 +78,10 @@ struct MainTabView: View {
             .tag(AppTab.search)
         }
         .miniPlayerAccessory(isPresented: showsMiniPlayer)
+        .sheet(isPresented: $showsSettings) {
+            SettingsView(model: environment.makeSettingsModel())
+                .tint(Color.brandPrimary)
+        }
         .fullScreenCover(isPresented: $environment.isPlayerPresented) {
             PlayerView(engine: environment.audioEngine)
                 .environment(environment)
