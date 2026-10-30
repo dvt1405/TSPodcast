@@ -1,0 +1,19 @@
+# api.DOMAIN -> backend api service (profile "backend").
+# Enable only after the api container runs and the DNS record api.DOMAIN exists,
+# otherwise Caddy keeps failing the ACME challenge for it:
+#   sudo cp /opt/tspodcast/caddy/sites-available/api.caddy /etc/tspodcast/caddy/
+#   /opt/tspodcast/scripts/compose.sh exec caddy caddy reload --config /etc/caddy/Caddyfile
+# Uses the (common) snippet of deploy/caddy/Caddyfile.
+
+api.{$DOMAIN} {
+	import common
+	# GET-only API in v0; POST bodies (submit, reports) stay small.
+	request_body {
+		max_size 256KB
+	}
+	# TODO(BE-M2): port and path prefix of the real api service.
+	reverse_proxy api:8080 {
+		lb_try_duration 10s
+		lb_try_interval 500ms
+	}
+}

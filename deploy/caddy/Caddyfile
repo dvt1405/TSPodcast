@@ -1,0 +1,60 @@
+# Caddy in front of the TSPodcast web (deploy/docker-compose.yml).
+# DOMAIN and ACME_EMAIL come from /etc/tspodcast/compose.env.
+# Validate after editing:  scripts/compose.sh exec caddy caddy validate --config /etc/caddy/Caddyfile
+# Apply without downtime:  scripts/compose.sh exec caddy caddy reload --config /etc/caddy/Caddyfile
+
+{
+	email {$ACME_EMAIL}
+
+	# Cloudflare proxy (orange cloud) in front of Caddy: uncomment and paste the
+	# ranges from https://www.cloudflare.com/ips/ so the app sees the visitor IP
+	# (the AI rate limit in web/src/lib/ai.ts keys on it) instead of Cloudflare's.
+	# servers {
+	# 	trusted_proxies static 173.245.48.0/20 103.21.244.0/22 ...
+	# 	client_ip_headers CF-Connecting-IP X-Forwarded-For
+	# }
+}
+
+(common) {
+	encode zstd gzip
+	header {
+		# One year, apex only. Add includeSubDomains/preload only once every
+		# subdomain of DOMAIN is HTTPS for good.
+		Strict-Transport-Security "max-age=31536000"
+		# Next.js already sends these (web/next.config.ts); "?" sets them only
+		# when missing, e.g. on error pages produced by Caddy itself.
+		?X-Content-Type-Options "nosniff"
+		?Referrer-Policy "strict-origin-when-cross-origin"
+		?X-Frame-Options "SAMEORIGIN"
+		?Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+		-X-Powered-By
+	}
+	log {
+		output stdout
+		format json
+	}
+}
+
+{$DOMAIN} {
+	import common
+	# The largest legitimate body is an AI chat request (web/src/app/api/ai/*).
+	request_body {
+		max_size 1MB
+	}
+	reverse_proxy web:3000 {
+		# Ride over the few seconds in which deploy.sh replaces the container.
+		lb_try_duration 20s
+		lb_try_interval 500ms
+	}
+}
+
+www.{$DOMAIN} {
+	import common
+	redir https://{$DOMAIN}{uri} permanent
+}
+
+# Extra sites, one file per site, from /etc/tspodcast/caddy on the host
+# (empty until the backend runs; copy caddy/sites-available/api.caddy there).
+# A glob that matches nothing is only a warning.
+import /etc/caddy-sites/*.caddy
