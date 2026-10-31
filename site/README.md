@@ -26,11 +26,27 @@ node site/_src/build.mjs
 ```
 
 Script inline CSS vào từng trang, sinh thẻ SEO, JSON-LD, `sitemap.xml`, và kiểm tra độ dài
-`title` (≤ 60) và `description` (≤ 155). Nếu sửa đoạn script chiến dịch (`CAMPAIGN_JS`), script
-in ra hash mới: phải cập nhật `script-src` trong Content-Security-Policy ở `firebase.json`.
+`title` (≤ 60) và `description` (≤ 155). Trang đích có hai script inline (mỗi cái < 1 KB):
+`CAMPAIGN_JS` (tham số chiến dịch) và `REVEAL_JS` (hiệu ứng hiện dần khi cuộn). Sửa một trong hai
+thì script in ra hash mới và báo lỗi nếu `script-src` trong Content-Security-Policy ở
+`firebase.json` chưa có hash đó.
+
+Mục lục của các trang chính sách được sinh tự động từ các thẻ `<h2 id="...">` trong
+`_src/content/*.html`, không viết tay.
 
 Thêm trang đích mới cho chiến dịch: thêm một mục vào `LANDINGS` trong `build.mjs` (đường dẫn
 `l/<tên>.html`, tiêu đề, mô tả, ảnh hero, đường dẫn web), rồi chạy lại script.
+
+## Bố cục và hiệu ứng (`_src/site.css`)
+
+- Mọi khoảng cách lấy từ thang `--s-1` … `--s-9` (4/8/12/16/24/32/48/64/96 px). Một khung
+  `.wrap` (tối đa 1200 px) với lề `--gutter` (20/32/40 px), nhịp section `--section-y`
+  (64/80/96 px). Cỡ chữ dùng `--fs-*` với `clamp()`; tiêu đề có `text-wrap: balance`.
+- Trang chính sách: cột chữ tối đa `--measure` (khoảng 70 ký tự/dòng), mục lục dính bên phải
+  từ 1024 px.
+- Hiệu ứng chỉ đổi `transform` và `opacity`. Phần hiện dần khi cuộn chỉ bật khi script đã chạy
+  (`html.js`), nên tắt JavaScript vẫn thấy đủ nội dung. Với `prefers-reduced-motion: reduce`, mọi
+  chuyển động bị tắt, chỉ còn mờ dần. Trang chính sách không có hiệu ứng trên phần nội dung.
 
 ## Đường dẫn cũ vẫn chạy
 
