@@ -143,6 +143,16 @@ Tagline là **"Thế giới trong tai bạn"**; mô tả ngắn là **"Podcast �
 Ảnh xem trước ở trên lần lượt cho thấy icon dưới mặt nạ tròn, squircle và giọt nước; vùng an
 toàn (vòng cam); themed icon; và icon thanh trạng thái ở 1x, 2x, 3x.
 
+### iOS
+
+| Tài nguyên (`iosApp/TSPodcast/Resources/Assets.xcassets/`) | Mô tả |
+|---|---|
+| `AppIcon.appiconset` | Icon 1024 bản sáng, tối và tinted (iOS 18 trở lên). |
+| `LaunchLogo.imageset` | Màn khởi động: biểu tượng trắng + chấm cam, khung 120 pt (@1x/@2x/@3x). Sinh bởi `scripts/ios.js`. |
+| `LaunchBackground.colorset` | Nền màn khởi động: Xanh TS `#184BB4`, giữ nguyên ở Dark Mode như splash Android. |
+
+`Info.plist` → `UILaunchScreen` trỏ tới hai tài nguyên trên (`UIImageName`, `UIColorName`).
+
 ---
 
 ## 5. Store, web, mạng xã hội, video
