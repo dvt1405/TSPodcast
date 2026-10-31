@@ -973,6 +973,24 @@
         }
       }
     },
+    "intro.tagline" : {
+      "comment" : "Tagline under \"TSPodcast\" on the brand intro before onboarding (BRAND: Thế giới trong tai bạn).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The world in your ears"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thế giới trong tai bạn"
+          }
+        }
+      }
+    },
     "news.brief.episodes %lld" : {
       "comment" : "Number of episodes in the morning brief.",
       "extractionState" : "manual",

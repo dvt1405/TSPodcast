@@ -46,6 +46,15 @@ final class LaunchOptionsTests: XCTestCase {
         XCTAssertEqual(Set(items.map(\.id)).count, 30)
     }
 
+    /// The brand intro never plays under UI tests (any `-uitest-…` hook), and plays otherwise.
+    func testUITestHooksSkipTheIntro() {
+        XCTAssertFalse(LaunchOptions.none.skipIntro)
+        XCTAssertFalse(LaunchOptions(arguments: ["TSPodcast"], environment: [:]).skipIntro)
+        XCTAssertFalse(LaunchOptions(arguments: ["-newshub-include-unconfirmed"], environment: [:]).skipIntro)
+        XCTAssertTrue(LaunchOptions(arguments: ["-uitest-reset"], environment: [:]).skipIntro)
+        XCTAssertTrue(LaunchOptions(arguments: ["-uitest-consent=all"], environment: [:]).skipIntro)
+    }
+
     func testSkipOnboardingImpliesReset() {
         let options = LaunchOptions(arguments: ["-uitest-skip-onboarding"], environment: [:])
         XCTAssertTrue(options.skipOnboarding)
