@@ -163,8 +163,8 @@ toàn (vòng cam); themed icon; và icon thanh trạng thái ở 1x, 2x, 3x.
 ```bash
 cd brand/scripts
 # một ảnh
-node frame.js --preset play  --headline "Nghe podcast Việt hay nhất" \
-  --sub "Hàng nghìn chương trình, cập nhật mỗi ngày" in.png out.png
+node frame.js --preset play  --headline "Nghe podcast Việt\nmỗi ngày" \
+  --sub "Chương trình thịnh hành, cập nhật liên tục" in.png out.png
 node frame.js --preset ios69 --theme light --headline "Kho nhạc mở,\nnghe thả ga" in.png out.png
 # nhiều ảnh: sửa ../store/screenshots/examples.json, đặt ảnh thật vào raw/, rồi chạy
 node frame.js --batch ../store/screenshots/examples.json
@@ -177,9 +177,14 @@ node frame.js --batch ../store/screenshots/examples.json
 - Ảnh trong `store/screenshots/raw/` hiện chỉ là **ảnh minh hoạ**. Hãy thay bằng ảnh chụp màn hình thật,
   ví dụ `adb exec-out screencap -p > raw/01-kham-pha.png`, rồi chạy lại.
 
-Gợi ý headline (ngắn, động từ đặt trước, tối đa khoảng 30 ký tự mỗi dòng):
+Gợi ý headline (ngắn, động từ đặt trước, tối đa khoảng 30 ký tự mỗi dòng).
 
-1. **Nghe podcast Việt hay nhất**: Hàng nghìn chương trình, cập nhật mỗi ngày
+> **Không dùng từ so sánh tuyệt đối** như "nhất", "hay nhất", "tốt nhất", "số 1", "duy nhất",
+> "hàng đầu" trong headline, ảnh store hay mô tả. Luật Quảng cáo cấm các từ này khi không có
+> tài liệu chứng minh, và Google Play cũng không cho dùng chúng trong tên, icon, ảnh store.
+> Hãy mô tả điều app làm được thay vì xếp hạng nó.
+
+1. **Nghe podcast Việt mỗi ngày**: Chương trình thịnh hành, cập nhật liên tục
 2. **Radio trực tuyến, bật là nghe**: Đài trong nước và quốc tế, phát trực tiếp
 3. **Kho nhạc mở, nghe thả ga**: Feed nhạc theo chuẩn Podcasting 2.0
 4. **Gom kênh yêu thích về một chỗ**: Mở app là nghe ngay kênh bạn theo dõi
