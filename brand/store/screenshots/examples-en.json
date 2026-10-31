@@ -1,0 +1,53 @@
+{
+  "outDir": "out-en",
+  "presets": [
+    "play"
+  ],
+  "theme": "brand",
+  "screens": [
+    {
+      "id": "kham-pha",
+      "screenshot": "raw/01-kham-pha.png",
+      "placeholderLabel": "Khám phá",
+      "headline": "Podcasts from Vietnam\nand the world",
+      "sub": "Trending shows, updated all the time"
+    },
+    {
+      "id": "radio",
+      "screenshot": "raw/02-radio.png",
+      "placeholderLabel": "Radio",
+      "headline": "Live radio,\ntap to listen",
+      "sub": "Radio channels streaming live in the app"
+    },
+    {
+      "id": "trinh-phat",
+      "screenshot": "raw/05-trinh-phat.png",
+      "placeholderLabel": "Đang phát",
+      "theme": "light",
+      "headline": "Keep listening with\nthe screen off",
+      "sub": "Controls right in the notification"
+    },
+    {
+      "id": "tim-kiem",
+      "screenshot": "raw/06-tim-kiem.png",
+      "placeholderLabel": "Tìm kiếm",
+      "headline": "Find the topics\nyou care about",
+      "sub": "Business, history, stories, tech…"
+    },
+    {
+      "id": "kho-nhac",
+      "screenshot": "raw/03-kho-nhac.png",
+      "placeholderLabel": "Kho nhạc",
+      "theme": "light",
+      "headline": "Open music,\nstraight from artists",
+      "sub": "Open music feeds from Podcast Index"
+    },
+    {
+      "id": "yeu-thich",
+      "screenshot": "raw/04-yeu-thich.png",
+      "placeholderLabel": "Yêu thích",
+      "headline": "Your favourite\nepisodes in one place",
+      "sub": "Tap the heart to save, open to play"
+    }
+  ]
+}
