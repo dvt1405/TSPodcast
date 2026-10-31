@@ -27,3 +27,12 @@ local.properties
 
 # Rendered demo videos (large; regenerate from brand/video)
 brand/video/out/
+
+# iOS app (Xcode) and the Kotlin Multiplatform :shared module
+iosApp/Config/Secrets.xcconfig
+**/xcuserdata/
+DerivedData/
+iosApp/build/
+shared/build/
+# Firebase iOS config (M4 §4.3): owner tải từ console, không commit
+iosApp/Config/Firebase/*/GoogleService-Info.plist

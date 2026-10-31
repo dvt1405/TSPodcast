@@ -1,0 +1,13 @@
+{
+  "images": [
+    {
+      "filename": "ic_body_armor_100.png",
+      "idiom": "universal",
+      "scale": "2x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1
+  }
+}

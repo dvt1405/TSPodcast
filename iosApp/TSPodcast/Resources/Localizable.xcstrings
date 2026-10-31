@@ -1,0 +1,2832 @@
+{
+  "sourceLanguage" : "vi",
+  "strings" : {
+    "action.cancel" : {
+      "comment" : "Cancel button of an alert.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Huỷ"
+          }
+        }
+      }
+    },
+    "action.close" : {
+      "comment" : "Close button of an alert.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đóng"
+          }
+        }
+      }
+    },
+    "action.retry" : {
+      "comment" : "Retry button of a failed section (popup_btn_reload_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tải lại"
+          }
+        }
+      }
+    },
+    "category.remove %@" : {
+      "comment" : "VoiceOver label of the x button on a selected-category badge; %@ is the category name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ chọn %@"
+          }
+        }
+      }
+    },
+    "category.save" : {
+      "comment" : "Save button of the category screen (select_favourite_category_screen_btn_confirm_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save and continue"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lưu và tiếp tục"
+          }
+        }
+      }
+    },
+    "category.subtitle" : {
+      "comment" : "Description under the category screen title (select_favourite_category_screen_description).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(Choose at least 3)"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(Ít nhất 3 danh mục)"
+          }
+        }
+      }
+    },
+    "category.title" : {
+      "comment" : "Title of the favourite category screen (select_favourite_category_screen_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your favourite categories"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Danh mục yêu thích của bạn"
+          }
+        }
+      }
+    },
+    "consent.acceptAll" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): button: allow analytics and crash reports.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accept all"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đồng ý tất cả"
+          }
+        }
+      }
+    },
+    "consent.analytics.detail" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): explanation of usage analytics.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anonymous figures on how the app is used (screens, features). What you search for is never sent."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Số liệu ẩn danh về cách app được dùng (màn hình, tính năng). Không gửi nội dung bạn tìm kiếm."
+          }
+        }
+      }
+    },
+    "consent.analytics.title" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): optional group and Settings toggle (Firebase Analytics).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usage analytics"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phân tích sử dụng"
+          }
+        }
+      }
+    },
+    "consent.crash.detail" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): explanation of crash reports.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When the app runs into an error, send technical details about it so we can fix it."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khi app gặp lỗi, gửi thông tin kỹ thuật về lỗi đó để chúng tôi sửa."
+          }
+        }
+      }
+    },
+    "consent.crash.title" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): optional group and Settings toggle (Crashlytics).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crash reports"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Báo cáo sự cố"
+          }
+        }
+      }
+    },
+    "consent.footnote" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): footnote of the privacy sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can change your choice at any time in Settings → Privacy."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn có thể đổi lựa chọn bất cứ lúc nào trong Cài đặt → Quyền riêng tư."
+          }
+        }
+      }
+    },
+    "consent.intro" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): intro of the privacy sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TSPodcast only collects what it needs to run. Usage analytics and crash reports help us improve the app and are only turned on if you agree."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TSPodcast chỉ thu thập những gì cần để app chạy. Phân tích sử dụng và báo cáo sự cố giúp chúng tôi cải thiện app, và chỉ bật khi bạn đồng ý."
+          }
+        }
+      }
+    },
+    "consent.necessary.detail" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): explanation of the necessary group.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always on: running the app, updating the spam content filter (Remote Config) and a random install ID that is not tied to your device or identity."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Luôn bật: để app chạy, cập nhật danh sách lọc nội dung spam (Remote Config) và một mã cài đặt ngẫu nhiên, không gắn với thiết bị hay danh tính của bạn."
+          }
+        }
+      }
+    },
+    "consent.necessary.title" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): group that is always on.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Necessary"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cần thiết"
+          }
+        }
+      }
+    },
+    "consent.necessaryOnly" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): button: allow nothing optional (same style and size as Accept all).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Necessary only"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chỉ cần thiết"
+          }
+        }
+      }
+    },
+    "consent.saveChoice" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): the Necessary only button once a toggle is on: saves the toggles as set.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save choices"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lưu lựa chọn"
+          }
+        }
+      }
+    },
+    "consent.title" : {
+      "comment" : "PLACEHOLDER waiting for the lawyer (N11, PDPL): title of the first-launch privacy sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your privacy"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quyền riêng tư"
+          }
+        }
+      }
+    },
+    "deeplink.error.message" : {
+      "comment" : "Message of the deep link error alert (carries the deeplink.error identifier).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This content is no longer available or can't be shown in the app."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nội dung này không còn hoặc không xem được trong ứng dụng."
+          }
+        }
+      }
+    },
+    "deeplink.error.title" : {
+      "comment" : "Alert title when a shared podcast/episode link cannot be opened (M4 §4.7).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't open the link"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không mở được liên kết"
+          }
+        }
+      }
+    },
+    "detail.episodes.empty" : {
+      "comment" : "Podcast detail when the podcast has no episode.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No episodes yet"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa có tập nào"
+          }
+        }
+      }
+    },
+    "detail.episodes.error" : {
+      "comment" : "Inline error of Podcast detail after the alert was dismissed.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load episodes"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tải được danh sách tập"
+          }
+        }
+      }
+    },
+    "detail.error.message" : {
+      "comment" : "Message of the episode load error alert; never the raw error.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load the episodes. Please try again."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tải được danh sách tập. Vui lòng thử lại."
+          }
+        }
+      }
+    },
+    "detail.error.title" : {
+      "comment" : "Title of the alert shown when the episodes of a podcast fail to load; replaces Android's misspelled dialog title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oops!"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rất tiếc!"
+          }
+        }
+      }
+    },
+    "detail.explicitHidden" : {
+      "comment" : "Podcast detail when the feed is explicit and explicit content is filtered (D6).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This podcast is marked explicit, so its episodes are hidden."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcast này được đánh dấu có nội dung người lớn (explicit) nên các tập đã bị ẩn."
+          }
+        }
+      }
+    },
+    "detail.hide.confirm" : {
+      "comment" : "Destructive button that hides the show.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide show"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ẩn show"
+          }
+        }
+      }
+    },
+    "detail.hide.confirmMessage" : {
+      "comment" : "Message of the hide confirmation.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This show will no longer appear in Discover and Search on this device. You can unhide it in Settings → Hidden shows."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show sẽ không còn xuất hiện ở Khám phá và Tìm kiếm trên máy này. Bạn có thể bỏ ẩn trong Cài đặt → Show đã ẩn."
+          }
+        }
+      }
+    },
+    "detail.hide.confirmTitle" : {
+      "comment" : "Title of the confirmation before hiding a show from Detail.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide this show?"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ẩn show này?"
+          }
+        }
+      }
+    },
+    "detail.loading" : {
+      "comment" : "VoiceOver label of the episode list placeholders while loading.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading episodes"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tải danh sách tập"
+          }
+        }
+      }
+    },
+    "detail.menu" : {
+      "comment" : "VoiceOver label of the … menu of Podcast detail.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm"
+          }
+        }
+      }
+    },
+    "detail.offlineBanner" : {
+      "comment" : "Banner of Podcast detail when the episodes come from the device because loading failed.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Showing saved episodes (offline)"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang hiện danh sách đã lưu (ngoại tuyến)"
+          }
+        }
+      }
+    },
+    "detail.search.empty" : {
+      "comment" : "Search in show found nothing.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No matching episodes"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tìm thấy tập phù hợp"
+          }
+        }
+      }
+    },
+    "detail.search.footnote %lld" : {
+      "comment" : "Footnote when the show has more episodes than were loaded; %lld is that number.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Searching the %lld newest episodes only"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chỉ tìm trong %lld tập mới nhất"
+          }
+        }
+      }
+    },
+    "detail.search.loading" : {
+      "comment" : "VoiceOver label while the episodes of the show load for search.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Searching"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tìm"
+          }
+        }
+      }
+    },
+    "detail.search.onScreenOnly" : {
+      "comment" : "Footnote when the full episode list failed and search covers the listed episodes only.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load every episode: searching the episodes shown here."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tải được toàn bộ danh sách tập: đang tìm trong các tập đang hiển thị."
+          }
+        }
+      }
+    },
+    "detail.search.prompt" : {
+      "comment" : "Prompt of the search field of Podcast detail (shows with more than 20 episodes).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search this show"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm trong show"
+          }
+        }
+      }
+    },
+    "favourite.discoverMore" : {
+      "comment" : "Button of the empty Favourite tab that opens Discover (btn_discover_more_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discover more"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khám phá thêm"
+          }
+        }
+      }
+    },
+    "favourite.empty" : {
+      "comment" : "Empty state of the Favourite tab.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No favourite shows yet."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có chương trình yêu thích."
+          }
+        }
+      }
+    },
+    "favourite.unavailable.message" : {
+      "comment" : "Alert message when a favourite row cannot be opened from the database.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This item is no longer stored on this device."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dữ liệu của mục này không còn trên máy."
+          }
+        }
+      }
+    },
+    "favourite.unavailable.remove" : {
+      "comment" : "Alert button that removes the broken favourite.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove from favorites"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ yêu thích"
+          }
+        }
+      }
+    },
+    "favourite.unavailable.title" : {
+      "comment" : "Alert title when a favourite row cannot be opened from the database (M4 §4.7).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't open this item"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không mở được mục này"
+          }
+        }
+      }
+    },
+    "hiddenShows.empty" : {
+      "comment" : "Empty state of the hidden shows screen.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You haven't hidden any shows."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn chưa ẩn show nào."
+          }
+        }
+      }
+    },
+    "hiddenShows.footer" : {
+      "comment" : "Footer of the hidden shows list.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hidden shows don't appear in Discover and Search on this device. The list stays on this device."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show đã ẩn không xuất hiện ở Khám phá và Tìm kiếm trên máy này. Danh sách chỉ lưu trên máy."
+          }
+        }
+      }
+    },
+    "hiddenShows.title" : {
+      "comment" : "Title of the hidden shows screen.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hidden shows"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show đã ẩn"
+          }
+        }
+      }
+    },
+    "hiddenShows.unhide" : {
+      "comment" : "Button that shows a hidden show again.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unhide"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ ẩn"
+          }
+        }
+      }
+    },
+    "home.attribution" : {
+      "comment" : "Home footer, required by the PodcastIndex terms (attribution_podcastindex).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcast data provided by Podcast Index"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dữ liệu podcast cung cấp bởi Podcast Index"
+          }
+        }
+      }
+    },
+    "home.loading" : {
+      "comment" : "VoiceOver label of a Home section that is still loading (shimmer placeholder).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tải"
+          }
+        }
+      }
+    },
+    "home.section.forYou" : {
+      "comment" : "Home section 5 header: podcasts in the favourite categories.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You might like"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Có thể bạn yêu thích"
+          }
+        }
+      }
+    },
+    "home.section.live" : {
+      "comment" : "Home section 3 header (live_podcast_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live podcasts"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live Podcasts"
+          }
+        }
+      }
+    },
+    "home.section.music" : {
+      "comment" : "Home section 2 header (music_feeds_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music library"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kho nhạc"
+          }
+        }
+      }
+    },
+    "home.section.music.subtitle" : {
+      "comment" : "Home section 2 subtitle (music_feeds_subtitle).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music feeds using podcast:medium"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feed nhạc theo chuẩn podcast:medium"
+          }
+        }
+      }
+    },
+    "home.section.recent" : {
+      "comment" : "Home section 4 header (recent_podcast_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recently trending podcasts"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcasts xu hướng gần đây"
+          }
+        }
+      }
+    },
+    "home.section.trending" : {
+      "comment" : "Home section 1 header (trending_podcast_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trending podcasts"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcasts thịnh hành"
+          }
+        }
+      }
+    },
+    "news.brief.episodes %lld" : {
+      "comment" : "Number of episodes in the morning brief.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld episode"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld episodes"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld tập"
+          }
+        }
+      }
+    },
+    "news.brief.minutes %lld" : {
+      "comment" : "Total length of the morning brief in minutes, rounded up.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld min"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld phút"
+          }
+        }
+      }
+    },
+    "news.brief.playAll" : {
+      "comment" : "Plays every episode of the morning brief, one after the other.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play all"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phát tất cả"
+          }
+        }
+      }
+    },
+    "news.brief.title %@" : {
+      "comment" : "Morning brief card title; %@ is the weekday and date, e.g. 'Thứ Năm 29/10' / 'Thursday, Oct 29'.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Morning brief · %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Điểm tin sáng · %@"
+          }
+        }
+      }
+    },
+    "news.error" : {
+      "comment" : "The hub screen could not load.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load News & Bulletins"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tải được Thời sự & Bản tin"
+          }
+        }
+      }
+    },
+    "news.footer" : {
+      "comment" : "Footer of the hub, word for word from M6 §3.4.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Content is published by news organisations through RSS and played from the publisher's original address."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nội dung do các cơ quan báo chí phát hành qua RSS và được phát từ địa chỉ gốc của nhà xuất bản."
+          }
+        }
+      }
+    },
+    "news.latest" : {
+      "comment" : "Section of the hub: the 30 newest episodes.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Latest"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mới nhất"
+          }
+        }
+      }
+    },
+    "news.night" : {
+      "comment" : "Section of the hub: stories to fall asleep to, played with a sleep timer.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bedtime stories"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Truyện đêm khuya"
+          }
+        }
+      }
+    },
+    "news.night.subtitle %lld" : {
+      "comment" : "Under the bedtime stories title; %lld is the sleep timer in minutes.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Stops after %lld minute"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Stops after %lld minutes"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tự tắt sau %lld phút"
+          }
+        }
+      }
+    },
+    "news.report" : {
+      "comment" : "Footer link of the hub: report content or ask for removal by mail.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Report / request removal"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Báo cáo / yêu cầu gỡ"
+          }
+        }
+      }
+    },
+    "news.seeAll" : {
+      "comment" : "Link from the Home news section to the hub screen.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "See all"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xem tất cả"
+          }
+        }
+      }
+    },
+    "news.sources" : {
+      "comment" : "Section of the hub: the publishers' shows.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sources"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nguồn"
+          }
+        }
+      }
+    },
+    "news.title" : {
+      "comment" : "Title of the news hub: the Home section and the hub screen (M6 §3.4).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "News & Bulletins"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thời sự & Bản tin"
+          }
+        }
+      }
+    },
+    "news.toast %lld" : {
+      "comment" : "Toast after a bedtime story starts; %lld is the sleep timer in minutes.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Sleep timer set for %lld minute"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Sleep timer set for %lld minutes"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã hẹn giờ tắt %lld phút"
+          }
+        }
+      }
+    },
+    "news.toast.change" : {
+      "comment" : "Button of the sleep timer toast: opens the sleep timer sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đổi"
+          }
+        }
+      }
+    },
+    "news.unavailable" : {
+      "comment" : "The hub has nothing to show (turned off or no source left).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing to show here right now"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mục này hiện chưa có nội dung"
+          }
+        }
+      }
+    },
+    "notifications.denied.hint" : {
+      "comment" : "Alert body when iOS refused the notification permission.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings to turn notifications back on for TSPodcast."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở Cài đặt để bật lại thông báo cho TSPodcast."
+          }
+        }
+      }
+    },
+    "notifications.denied.message" : {
+      "comment" : "Alert title when iOS refused the notification permission.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications are turned off in iPhone Settings."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thông báo đang bị tắt trong Cài đặt của iPhone."
+          }
+        }
+      }
+    },
+    "notifications.denied.openSettings" : {
+      "comment" : "Button opening the iOS Settings app.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở Cài đặt"
+          }
+        }
+      }
+    },
+    "notifications.prompt.enable" : {
+      "comment" : "Accept button of the notification prompt.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bật thông báo"
+          }
+        }
+      }
+    },
+    "notifications.prompt.later" : {
+      "comment" : "Decline button of the notification prompt.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not now"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Để sau"
+          }
+        }
+      }
+    },
+    "notifications.prompt.message" : {
+      "comment" : "Body of the one-time notification prompt.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only when new podcasts arrive. You can turn this off anytime in Settings."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chỉ gửi khi có podcast mới. Bạn có thể tắt bất cứ lúc nào trong Cài đặt."
+          }
+        }
+      }
+    },
+    "notifications.prompt.title" : {
+      "comment" : "In-app prompt after the first favourite (M4 §4.4).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get notified about new podcasts?"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhận thông báo khi có podcast mới?"
+          }
+        }
+      }
+    },
+    "onboarding.continue" : {
+      "comment" : "Button on the last onboarding page.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiếp tục"
+          }
+        }
+      }
+    },
+    "onboarding.title.1" : {
+      "comment" : "Onboarding page 1 title (onboarding_title1).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discover Your Favourite Podcasts"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khám Phá Podcast Yêu Thích Của Bạn"
+          }
+        }
+      }
+    },
+    "onboarding.title.1.highlight.1" : {
+      "comment" : "Part of onboarding.title.1 drawn in the primary colour; must appear in that title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcasts"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcast"
+          }
+        }
+      }
+    },
+    "onboarding.title.1.highlight.2" : {
+      "comment" : "Part of onboarding.title.1 drawn in the primary colour; must appear in that title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Của Bạn"
+          }
+        }
+      }
+    },
+    "onboarding.title.2" : {
+      "comment" : "Onboarding page 2 title (onboarding_title2).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Content Made Just For You"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nội Dung Dành Riêng Cho Bạn"
+          }
+        }
+      }
+    },
+    "onboarding.title.2.highlight.1" : {
+      "comment" : "Part of onboarding.title.2 drawn in the primary colour; must appear in that title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just For You"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riêng Cho Bạn"
+          }
+        }
+      }
+    },
+    "onboarding.title.3" : {
+      "comment" : "Onboarding page 3 title (onboarding_title3).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listen Anytime, Anywhere"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nghe Mọi Lúc, Mọi Nơi"
+          }
+        }
+      }
+    },
+    "onboarding.title.3.highlight.1" : {
+      "comment" : "Part of onboarding.title.3 drawn in the primary colour; must appear in that title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anytime, Anywhere"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mọi Lúc, Mọi Nơi"
+          }
+        }
+      }
+    },
+    "onboarding.title.4" : {
+      "comment" : "Onboarding page 4 title (onboarding_title4).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organize And Update Continuously"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sắp Xếp Và Cập Nhật Liên Tục"
+          }
+        }
+      }
+    },
+    "onboarding.title.4.highlight.1" : {
+      "comment" : "Part of onboarding.title.4 drawn in the primary colour; must appear in that title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organize And Update"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sắp Xếp Và Cập Nhật"
+          }
+        }
+      }
+    },
+    "player.close" : {
+      "comment" : "Close button of the full-screen Player.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close player"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đóng trình phát"
+          }
+        }
+      }
+    },
+    "player.error" : {
+      "comment" : "Shown on the Player when the episode cannot play.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't play this episode"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không phát được tập này"
+          }
+        }
+      }
+    },
+    "player.favourite" : {
+      "comment" : "Favourite toggle of the Player (episode).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorite"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yêu thích"
+          }
+        }
+      }
+    },
+    "player.live" : {
+      "comment" : "Badge of a live stream on the Player (no seek bar).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LIVE"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LIVE"
+          }
+        }
+      }
+    },
+    "player.loading" : {
+      "comment" : "Accessibility label of the buffering spinner.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tải"
+          }
+        }
+      }
+    },
+    "player.more" : {
+      "comment" : "VoiceOver label of the … menu of the Player.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm"
+          }
+        }
+      }
+    },
+    "player.next" : {
+      "comment" : "Next episode button of the Player.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next episode"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tập tiếp theo"
+          }
+        }
+      }
+    },
+    "player.nowPlaying" : {
+      "comment" : "Mark of the playing episode in Up next and Podcast detail.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now playing"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang phát"
+          }
+        }
+      }
+    },
+    "player.open" : {
+      "comment" : "Accessibility action of the MiniPlayer that opens the Player.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open player"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở trình phát"
+          }
+        }
+      }
+    },
+    "player.pause" : {
+      "comment" : "Pause button of the Player and the MiniPlayer.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tạm dừng"
+          }
+        }
+      }
+    },
+    "player.play" : {
+      "comment" : "Play button of the Player and the MiniPlayer.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phát"
+          }
+        }
+      }
+    },
+    "player.playlist" : {
+      "comment" : "Button that opens the Up next sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlist"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Danh sách phát"
+          }
+        }
+      }
+    },
+    "player.previous" : {
+      "comment" : "Previous episode button of the Player.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous episode"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tập trước"
+          }
+        }
+      }
+    },
+    "player.skipBack" : {
+      "comment" : "Player: skip back 15 s button (VoiceOver label).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back 15 seconds"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lùi 15 giây"
+          }
+        }
+      }
+    },
+    "player.skipForward" : {
+      "comment" : "Player: skip forward 30 s button (VoiceOver label).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forward 30 seconds"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tới 30 giây"
+          }
+        }
+      }
+    },
+    "player.sleepTimer" : {
+      "comment" : "Player: sleep timer button label and title of the sleep timer sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sleep timer"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hẹn giờ tắt"
+          }
+        }
+      }
+    },
+    "player.sleepTimer.off" : {
+      "comment" : "VoiceOver value of the sleep timer button when no timer is set.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tắt"
+          }
+        }
+      }
+    },
+    "player.sleepTimer.remaining" : {
+      "comment" : "Time left on the sleep timer; %@ is a clock like 28:14.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ left"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Còn %@"
+          }
+        }
+      }
+    },
+    "player.speed" : {
+      "comment" : "Player: speed button label and title of the speed sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playback speed"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tốc độ phát"
+          }
+        }
+      }
+    },
+    "player.upNext" : {
+      "comment" : "Title of the Up next panel on the Player (Android UP NEXT).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up next"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiếp theo"
+          }
+        }
+      }
+    },
+    "player.upNext.collapseHint" : {
+      "comment" : "VoiceOver hint of the Up next header while the list is open.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collapses the up next list"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thu gọn danh sách tiếp theo"
+          }
+        }
+      }
+    },
+    "player.upNext.expandHint" : {
+      "comment" : "VoiceOver hint of the collapsed Up next peek header.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens the up next list"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở danh sách tiếp theo"
+          }
+        }
+      }
+    },
+    "player.upNext.peekValue" : {
+      "comment" : "VoiceOver value of the Up next peek header: the playing episode title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now playing: %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang phát: %@"
+          }
+        }
+      }
+    },
+    "report.action" : {
+      "comment" : "Menu entry that opens a pre-filled report mail (Detail, Player).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Report content"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Báo cáo nội dung"
+          }
+        }
+      }
+    },
+    "report.fallback.copy" : {
+      "comment" : "Alert button that copies the report email address.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy address"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sao chép địa chỉ"
+          }
+        }
+      }
+    },
+    "report.fallback.message %@" : {
+      "comment" : "Alert message; %@ is the report email address.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please send your report to %@ from your email app."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy gửi báo cáo tới %@ từ ứng dụng email của bạn."
+          }
+        }
+      }
+    },
+    "report.fallback.title" : {
+      "comment" : "Alert title when no app can send the report mail.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't open Mail"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không mở được ứng dụng Mail"
+          }
+        }
+      }
+    },
+    "search.categories" : {
+      "comment" : "Header above the category chips of the idle Search tab.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Categories"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Danh mục"
+          }
+        }
+      }
+    },
+    "search.empty %@" : {
+      "comment" : "Search without results (empty_search_title); %@ is the query, shown in bold.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No results for: %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có kết quả cho: %@"
+          }
+        }
+      }
+    },
+    "search.empty.musicHint" : {
+      "comment" : "Extra line under an empty Music search (search_music_empty_hint).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The podcast:medium music catalogue is small, try English keywords"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kho nhạc theo chuẩn podcast:medium còn ít, thử từ khoá tiếng Anh"
+          }
+        }
+      }
+    },
+    "search.loading" : {
+      "comment" : "VoiceOver label of the search spinner and of the category list placeholders.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tải"
+          }
+        }
+      }
+    },
+    "search.mode.all" : {
+      "comment" : "Search mode chip that searches every podcast (E7).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tất cả"
+          }
+        }
+      }
+    },
+    "search.mode.music" : {
+      "comment" : "Search mode chip that searches music feeds only (E8).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhạc"
+          }
+        }
+      }
+    },
+    "search.prompt" : {
+      "comment" : "Placeholder of the search field (search_hint_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search podcasts, artists"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm podcast, nghệ sĩ"
+          }
+        }
+      }
+    },
+    "search.results.all %@" : {
+      "comment" : "Header above the results of mode All (search_result_title, typo fixed); %@ is the query.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Top results for: %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết quả hàng đầu cho: %@"
+          }
+        }
+      }
+    },
+    "search.results.music %@" : {
+      "comment" : "Header above the results of mode Music (search_music_result_title); %@ is the query.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music for: %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhạc cho: %@"
+          }
+        }
+      }
+    },
+    "search.suggestion %@" : {
+      "comment" : "Idle Search suggestion (try_search_with_keyword_title); %@ is search.suggestion.keyword.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try searching: %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thử tìm kiếm: %@"
+          }
+        }
+      }
+    },
+    "search.suggestion.keyword" : {
+      "comment" : "Keyword shown in the idle Search suggestion (M2 plan §7 item 4 picks a podcast keyword).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "great podcasts"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcast hay"
+          }
+        }
+      }
+    },
+    "section.empty" : {
+      "comment" : "A Home section loaded with no items.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing here yet"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa có nội dung"
+          }
+        }
+      }
+    },
+    "section.error" : {
+      "comment" : "A Home section failed to load.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load content"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tải được nội dung"
+          }
+        }
+      }
+    },
+    "settings.consent.decidedAt %@" : {
+      "comment" : "Footer of the privacy section; %@ is a date and time.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choice saved on %@."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lựa chọn được lưu lúc %@."
+          }
+        }
+      }
+    },
+    "settings.explicit" : {
+      "comment" : "Settings toggle for explicit content (D6).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show explicit content"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiện nội dung người lớn (explicit)"
+          }
+        }
+      }
+    },
+    "settings.hiddenShows" : {
+      "comment" : "Settings row that opens the list of hidden shows.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hidden shows"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show đã ẩn"
+          }
+        }
+      }
+    },
+    "settings.notifications" : {
+      "comment" : "Settings toggle for new-podcast push notifications.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New podcast notifications"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thông báo podcast mới"
+          }
+        }
+      }
+    },
+    "settings.privacy" : {
+      "comment" : "Settings link to the privacy policy.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy Policy"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chính sách bảo mật"
+          }
+        }
+      }
+    },
+    "settings.privacySection" : {
+      "comment" : "Settings section with the analytics and crash report toggles.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quyền riêng tư"
+          }
+        }
+      }
+    },
+    "settings.title" : {
+      "comment" : "Title of the Settings sheet and label of the gear button.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cài đặt"
+          }
+        }
+      }
+    },
+    "settings.version" : {
+      "comment" : "Settings row with the app version.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phiên bản"
+          }
+        }
+      }
+    },
+    "shortcut.continue.description" : {
+      "comment" : "Shortcut \"Continue listening\": description in the Shortcuts app.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plays the episode you were listening to, from where you left off."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phát tiếp tập bạn đang nghe dở, từ vị trí đã lưu."
+          }
+        }
+      }
+    },
+    "shortcut.continue.nothing" : {
+      "comment" : "Siri/Shortcuts message when there is no episode to continue.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There's no episode to continue yet"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa có tập nào để tiếp tục"
+          }
+        }
+      }
+    },
+    "shortcut.continue.title" : {
+      "comment" : "Shortcut \"Continue listening\": title in Shortcuts and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue listening"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiếp tục nghe"
+          }
+        }
+      }
+    },
+    "shortcut.pause.description" : {
+      "comment" : "Shortcut \"Pause\": description in the Shortcuts app.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pauses the episode and turns off the sleep timer."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tạm dừng tập đang phát và tắt hẹn giờ."
+          }
+        }
+      }
+    },
+    "shortcut.pause.title" : {
+      "comment" : "Shortcut \"Pause\": title in Shortcuts and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tạm dừng"
+          }
+        }
+      }
+    },
+    "shortcut.sleepTimer.description" : {
+      "comment" : "Shortcut \"Set sleep timer\": description in the Shortcuts app.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stops playback after the number of minutes you choose (1–180)."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tự dừng phát sau số phút bạn chọn (1–180)."
+          }
+        }
+      }
+    },
+    "shortcut.sleepTimer.minutes" : {
+      "comment" : "Shortcut \"Set sleep timer\": title of the minutes parameter.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minutes"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Số phút"
+          }
+        }
+      }
+    },
+    "shortcut.sleepTimer.title" : {
+      "comment" : "Shortcut \"Set sleep timer\": title in Shortcuts and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set sleep timer"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hẹn giờ tắt"
+          }
+        }
+      }
+    },
+    "show.hide" : {
+      "comment" : "Detail menu and long-press menu on Home/Search: hide the show on this device.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide this show"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ẩn show này"
+          }
+        }
+      }
+    },
+    "sleepTimer.minutes %lld" : {
+      "comment" : "Sleep timer sheet row; %lld is a number of minutes (5 or more).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld minutes"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld phút"
+          }
+        }
+      }
+    },
+    "sleepTimer.option.endOfEpisode" : {
+      "comment" : "Sleep timer: stop at the end of the current episode (sheet row and Player button).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End of episode"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hết tập"
+          }
+        }
+      }
+    },
+    "sleepTimer.option.off" : {
+      "comment" : "Sleep timer sheet row that cancels the timer.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off timer"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tắt hẹn giờ"
+          }
+        }
+      }
+    },
+    "sleepTimer.status.endOfEpisode" : {
+      "comment" : "Sleep timer sheet: status line while the end-of-episode timer is set.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stops at the end of this episode"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dừng khi hết tập này"
+          }
+        }
+      }
+    },
+    "speed.applyAll" : {
+      "comment" : "Speed sheet toggle: one speed for every show.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply to all shows"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Áp dụng cho mọi show"
+          }
+        }
+      }
+    },
+    "speed.applyAll.footnote" : {
+      "comment" : "Speed sheet: explains the apply-to-all toggle.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When off, each show remembers its own speed."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khi tắt, mỗi show nhớ tốc độ riêng."
+          }
+        }
+      }
+    },
+    "speed.minus" : {
+      "comment" : "Speed sheet: lowers the speed by 0.1 (VoiceOver label).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slower"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giảm tốc độ"
+          }
+        }
+      }
+    },
+    "speed.plus" : {
+      "comment" : "Speed sheet: raises the speed by 0.1 (VoiceOver label).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Faster"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tăng tốc độ"
+          }
+        }
+      }
+    },
+    "tab.favourite" : {
+      "comment" : "Tab label and title of the Favourite tab (favourite_screen_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorites"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yêu thích"
+          }
+        }
+      }
+    },
+    "tab.home" : {
+      "comment" : "Tab label and title of the Home/Discover tab (discorver_screen_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discover"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khám phá"
+          }
+        }
+      }
+    },
+    "tab.search" : {
+      "comment" : "Tab label and title of the Search tab (search_screen_title).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm kiếm"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

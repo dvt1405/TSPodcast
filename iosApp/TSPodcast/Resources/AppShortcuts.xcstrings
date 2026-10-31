@@ -1,0 +1,60 @@
+{
+  "sourceLanguage" : "vi",
+  "strings" : {
+    "Continue listening on ${applicationName}" : {
+      "comment" : "Siri phrase of ContinueListeningIntent; keep ${applicationName}.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue listening on ${applicationName}"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiếp tục nghe trên ${applicationName}"
+          }
+        }
+      }
+    },
+    "Pause ${applicationName}" : {
+      "comment" : "Siri phrase of PauseIntent; keep ${applicationName}.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause ${applicationName}"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tạm dừng ${applicationName}"
+          }
+        }
+      }
+    },
+    "Set a sleep timer in ${applicationName}" : {
+      "comment" : "Siri phrase of SetSleepTimerIntent; keep ${applicationName}.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set a sleep timer in ${applicationName}"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hẹn giờ tắt ${applicationName}"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

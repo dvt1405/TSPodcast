@@ -313,7 +313,8 @@ Cách trả lời đề xuất cho TSPodcast:
 
 - **Demo account:** không cần (không có login). Ghi rõ điều này.
 - **Contact:** tên, số điện thoại và email của người phản hồi được trong 24 giờ.
-- **Attachment:** điều khoản PodcastIndex (PDF). Nếu có Radio thì thêm thư cho phép của VOV/VOH.
+- **Attachment:** điều khoản PodcastIndex (PDF). Nếu có Radio thì thêm thư cho phép của VOV/VOH. Khi đã có, kèm email xác nhận của các toà soạn trong "Thời sự & Bản tin" (M6 §7 mục 1) — chỉ gửi khi Apple hỏi nếu owner muốn giữ kín.
+- **"Thời sự & Bản tin" bật trong bản review** (M6 §3.4): Release chỉ hiện nguồn có `confirmedAt`, nên trước khi archive phải chạy `iosApp/scripts/check-news-hub-gate.sh` (§16) và đạt ngưỡng; dưới ngưỡng thì owner quyết, bỏ hub thì **gỡ khỏi binary**, không ẩn trong bản review. Đoạn "News & Bulletins" dưới đây chỉ giữ khi hub có trong build.
 - **Notes** (tiếng Anh):
 
 ```
@@ -329,19 +330,43 @@ Content safety: we filter spam and gambling feeds with a remotely-updated blockl
 episodes are hidden by default (Settings > Content). Rights holders can request removal via
 <support URL>; removals are applied server-side without an app update.
 
+News & Bulletins ("Thời sự & Bản tin", on the Discover tab): a curated list of on-demand podcast
+episodes that Vietnamese news organisations publish themselves through their own public podcast
+RSS feeds. The app finds those feeds through the Podcast Index API and plays each episode from the
+publisher's own audio URL; we do not stream live broadcasts, and we do not copy, re-host or modify
+any audio. The "Morning brief" only queues the newest episodes of those feeds in a fixed order;
+titles and descriptions are the publishers' own. Written confirmation from the publishers is
+available on request. Note: the description of the VOV "Thời sự" feed contains the word "trực
+tiếp" ("live"); its episodes are recordings published after broadcast, not a live stream. Every
+screen of the section has a "Report / request removal" link, and a source can be removed remotely
+without an app update. The section is enabled in this build, so it is visible during review.
+
 Background audio: used only to continue playback of the podcast the user started (Lock Screen /
-Control Center / CarPlay controls).
+Control Center controls).
 
 How to review:
-1. Complete the 4-page onboarding and pick any 3 categories.
+1. Complete the 4-page onboarding and pick any 3 categories. A privacy choice appears first:
+   either button continues into the app.
 2. Discover tab: tap any podcast > tap an episode to play. Lock the device to verify background playback.
-3. Player: playback speed, sleep timer, skip ±15/30s. Download an episode from the podcast page.
-4. Search tab: try "technology" or "history".
+3. Player: playback speed, sleep timer, skip back 15 s / forward 30 s.
+4. Discover tab > "Thời sự & Bản tin" (right below the trending row): "Play all" plays the
+   morning brief; "See all" opens the section with Latest, Sources and Bedtime stories (these set
+   a 30-minute sleep timer).
+5. Search tab: try "technology" or "history".
 The UI language follows the device language (Vietnamese / English).
 
-Privacy: we use Firebase Analytics and Crashlytics with a random per-install ID. No tracking,
-no advertising SDKs, no IDFA access in this version.
+Privacy: Firebase Analytics and Crashlytics run only after the user agrees on the first-launch
+privacy screen (both are off by default and can be changed in Settings > Privacy). They use a
+random per-install ID. No tracking, no advertising SDKs, no IDFA access in this version.
 ```
+
+Ghi chú cho bản notes trên (M6 T4):
+
+- Bỏ bước "Download an episode": v1 không có tải tập (features-spec §3.5 xếp Download vào [iOS+], ngoài phạm vi), reviewer bấm không thấy sẽ ghi 2.1. Bỏ "CarPlay" khỏi câu background audio vì v1 không có app CarPlay (chưa xin entitlement); thêm lại khi có.
+- Đoạn "trực tiếp": mô tả feed VOV Thời sự trên PodcastIndex có chữ "trực tiếp" (chữ của nhà phát hành, app hiển thị nguyên văn trên Podcast detail) — nói trước để reviewer không hiểu nhầm là phát live (5.2.3). Chữ của ta trong hub không có Radio/Đài/Phát thanh/Trực tiếp/Live/Kênh (`iosApp/scripts/check-news-strings.sh`, `NewsHubStringsTests`).
+- "Written confirmation … on request": chỉ để câu này khi owner đã có email xác nhận của các toà soạn có `confirmedAt` (cổng §16). Chưa có thì bỏ câu và không bật nguồn đó.
+- "Report / request removal" chỉ hiện khi `CONTENT_REPORT_EMAIL` có giá trị (handoff); thiếu thì bỏ câu này hoặc điền email trước khi archive.
+- Dòng Privacy theo consent lite (M6 §3.6): trước đây ghi như thể Analytics/Crashlytics luôn chạy.
 
 ### Các lý do reject thường gặp và câu trả lời chuẩn bị sẵn
 
@@ -388,6 +413,7 @@ Lưu ý:
 
 - Mốc SDK tối thiểu của Apple thường đổi vào tháng 4. Nếu release trễ sang khoảng tháng 4/2027, có thể phải build bằng Xcode/SDK mới hơn (dự đoán theo chu kỳ, **cần xác minh**).
 - Mỗi lần nộp lại sau reject tốn thêm 1–3 ngày.
+- **Cổng "Thời sự & Bản tin" (M6):** trước mọi lần archive bản nộp review/TestFlight external, chạy `iosApp/scripts/check-news-hub-gate.sh` (thêm đường dẫn JSON nếu Remote Config `news_hub_v1` đang có giá trị). Phải in `PASS`; hiện tại in `confirmed news=0 night=0` và thoát 1 vì chưa nguồn nào có `confirmedAt`. Hạn: email xác nhận của toà soạn + ý kiến luật sư (L4) trước code freeze 16/12/2026.
 
 ## 16. Checklist cuối trước khi bấm "Submit for Review"
 
@@ -418,6 +444,8 @@ Lưu ý:
 - [ ] Attribution PodcastIndex hiển thị; cache prune 7 ngày chạy trên iOS
 - [ ] Blacklist lọc được các từ khoá cờ bạc ngay ở lần chạy đầu (asset fallback)
 - [ ] Explicit filter mặc định bật; age rating đã trả lời theo §10
+- [ ] `iosApp/scripts/check-news-hub-gate.sh` in `PASS` (≥ 2 nguồn tin + kệ đêm, hoặc ≥ 3 nguồn tin có `confirmedAt`); không đạt thì hub đã được gỡ khỏi binary và đoạn "News & Bulletins" đã bỏ khỏi review notes
+- [ ] `iosApp/scripts/check-news-strings.sh` không vi phạm (không Radio/Đài/Phát thanh/Trực tiếp/Live/Kênh trong chữ của hub)
 - [ ] Support URL có mục takedown
 
 **Chất lượng**

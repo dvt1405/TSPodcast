@@ -1,0 +1,5 @@
+// Configuration Release của target TSPodcast.
+#include "Shared.xcconfig"
+
+// Secrets cục bộ (gitignored); CI ghi file này từ secret trước khi build.
+#include? "Secrets.xcconfig"

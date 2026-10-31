@@ -135,6 +135,16 @@ Xử lý lỗi:
 
 Pull-to-refresh: `reload()` đặt lại toàn bộ cờ loading rồi gọi lại tất cả API (cache 15 phút của trending vẫn áp dụng).
 
+**[iOS+] "Thời sự & Bản tin" (M6 N2, owner đưa vào scope; Android chưa có):**
+
+- Mục `home.section.news` **ngay sau** "Podcasts thịnh hành": thẻ "Điểm tin sáng · <thứ dd/MM>" (số tập, tổng phút làm tròn lên, "Phát tất cả"), hàng ngang 10 tập mới nhất (artwork của feed gốc), "Xem tất cả" → màn hub. Loading/lỗi/"Tải lại" như các section khác. Hub tắt hoặc không có tập tin nào → **không có mục** (không màn rỗng). Pull-to-refresh hỏi lại công tắc hub.
+- Màn hub (`newsHub.root`): Điểm tin sáng → "Mới nhất" (30 tập, mới nhất trước) → "Nguồn" (mở Podcast detail thường) → "Truyện đêm khuya" (tap = phát + hẹn giờ 30 phút + toast "Đã hẹn giờ tắt 30 phút · Đổi"). Footer nguyên văn: "Nội dung do các cơ quan báo chí phát hành qua RSS và được phát từ địa chỉ gốc của nhà xuất bản." + "Báo cáo / yêu cầu gỡ" (chỉ khi có `CONTENT_REPORT_EMAIL`).
+- Nguồn: đúng 8 nguồn trong `shared/assets/news_hub_default.json` (RC `news_hub_v1` thay được), mỗi nguồn cần `confirmedAt` mới hiện ở Release (cổng L4, `iosApp/scripts/check-news-hub-gate.sh`). Resolve qua PodcastIndex (`byitunesid` khớp host, không thì `byfeedurl`; cache 7 ngày), tập qua E10 `max=20`; **không bao giờ tải RSS trên máy**. Lọc show đã ẩn, D6, blocklist host.
+- Điểm tin sáng dựng trong shared (`MorningBrief`): theo thứ tự config, mỗi nguồn tập mới nhất trong 24 h (VnExpress 48 h, Tuổi Trẻ 2 tập), VOV Thời sự ưu tiên "Thời sự 6h" trước 11:00 giờ VN (UTC+7 cố định). "Phát tất cả" là **danh sách duy nhất tự phát tiếp** (`autoAdvance`); mọi danh sách khác giữ hành vi Android (dừng cuối tập).
+- Không chữ "radio/đài/phát thanh/trực tiếp/live/kênh" trong chuỗi của hub (`iosApp/scripts/check-news-strings.sh`). Chi tiết: [milestones/M6.md](milestones/M6.md) §3.4.
+
+**[iOS+] Ẩn show (M6 N1 lite):** long-press thẻ/hàng trên Home và kết quả Search → "Ẩn show này" (`show.hide`), gỡ ngay khỏi Home/Search/hub; danh sách chỉ lưu trên máy (`HiddenShowsRepository`), bỏ ẩn ở Cài đặt → "Show đã ẩn". Blocklist mở rộng theo host (feed, original, enclosure, cả subdomain) và author (`shared/assets/blacklist_extra.json`, RC `ts_podcast_black_list` khoá `host`/`author`), seed `ngocbaomedia.com`.
+
 ### 3.5 Podcast detail (`PodcastDetailScreen`, `PodcastViewModel`)
 
 | Thuộc tính | Chi tiết |
@@ -147,6 +157,7 @@ Pull-to-refresh: `reload()` đặt lại toàn bộ cờ loading rồi gọi l�
 | Ghi DB | Khi phát: `SaveCurrentPlayingUseCase` insert `Episode` (cả playlist) và `Podcast` vào Room, lưu `extra:current_item_id` |
 | **[Sửa]** | Sửa chính tả "Opps!" thành "Oops!" hoặc dịch sang tiếng Việt. Không hiển thị `detail_placeholder` (Lorem ipsum) ở bất kỳ đâu. Lorem ipsum trong bản build là lý do reject 2.1 kinh điển |
 | **[iOS+]** | Nút Favourite podcast ngay ở header (Android chỉ favourite được từ Player). Nút Share (`ShareLink`) cho link podcast. Download episode. Sắp xếp mới/cũ |
+| iOS (M6) | **Tìm trong show** (N5): `.searchable` khi show > 20 tập; so khớp bỏ dấu (gồm đ/Đ, `VietnameseFold` + `EpisodeFilter` trong shared), mọi từ của query phải có trong tiêu đề hoặc mô tả; query đầu tải tối đa 1.000 tập một lần (cache 15 phút, Detail thường vẫn `max=100`), debounce 200 ms; "Không tìm thấy tập phù hợp"; chú thích khi show có nhiều tập hơn số đã tải; tap kết quả phát danh sách kết quả. **Menu `…`** (`detail.menu`): "Ẩn show này" (hỏi xác nhận, ẩn rồi đóng Detail) và "Báo cáo nội dung" (mail điền sẵn kind/feedId/episodeId/phiên bản app tới `CONTENT_REPORT_EMAIL`; không có email thì ẩn; không mở được Mail thì alert có địa chỉ + sao chép). Event `show_search`, `show_hidden`, `content_report` |
 
 ### 3.6 Player full screen (`PlayerScreen`, `PlayerViewModel`)
 
@@ -162,6 +173,9 @@ Pull-to-refresh: `reload()` đặt lại toàn bộ cờ loading rồi gọi l�
 | Progress an toàn | `progressOf(pos, dur)` trả về 0 khi `dur ≤ 0` hoặc chưa xác định (stream live). **[Parity]** Trên iOS phải xử lý `CMTime.indefinite` và `NaN` tương tự |
 | **[Sửa]** | Android **không lưu vị trí nghe**: chỉ lưu `mediaId`, nên mở lại là phát từ đầu. iOS nên lưu `positionMs` theo episode (mỗi 10 giây và khi pause) rồi resume |
 | **[iOS+]** | Tốc độ 0.5–3x, sleep timer, nút skip ±15 s / +30 s, AirPlay (`AVRoutePickerView`), chọn "tự phát tiếp" (bật hoặc tắt; mặc định giữ hành vi Android là tắt) |
+| iOS (M6, đã làm) | Hàng nút: Favourite · **−15 s** · Play/Pause · **+30 s** · Playlist; Previous/Next chuyển vào đầu danh sách Up next (giữ `player.previous`/`player.next`). Hàng phụ: **tốc độ** (0,5–3,0× bước 0,1, chip 0,8/1,0/1,2/1,5/2,0, nhớ theo show + mặc định chung + "Áp dụng cho mọi show", giữ cao độ `.timeDomain`, live luôn 1,0×) và **hẹn giờ ngủ** (5/10/15/30/45/60 phút / hết tập / tắt; fade âm lượng 10 s cuối; huỷ khi người dùng tự pause, không huỷ khi cuộc gọi/rút tai nghe; "Hết tập" dừng ở cuối tập). Màn khoá: skip −15/+30 và danh sách rate thay next/previous. Logic `SleepTimer`, `EndOfItemPolicy`, `PlaybackSpeed`, `PlaybackProfileRepository` trong shared (Android dùng lại được). Nút `…` (`player.more`) chỉ có "Báo cáo nội dung", chỉ hiện khi có email. Chưa có: AirPlay picker, tự phát tiếp toàn cục, DSP, download |
+| iOS (M6, App Shortcuts) | Trong target app (không extension, không App Group): "Tiếp tục nghe" (`AudioPlaybackIntent`: item đang có, không thì tập cuối từ `extra:current_item_id` qua `FavouriteResolver`, từ vị trí đã lưu), "Tạm dừng" (`AudioPlaybackIntent`, như pause của người dùng), "Hẹn giờ tắt" (`minutes`, mặc định 30, 1–180). Câu Siri vi + en trong `AppShortcuts.xcstrings`; tiếng Việt cần Siri tiếng Việt (iOS 18.4+). Event `shortcut_invoked` |
+| iOS | Up next là panel peek dưới hàng nút (owner 30/10/2026), không phải sheet: peek "Tiếp theo" + "Đang phát" (+ tập kế nếu đủ chỗ), kéo/tap header hoặc nút danh sách phát để mở cả danh sách, chọn tập thì thu lại; Liquid Glass trên iOS 26, Material ở iOS 17/18. Xem [milestones/M5.md](milestones/M5.md) |
 
 Chi tiết engine: [audio-playback-ios.md](audio-playback-ios.md).
 
@@ -239,11 +253,27 @@ iOS:
 
 **[iOS+]** Nên thêm các event `play_start`, `play_complete`, `favourite_add`, `search` (không gửi chuỗi query thô nếu có thể chứa thông tin cá nhân). Nhớ khai báo trong App Privacy.
 
+**[iOS+] Event M6** (tên là hằng trong shared `AnalyticsEvents`, Android dùng lại được; mọi event iOS đi qua `ConsentGatedAnalyticsTracker`, không gửi query, tiêu đề hay email):
+
+| Event | Tham số | Nơi phát (iOS) |
+|---|---|---|
+| `news_hub_open` | `from` (`home_seeAll` \| `home_brief`) | Mở màn hub |
+| `news_brief_play` | `count` | "Phát tất cả" của Điểm tin sáng |
+| `news_source_unresolved` | `source_key` | Nguồn hub không resolve được (1 lần/process/key) |
+| `speed_change` | `rate` (`"1.5"`), `scope` (`show` \| `all`) | Sheet tốc độ, đổi rate từ màn khoá |
+| `sleep_timer_set` | `option` (`5`…`60` \| `end_of_episode` \| `off`), `origin` (`player` \| `night_shelf` \| `shortcut`) | Sheet hẹn giờ, kệ đêm khuya, App Shortcut |
+| `show_search` | `result_count`, `truncated` | Query đầu tiên trong một lần mở Detail |
+| `show_hidden` | `feed_id` | Ẩn show |
+| `content_report` | `kind` (`feed` \| `episode` \| `hub`) | Mở mail báo cáo |
+| `shortcut_invoked` | `intent` (`continue_listening` \| `pause` \| `set_sleep_timer`) | Mỗi lần App Shortcut chạy |
+
 ## 5. Bản địa hoá và giao diện
 
 - **Ngôn ngữ:** chỉ có tiếng Việt (`values/strings.xml`, không có `values-*`). Vài chuỗi tiếng Anh bị hardcode: tên tab "Favorite", "TSPodcast", "Search", "Radio"; "Live Podcasts"; "Opps!".
   - iOS: tạo `Localizable.xcstrings` với **`vi` là development language** và thêm **`en`**. Reviewer của Apple đọc tiếng Anh; bản `en` giúp họ hiểu app và giảm rủi ro 2.1/4.2.
   - Metadata App Store: `vi` + `en-US`.
+  - M6: mọi chuỗi mới có vi + en (155 khoá trong `Localizable.xcstrings`); câu Siri của App Shortcuts nằm riêng trong `AppShortcuts.xcstrings` (vi + en, mỗi câu chứa `${applicationName}`). N7: không câu chữ nào gợi ý nghe khi chạy xe máy/lái xe (String Catalog và `fastlane/metadata`).
+- **Quyền riêng tư (M6 N11 consent lite):** lần đầu mở app có sheet "Quyền riêng tư" (`consent.sheet`) không chặn app: "Cần thiết" luôn bật (chạy app, Remote Config cho danh sách chặn, ID cài đặt ngẫu nhiên), "Phân tích sử dụng" và "Báo cáo sự cố" tắt mặc định; hai nút "Đồng ý tất cả" / "Chỉ cần thiết" ngang hàng, cả hai đều vào app. Firebase Analytics/Crashlytics tắt trong Info.plist, chỉ bật lúc chạy sau khi đồng ý; đổi lại trong Cài đặt (`settings.analytics`, `settings.crash`). Lưu version + thời điểm quyết định (`ConsentRepository`, shared). Văn bản hiện là placeholder chờ luật sư (handoff.md). Android chưa có.
 - **Màu:** lấy từ `sharedLibrary/theme/ColorsTheme.kt`, ví dụ `Primary #184BB4`, `Secondary #4A7DE7`, `TextColor #1F1F1F`, `TextTitleColor #39375B`, `SubTitleColor #999999`, các tông xám `Gray*`.
   - App Android chỉ có **light mode** (dark mode đang bị comment).
   - iOS v1: hoặc khoá `UIUserInterfaceStyle = Light` cho giống Android, hoặc (khuyến nghị) định nghĩa Color Set có biến thể Dark.

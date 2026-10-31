@@ -1,0 +1,20 @@
+// Build settings chung cho Debug và Release của target TSPodcast.
+
+// Giá trị mặc định rỗng: build vẫn chạy khi chưa có Secrets.xcconfig (app hiện lỗi thiếu cấu hình).
+PODCASTINDEX_API_KEY =
+PODCASTINDEX_API_SECRET =
+PODCASTINDEX_BASE_URL =
+PODCASTINDEX_USER_AGENT =
+
+// URL chính sách bảo mật (màn Cài đặt, guideline 5.1.1). Rỗng = ẩn dòng "Chính sách bảo mật" (handoff).
+// Bẫy "//" như trên: viết https:/$()/example.com/privacy.
+PRIVACY_POLICY_URL =
+
+// Host của Universal Link (deep link /podcast/<feedId>-<slug>, /episode/<id>-<slug>, M4 §4.5), ví dụ
+// tspodcast.example.com (không có https://). Rỗng = app không nhận link nào cho tới khi owner có domain,
+// entitlement Associated Domains và file apple-app-site-association (handoff).
+APP_LINK_HOST =
+
+// Email nhận "Báo cáo nội dung" (M6 §3.5, mailto từ Detail, Player, hub). Rỗng = ẩn mọi lối báo cáo cho tới khi
+// owner có địa chỉ (bắt buộc trước khi nộp, handoff). Ví dụ: report@example.com
+CONTENT_REPORT_EMAIL =
