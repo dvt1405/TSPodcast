@@ -4,9 +4,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /** [KeyValueStore] in a map, shared by several test graphs to stand for "the same file". */
-class InMemoryKeyValueStore : KeyValueStore {
+class InMemoryKeyValueStore(initial: Map<String, Any> = emptyMap()) : KeyValueStore {
     private val mutex = Mutex()
-    private val values = mutableMapOf<String, Any>()
+    private val values = initial.toMutableMap()
 
     /** Raw view for assertions. */
     suspend fun snapshot(): Map<String, Any> = mutex.withLock { values.toMap() }

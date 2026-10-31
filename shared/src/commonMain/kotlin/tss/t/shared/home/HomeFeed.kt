@@ -34,6 +34,8 @@ class HomeFeed internal constructor(
     private val preferences: AppPreferences,
     private val hiddenShows: HiddenShowsRepository,
     private val clock: EpochClock,
+    /** Content language (app language, "vi,en" style); null in tests keeps [LANG]. */
+    private val contentLanguage: tss.t.shared.i18n.ContentLanguageRepository? = null,
 ) {
     /**
      * "Podcasts thịnh hành" (E1, last 7 days, no category) and "Có thể bạn yêu thích" (E1, last
@@ -43,13 +45,15 @@ class HomeFeed internal constructor(
      */
     suspend fun trendingSections(favouriteCatIds: String?): TrendingSections = coroutineScope {
         val nowSeconds = clock.nowMillis() / 1_000
+        val lang = lang()
         val trendingCall = async {
-            getTrendingPodcasts(max = MAX_TRENDING, since = nowSeconds - TRENDING_WINDOW_SECONDS)
+            getTrendingPodcasts(max = MAX_TRENDING, since = nowSeconds - TRENDING_WINDOW_SECONDS, lang = lang)
         }
         val forYouCall = async {
             getTrendingPodcasts(
                 max = MAX_TRENDING,
                 since = nowSeconds - FOR_YOU_WINDOW_SECONDS,
+                lang = lang,
                 cat = favouriteCatIds,
             )
         }
@@ -96,9 +100,11 @@ class HomeFeed internal constructor(
     /** "Podcasts xu hướng gần đây": E5 `recent/feeds`, `cat = favouriteCatIds`, no `notcat`. */
     suspend fun recent(favouriteCatIds: String?): TSDataState<List<Podcast>> {
         val allowExplicit = preferences.allowExplicitContent()
-        val result = getRecentFeeds(max = MAX_RECENT, lang = LANG, cat = favouriteCatIds, notcat = null)
+        val result = getRecentFeeds(max = MAX_RECENT, lang = lang(), cat = favouriteCatIds, notcat = null)
         return result.toPodcasts(allowExplicit, hiddenShows.hiddenIds())
     }
+
+    private suspend fun lang(): String = contentLanguage?.langParam() ?: LANG
 
     private fun TSDataState<TrendingPodcastRes>.toPodcasts(
         allowExplicit: Boolean,

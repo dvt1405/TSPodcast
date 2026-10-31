@@ -34,6 +34,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,6 +70,27 @@ fun SettingsScreen(
     val hiddenShows by viewModel.hiddenShows.collectAsState()
     val privacy by viewModel.privacy.collectAsState()
     val liquidGlass by viewModel.liquidGlass.collectAsState()
+    val language by viewModel.language.collectAsState()
+    var showLanguages by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+    val activity = androidx.activity.compose.LocalActivity.current
+    if (showLanguages) {
+        LanguageDialog(
+            languages = viewModel.languages,
+            selectedTag = language.tag,
+            onDismiss = { showLanguages = false },
+            onSelect = { tag ->
+                showLanguages = false
+                if (tag != language.tag) {
+                    viewModel.setLanguage(tag)
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                        tss.t.podcast.AppLocale.apply(tag)
+                    } else {
+                        activity?.recreate()
+                    }
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -173,6 +195,21 @@ fun SettingsScreen(
 
             item { Divider() }
             item { SectionHeader(stringResource(R.string.settings_section_look)) }
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(role = Role.Button) { showLanguages = true }
+                        .padding(horizontal = 20.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.settings_language), style = TextStyles.SubTitle2)
+                        Text(stringResource(R.string.settings_language_hint), style = TextStyles.SubTitle4, color = Colors.Gray60)
+                    }
+                    Text(language.nativeName, style = TextStyles.SubTitle2, color = MaterialTheme.colorScheme.primary)
+                }
+            }
             item {
                 SwitchRow(
                     title = stringResource(R.string.settings_liquid_glass),
@@ -285,3 +322,38 @@ private fun Context.openNotificationSettings() {
 internal fun Context.appVersion(): String = runCatching {
     packageManager.getPackageInfo(packageName, 0).versionName.orEmpty()
 }.getOrDefault("")
+
+@Composable
+private fun LanguageDialog(
+    languages: List<tss.t.core.storage.AppLanguage>,
+    selectedTag: String,
+    onDismiss: () -> Unit,
+    onSelect: (String) -> Unit,
+) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_language)) },
+        text = {
+            LazyColumn {
+                items(languages, key = { it.tag }) { lang ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(role = Role.RadioButton) { onSelect(lang.tag) }
+                            .padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        androidx.compose.material3.RadioButton(
+                            selected = lang.tag == selectedTag,
+                            onClick = { onSelect(lang.tag) }
+                        )
+                        Text(lang.nativeName, style = TextStyles.SubTitle2)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+        }
+    )
+}

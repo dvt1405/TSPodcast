@@ -14,7 +14,14 @@ class SettingsViewModel @Inject constructor(
     private val contentPrefs: ContentPrefs,
     private val privacyConsent: PrivacyConsent,
     private val uiPrefs: tss.t.core.storage.UiPrefs,
+    private val languagePrefs: tss.t.core.storage.LanguagePrefs,
 ) : ViewModel() {
+
+    val language: StateFlow<tss.t.core.storage.AppLanguage> = languagePrefs.language
+    val languages: List<tss.t.core.storage.AppLanguage> = tss.t.core.storage.LanguagePrefs.SUPPORTED
+
+    /** App and content language; the caller then applies the UI locale. */
+    fun setLanguage(tag: String) = languagePrefs.setLanguage(tag)
 
     val liquidGlass: StateFlow<Boolean> = uiPrefs.liquidGlass
 
