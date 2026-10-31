@@ -50,6 +50,26 @@ if (releaseAppId == AdMobTestIds.APP_ID) {
     logger.info("ads-admob: ADMOB_APP_ID not set, release builds use Google's TEST AdMob ids.")
 }
 
+/*
+ * Store builds must carry the real AdMob ids (Sprint 0, admob-migration.md): bundleRelease (the
+ * AAB uploaded to Google Play) fails while any release id is still Google's test id. Debug and
+ * the release APKs used for internal testing are not affected. Override for a deliberate test
+ * bundle with -PALLOW_TEST_ADS_IN_RELEASE=true.
+ */
+gradle.taskGraph.whenReady {
+    val buildsStoreBundle = allTasks.any { it.path == ":app:bundleRelease" }
+    if (!buildsStoreBundle || prop("ALLOW_TEST_ADS_IN_RELEASE") == "true") return@whenReady
+    val missing = listOf(
+        "ADMOB_APP_ID", "ADMOB_UNIT_APP_OPEN", "ADMOB_UNIT_BANNER", "ADMOB_UNIT_NATIVE", "ADMOB_UNIT_INTERSTITIAL",
+    ).filter { prop(it) == null }
+    if (missing.isNotEmpty()) {
+        throw GradleException(
+            "Release bundle without real AdMob ids (missing: ${missing.joinToString()}). " +
+                "Set them as GitHub secrets / Gradle properties, or pass -PALLOW_TEST_ADS_IN_RELEASE=true for a test bundle."
+        )
+    }
+}
+
 android {
     namespace = "tss.t.ads.admob"
     compileSdk = libs.versions.compileSdk.get().toInt()
