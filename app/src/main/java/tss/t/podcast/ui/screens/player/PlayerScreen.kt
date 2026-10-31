@@ -18,6 +18,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Flag
+import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Text
+import androidx.compose.ui.res.stringResource
+import tss.t.podcast.R
+import tss.t.podcast.ui.screens.common.LocalShowActions
+import tss.t.podcast.ui.screens.common.ShowRef
+import tss.t.podcast.ui.screens.common.WebLinks
+import tss.t.podcast.ui.screens.common.shareText
+import tss.t.sharedplayer.player.feedId
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -191,23 +203,61 @@ internal fun PlayerScreen(
                     })
                     .padding(12.dp)
             )
-            Icon(
-                Icons.Rounded.MoreVert,
-                contentDescription = "More",
-                modifier = Modifier
-                    .padding(start = 16.dp)
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .rotate(90f)
-                    .clickable {
-                        if (slideState == SlideAreaState.Hidden) {
-                            onClosePlayer()
-                        } else {
-                            onDismissSlideArea()
+            // "…" menu (iOS M6 parity): share the episode, report the show. It used to close
+            // the Player, a button that did not do what it showed.
+            Box {
+                var menuOpen by remember { mutableStateOf(false) }
+                val context = LocalContext.current
+                val showActions = LocalShowActions.current
+                val shareTitle = stringResource(R.string.share_chooser_title)
+                val title = episode.mediaMetadata.title?.toString().orEmpty()
+                val episodeId = episode.mediaId.toLongOrNull()
+                val shareText = stringResource(
+                    R.string.share_episode_text,
+                    title,
+                    if (episodeId != null) WebLinks.episode(episodeId, title) else WebLinks.WEB_BASE
+                )
+                Icon(
+                    Icons.Rounded.MoreVert,
+                    contentDescription = stringResource(R.string.more_actions),
+                    modifier = Modifier
+                        .padding(start = 16.dp)
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .rotate(90f)
+                        .clickable {
+                            if (slideState == SlideAreaState.Hidden) {
+                                menuOpen = true
+                            } else {
+                                onDismissSlideArea()
+                            }
                         }
+                        .padding(12.dp),
+                )
+                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.player_more_share)) },
+                        leadingIcon = { Icon(Icons.Rounded.Share, null) },
+                        onClick = {
+                            menuOpen = false
+                            context.shareText(shareText, shareTitle)
+                        }
+                    )
+                    val feedId = episode.feedId
+                    if (showActions != null && feedId != null) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.player_more_report)) },
+                            leadingIcon = { Icon(Icons.Rounded.Flag, null) },
+                            onClick = {
+                                menuOpen = false
+                                showActions.report(
+                                    ShowRef(feedId, episode.mediaMetadata.albumTitle?.toString() ?: title, null)
+                                )
+                            }
+                        )
                     }
-                    .padding(12.dp),
-            )
+                }
+            }
         }
         PlayerArea(
             episode = episode,

@@ -97,6 +97,7 @@ fun DiscoverPodcastsScreen(
     onTrendingClick: Podcast.() -> Unit = {},
     onFavClick: Podcast.() -> Unit = {},
     onLiveItemClick: LiveEpisode.() -> Unit = {},
+    onNewsClick: (tss.t.podcasts.NewsItem) -> Unit = {},
 ) {
     val sharedTransitionScope = LocalSharedTransitionScope.current!!
     val animatedContentScope = LocalNavAnimatedVisibilityScope.current!!
@@ -253,6 +254,23 @@ fun DiscoverPodcastsScreen(
                     pagerState = pagerState,
                     onClick = onLiveItemClick
                 )
+            }
+            if (uiState.newsItems.isNotEmpty()) {
+                item(key = "NewsTitle") {
+                    Text(
+                        stringResource(R.string.news_hub_title),
+                        style = TextStyles.Title4,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    )
+                }
+                item(key = "NewsRow") {
+                    tss.t.podcast.ui.screens.discorver.components.NewsRow(
+                        items = uiState.newsItems,
+                        onClick = onNewsClick
+                    )
+                }
             }
             item(key = ITEM_RECENT_TITLE) {
                 Text(

@@ -89,7 +89,11 @@ interface AdsController {
      * Interstitial at a natural transition point. Returns false when blocked by
      * policy or when no ad is preloaded (never waits for a load).
      */
-    fun maybeShowInterstitial(activity: Activity, placement: AdPlacement): Boolean
+    fun maybeShowInterstitial(
+        activity: Activity,
+        placement: AdPlacement,
+        screenDwellMs: Long? = null,
+    ): Boolean
 
     /** User-initiated rewarded ad. Never auto-shown. */
     suspend fun showRewarded(activity: Activity, placement: AdPlacement): RewardResult
@@ -105,7 +109,7 @@ object NoOpAdsController : AdsController {
     override val privacyOptionsRequired: StateFlow<Boolean> = noPrivacy.asStateFlow()
     override fun start(activity: Activity) = Unit
     override fun onExternalLaunch() = Unit
-    override fun maybeShowInterstitial(activity: Activity, placement: AdPlacement) = false
+    override fun maybeShowInterstitial(activity: Activity, placement: AdPlacement, screenDwellMs: Long?) = false
     override suspend fun showRewarded(activity: Activity, placement: AdPlacement) =
         RewardResult.NotAvailable
 
@@ -127,6 +131,9 @@ interface AdsHostSignals {
 
     /** Onboarding and favourite-category selection are done. */
     fun isOnboardingCompleted(): Boolean
+
+    /** Elapsed-realtime millis when audio last played, or 0 when it never did this process. */
+    fun lastPlaybackAt(): Long = 0L
 }
 
 /** Renders banner / native slots. `:ads-admob` provides the real one. */

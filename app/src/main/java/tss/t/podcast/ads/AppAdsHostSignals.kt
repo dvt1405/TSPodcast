@@ -22,7 +22,11 @@ import javax.inject.Singleton
 class AppAdsHostSignals @Inject constructor(
     private val mediaController: TSMediaController,
     private val sharedPref: SharedPref,
+    private val playerManager: tss.t.sharedplayer.player.PlayerManager,
 ) : AdsHostSignals {
+
+    override fun lastPlaybackAt(): Long =
+        if (isPlaybackActive()) android.os.SystemClock.elapsedRealtime() else playerManager.lastPlayingAt
 
     /** Current top-level route, updated by MainActivity's NavController listener. */
     @Volatile

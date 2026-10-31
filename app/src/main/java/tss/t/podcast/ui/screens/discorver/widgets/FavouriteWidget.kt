@@ -3,6 +3,11 @@ package tss.t.podcast.ui.screens.discorver.widgets
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import tss.t.podcast.ui.screens.common.ShowActionsMenu
+import tss.t.podcast.ui.screens.common.ShowRef
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -52,19 +57,26 @@ fun FavouriteWidget(
         MutableInteractionSource()
     }
     val isPressed by interactiveSource.collectIsPressedAsState()
+    var menuOpen by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(if (isPressed) 1.05f else 1f, label = "")
     Row(
         modifier = modifier
             .scale(scale = scale)
-            .clickable(
+            .combinedClickable(
                 interactionSource = interactiveSource,
                 indication = null,
+                onLongClick = { menuOpen = true },
                 onClick = {
                     onClick(podcast)
                 }
             ),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        ShowActionsMenu(
+            show = ShowRef(podcast.id, podcast.title.orEmpty(), podcast.image),
+            expanded = menuOpen,
+            onDismiss = { menuOpen = false }
+        )
         if (podcast.image.isEmpty()) {
             Image(
                 modifier = Modifier

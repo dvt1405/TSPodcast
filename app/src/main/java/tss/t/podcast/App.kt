@@ -3,6 +3,7 @@ package tss.t.podcast
 import android.os.Build
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
+import tss.t.sharedfirebase.PrivacyConsent
 import com.google.firebase.messaging.messaging
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
@@ -34,11 +35,15 @@ class App : CoreApp() {
     lateinit var sharedPref: SharedPref
     @Inject
     lateinit var pruneApiCache: PruneApiCache
+    @Inject
+    lateinit var privacyConsent: PrivacyConsent
 
     override fun onCreate() {
         super.onCreate()
         instance = this
         FirebaseApp.initializeApp(this)
+        // Analytics and Crashlytics are off in the manifest; turn them on only if the user agreed.
+        privacyConsent.applySaved()
         // Installed before anything else so that failures during the rest of
         // startup are reported rather than lost to the logcat-only fallback.
         Crash.install(crashReporter)

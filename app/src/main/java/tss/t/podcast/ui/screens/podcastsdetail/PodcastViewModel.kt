@@ -28,7 +28,10 @@ import javax.inject.Inject
 
 data class PodcastInteractors @Inject constructor(
     val getEpisodeByFeedId: GetEpisodeByFeedId,
-    val getPodcastByFeedID: GetPodcastByFeedID
+    val getPodcastByFeedID: GetPodcastByFeedID,
+    val isFavourite: tss.t.podcasts.usecase.favourite.IsFavouriteUseCase,
+    val saveFavourite: tss.t.podcasts.usecase.favourite.SaveFavouriteUseCase,
+    val deleteFavourite: tss.t.podcasts.usecase.favourite.DeleteFavouriteUseCase,
 )
 
 @HiltViewModel
@@ -43,6 +46,26 @@ class PodcastViewModel @Inject constructor(
 
     val uiState: StateFlow<PodcastUIState>
         get() = _uiState
+
+    private val _isPodcastFavourite = MutableStateFlow(false)
+
+    /** Whether the open show is in Favourites (heart in the Detail header, iOS parity). */
+    val isPodcastFavourite: StateFlow<Boolean> = _isPodcastFavourite
+
+    fun checkPodcastFavourite(podcast: Podcast) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isPodcastFavourite.value = runCatching { interactors.isFavourite(podcast) }.getOrDefault(false)
+        }
+    }
+
+    fun setPodcastFavourite(podcast: Podcast, favourite: Boolean) {
+        _isPodcastFavourite.value = favourite
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                if (favourite) interactors.saveFavourite(podcast) else interactors.deleteFavourite(podcast)
+            }
+        }
+    }
 
     fun setPodcastAndEpisodes(podcast: Podcast, playList: List<Episode>) {
         _uiState.update {

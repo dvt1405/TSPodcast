@@ -28,4 +28,79 @@
     <string name="broken_install_title">Bản cài đặt chưa đầy đủ</string>
     <string name="broken_install_message">Ứng dụng thiếu thành phần cho thiết bị này, thường do được cài từ tệp APK thay vì Google Play. Vui lòng cài lại ứng dụng từ Google Play.</string>
     <string name="broken_install_action">Mở Google Play</string>
+
+    <!-- Settings (parity with iOS) -->
+    <string name="settings_title">Cài đặt</string>
+    <string name="settings_open">Mở cài đặt</string>
+    <string name="settings_back">Quay lại</string>
+    <string name="settings_section_content">Nội dung</string>
+    <string name="settings_explicit">Hiện nội dung người lớn (explicit)</string>
+    <string name="settings_explicit_hint">Mặc định ẩn chương trình và tập được đánh dấu explicit</string>
+    <string name="settings_hidden_shows">Show đã ẩn (%1$d)</string>
+    <string name="settings_hidden_shows_empty">Bạn chưa ẩn show nào. Nhấn giữ một show ở Khám phá hoặc Tìm kiếm để ẩn.</string>
+    <string name="settings_unhide">Bỏ ẩn</string>
+    <string name="settings_section_privacy">Quyền riêng tư</string>
+    <string name="settings_analytics">Phân tích sử dụng</string>
+    <string name="settings_analytics_hint">Thống kê ẩn danh cách dùng app để cải thiện tính năng</string>
+    <string name="settings_crash">Báo cáo sự cố</string>
+    <string name="settings_crash_hint">Gửi thông tin khi app gặp lỗi để sửa nhanh hơn</string>
+    <string name="settings_privacy_policy">Chính sách bảo mật</string>
+    <string name="settings_terms">Điều khoản sử dụng</string>
+    <string name="settings_delete_data">Xoá dữ liệu của bạn</string>
+    <string name="settings_section_app">Ứng dụng</string>
+    <string name="settings_notifications">Thông báo</string>
+    <string name="settings_feedback">Góp ý và báo lỗi</string>
+    <string name="settings_feedback_subject">Góp ý TSPodcast %1$s</string>
+    <string name="settings_version">Phiên bản %1$s</string>
+
+    <!-- First-launch privacy question -->
+    <string name="consent_title">Quyền riêng tư của bạn</string>
+    <string name="consent_body">TSPodcast không cần tài khoản và không thu thập tên, email hay số điện thoại. Bạn có đồng ý gửi thống kê sử dụng ẩn danh và báo cáo sự cố để chúng tôi cải thiện app không?</string>
+    <string name="consent_necessary_note">Bạn có thể đổi lựa chọn bất cứ lúc nào trong Cài đặt. Danh sách lọc nội dung rác vẫn được cập nhật để app hoạt động an toàn.</string>
+    <string name="consent_accept_all">Đồng ý</string>
+    <string name="consent_necessary_only">Chỉ những gì cần thiết</string>
+
+    <!-- Show actions (hide / report / share) -->
+    <string name="show_hide">Ẩn show này</string>
+    <string name="show_report">Báo cáo nội dung</string>
+    <string name="show_hidden_toast">Đã ẩn show. Bỏ ẩn trong Cài đặt.</string>
+    <string name="show_hide_confirm_title">Ẩn show này?</string>
+    <string name="show_hide_confirm_message">"%1$s" sẽ không còn hiện trong Khám phá và Tìm kiếm. Bạn có thể bỏ ẩn trong Cài đặt.</string>
+    <string name="action_cancel">Huỷ</string>
+    <string name="report_subject">Báo cáo nội dung: %1$s</string>
+    <string name="report_body">Chương trình: %1$s
+Mã feed: %2$s
+Link: %3$s
+Phiên bản app: %4$s
+
+Lý do báo cáo:
+</string>
+    <string name="share">Chia sẻ</string>
+    <string name="share_chooser_title">Chia sẻ qua</string>
+    <string name="share_podcast_text">Nghe "%1$s" trên TSPodcast: %2$s</string>
+    <string name="share_episode_text">Nghe tập "%1$s" trên TSPodcast: %2$s</string>
+    <string name="more_actions">Thêm</string>
+    <string name="podcast_favourite">Thêm vào Yêu thích</string>
+    <string name="podcast_unfavourite">Bỏ khỏi Yêu thích</string>
+
+    <!-- In-show search, categories, player menu -->
+    <string name="show_search_hint">Tìm tập trong show</string>
+    <string name="show_search_clear">Xoá</string>
+    <string name="show_search_empty">Không có tập nào khớp</string>
+    <string name="show_search_count">%1$d tập khớp</string>
+    <string name="search_categories_title">Chủ đề</string>
+    <string name="player_more_share">Chia sẻ tập này</string>
+    <string name="player_more_report">Báo cáo nội dung</string>
+
+    <!-- Launcher shortcuts -->
+    <string name="shortcut_continue_short">Nghe tiếp</string>
+    <string name="shortcut_continue_long">Nghe tiếp tập đang dở</string>
+    <string name="shortcut_pause_short">Tạm dừng</string>
+    <string name="shortcut_pause_long">Tạm dừng phát</string>
+    <string name="shortcut_sleep_short">Tắt sau 30 phút</string>
+    <string name="shortcut_sleep_long">Hẹn giờ tắt sau 30 phút</string>
+    <string name="shortcut_nothing_to_continue">Chưa có tập nào đang nghe dở</string>
+    <string name="shortcut_sleep_toast">Đã hẹn giờ tắt sau 30 phút</string>
+
+    <string name="news_hub_title">Thời sự &amp; Bản tin</string>
 </resources>

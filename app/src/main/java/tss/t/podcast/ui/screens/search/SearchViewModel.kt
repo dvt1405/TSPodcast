@@ -11,6 +11,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
@@ -28,7 +29,8 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor(
     private val _getCategory: GetCategories,
     private val _searchPodcasts: SearchPodcasts,
-    private val _searchMusicFeeds: SearchMusicFeeds
+    private val _searchMusicFeeds: SearchMusicFeeds,
+    private val contentPrefs: tss.t.core.storage.ContentPrefs,
 ) : ViewModel() {
 
     private val _searchMode by lazy { MutableStateFlow(SearchMode.All) }
@@ -68,8 +70,13 @@ class SearchViewModel @Inject constructor(
     private val _listSearch by lazy {
         MutableStateFlow<List<Feed>>(emptyList())
     }
-    val listSearch: StateFlow<List<Feed>>
-        get() = _listSearch.asStateFlow()
+    /** Results without the shows the user hides from here or anywhere else (iOS M6 N1 lite). */
+    val listSearch: StateFlow<List<Feed>> by lazy {
+        kotlinx.coroutines.flow.combine(_listSearch, contentPrefs.hiddenShows) { feeds, hidden ->
+            val ids = hidden.mapTo(HashSet()) { it.feedId }
+            feeds.filterNot { it.id in ids }
+        }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Eagerly, emptyList())
+    }
     private var searchJob: Deferred<TSDataState<SearchResponse>>? = null
     fun performSearch(searchText: String?) {
         searchJob?.cancel()

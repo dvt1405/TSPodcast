@@ -83,6 +83,15 @@ import tss.t.featureonboarding.OnboardingViewModel
 import tss.t.podcast.ui.model.HomeEvent
 import tss.t.podcast.ui.navigations.TSHomeRouter
 import tss.t.podcast.ui.navigations.TSNavGraph
+import tss.t.podcast.ui.screens.settings.PrivacyConsentSheet
+import tss.t.podcast.shortcuts.AppShortcuts
+import tss.t.podcast.ui.screens.common.LocalShowActions
+import tss.t.podcast.ui.screens.common.ShowActions
+import tss.t.podcast.ui.screens.common.ShowRef
+import tss.t.podcast.ui.screens.common.WebLinks
+import tss.t.podcast.ui.screens.settings.appVersion
+import tss.t.podcast.ui.screens.settings.sendEmail
+import tss.t.sharedfirebase.PrivacyConsent
 import tss.t.podcast.ui.navigations.TSRouter
 import tss.t.podcast.ui.screens.MainViewModel
 import tss.t.podcast.ui.screens.main.BottomBarTab
@@ -119,6 +128,15 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var tsRemoteConfig: TSFirebaseRemoteConfig
+
+    @Inject
+    lateinit var privacyConsent: PrivacyConsent
+
+    @Inject
+    lateinit var playerManager: tss.t.sharedplayer.player.PlayerManager
+
+    @Inject
+    lateinit var sharedPref: tss.t.core.storage.SharedPref
 
     private var navHostController: NavHostController? = null
     private var homeInnerNavHostController: NavHostController? = null
@@ -163,6 +181,7 @@ class MainActivity : ComponentActivity() {
         }
         onBackPressedCallback = backCallback
         onBackPressedDispatcher.addCallback(this, backCallback)
+        AppShortcuts.publish(this)
         handleIntent(intent)
         requestNotificationPermissionIfNeeded()
         // UMP consent (form if required) -> Mobile Ads SDK init -> preload.
@@ -188,6 +207,12 @@ class MainActivity : ComponentActivity() {
             }
             val innerNavGraph = rememberNavController()
             homeInnerNavHostController = innerNavGraph
+            val showActions = remember {
+                ShowActions(
+                    hide = { mainViewModel.hideShow(it.feedId, it.title, it.image) },
+                    report = { reportShow(it) }
+                )
+            }
             PodcastTheme {
                 val windowInset = WindowInsets.systemBars.asPaddingValues()
                 val playerControlState by playerViewModel.playerControlState.collectAsState()
@@ -200,7 +225,8 @@ class MainActivity : ComponentActivity() {
                         LocalAdRenderer provides adRenderer,
                         LocalAdsController provides adsController,
                         LocalRemoteConfigScope provides tsRemoteConfig,
-                        LocalRemoteConfig provides tsRemoteConfig
+                        LocalRemoteConfig provides tsRemoteConfig,
+                        LocalShowActions provides showActions
                     ) {
                         TSNavGraph(
                             innerNavHost = innerNavGraph,
@@ -213,6 +239,8 @@ class MainActivity : ComponentActivity() {
                             innerPadding = windowInset,
                             playerViewModel = playerViewModel
                         )
+
+                        PrivacyConsentSheet(privacyConsent)
                     }
                 }
             }
@@ -267,6 +295,7 @@ class MainActivity : ComponentActivity() {
         if (intent.action == Constants.ACTION_START_FROM_NOTIFICATION || intent.data != null) {
             adsController.onExternalLaunch()
         }
+        if (handleShortcut(intent.action)) return
         if (intent.action != Constants.ACTION_START_FROM_NOTIFICATION) return
         val data = intent.data ?: return
         // This activity is exported, so any app can send this action. Match on
@@ -281,6 +310,35 @@ class MainActivity : ComponentActivity() {
             ?.takeIf { it.isNotBlank() }
             ?: return
         playerViewModel.onRestoreFromNotification(mediaId)
+    }
+
+    /** Launcher shortcuts (iOS App Shortcuts parity). True when [action] was one of them. */
+    private fun handleShortcut(action: String?): Boolean {
+        when (action) {
+            AppShortcuts.ACTION_CONTINUE -> {
+                adsController.onExternalLaunch()
+                val lastId = sharedPref.get<String>(tss.t.podcasts.HistoryRepository.EXTRA_CURRENT_ITEM_ID)
+                if (lastId.isNullOrBlank()) {
+                    Toast.makeText(this, R.string.shortcut_nothing_to_continue, Toast.LENGTH_SHORT).show()
+                } else {
+                    playerViewModel.onRestoreFromNotification(lastId)
+                }
+            }
+
+            AppShortcuts.ACTION_PAUSE -> {
+                adsController.onExternalLaunch()
+                playerManager.player.pause()
+            }
+
+            AppShortcuts.ACTION_SLEEP_30 -> {
+                adsController.onExternalLaunch()
+                playerManager.setSleepTimer(tss.t.sharedplayer.playback.SleepTimerOption.Minutes(30))
+                Toast.makeText(this, R.string.shortcut_sleep_toast, Toast.LENGTH_SHORT).show()
+            }
+
+            else -> return false
+        }
+        return true
     }
 
     private val requestNotificationPermission =
@@ -334,6 +392,19 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** "Báo cáo nội dung" (parity with iOS M6): an email with the show id and a web link, sent by the user. */
+    private fun reportShow(show: ShowRef) {
+        sendEmail(
+            subject = getString(R.string.report_subject, show.title),
+            body = getString(
+                R.string.report_body,
+                show.title,
+                show.feedId.toString(),
+                WebLinks.podcast(show.feedId, show.title),
+                appVersion()
+            )
+        )
+    }
 }
 
 val LocalNavAnimatedVisibilityScope = compositionLocalOf<AnimatedVisibilityScope?> { null }
@@ -434,4 +505,5 @@ private fun MiniPlayer(
             }
         }
     }
+
 }

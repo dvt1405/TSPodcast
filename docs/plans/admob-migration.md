@@ -932,3 +932,24 @@ Nguồn: https://developers.google.com/admob/android/privacy/play-data-disclosur
 - AdMob interstitial / placement policy: https://support.google.com/admob/answer/6201362 · https://support.google.com/admob/answer/6066980 · https://support.google.com/admob/answer/6293636
 - Google Play Ads policy / Better Ads Experiences: https://support.google.com/googleplay/android-developer/answer/9857753 · https://support.google.com/googleplay/android-developer/answer/12271244
 - Luật BVDLCN Việt Nam 2025/2026: https://www.rajahtannasia.com/viewpoints/new-decree-implementing-the-law-on-personal-data-protection-passed/ · https://vietanlaw.com/new-personal-data-protection-law-2025-in-vietnam
+
+## Cập nhật 2026-11-01: bật AdMob từ bản 3.5 và quy tắc interstitial
+
+Owner cấp ad unit thật (App Open, Interstitial, Banner, Native) cho bản release tiếp theo. ID nằm trong GitHub secrets `ADMOB_*` (workflow *Build signed release bundle*), không ghi vào repo.
+
+Mặc định trong app (`AdsSettings.defaults(debug = false)`): `ads_enabled = true`, banner/native như cũ, **App Open khi quay lại app** và **interstitial khi rời màn chi tiết show** bật; App Open lúc mở nguội và Rewarded tắt. Remote Config `ads_enabled = false` vẫn là công tắc tắt khẩn cấp; mọi ngưỡng dưới đây chỉnh được qua Remote Config.
+
+Interstitial (`AdPolicy`, có unit test) chỉ hiện khi **tất cả** điều kiện đúng:
+
+| Quy tắc | Mặc định | Key Remote Config |
+|---|---|---|
+| Chỉ ở điểm ngắt tự nhiên do người dùng chọn: rời màn chi tiết show (không lúc mở/thoát app, không giữa thao tác) | — | — |
+| Mỗi N lần ngắt trong phiên (lần 3, 6, 9…) | 3 | `ads_interstitial_every_n` |
+| Người dùng đã ở màn đó đủ lâu (không hiện sau khi lướt qua) | 20 giây | `ads_interstitial_min_dwell_sec` |
+| Không khi đang phát, không trên Player, không khi mở từ thông báo/deep link | luôn | — |
+| Không ngay sau khi vừa nghe (có thể nghe tiếp) | 60 giây | `ads_interstitial_after_playback_sec` |
+| Không trong 24 giờ đầu sau cài, không ở phiên đầu, không trước khi xong onboarding | 24 h | `ads_grace_period_hours` |
+| Cách quảng cáo toàn màn hình trước (kể cả App Open) | 90 giây | `ads_min_gap_fullscreen_sec` |
+| Cách lần interstitial trước | 4 phút | `ads_interstitial_min_interval_sec` |
+| Tối đa mỗi phiên / mỗi ngày | 2 / 4 | `ads_interstitial_session_cap` / `ads_interstitial_daily_cap` |
+| Chỉ ad đã preload (không bắt người dùng chờ tải), cần consent UMP, tôn trọng thời gian không quảng cáo | luôn | — |

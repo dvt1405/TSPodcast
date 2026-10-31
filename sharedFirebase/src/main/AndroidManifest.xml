@@ -7,6 +7,16 @@
         tools:node="merge" />
 
     <application tools:node="merge">
+        <!-- Off until the user agrees (PrivacyConsent): usage analytics and crash reports. -->
+        <meta-data
+            android:name="firebase_analytics_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="firebase_crashlytics_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="google_analytics_adid_collection_enabled"
+            android:value="false" />
         <!-- Set custom default icon. This is used when no icon is set for incoming notification messages.
      See README(https://goo.gl/l4GJaQ) for more. -->
         <meta-data

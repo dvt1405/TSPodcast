@@ -281,9 +281,23 @@ class AdMobAdsController @Inject constructor(
         ad.show(activity)
     }
 
-    override fun maybeShowInterstitial(activity: Activity, placement: AdPlacement): Boolean {
+    /** Natural breaks seen this process (≈ session), for "every Nth break". */
+    private val naturalBreaks = java.util.concurrent.atomic.AtomicInteger(0)
+
+    override fun maybeShowInterstitial(
+        activity: Activity,
+        placement: AdPlacement,
+        screenDwellMs: Long?,
+    ): Boolean {
         if (placement.format != AdFormat.Interstitial || fullScreenShowing.get()) return false
-        val decision = policy.canShowFullScreen(placement, config.current(), triggerContext())
+        val lastPlayback = host.lastPlaybackAt()
+        val ctx = triggerContext().copy(
+            naturalBreakIndex = naturalBreaks.incrementAndGet(),
+            screenDwellMs = screenDwellMs,
+            sincePlaybackMs = lastPlayback.takeIf { it > 0L }
+                ?.let { android.os.SystemClock.elapsedRealtime() - it },
+        )
+        val decision = policy.canShowFullScreen(placement, config.current(), ctx)
         if (decision is Decision.Block) {
             analytics.blocked(placement, decision.reason)
             return false
