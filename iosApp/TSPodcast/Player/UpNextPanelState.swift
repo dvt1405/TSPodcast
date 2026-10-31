@@ -1,9 +1,10 @@
 import CoreGraphics
 import Foundation
 
-/// Open/closed state of the Up next panel on the Player (Android `SlideAreaState` + the fling
-/// rule of `SlideArea.flingSlideAreaState`). Pure value type so it is unit tested; `PlayerView`
-/// keeps it in `@State` and feeds `travel` from layout (M5 §3.2).
+/// Open/closed state of the Up next sheet (Android `SlideAreaState`). Pure value type so it is
+/// unit tested; `PlayerView` keeps it in `@State` and maps it to the sheet's two detents. The
+/// drag itself (finger tracking, thresholds, flings, the hand-off from a list scrolled to its top)
+/// is the system sheet's (M5 §3.2).
 struct UpNextPanelState: Equatable, Sendable {
     enum Mode: Equatable, Sendable {
         /// The peek under the player controls (Android `Hidden`: the "UP NEXT" header).
@@ -12,45 +13,27 @@ struct UpNextPanelState: Equatable, Sendable {
         case expanded
     }
 
-    /// A drag faster than this (pt/s) decides by its direction alone (Android: 1000).
-    static let flingVelocity: CGFloat = 1000
-
     var mode: Mode = .collapsed
-    /// Distance (pt) between the panel top when collapsed and when expanded. `<= 0` until measured:
-    /// then only the velocity rule, taps and buttons change the mode.
-    var travel: CGFloat = 0
 
     var isExpanded: Bool { mode == .expanded }
 
-    /// Offset of the panel top from its expanded position (0 = fully open, `travel` = peek) while
-    /// dragging by `dy` (positive = down). Clamped to `0...travel`.
-    func offset(forDrag dy: CGFloat) -> CGFloat {
-        let travel = max(travel, 0)
-        switch mode {
-        case .collapsed:
-            return travel + min(max(dy, -travel), 0)
-        case .expanded:
-            return min(max(dy, 0), travel)
-        }
+    /// How far open the sheet is with its top at screen y `top`: 0 at `peekTop` (the space under
+    /// the controls), 1 at `openTop` (just below the close row), clamped. The peek rows fade out
+    /// and the list fades in with it, so nothing jumps while the sheet is dragged or settles.
+    /// Without measured targets (`openTop` not above `peekTop`), the mode.
+    func progress(top: CGFloat, peekTop: CGFloat, openTop: CGFloat) -> CGFloat {
+        guard peekTop > openTop else { return isExpanded ? 1 : 0 }
+        return min(max((peekTop - top) / (peekTop - openTop), 0), 1)
     }
 
-    /// Settles the mode when a drag of `dy` ends with velocity `vy` (pt/s, positive = down):
-    /// a fling (|vy| ≥ 1000) follows its direction; otherwise it opens past 40 % up and closes past
-    /// 20 % down (Android `anim.value <= -0.4 * initSize` / `>= -0.8 * initSize`).
-    mutating func endDrag(translation dy: CGFloat, velocity vy: CGFloat) {
-        if abs(vy) >= Self.flingVelocity {
-            mode = vy < 0 ? .expanded : .collapsed
-            return
-        }
-        guard travel > 0 else { return }
-        switch mode {
-        case .collapsed:
-            // −dy ≥ 0.4 × travel, written without 0.4 so 160 of 400 is exactly 40 %.
-            if -dy * 5 >= travel * 2 { mode = .expanded }
-        case .expanded:
-            // dy ≥ 0.2 × travel.
-            if dy * 5 >= travel { mode = .collapsed }
-        }
+    /// The peek rows fade out over the first half of the opening and the list fades in over the
+    /// second half, so the two never show on top of each other.
+    static func peekRowsOpacity(progress: CGFloat) -> CGFloat {
+        min(max(1 - progress * 2, 0), 1)
+    }
+
+    static func listOpacity(progress: CGFloat) -> CGFloat {
+        min(max(progress * 2 - 1, 0), 1)
     }
 
     /// The playlist button or a tap on the peek header (Android `onPlayListClick`).

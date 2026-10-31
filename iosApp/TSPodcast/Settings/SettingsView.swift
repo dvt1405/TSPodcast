@@ -100,21 +100,23 @@ private struct PrivacySection: View {
 
 extension View {
     /// "Thông báo đang bị tắt trong Cài đặt của iPhone." with "Mở Cài đặt" and "Đóng".
-    func notificationsDeniedAlert(_ notifications: NotificationsModel) -> some View {
-        modifier(NotificationsDeniedAlert(notifications: notifications))
+    /// `isActive: false` presents nothing (for a view that may be presenting something else).
+    func notificationsDeniedAlert(_ notifications: NotificationsModel, isActive: Bool = true) -> some View {
+        modifier(NotificationsDeniedAlert(notifications: notifications, isActive: isActive))
     }
 
     /// The one-time "Nhận thông báo khi có podcast mới?" prompt (after the first favourite).
-    func notificationsPrompt(_ notifications: NotificationsModel) -> some View {
-        modifier(NotificationsPrompt(notifications: notifications))
+    func notificationsPrompt(_ notifications: NotificationsModel, isActive: Bool = true) -> some View {
+        modifier(NotificationsPrompt(notifications: notifications, isActive: isActive))
     }
 }
 
 private struct NotificationsDeniedAlert: ViewModifier {
     @Bindable var notifications: NotificationsModel
+    let isActive: Bool
 
     func body(content: Content) -> some View {
-        content.alert(Text("notifications.denied.message"), isPresented: $notifications.showDeniedAlert) {
+        content.alert(Text("notifications.denied.message"), isPresented: isActive ? $notifications.showDeniedAlert : .constant(false)) {
             Button {
                 notifications.openSystemSettings()
             } label: {
@@ -133,9 +135,10 @@ private struct NotificationsDeniedAlert: ViewModifier {
 
 private struct NotificationsPrompt: ViewModifier {
     @Bindable var notifications: NotificationsModel
+    let isActive: Bool
 
     func body(content: Content) -> some View {
-        content.alert(Text("notifications.prompt.title"), isPresented: $notifications.showPrompt) {
+        content.alert(Text("notifications.prompt.title"), isPresented: isActive ? $notifications.showPrompt : .constant(false)) {
             Button {
                 Task { await notifications.acceptPrompt() }
             } label: {

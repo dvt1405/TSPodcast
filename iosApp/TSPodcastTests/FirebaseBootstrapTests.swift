@@ -86,9 +86,12 @@ final class FirebaseBootstrapTests: XCTestCase {
     }
 
     /// The test host app is built without the plist (`FIREBASE_PLIST_DIR` points to an empty
-    /// directory in every verification build), so it runs without Firebase.
-    func testHostAppHasNoFirebasePlist() {
-        XCTAssertNil(Bundle.main.path(forResource: FirebaseBootstrap.plistName, ofType: "plist"))
+    /// directory in every verification build), so it runs without Firebase. A local device build
+    /// that copies the real plist (e.g. to install on a phone) skips this check instead of failing.
+    func testHostAppHasNoFirebasePlist() throws {
+        let path = Bundle.main.path(forResource: FirebaseBootstrap.plistName, ofType: "plist")
+        try XCTSkipIf(path != nil, "this host app was built with \(FirebaseBootstrap.plistName).plist (not a verification build)")
+        XCTAssertNil(path)
     }
 
     /// A directory bundle, optionally with a dummy `GoogleService-Info.plist` (never a real one).

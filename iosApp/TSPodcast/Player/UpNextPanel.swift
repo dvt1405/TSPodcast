@@ -1,58 +1,91 @@
 import SwiftUI
 import os
 
-/// "Tiếp theo" panel at the bottom of the Player (Android `SlideArea`, without its ad; M5 §3.1).
-/// Collapsed, only its header shows: the peek with the playing item (and the next one when it
-/// fits), sitting in the space `PlayerView` keeps under the controls. Expanded, its top sits just
-/// below the close row and the whole queue is listed. Drag the header (40 % up opens, 20 % down
-/// closes, a 1000 pt/s fling follows its direction), tap it, pick a row or VoiceOver escape.
+/// "Tiếp theo" at the bottom of the Player (Android `SlideArea`, without its ad; M5 §3.1), as a
+/// system sheet that `PlayerView` keeps presented over itself, with two detents:
+/// - peek: this header with the playing item (and the next one when it fits), filling the space
+///   `PlayerView` keeps under the controls; the Player stays usable behind it;
+/// - open: top just below the close row, the whole queue.
 ///
-/// `PlayerView` places it with its top at the expanded position; the panel moves itself down by
-/// `UpNextPanelState.offset(forDrag:)`. `upNext.root` / `upNext.item.<i>` exist only while the
-/// list is shown, as with the M3 sheet.
-struct UpNextPanel: View {
+/// The system drives the drag: the sheet follows the finger, settles or flings to a detent, and
+/// once the open list is scrolled to its top a further pull down drags the sheet itself down
+/// (Apple Music's queue). A tap on the header, a row or VoiceOver escape switch it too.
+///
+/// The list stays mounted under the title and cross-fades with the peek rows as the sheet top
+/// goes from the peek to the open position (`UpNextPanelState.progress`), so nothing jumps while
+/// dragging. `upNext.root` / `upNext.item.<i>` exist only while open, as with the M3 sheet.
+struct UpNextSheet: View {
     let engine: AudioEngine
     @Binding var panel: UpNextPanelState
-    /// Indices of the peek rows (`UpNextPeek.rows`); never empty, `PlayerView` hides the panel then.
+    /// Indices of the peek rows (`UpNextPeek.rows`); never empty, `PlayerView` hides the sheet then.
     let peekRows: [Int]
+    /// Screen y where the sheet top sits at the peek (the space under the controls) and open
+    /// (just below the close row), from `PlayerView`.
+    let peekTop: CGFloat
+    let openTop: CGFloat
     /// Bottom safe area, so the last row clears the home indicator.
     let bottomInset: CGFloat
-    /// Height of the collapsed header, for the space `PlayerView` keeps under the controls.
+    /// Height of the collapsed header: the peek detent and the space under the controls.
     let onPeekHeightChange: (CGFloat) -> Void
+    /// Screen y of the sheet top once it has stopped moving, so `PlayerView` can correct the
+    /// detent heights to land exactly on its targets.
+    let onSettledTop: (CGFloat) -> Void
 
-    @State private var dragY: CGFloat = 0
-    @State private var isDragging = false
+    /// Current screen y of the sheet top, followed while it is dragged.
+    @State private var top: CGFloat = 0
+    /// Top of the list: just under the title.
+    @State private var listTop: CGFloat = 0
+    @State private var motion = UpNextPanelSignpost.Motion()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private static let cornerRadius: CGFloat = 28
+    private static let coordinateSpace = "upNextSheet"
 
     var body: some View {
-        let state = engine.state
-        VStack(spacing: 0) {
-            header(state: state)
-            if panel.isExpanded || isDragging {
-                UpNextList(engine: engine, bottomInset: bottomInset) { index in
-                    engine.select(index: index)
-                    UpNextPanelSignpost.animate(animation) { panel.didSelectItem() }
-                }
-                .transition(.opacity)
+        let progress = panel.progress(top: top, peekTop: peekTop, openTop: openTop)
+        // The header is drawn over the list: collapsed, its peek rows cover the (transparent,
+        // untouchable) list; open, it is only the title bar above the list.
+        ZStack(alignment: .top) {
+            UpNextList(
+                engine: engine,
+                bottomInset: bottomInset,
+                isShown: panel.isExpanded || progress > 0,
+                isAccessible: panel.isExpanded
+            ) { index in
+                engine.select(index: index)
+                withAnimation(animation) { panel.didSelectItem() }
+            }
+            .padding(.top, listTop)
+            .opacity(UpNextPanelState.listOpacity(progress: progress))
+            .allowsHitTesting(panel.isExpanded)
+            UpNextHeader(
+                engine: engine,
+                peekRows: peekRows,
+                isExpanded: panel.isExpanded,
+                peekRowsOpacity: UpNextPanelState.peekRowsOpacity(progress: progress),
+                // Clears the system drag indicator.
+                topPadding: 22,
+                titleCoordinateSpace: Self.coordinateSpace,
+                onTitleBottom: { listTop = $0 + 12 }
+            ) {
+                motion.didMove()
+                withAnimation(animation) { panel.toggle() }
+            }
+            .onGeometryChange(for: CGFloat.self, of: \.size.height) { height in
+                // Only the collapsed header sizes the peek; the open one is shorter (no peek rows).
+                if !panel.isExpanded { onPeekHeightChange(height) }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .glassSurface(
-            in: UnevenRoundedRectangle(
-                topLeadingRadius: Self.cornerRadius,
-                topTrailingRadius: Self.cornerRadius,
-                style: .continuous
-            )
-        )
-        .offset(y: panel.offset(forDrag: dragY))
+        .coordinateSpace(.named(Self.coordinateSpace))
+        .onGeometryChange(for: CGRect.self, of: { $0.frame(in: .global) }) { frame in
+            top = frame.minY
+            motion.top = frame.minY
+            motion.onSettle = onSettledTop
+            motion.didMove()
+        }
         .accessibilityElement(children: .contain)
         .accessibilityAction(.escape) {
-            UpNextPanelSignpost.animate(animation) { panel.collapse() }
-        }
-        .onChange(of: state.queue.count) { _, count in
-            withAnimation(animation) { panel.queueDidChange(count: count) }
+            withAnimation(animation) { panel.collapse() }
         }
     }
 
@@ -60,82 +93,91 @@ struct UpNextPanel: View {
     private var animation: Animation {
         reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.35)
     }
+}
 
-    /// Grabber + "Tiếp theo" + the peek rows (collapsed only), one VoiceOver button.
-    private func header(state: PlaybackState) -> some View {
-        Button {
-            UpNextPanelSignpost.animate(animation) { panel.toggle() }
-        } label: {
+/// "Tiếp theo" + the peek rows (collapsed only), one VoiceOver button: the top of the Up next
+/// sheet, or the peek drawn in the Player itself in a compact height (landscape iPhone), where a
+/// sheet cannot stay at a small height.
+struct UpNextHeader: View {
+    let engine: AudioEngine
+    let peekRows: [Int]
+    let isExpanded: Bool
+    var peekRowsOpacity: CGFloat = 1
+    var topPadding: CGFloat = 8
+    /// Where `onTitleBottom` measures the title's bottom (the sheet's space), if anywhere.
+    var titleCoordinateSpace: String?
+    var onTitleBottom: (CGFloat) -> Void = { _ in }
+    let action: () -> Void
+
+    var body: some View {
+        let state = engine.state
+        Button(action: action) {
             VStack(alignment: .leading, spacing: 8) {
-                Capsule()
-                    .fill(Color.secondary.opacity(0.5))
-                    .frame(width: 36, height: 5)
-                    .frame(maxWidth: .infinity)
                 Text("player.upNext")
                     .font(.headline)
                     .foregroundStyle(.primary)
-                if !panel.isExpanded {
-                    ForEach(peekRows, id: \.self) { index in
-                        if state.queue.indices.contains(index) {
-                            UpNextRow(item: state.queue[index], isCurrent: index == state.index, titleLineLimit: 1)
+                    .onGeometryChange(for: CGFloat.self, of: { proxy in
+                        titleCoordinateSpace.map { proxy.frame(in: .named($0)).maxY } ?? 0
+                    }) { maxY in
+                        onTitleBottom(maxY)
+                    }
+                if !isExpanded {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(peekRows, id: \.self) { index in
+                            if state.queue.indices.contains(index) {
+                                UpNextRow(item: state.queue[index], isCurrent: index == state.index, titleLineLimit: 1)
+                            }
                         }
                     }
+                    .opacity(peekRowsOpacity)
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.top, 8)
+            .padding(.top, topPadding)
             .padding(.bottom, 12)
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .onGeometryChange(for: CGFloat.self, of: \.size.height) { height in
-            // Only the collapsed header sizes the space under the controls; the expanded one is
-            // shorter (no peek rows) and must not move the layout underneath.
-            if !panel.isExpanded { onPeekHeightChange(height) }
-        }
-        .highPriorityGesture(
-            DragGesture(minimumDistance: 8)
-                .onChanged { value in
-                    isDragging = true
-                    dragY = value.translation.height
-                }
-                .onEnded { value in
-                    UpNextPanelSignpost.animate(animation) {
-                        panel.endDrag(translation: value.translation.height, velocity: value.velocity.height)
-                        dragY = 0
-                        isDragging = false
-                    }
-                }
-        )
         .accessibilityLabel(Text("player.upNext"))
-        .accessibilityValue(Text(verbatim: peekValue(state: state)))
+        .accessibilityValue(Text(verbatim: String(format: String(localized: "player.upNext.peekValue"), state.current?.title ?? "")))
         .accessibilityHint(
-            Text(panel.isExpanded ? LocalizedStringKey("player.upNext.collapseHint") : LocalizedStringKey("player.upNext.expandHint"))
+            Text(isExpanded ? LocalizedStringKey("player.upNext.collapseHint") : LocalizedStringKey("player.upNext.expandHint"))
         )
         .accessibilityIdentifier("upNext.peek")
     }
-
-    /// "Đang phát: <tiêu đề>".
-    private func peekValue(state: PlaybackState) -> String {
-        String(format: String(localized: "player.upNext.peekValue"), state.current?.title ?? "")
-    }
 }
 
-/// Every animated move of the panel runs inside an os_signpost animation interval
-/// (`tss.t.podcast` / `UpNextPanel` / `panel`), so Instruments and `XCTOSSignpostMetric` report
-/// the hitches of the open/close animation.
+/// Every move of the sheet (a drag, a settle, a tap or a fling) runs inside an os_signpost
+/// animation interval (`tss.t.podcast` / `UpNextPanel` / `panel`), so Instruments and
+/// `XCTOSSignpostMetric` report its hitches. The system animates the sheet, so the interval is
+/// opened by the first height change and closed once the height has not changed for 0.25 s.
 enum UpNextPanelSignpost {
     static let subsystem = AppLog.subsystem
     static let category = "UpNextPanel"
     static let name: StaticString = "panel"
-    private static let signposter = OSSignposter(subsystem: subsystem, category: category)
+    fileprivate static let signposter = OSSignposter(subsystem: subsystem, category: category)
 
+    /// Also tells `onSettle` where the sheet top came to rest.
     @MainActor
-    static func animate(_ animation: Animation, _ change: () -> Void) {
-        let interval = signposter.beginAnimationInterval(name)
-        withAnimation(animation, completionCriteria: .logicallyComplete, change) {
-            signposter.endInterval(name, interval)
+    final class Motion {
+        var top: CGFloat = 0
+        var onSettle: ((CGFloat) -> Void)?
+        private var interval: OSSignpostIntervalState?
+        private var end: Task<Void, Never>?
+
+        func didMove() {
+            if interval == nil { interval = signposter.beginAnimationInterval(name) }
+            end?.cancel()
+            end = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(250))
+                guard !Task.isCancelled, let self else { return }
+                if let interval = self.interval {
+                    signposter.endInterval(name, interval)
+                    self.interval = nil
+                }
+                self.onSettle?(self.top)
+            }
         }
     }
 }
@@ -146,10 +188,25 @@ enum UpNextPanelSignpost {
 struct UpNextList: View {
     let engine: AudioEngine
     let bottomInset: CGFloat
+    /// The panel is open or being dragged: each time it becomes true the list brings the playing
+    /// row into view (while still transparent), so the open list never starts at row 0 with the
+    /// playing item far below.
+    let isShown: Bool
+    /// In the accessibility tree (and so `upNext.root` / `upNext.item.<i>` exist) only while open.
+    let isAccessible: Bool
     let select: (Int) -> Void
 
     var body: some View {
         let state = engine.state
+        ScrollViewReader { proxy in
+            list(state: state)
+                .onChange(of: isShown) { _, shown in
+                    if shown { proxy.scrollTo(engine.state.index, anchor: UnitPoint(x: 0.5, y: 0.25)) }
+                }
+        }
+    }
+
+    private func list(state: PlaybackState) -> some View {
         List {
             HStack(spacing: 12) {
                 QueueStepButton(systemImage: "backward.end.fill", label: "player.previous", identifier: "player.previous") {
@@ -163,6 +220,7 @@ struct UpNextList: View {
             }
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
+            .accessibilityHidden(!isAccessible)
             ForEach(Array(state.queue.enumerated()), id: \.offset) { index, item in
                 let isCurrent = index == state.index
                 Button {
@@ -174,13 +232,17 @@ struct UpNextList: View {
                 .buttonStyle(.plain)
                 .listRowBackground(Color.clear)
                 .accessibilityAddTraits(isCurrent ? .isSelected : [])
-                .accessibilityIdentifier("upNext.item.\(index)")
+                .accessibilityIdentifier(isAccessible ? "upNext.item.\(index)" : "")
+                .accessibilityHidden(!isAccessible)
             }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .contentMargins(.bottom, bottomInset, for: .scrollContent)
-        .accessibilityIdentifier("upNext.root")
+        // The list stays mounted while collapsed (no 30-row insert when opening). Its rows are
+        // hidden from VoiceOver then and it has no identifier (XCUITest still sees hidden
+        // elements).
+        .accessibilityIdentifier(isAccessible ? "upNext.root" : "")
     }
 }
 
