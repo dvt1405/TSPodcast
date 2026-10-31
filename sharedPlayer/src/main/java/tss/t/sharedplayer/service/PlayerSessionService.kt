@@ -6,12 +6,15 @@ import android.net.Uri
 import androidx.annotation.OptIn
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import dagger.hilt.android.AndroidEntryPoint
 import tss.t.sharedplayer.notifications.TSNotificationProvider
 import tss.t.sharedplayer.player.PlayerManager
+import tss.t.sharedresources.R
 import javax.inject.Inject
 
 
@@ -42,6 +45,22 @@ class PlayerSessionService() : MediaSessionService() {
                 )
             )
             .setShowPlayButtonIfPlaybackIsSuppressed(true)
+            // Lock screen / system media controls: −15 s and +30 s in the back and forward
+            // slots instead of previous/next, like the iOS Now Playing controls (M6).
+            .setMediaButtonPreferences(
+                listOf(
+                    CommandButton.Builder(CommandButton.ICON_SKIP_BACK_15)
+                        .setPlayerCommand(Player.COMMAND_SEEK_BACK)
+                        .setSlots(CommandButton.SLOT_BACK)
+                        .setDisplayName(getString(R.string.player_seek_back_15))
+                        .build(),
+                    CommandButton.Builder(CommandButton.ICON_SKIP_FORWARD_30)
+                        .setPlayerCommand(Player.COMMAND_SEEK_FORWARD)
+                        .setSlots(CommandButton.SLOT_FORWARD)
+                        .setDisplayName(getString(R.string.player_seek_forward_30))
+                        .build(),
+                )
+            )
             .build()
         val channel = NotificationChannelCompat.Builder(
             TSNotificationProvider.CHANNEL_ID,
