@@ -103,4 +103,8 @@ Lý do báo cáo:
     <string name="shortcut_sleep_toast">Đã hẹn giờ tắt sau 30 phút</string>
 
     <string name="news_hub_title">Thời sự &amp; Bản tin</string>
+
+    <string name="settings_section_look">Giao diện</string>
+    <string name="settings_liquid_glass">Liquid Glass</string>
+    <string name="settings_liquid_glass_hint">Thanh điều hướng, trình phát thu nhỏ và nút điều khiển dạng kính trong suốt</string>
 </resources>

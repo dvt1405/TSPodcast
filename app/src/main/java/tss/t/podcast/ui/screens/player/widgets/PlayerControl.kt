@@ -1,5 +1,7 @@
 package tss.t.podcast.ui.screens.player.widgets
 
+import tss.t.sharedlibrary.ui.glass.LocalLiquidGlass
+import tss.t.sharedlibrary.ui.glass.glassSurface
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -65,6 +67,9 @@ fun PlayerControl(
     var fav by remember(isFav) {
         mutableStateOf(isFav)
     }
+    val glass = LocalLiquidGlass.current
+    // Liquid Glass: secondary buttons become glass circles; Play keeps the brand colour (as iOS M5).
+    val glassButton = if (glass) Modifier.padding(4.dp).glassSurface(CircleShape, elevation = 4.dp) else Modifier
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -76,6 +81,7 @@ fun PlayerControl(
             "Fav",
             modifier = Modifier
                 .size(60.dp)
+                .then(glassButton)
                 .clip(CircleShape)
                 .clickable(onClick = {
                     fav = !fav
@@ -143,6 +149,7 @@ fun PlayerControl(
             "PlayList",
             modifier = Modifier
                 .size(60.dp)
+                .then(glassButton)
                 .clip(CircleShape)
                 .clickable(onClick = onPlayListClick)
                 .padding(14.dp)
@@ -161,9 +168,11 @@ private fun SkipButton(
     onClick: () -> Unit,
 ) {
     val alpha = if (enabled) 1f else 0.35f
+    val glass = LocalLiquidGlass.current
     Box(
         modifier = Modifier
             .size(60.dp)
+            .then(if (glass) Modifier.padding(4.dp).glassSurface(CircleShape, elevation = 4.dp) else Modifier)
             .clip(CircleShape)
             .clickable(enabled = enabled, onClick = onClick)
             .semantics { contentDescription = description }
