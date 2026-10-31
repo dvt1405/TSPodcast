@@ -1,0 +1,9 @@
+• App em 15 idiomas, com podcasts no seu idioma e em inglês
+• Novas telas de boas-vindas e seletor com mais de 100 temas
+• Velocidade 0,5×–3,0× por programa, timer de desligamento, pular −15/+30 s
+• Retome episódios de onde parou
+• Busca dentro de um programa
+• Oculte, denuncie ou compartilhe programas e episódios
+• Atalhos do app: continuar, pausar, timer
+• Visual Liquid Glass, com opção em Configurações
+• Novas configurações de privacidade para estatísticas e relatórios de falhas

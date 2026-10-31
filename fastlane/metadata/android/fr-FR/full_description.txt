@@ -1,0 +1,39 @@
+TSPodcast vous aide à découvrir des podcasts qui valent le détour et à les écouter comme vous l'aimez. Émissions tendance dans votre langue et en anglais, suggestions selon les thèmes choisis et un lecteur avec réglage de vitesse, minuterie de sommeil et reprise de lecture, sans créer de compte.
+
+<b>Découvrez des podcasts</b>
+• Podcasts tendance dans votre langue et en anglais, mis à jour en continu depuis l'annuaire ouvert Podcast Index
+• Choisissez parmi plus de 100 thèmes (actualités, économie, technologie, éducation, histoire, santé, humour, sport, fiction…) pour personnaliser vos suggestions
+• Recherchez par nom d'émission ou mot-clé, avec les émissions dans votre langue en premier
+• Recherchez dans une émission pour trouver le bon épisode
+• Podcasts en direct : écoutez les épisodes diffusés en ce moment
+
+<b>Écoutez à votre façon</b>
+• Vitesse de lecture de 0,5× à 3,0×, mémorisée pour chaque émission
+• Minuterie de sommeil : de 5 à 60 minutes ou à la fin de l'épisode
+• Reculez de 15 secondes, avancez de 30 secondes
+• Reprenez chaque épisode là où vous l'avez laissé
+• Lecture en arrière-plan avec commandes dans la notification, sur l'écran de verrouillage et sur les écouteurs Bluetooth
+• Mini-lecteur pendant que vous naviguez
+• Raccourcis : appui long sur l'icône de l'app pour reprendre l'écoute, mettre en pause ou lancer une minuterie de 30 minutes
+
+<b>Musique et radio</b>
+• Bibliothèque musicale ouverte : flux publiés par des artistes indépendants (Podcasting 2.0), avec un filtre Musique dans la recherche
+• Radio vietnamienne : écoutez en direct des stations du Vietnam
+
+<b>Votre bibliothèque, vos choix</b>
+• Retrouvez vos épisodes favoris au même endroit
+• Masquez les émissions que vous ne voulez pas voir, et réaffichez-les à tout moment dans les Paramètres
+• Signalez une émission ou un épisode qui enfreint les règles
+• Partagez les liens d'émissions et d'épisodes
+• Émissions de spam et de jeux d'argent filtrées grâce à une liste de blocage mise à jour régulièrement
+
+<b>Votre langue, votre vie privée</b>
+• App disponible en 15 langues ; les listes de podcasts suivent la langue choisie
+• Apparence Liquid Glass avec barres, mini-lecteur et boutons translucides, désactivable dans les Paramètres
+• Les statistiques d'utilisation et rapports de plantage ne sont envoyés qu'avec votre accord, modifiable à tout moment
+
+TSPodcast est une app indépendante, sans lien avec les producteurs de podcasts ni les stations de radio. Les contenus audio et musicaux appartiennent à leurs créateurs ; les données de l'annuaire sont fournies par Podcast Index.
+
+Suggestions, bugs ou demandes de retrait de contenu : écrivez à l'adresse d'assistance indiquée sur cette page. Chaque message est lu.
+
+TSPodcast est gratuit, sans compte.

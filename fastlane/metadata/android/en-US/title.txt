@@ -1,1 +1,1 @@
-TSPodcast: Podcasts & Radio
+TSPodcast: Podcast Player
