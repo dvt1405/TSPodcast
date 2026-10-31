@@ -44,6 +44,10 @@ class PrivacyConsent @Inject constructor(
 
     fun necessaryOnly() = save(PrivacyChoices(decided = true, analytics = false, crashReports = false))
 
+    /** The user's explicit, separate answer for each purpose (onboarding privacy step). */
+    fun decide(analytics: Boolean, crashReports: Boolean) =
+        save(PrivacyChoices(decided = true, analytics = analytics, crashReports = crashReports))
+
     fun setAnalytics(enabled: Boolean) = save(_choices.value.copy(decided = true, analytics = enabled))
 
     fun setCrashReports(enabled: Boolean) = save(_choices.value.copy(decided = true, crashReports = enabled))

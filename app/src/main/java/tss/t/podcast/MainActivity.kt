@@ -240,7 +240,12 @@ class MainActivity : ComponentActivity() {
                             playerViewModel = playerViewModel
                         )
 
-                        PrivacyConsentSheet(privacyConsent)
+                        // New users answer on the onboarding privacy page; the sheet is only
+                        // for people who finished onboarding before that page existed.
+                        val onboardingStep by onboardingViewModel.onboardingStep.collectAsState()
+                        if (onboardingStep.isOnboardingDone) {
+                            PrivacyConsentSheet(privacyConsent)
+                        }
                     }
                 }
             }

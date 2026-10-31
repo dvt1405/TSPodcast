@@ -1,8 +1,16 @@
 package tss.t.featureonboarding
 
-import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -10,89 +18,93 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Clear
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.google.gson.Gson
-import org.json.JSONObject
+import androidx.compose.ui.unit.sp
 import tss.t.coreapi.models.CategoryRes
 import tss.t.coreapi.models.TSDataState
-import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.ui.animations.skeleton.placeholder
-import tss.t.sharedlibrary.ui.shapes.TSShapes
-import tss.t.sharedlibrary.ui.widget.TSBadge
-import tss.t.sharedlibrary.ui.widget.TSButton
+import java.text.Normalizer
 
-@OptIn(ExperimentalLayoutApi::class)
+private const val MIN_TOPICS = 3
+private val Mist = Color(0xFFEEF3FF)
+private val Ink = Color(0xFF141B34)
+
 @Composable
 fun SelectFavouriteCategoryScreen(viewmodel: OnboardingViewModel) {
-    val listCategory by viewmodel.categoryState.collectAsState()
-    val listSelected by viewmodel.listFavouriteCategory.collectAsState()
-    val isLoading by remember(listCategory) {
-        mutableStateOf(listCategory is TSDataState.Loading)
-    }
-    val listItems by remember(listCategory) {
-        mutableStateOf(
-            if (listCategory is TSDataState.Success) {
-                (listCategory as TSDataState.Success<CategoryRes>).data.feeds
-            } else {
-                emptyList()
-            }
-        )
-    }
+    val categoryState by viewmodel.categoryState.collectAsState()
+    val selected by viewmodel.listFavouriteCategory.collectAsState()
+    val all = (categoryState as? TSDataState.Success<CategoryRes>)?.data?.feeds.orEmpty()
     SelectFavouriteCategoryScreen(
-        listCategory = listItems,
-        listSelected = listSelected,
-        isLoading = isLoading,
-        onItemSelected = { index, selected ->
-            if (selected) {
-                viewmodel.putFavouriteItem(this, index)
-            } else {
-                viewmodel.removeFavouriteItem(this, index)
-            }
+        listCategory = all,
+        listSelected = selected,
+        isLoading = categoryState is TSDataState.Loading,
+        onItemSelected = { index, isSelected ->
+            if (isSelected) viewmodel.putFavouriteItem(this, index) else viewmodel.removeFavouriteItem(this, index)
         },
-        onSaveAndContinue = {
-            viewmodel.saveFavouriteItem()
-        }
+        onSaveAndContinue = viewmodel::saveFavouriteItem
     )
 }
 
-@ExperimentalLayoutApi
-@OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+/**
+ * Topic picker in the brand tones: a gradient header with a search field, "Phổ biến" first then
+ * every topic (Vietnamese names), cards that pop when picked, and a bottom bar with the progress
+ * to the 3 needed, the picked topics (tap to remove) and the button.
+ */
 @Composable
 fun SelectFavouriteCategoryScreen(
     listCategory: List<CategoryRes.Category> = emptyList(),
@@ -101,170 +113,324 @@ fun SelectFavouriteCategoryScreen(
     onSaveAndContinue: () -> Unit = {},
     onItemSelected: CategoryRes.Category.(Int, Boolean) -> Unit = { _, _ -> },
 ) {
-    val screenSize = LocalConfiguration.current.screenWidthDp
-    val rowCount = remember {
-        (screenSize / 150)
+    var query by rememberSaveable { mutableStateOf("") }
+    val selectedIds = remember(listSelected) { listSelected.mapTo(HashSet()) { it.id } }
+    val byId = remember(listCategory) { listCategory.associateBy { it.id } }
+    val popular = remember(listCategory) { CategoryNames.POPULAR_IDS.mapNotNull { byId[it] } }
+    val others = remember(listCategory) {
+        val popularIds = CategoryNames.POPULAR_IDS.toSet()
+        listCategory.filterNot { it.id in popularIds }
+            .sortedBy { fold(CategoryNames.vietnamese(it.id, it.name)) }
     }
-    val rowWidth = remember {
-        (screenSize.dp - ((rowCount - 1) * 16).dp - 32.dp) / rowCount
+    val searchResults = remember(listCategory, query) {
+        val q = fold(query)
+        if (q.isEmpty()) emptyList()
+        else listCategory.filter {
+            fold(CategoryNames.vietnamese(it.id, it.name)).contains(q) || fold(it.name).contains(q)
+        }
     }
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(title = {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = stringResource(R.string.select_favourite_category_screen_title),
-                        style = TextStyles.Title4
-                    )
-                    Text(
-                        stringResource(R.string.select_favourite_category_screen_description),
-                        style = TextStyles.SubTitle3,
-                    )
-                }
-            })
-        },
-        bottomBar = {
-            Column(
-                modifier = Modifier.background(
-                    Brush.verticalGradient(
-                        listOf(
-                            Color(0x10FFFFFF),
-                            Color(0x90FFFFFF),
-                        )
-                    )
-                )
+    fun toggle(category: CategoryRes.Category) {
+        val isSelected = category.id in selectedIds
+        onItemSelected(category, listCategory.indexOfFirst { it.id == category.id }, !isSelected)
+    }
+
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        TopicsHeader(query = query, onQueryChange = { query = it })
+        Box(Modifier.weight(1f)) {
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 104.dp),
+                contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxSize()
             ) {
-                FlowRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 16.dp)
-                        .animateContentSize(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    listSelected.forEachIndexed { _, category ->
-                        TSBadge(
-                            badgeTitle = category.name,
-                            modifier = Modifier.padding(
-                                vertical = 4.dp,
-                                horizontal = 8.dp
-                            ),
-                            textStyle = TextStyles.Body3,
-                            icon = Icons.Rounded.Clear,
-                            iconClick = {
-                                onItemSelected(
-                                    category,
-                                    listCategory.indexOfFirst { it.id == category.id },
-                                    false
-                                )
-                            },
-                            iconSize = 16.dp,
-                            color = Colors.Secondary
+                when {
+                    isLoading -> items(18) {
+                        Box(
+                            Modifier
+                                .height(112.dp)
+                                .placeholder(true, Mist, RoundedCornerShape(20.dp))
                         )
                     }
+
+                    query.isNotBlank() -> {
+                        if (searchResults.isEmpty()) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                Text(
+                                    stringResource(R.string.topics_empty),
+                                    style = TextStyles.Body3.copy(color = Color.Gray),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(32.dp)
+                                )
+                            }
+                        }
+                        items(searchResults, key = { "s${it.id}" }) { item ->
+                            TopicCard(item, item.id in selectedIds) { toggle(item) }
+                        }
+                    }
+
+                    else -> {
+                        item(span = { GridItemSpan(maxLineSpan) }, key = "popular") {
+                            SectionTitle(stringResource(R.string.topics_popular))
+                        }
+                        items(popular, key = { "p${it.id}" }) { item ->
+                            TopicCard(item, item.id in selectedIds) { toggle(item) }
+                        }
+                        item(span = { GridItemSpan(maxLineSpan) }, key = "all") {
+                            SectionTitle(stringResource(R.string.topics_all))
+                        }
+                        items(others, key = { "a${it.id}" }) { item ->
+                            TopicCard(item, item.id in selectedIds) { toggle(item) }
+                        }
+                    }
                 }
-                TSButton(
-                    title = stringResource(R.string.select_favourite_category_screen_btn_confirm_title),
-                    onClick = {
-                        onSaveAndContinue()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 58.dp),
-                    enable = listSelected.size >= 3
+                item(span = { GridItemSpan(maxLineSpan) }) { Spacer(Modifier.height(8.dp)) }
+            }
+        }
+        TopicsBottomBar(
+            selected = listSelected,
+            onRemove = { toggle(it) },
+            onContinue = onSaveAndContinue
+        )
+    }
+}
+
+@Composable
+private fun TopicsHeader(query: String, onQueryChange: (String) -> Unit) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .background(OnboardingColors.Background)
+            .statusBarsPadding()
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(stringResource(R.string.topics_title), style = TextStyles.Title2.copy(color = Color.White))
+        Text(
+            stringResource(R.string.topics_subtitle),
+            style = TextStyles.Body3.copy(color = Color.White.copy(alpha = 0.85f))
+        )
+        Row(
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .fillMaxWidth()
+                .height(48.dp)
+                .clip(RoundedCornerShape(50))
+                .background(Color.White)
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Rounded.Search, contentDescription = null, tint = OnboardingColors.Blue)
+            Spacer(Modifier.size(8.dp))
+            Box(Modifier.weight(1f)) {
+                if (query.isEmpty()) {
+                    Text(stringResource(R.string.topics_search_hint), color = Color.Gray, fontSize = 16.sp)
+                }
+                BasicTextField(
+                    value = query,
+                    onValueChange = onQueryChange,
+                    singleLine = true,
+                    textStyle = TextStyle(color = Ink, fontSize = 16.sp),
+                    cursorBrush = SolidColor(OnboardingColors.Blue),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
-        },
-    ) { paddingValues ->
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(rowCount),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-        ) {
-            if (isLoading) {
-                items(rowCount * 20) {
-                    Box(
-                        modifier = Modifier
-                            .size(rowWidth)
-                            .placeholder(
-                                true, Colors.PlaceHolder,
-                                RoundedCornerShape(20.dp)
-                            )
-                    )
-                }
-            } else {
-                items(listCategory) { item ->
-                    CategoryItem(
-                        category = item,
-                        selected = listSelected.any { item.id == it.id },
-                        modifier = Modifier.size(rowWidth),
-                        onClick = {
-                            onItemSelected.invoke(item, listCategory.indexOf(item), it)
-                        }
-                    )
-                }
-                item {
-                    Spacer(modifier = Modifier.size(58.dp))
-                }
+            AnimatedVisibility(query.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
+                Icon(
+                    Icons.Rounded.Close,
+                    contentDescription = null,
+                    tint = Color.Gray,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable { onQueryChange("") }
+                        .padding(4.dp)
+                )
             }
-
         }
     }
 }
 
-@Preview
 @Composable
-private fun CategoryItem(
-    category: CategoryRes.Category = CategoryRes.Category(1, "Arts"),
-    selected: Boolean = category.isFavourite ?: false,
-    modifier: Modifier = Modifier,
-    onClick: CategoryRes.Category.(Boolean) -> Unit = {}
-) {
-    var isSelected by remember(selected) {
-        mutableStateOf(selected)
-    }
-
-    val background by animateColorAsState(
-        if (isSelected) Colors.Primary.copy(alpha = 0.1f) else Color.Transparent,
-        label = ""
+private fun SectionTitle(text: String) {
+    Text(
+        text,
+        style = TextStyles.Title5.copy(color = Ink),
+        modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
     )
+}
 
+@Composable
+private fun TopicCard(category: CategoryRes.Category, selected: Boolean, onClick: () -> Unit) {
+    val haptics = LocalHapticFeedback.current
+    val scale by animateFloatAsState(
+        if (selected) 1.02f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+        label = "topicScale"
+    )
+    val background by animateColorAsState(if (selected) OnboardingColors.Blue else Mist, label = "topicBg")
+    val textColor by animateColorAsState(if (selected) Color.White else Ink, label = "topicText")
     Box(
-        modifier = modifier
-            .clip(TSShapes.rounded20)
+        modifier = Modifier
+            .height(112.dp)
+            .scale(scale)
+            .clip(RoundedCornerShape(20.dp))
+            .background(background)
             .border(
-                2.dp, color = Colors.StrokeColor,
-                shape = TSShapes.rounded20
+                width = 1.dp,
+                color = if (selected) OnboardingColors.Blue else Color(0xFFD6DFF5),
+                shape = RoundedCornerShape(20.dp)
             )
-            .background(background, TSShapes.rounded20)
-            .clickable {
-                isSelected = !isSelected
-                onClick(category, isSelected)
+            .semantics { this.selected = selected }
+            .clickable(role = Role.Checkbox) {
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onClick()
             }
+            .padding(10.dp)
     ) {
-        Image(
-            painter = painterResource(_mapIcon[category.id] ?: R.drawable.ic_anonymous),
-            contentDescription = category.name,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(bottom = 20.dp)
-                .size(48.dp)
-        )
-        Text(
-            text = category.name,
-            style = TextStyles.Title6,
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp, top = 10.dp)
-                .align(Alignment.BottomCenter)
-        )
+        Column(
+            Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(Color.White),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(_mapIcon[category.id] ?: R.drawable.ic_anonymous),
+                    contentDescription = null,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                CategoryNames.vietnamese(category.id, category.name),
+                color = textColor,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 16.sp
+            )
+        }
+        androidx.compose.animation.AnimatedVisibility(
+            visible = selected,
+            enter = scaleIn() + fadeIn(),
+            exit = scaleOut() + fadeOut(),
+            modifier = Modifier.align(Alignment.TopEnd)
+        ) {
+            Box(
+                Modifier
+                    .size(22.dp)
+                    .clip(CircleShape)
+                    .background(OnboardingColors.Coral),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Rounded.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+            }
+        }
     }
 }
+
+@Composable
+private fun TopicsBottomBar(
+    selected: List<CategoryRes.Category>,
+    onRemove: (CategoryRes.Category) -> Unit,
+    onContinue: () -> Unit,
+) {
+    val count = selected.size
+    val progress by animateFloatAsState((count.coerceAtMost(MIN_TOPICS)) / MIN_TOPICS.toFloat(), label = "topicsProgress")
+    Surface(shadowElevation = 12.dp, color = Color.White) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    if (count < MIN_TOPICS) stringResource(R.string.topics_progress, count)
+                    else stringResource(R.string.topics_selected, count),
+                    style = TextStyles.Title6.copy(color = Ink),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(50)),
+                color = if (count >= MIN_TOPICS) OnboardingColors.Coral else OnboardingColors.Blue,
+                trackColor = Mist,
+                drawStopIndicator = {},
+            )
+            AnimatedVisibility(
+                visible = selected.isNotEmpty(),
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(selected, key = { it.id }) { category ->
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(50))
+                                .background(Mist)
+                                .clickable { onRemove(category) }
+                                .padding(start = 12.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                CategoryNames.vietnamese(category.id, category.name),
+                                fontSize = 13.sp,
+                                color = OnboardingColors.Blue,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(Modifier.size(4.dp))
+                            Icon(Icons.Rounded.Close, contentDescription = null, tint = OnboardingColors.Blue, modifier = Modifier.size(14.dp))
+                        }
+                    }
+                }
+            }
+            Button(
+                onClick = onContinue,
+                enabled = count >= MIN_TOPICS,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = OnboardingColors.Blue,
+                    disabledContainerColor = Mist,
+                    disabledContentColor = OnboardingColors.Blue.copy(alpha = 0.6f)
+                )
+            ) {
+                Text(
+                    if (count >= MIN_TOPICS) stringResource(R.string.topics_continue)
+                    else stringResource(R.string.topics_need_more, MIN_TOPICS - count),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+/** Lowercase without Vietnamese diacritics, for the topic search. */
+private fun fold(text: String): String =
+    Normalizer.normalize(text, Normalizer.Form.NFD)
+        .replace(Regex("\\p{Mn}+"), "")
+        .replace('đ', 'd')
+        .replace('Đ', 'D')
+        .lowercase()
+        .trim()
 
 private val _mapIcon by lazy {
     mapOf(
@@ -374,31 +540,16 @@ private val _mapIcon by lazy {
     )
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 @Preview
 fun SelectFavouriteCategoryScreenPreview() {
-    val list = mutableListOf<CategoryRes.Category>()
-    val jsArr = LocalContext.current.assets.open("categories.json")
-        .bufferedReader()
-        .readText()
-        .let {
-            JSONObject(it).getJSONArray("Categories")
-        }
-    val gson = Gson()
-    for (i in 0 until jsArr.length()) {
-        list.add(
-            gson.fromJson(jsArr[i].toString(), CategoryRes.Category::class.java)
-        )
-    }
-    MaterialTheme(
-        colorScheme = MaterialTheme.colorScheme.copy(
-            background = Color.White,
-            surface = Color.White
-        )
-    ) {
-        SelectFavouriteCategoryScreen(
-            listCategory = list
-        )
-    }
+    SelectFavouriteCategoryScreen(
+        listCategory = listOf(
+            CategoryRes.Category(55, "News"),
+            CategoryRes.Category(9, "Business"),
+            CategoryRes.Category(28, "History"),
+            CategoryRes.Category(1, "Arts"),
+        ),
+        listSelected = listOf(CategoryRes.Category(55, "News"))
+    )
 }

@@ -3,4 +3,39 @@
     <string name="select_favourite_category_screen_title">Danh mục yêu thích của bạn</string>
     <string name="select_favourite_category_screen_description">(Ít nhất 3 danh mục)</string>
     <string name="select_favourite_category_screen_btn_confirm_title">Lưu và tiếp tục</string>
+
+    <!-- Intro (brand tones) -->
+    <string name="onboarding_next">Tiếp tục</string>
+    <string name="onboarding_skip">Bỏ qua</string>
+
+    <!-- Privacy step (Nghị định 13/2023/NĐ-CP, Luật BVDLCN 91/2025) -->
+    <string name="privacy_title">Quyền riêng tư của bạn</string>
+    <string name="privacy_intro">Trước khi bắt đầu, chúng tôi muốn bạn biết rõ TSPodcast xử lý thông tin thế nào và để bạn tự quyết định.</string>
+    <string name="privacy_not_collected_title">Chúng tôi không thu thập</string>
+    <string name="privacy_not_collected_body">Tên, email, số điện thoại, danh bạ, vị trí chính xác hay số định danh thiết bị (ANDROID_ID). Bạn không cần tạo tài khoản.</string>
+    <string name="privacy_on_device_title">Chỉ lưu trên máy của bạn</string>
+    <string name="privacy_on_device_body">Chủ đề yêu thích, danh sách yêu thích, lịch sử và vị trí đang nghe, cài đặt. Gỡ app hoặc xoá dữ liệu app là xoá hết.</string>
+    <string name="privacy_choices_title">Bạn chọn chia sẻ gì</string>
+    <string name="privacy_analytics_title">Thống kê sử dụng ẩn danh</string>
+    <string name="privacy_analytics_body">Màn hình bạn mở, tính năng bạn dùng, phiên bản app và hệ điều hành, gửi tới Google Firebase Analytics. Mục đích: biết tính năng nào hữu ích để cải thiện app. Không gắn với tên hay số điện thoại của bạn.</string>
+    <string name="privacy_crash_title">Báo cáo sự cố</string>
+    <string name="privacy_crash_body">Khi app gặp lỗi: thông tin lỗi, dòng máy, phiên bản Android và một mã cài đặt ngẫu nhiên, gửi tới Google Firebase Crashlytics. Mục đích: tìm và sửa lỗi nhanh hơn.</string>
+    <string name="privacy_rights">Bạn có quyền rút lại đồng ý bất cứ lúc nào trong Cài đặt, yêu cầu xem hoặc xoá dữ liệu qua email hỗ trợ. Không đồng ý thì bạn vẫn dùng đầy đủ mọi tính năng.</string>
+    <string name="privacy_read_policy">Đọc Chính sách bảo mật đầy đủ</string>
+    <string name="privacy_accept_all">Đồng ý chia sẻ cả hai</string>
+    <string name="privacy_save_choices">Lưu lựa chọn của tôi</string>
+    <string name="privacy_continue_without">Không chia sẻ, tiếp tục</string>
+    <string name="privacy_footer">Bằng việc bấm một trong hai nút, bạn xác nhận đã đọc thông tin trên. Lựa chọn chỉ áp dụng cho mục đích đã nêu.</string>
+
+    <!-- Topic picker -->
+    <string name="topics_title">Bạn thích nghe gì?</string>
+    <string name="topics_subtitle">Chọn ít nhất 3 chủ đề để TSPodcast gợi ý chương trình hợp gu bạn.</string>
+    <string name="topics_search_hint">Tìm chủ đề</string>
+    <string name="topics_popular">Phổ biến</string>
+    <string name="topics_all">Tất cả chủ đề</string>
+    <string name="topics_progress">Đã chọn %1$d/3</string>
+    <string name="topics_selected">Đã chọn %1$d chủ đề</string>
+    <string name="topics_continue">Tiếp tục</string>
+    <string name="topics_need_more">Chọn thêm %1$d chủ đề</string>
+    <string name="topics_empty">Không có chủ đề khớp</string>
 </resources>
