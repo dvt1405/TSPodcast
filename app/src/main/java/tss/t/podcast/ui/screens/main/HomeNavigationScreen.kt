@@ -303,6 +303,9 @@ private fun HomeNavHost(
         }
 
         composable(TSHomeRouter.Favourite.route) {
+            // Reload on every visit: favourites added from Detail or the Player since the
+            // first load must show (features-spec §3.8 [Sửa]).
+            androidx.compose.runtime.LaunchedEffect(Unit) { favViewModel.selectAll() }
             FavouriteScreen(
                 rootNavHost = parentNavHost,
                 listState = rememberLazyListState(),

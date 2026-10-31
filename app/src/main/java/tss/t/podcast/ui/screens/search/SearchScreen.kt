@@ -188,7 +188,37 @@ fun SearchScreen(
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
                             .padding(top = 24.dp)
+                            .clickable { searchText = trendingKeyword }
                     )
+                }
+                if (categories.isNotEmpty()) {
+                    item {
+                        // Topic chips (iOS M2 parity): a tap searches that topic.
+                        Text(
+                            stringResource(R.string.search_categories_title),
+                            style = TextStyles.Title5,
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .padding(top = 24.dp, bottom = 8.dp)
+                        )
+                        @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                        androidx.compose.foundation.layout.FlowRow(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+                            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+                        ) {
+                            categories.forEach { category ->
+                                androidx.compose.material3.SuggestionChip(
+                                    onClick = {
+                                        selectedCategory = category
+                                        searchText = category.name
+                                        focusManager.clearFocus()
+                                    },
+                                    label = { Text(category.name) }
+                                )
+                            }
+                        }
+                    }
                 }
             } else if (searchResult.isEmpty() && !searchText.isNullOrEmpty()) {
                 item {
