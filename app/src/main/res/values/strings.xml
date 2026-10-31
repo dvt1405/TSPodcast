@@ -91,4 +91,14 @@ Lý do báo cáo:
     <string name="search_categories_title">Chủ đề</string>
     <string name="player_more_share">Chia sẻ tập này</string>
     <string name="player_more_report">Báo cáo nội dung</string>
+
+    <!-- Launcher shortcuts -->
+    <string name="shortcut_continue_short">Nghe tiếp</string>
+    <string name="shortcut_continue_long">Nghe tiếp tập đang dở</string>
+    <string name="shortcut_pause_short">Tạm dừng</string>
+    <string name="shortcut_pause_long">Tạm dừng phát</string>
+    <string name="shortcut_sleep_short">Tắt sau 30 phút</string>
+    <string name="shortcut_sleep_long">Hẹn giờ tắt sau 30 phút</string>
+    <string name="shortcut_nothing_to_continue">Chưa có tập nào đang nghe dở</string>
+    <string name="shortcut_sleep_toast">Đã hẹn giờ tắt sau 30 phút</string>
 </resources>

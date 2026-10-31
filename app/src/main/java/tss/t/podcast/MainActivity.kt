@@ -84,6 +84,7 @@ import tss.t.podcast.ui.model.HomeEvent
 import tss.t.podcast.ui.navigations.TSHomeRouter
 import tss.t.podcast.ui.navigations.TSNavGraph
 import tss.t.podcast.ui.screens.settings.PrivacyConsentSheet
+import tss.t.podcast.shortcuts.AppShortcuts
 import tss.t.podcast.ui.screens.common.LocalShowActions
 import tss.t.podcast.ui.screens.common.ShowActions
 import tss.t.podcast.ui.screens.common.ShowRef
@@ -131,6 +132,12 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var privacyConsent: PrivacyConsent
 
+    @Inject
+    lateinit var playerManager: tss.t.sharedplayer.player.PlayerManager
+
+    @Inject
+    lateinit var sharedPref: tss.t.core.storage.SharedPref
+
     private var navHostController: NavHostController? = null
     private var homeInnerNavHostController: NavHostController? = null
     private var onBackPressedCallback: OnBackPressedCallback? = null
@@ -174,6 +181,7 @@ class MainActivity : ComponentActivity() {
         }
         onBackPressedCallback = backCallback
         onBackPressedDispatcher.addCallback(this, backCallback)
+        AppShortcuts.publish(this)
         handleIntent(intent)
         requestNotificationPermissionIfNeeded()
         // UMP consent (form if required) -> Mobile Ads SDK init -> preload.
@@ -287,6 +295,7 @@ class MainActivity : ComponentActivity() {
         if (intent.action == Constants.ACTION_START_FROM_NOTIFICATION || intent.data != null) {
             adsController.onExternalLaunch()
         }
+        if (handleShortcut(intent.action)) return
         if (intent.action != Constants.ACTION_START_FROM_NOTIFICATION) return
         val data = intent.data ?: return
         // This activity is exported, so any app can send this action. Match on
@@ -301,6 +310,35 @@ class MainActivity : ComponentActivity() {
             ?.takeIf { it.isNotBlank() }
             ?: return
         playerViewModel.onRestoreFromNotification(mediaId)
+    }
+
+    /** Launcher shortcuts (iOS App Shortcuts parity). True when [action] was one of them. */
+    private fun handleShortcut(action: String?): Boolean {
+        when (action) {
+            AppShortcuts.ACTION_CONTINUE -> {
+                adsController.onExternalLaunch()
+                val lastId = sharedPref.get<String>(tss.t.podcasts.HistoryRepository.EXTRA_CURRENT_ITEM_ID)
+                if (lastId.isNullOrBlank()) {
+                    Toast.makeText(this, R.string.shortcut_nothing_to_continue, Toast.LENGTH_SHORT).show()
+                } else {
+                    playerViewModel.onRestoreFromNotification(lastId)
+                }
+            }
+
+            AppShortcuts.ACTION_PAUSE -> {
+                adsController.onExternalLaunch()
+                playerManager.player.pause()
+            }
+
+            AppShortcuts.ACTION_SLEEP_30 -> {
+                adsController.onExternalLaunch()
+                playerManager.setSleepTimer(tss.t.sharedplayer.playback.SleepTimerOption.Minutes(30))
+                Toast.makeText(this, R.string.shortcut_sleep_toast, Toast.LENGTH_SHORT).show()
+            }
+
+            else -> return false
+        }
+        return true
     }
 
     private val requestNotificationPermission =
