@@ -1,0 +1,22 @@
+# Nightly Postgres dump (deploy/scripts/backup-postgres.sh). Started by
+# tspodcast-backup.timer; only useful once the "backend" profile runs.
+# Install: see docs/deploy/README.md §8.
+[Unit]
+Description=TSPodcast Postgres backup
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+ExecStart=/opt/tspodcast/scripts/backup-postgres.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+# The dump goes through docker; the script itself only needs these paths.
+ProtectSystem=full
+ReadWritePaths=/var/backups/tspodcast /var/lib/tspodcast
+PrivateTmp=true
+NoNewPrivileges=true

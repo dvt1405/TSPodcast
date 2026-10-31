@@ -1,0 +1,14 @@
+# 04:00 Vietnam time, as in the job table of the backend plan (§2.6).
+# Enable: sudo systemctl enable --now tspodcast-backup.timer
+# Check:  systemctl list-timers 'tspodcast-*'; journalctl -u tspodcast-backup
+[Unit]
+Description=Nightly TSPodcast Postgres backup
+
+[Timer]
+OnCalendar=*-*-* 04:00:00 Asia/Ho_Chi_Minh
+RandomizedDelaySec=5min
+# Run at boot if the VPS was off at 04:00.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

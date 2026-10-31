@@ -137,6 +137,18 @@ cd .. && firebase deploy --only hosting:tspodcast
 - Key PodcastIndex chỉ dùng lúc build. `scripts/build-static.mjs` quét toàn bộ `out/` tìm giá trị key/secret và dừng nếu thấy. Script cũng dừng nếu hơn 2% số trang dính lỗi tải dữ liệu (thường do PodcastIndex trả 429). Lúc build tĩnh, mỗi worker giãn cách lời gọi và thử lại khi gặp 429.
 - Dữ liệu cũ dần cho tới lần build sau. Theo điều khoản PodcastIndex, phải build lại ít nhất mỗi 7 ngày. Kế hoạch chuyển lên VPS: `docs/plans/web-vps-deploy.md`.
 
+### VPS (Docker, bản production đích)
+
+Image `web/Dockerfile` (Next standalone, `NEXT_OUTPUT_STANDALONE=1`), Caddy, GitHub Actions → GHCR → SSH deploy. Hướng dẫn đầy đủ: `docs/deploy/README.md`. Thử build image ở máy có Docker:
+
+```bash
+docker build --build-arg NEXT_PUBLIC_SITE_URL=http://localhost:3000 -t tspodcast-web web
+# Key lấy từ biến môi trường của shell hiện tại (không dùng --env-file .env.local:
+# docker không hiểu cách escape \$ của Next).
+docker run --rm -p 3000:3000 -v /app/.next/server \
+  -e PODCASTINDEX_API_KEY -e PODCASTINDEX_API_SECRET tspodcast-web
+```
+
 ### Vercel
 
 1. Import repo, đặt **Root Directory = `web`**. Framework sẽ tự nhận là Next.js.

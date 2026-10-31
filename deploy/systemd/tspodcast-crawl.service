@@ -1,0 +1,22 @@
+# Daily crawl job run from the host (deploy/scripts/run-worker-job.sh).
+# ONLY if the worker has no pg-boss cron of its own (plan §2.6 puts the
+# schedule inside the worker; then leave this timer disabled).
+# TODO(BE-M0): confirm the job name once backend/ exists.
+[Unit]
+Description=TSPodcast daily crawl (worker job)
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+ExecStart=/opt/tspodcast/scripts/run-worker-job.sh daily-crawl
+# A crawl of ~1-1.5k feeds; stop it if it hangs.
+TimeoutStartSec=3h
+Nice=5
+ProtectSystem=full
+ReadWritePaths=/var/lib/tspodcast
+PrivateTmp=true
+NoNewPrivileges=true

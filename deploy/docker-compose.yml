@@ -1,0 +1,230 @@
+# TSPodcast production stack on one VPS (docs/deploy/README.md).
+#
+# Run it through deploy/scripts/compose.sh (or deploy.sh), which adds
+#   --env-file /etc/tspodcast/compose.env  (DOMAIN, ACME_EMAIL, WEB_IMAGE, ...)
+#   WEB_TAG from /var/lib/tspodcast/web.tag (the image deployed last)
+# Plain `docker compose` works too if you pass the same values yourself.
+#
+# Services:
+#   caddy   TLS (Let's Encrypt), compression, security headers, :80/:443
+#   web     Next.js standalone (web/Dockerfile), also on 127.0.0.1:3000
+#   postgres, api, worker   profile "backend": the coming backend
+#                           (docs/plans/ke-hoach-backend-quickwin-cuoc-lon.md §1-§2).
+#                           Not started unless COMPOSE_PROFILES=backend.
+#
+# Secrets never appear in this file: they come from /etc/tspodcast/*.env
+# (root:tspodcast, chmod 640) through env_file.
+
+name: tspodcast
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-hardening: &hardening
+  restart: unless-stopped
+  init: true
+  security_opt:
+    - no-new-privileges:true
+  logging: *logging
+
+services:
+  caddy:
+    <<: *hardening
+    image: ${CADDY_IMAGE:-caddy:2-alpine}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in /etc/tspodcast/compose.env}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in /etc/tspodcast/compose.env}
+    volumes:
+      # A folder, not the file: deploys replace Caddyfile with a new inode and a
+      # single-file bind mount would keep showing the old one.
+      - ./caddy:/etc/caddy:ro
+      # Extra site blocks (e.g. api.caddy once the backend runs). Owned by root on the host.
+      - ${TSP_ETC_DIR:-/etc/tspodcast}/caddy:/etc/caddy-sites:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m
+    # Caddy runs as root inside its container to bind :80/:443, with every
+    # capability dropped except that one.
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    depends_on:
+      web:
+        condition: service_started
+    networks: [edge]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:2019/config/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+          pids: 128
+
+  web:
+    <<: *hardening
+    image: ${WEB_IMAGE:?set WEB_IMAGE in /etc/tspodcast/compose.env}:${WEB_TAG:-latest}
+    # Fallback when CI is unavailable: deploy.sh --build <path to web/> builds
+    # this on the server (needs ~2 GB RAM free; see docs/deploy/README.md §6).
+    build:
+      context: ${WEB_BUILD_CONTEXT:-../web}
+      args:
+        NEXT_PUBLIC_SITE_URL: https://${DOMAIN}
+        NEXT_PUBLIC_SITE_LOCALE: ${SITE_LOCALE:-vi}
+        GIT_SHA: ${WEB_TAG:-local}
+    pull_policy: missing
+    env_file:
+      - path: ${TSP_ETC_DIR:-/etc/tspodcast}/web.env
+        required: true
+    environment:
+      NODE_OPTIONS: --max-old-space-size=512
+    # Loopback only: Caddy talks to web over the edge network; this port is for
+    # smoke tests and debugging on the VPS itself.
+    ports:
+      - "127.0.0.1:3000:3000"
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+    volumes:
+      # Next writes ISR pages next to the compiled server; the entrypoint
+      # refills this from the image on every start (web/docker-entrypoint.sh).
+      - web-server:/app/.next/server
+      # unstable_cache data (PodcastIndex responses, minutes to a day).
+      - web-cache:/app/.next/cache
+    cap_drop: [ALL]
+    networks: [edge]
+    # Healthcheck comes from the image (GET /robots.txt).
+    deploy:
+      resources:
+        limits:
+          cpus: "1.50"
+          memory: 768M
+          pids: 256
+
+  # ---------------------------------------------------------------- backend
+  # Placeholders until backend/ exists (BE-M0). Images, commands, ports and
+  # health endpoints marked TODO must be checked against the real code.
+  # Invariant (plan §1): api, worker and postgres never receive PODCASTINDEX_*;
+  # web never receives database credentials and is not on the backend network.
+
+  postgres:
+    <<: *hardening
+    profiles: [backend]
+    image: ${POSTGRES_IMAGE:-postgres:17-alpine}
+    env_file:
+      - path: ${TSP_ETC_DIR:-/etc/tspodcast}/backend.env
+        required: false
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      # unaccent + pg_trgm on first init (empty data volume only).
+      - ./postgres/initdb:/docker-entrypoint-initdb.d:ro
+    read_only: true
+    tmpfs:
+      - /var/run/postgresql:size=8m
+      - /tmp:size=64m
+    shm_size: 256m
+    # The official entrypoint starts as root, fixes ownership and drops to the
+    # postgres user; it needs these capabilities and nothing else.
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
+    networks: [backend]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 1G
+          pids: 256
+
+  api:
+    <<: *hardening
+    profiles: [backend]
+    # TODO(BE-M2): real image once backend/ has a Dockerfile and CI pushes it.
+    image: ${API_IMAGE:-ghcr.io/OWNER/tspodcast-api}:${API_TAG:-latest}
+    # TODO(BE-M2): command/entrypoint of the Fastify server, if not the image default.
+    env_file:
+      - path: ${TSP_ETC_DIR:-/etc/tspodcast}/backend.env
+        required: false
+    environment:
+      PORT: "8080"
+      NODE_ENV: production
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+    cap_drop: [ALL]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # edge: reachable from Caddy and able to call Gemini; backend: Postgres.
+    networks: [edge, backend]
+    healthcheck:
+      # TODO(BE-M2): adjust once /healthz exists.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 512M
+          pids: 256
+
+  worker:
+    <<: *hardening
+    profiles: [backend]
+    # TODO(BE-M0): real image (same backend/ package as api, other command).
+    image: ${WORKER_IMAGE:-ghcr.io/OWNER/tspodcast-worker}:${WORKER_TAG:-latest}
+    # TODO(BE-M0): command that starts pg-boss and its cron schedule.
+    env_file:
+      - path: ${TSP_ETC_DIR:-/etc/tspodcast}/backend.env
+        required: false
+    environment:
+      NODE_ENV: production
+    read_only: true
+    tmpfs:
+      # Big feeds (VOV ~20 MB) are parsed as streams; keep scratch space small.
+      - /tmp:size=256m
+    cap_drop: [ALL]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # backend: Postgres. egress: outbound HTTP to RSS hosts, Apple, R2.
+    networks: [backend, egress]
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 768M
+          pids: 256
+
+networks:
+  edge: {}
+  # No route to the internet: only api and worker can reach Postgres.
+  backend:
+    internal: true
+  egress: {}
+
+volumes:
+  caddy-data: {}   # certificates and ACME account: back it up or lose rate-limit budget
+  caddy-config: {}
+  web-server: {}   # scratch, refilled on every web start
+  web-cache: {}
+  pg-data: {}

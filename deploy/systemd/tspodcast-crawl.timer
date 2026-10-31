@@ -1,0 +1,12 @@
+# 02:00 Vietnam time (Apple charts + new feeds in the plan's job table, §2.6).
+# Disabled by default; see tspodcast-crawl.service.
+[Unit]
+Description=TSPodcast daily crawl
+
+[Timer]
+OnCalendar=*-*-* 02:00:00 Asia/Ho_Chi_Minh
+RandomizedDelaySec=10min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
