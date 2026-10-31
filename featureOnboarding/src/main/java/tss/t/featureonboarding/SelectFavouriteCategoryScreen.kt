@@ -61,6 +61,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -102,8 +104,8 @@ fun SelectFavouriteCategoryScreen(viewmodel: OnboardingViewModel) {
 
 /**
  * Topic picker in the brand tones: a gradient header with a search field, "Phổ biến" first then
- * every topic (Vietnamese names), cards that pop when picked, and a bottom bar with the progress
- * to the 3 needed, the picked topics (tap to remove) and the button.
+ * every topic (names in the app language), cards that pop when picked, and a bottom bar with
+ * the progress to the 3 needed, the picked topics (tap to remove) and the button.
  */
 @Composable
 fun SelectFavouriteCategoryScreen(
@@ -114,19 +116,27 @@ fun SelectFavouriteCategoryScreen(
     onItemSelected: CategoryRes.Category.(Int, Boolean) -> Unit = { _, _ -> },
 ) {
     var query by rememberSaveable { mutableStateOf("") }
+    val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    // Category names in the app language (string resources), recomputed when the locale changes.
+    val names = remember(listCategory, configuration) {
+        listCategory.associate { it.id to CategoryNames.name(context, it.id, it.name) }
+    }
+    fun nameOf(category: CategoryRes.Category): String = names[category.id] ?: category.name
     val selectedIds = remember(listSelected) { listSelected.mapTo(HashSet()) { it.id } }
     val byId = remember(listCategory) { listCategory.associateBy { it.id } }
     val popular = remember(listCategory) { CategoryNames.POPULAR_IDS.mapNotNull { byId[it] } }
-    val others = remember(listCategory) {
+    val others = remember(listCategory, names) {
         val popularIds = CategoryNames.POPULAR_IDS.toSet()
         listCategory.filterNot { it.id in popularIds }
-            .sortedBy { fold(CategoryNames.vietnamese(it.id, it.name)) }
+            .sortedBy { fold(nameOf(it)) }
     }
-    val searchResults = remember(listCategory, query) {
+    // Matches the localized name and the English API name, accent-insensitive.
+    val searchResults = remember(listCategory, names, query) {
         val q = fold(query)
         if (q.isEmpty()) emptyList()
         else listCategory.filter {
-            fold(CategoryNames.vietnamese(it.id, it.name)).contains(q) || fold(it.name).contains(q)
+            fold(nameOf(it)).contains(q) || fold(it.name).contains(q)
         }
     }
     fun toggle(category: CategoryRes.Category) {
@@ -310,7 +320,7 @@ private fun TopicCard(category: CategoryRes.Category, selected: Boolean, onClick
             }
             Spacer(Modifier.height(8.dp))
             Text(
-                CategoryNames.vietnamese(category.id, category.name),
+                CategoryNames.name(category.id, category.name),
                 color = textColor,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -389,7 +399,7 @@ private fun TopicsBottomBar(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                CategoryNames.vietnamese(category.id, category.name),
+                                CategoryNames.name(category.id, category.name),
                                 fontSize = 13.sp,
                                 color = OnboardingColors.Blue,
                                 fontWeight = FontWeight.SemiBold
@@ -423,12 +433,15 @@ private fun TopicsBottomBar(
     }
 }
 
-/** Lowercase without Vietnamese diacritics, for the topic search. */
+/** Lowercase without diacritics (Vietnamese đ included), for the topic search and sort. */
 private fun fold(text: String): String =
     Normalizer.normalize(text, Normalizer.Form.NFD)
         .replace(Regex("\\p{Mn}+"), "")
         .replace('đ', 'd')
         .replace('Đ', 'D')
+        .replace('ł', 'l')
+        .replace('Ł', 'L')
+        .replace('ı', 'i')
         .lowercase()
         .trim()
 

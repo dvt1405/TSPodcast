@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import tss.t.podcast.ui.screens.common.ShowActionsMenu
 import tss.t.podcast.ui.screens.common.ShowRef
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -87,7 +88,7 @@ fun FavouriteWidget(
                         RoundedCornerShape(12.dp)
                     ),
                 painter = painterResource(R.drawable.onboarding_slide_7),
-                contentDescription = "Fav"
+                contentDescription = stringResource(R.string.cd_artwork)
             )
         } else {
             AsyncImage(

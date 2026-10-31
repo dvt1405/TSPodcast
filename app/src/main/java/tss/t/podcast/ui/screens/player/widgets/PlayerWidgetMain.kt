@@ -1,5 +1,6 @@
 package tss.t.podcast.ui.screens.player.widgets
 
+import androidx.compose.ui.res.stringResource
 import tss.t.sharedlibrary.ui.glass.LocalLiquidGlass
 import tss.t.sharedlibrary.ui.glass.glassSurface
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -141,7 +142,7 @@ fun PlayerWidgetMain(
             if (playing) {
                 Icon(
                     painter = painterResource(R.drawable.round_pause_24),
-                    "Pause",
+                    stringResource(R.string.player_pause),
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
@@ -151,7 +152,7 @@ fun PlayerWidgetMain(
             } else {
                 Icon(
                     Icons.Rounded.PlayArrow,
-                    "Play", modifier = Modifier
+                    stringResource(R.string.player_play), modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
                         .clickable(onClick = playPauseClick)

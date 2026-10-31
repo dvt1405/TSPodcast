@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import tss.t.sharedresources.R
 
 object NotificationUtils {
     const val DEFAULT_FCM_CHANNEL = "TSStudio"
@@ -36,8 +37,8 @@ object NotificationUtils {
         builder.setShowBadge(true)
         builder.setVibrationEnabled(false)
         builder.setSound(null, null)
-        builder.setDescription("TSS group notifications")
-        builder.setName("TSS Notifications")
+        builder.setDescription(context.getString(R.string.notification_channel_description))
+        builder.setName(context.getString(R.string.notification_channel_name))
         val isExists = managerCompat.getNotificationChannel(channelId) != null
         if (!isExists) {
             managerCompat.createNotificationChannel(builder.build())

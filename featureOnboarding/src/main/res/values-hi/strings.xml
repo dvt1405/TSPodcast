@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="select_favourite_category_screen_title">आपके पसंदीदा विषय</string>
+    <string name="select_favourite_category_screen_description">(कम से कम 3 विषय)</string>
+    <string name="select_favourite_category_screen_btn_confirm_title">सेव करें और जारी रखें</string>
+
+    <!-- Intro (brand tones) -->
+    <string name="onboarding_next">जारी रखें</string>
+    <string name="onboarding_skip">छोड़ें</string>
+
+    <!-- Privacy step -->
+    <string name="privacy_title">आपकी निजता</string>
+    <string name="privacy_intro">शुरू करने से पहले, हम चाहते हैं कि आप ठीक-ठीक जानें कि TSPodcast जानकारी को कैसे संभालता है, और फ़ैसला आप खुद करें।</string>
+    <string name="privacy_not_collected_title">हम क्या इकट्ठा नहीं करते</string>
+    <string name="privacy_not_collected_body">आपका नाम, ईमेल, फ़ोन नंबर, संपर्क, सटीक लोकेशन या डिवाइस आइडेंटिफ़ायर (ANDROID_ID)। आपको कोई खाता बनाने की ज़रूरत नहीं है।</string>
+    <string name="privacy_on_device_title">सिर्फ़ आपके डिवाइस पर सेव</string>
+    <string name="privacy_on_device_body">पसंदीदा विषय, पसंदीदा सूची, सुनने का इतिहास और पोज़िशन, सेटिंग। ऐप अनइंस्टॉल करने या उसका डेटा साफ़ करने पर यह सब मिट जाता है।</string>
+    <string name="privacy_choices_title">क्या शेयर करना है, यह आप चुनें</string>
+    <string name="privacy_analytics_title">गुमनाम उपयोग आँकड़े</string>
+    <string name="privacy_analytics_body">आप कौन-सी स्क्रीन खोलते हैं, कौन-सी सुविधाएँ इस्तेमाल करते हैं, ऐप और ऑपरेटिंग सिस्टम के वर्शन; यह जानकारी Google Firebase Analytics को भेजी जाती है। उद्देश्य: यह जानना कि कौन-सी सुविधाएँ उपयोगी हैं, ताकि हम ऐप को बेहतर बना सकें। यह आपके नाम या फ़ोन नंबर से नहीं जुड़ी होती।</string>
+    <string name="privacy_crash_title">क्रैश रिपोर्ट</string>
+    <string name="privacy_crash_body">जब ऐप में कोई गड़बड़ी होती है: गड़बड़ी की जानकारी, डिवाइस मॉडल, Android वर्शन और एक रैंडम इंस्टॉलेशन ID; यह जानकारी Google Firebase Crashlytics को भेजी जाती है। उद्देश्य: बग को जल्दी ढूँढना और ठीक करना।</string>
+    <string name="privacy_rights">आप सेटिंग में कभी भी अपनी सहमति वापस ले सकते हैं, और सपोर्ट ईमेल के ज़रिए अपना डेटा देखने या मिटाने का अनुरोध कर सकते हैं। अगर आप सहमति नहीं देते, तब भी आप सभी सुविधाएँ इस्तेमाल कर सकते हैं।</string>
+    <string name="privacy_read_policy">पूरी निजता नीति पढ़ें</string>
+    <string name="privacy_accept_all">दोनों शेयर करने के लिए सहमत</string>
+    <string name="privacy_save_choices">मेरी पसंद सेव करें</string>
+    <string name="privacy_continue_without">शेयर किए बिना जारी रखें</string>
+    <string name="privacy_footer">किसी भी बटन पर टैप करके, आप पुष्टि करते हैं कि आपने ऊपर दी गई जानकारी पढ़ ली है। आपकी पसंद सिर्फ़ बताए गए उद्देश्यों पर लागू होती है।</string>
+
+    <!-- Topic picker -->
+    <string name="topics_title">आपको क्या सुनना पसंद है?</string>
+    <string name="topics_subtitle">कम से कम 3 विषय चुनें, ताकि TSPodcast आपकी पसंद के शो सुझा सके।</string>
+    <string name="topics_search_hint">विषय सर्च करें</string>
+    <string name="topics_popular">लोकप्रिय</string>
+    <string name="topics_all">सभी विषय</string>
+    <string name="topics_progress">%1$d/3 चुने गए</string>
+    <string name="topics_selected">चुने गए विषय: %1$d</string>
+    <string name="topics_continue">जारी रखें</string>
+    <string name="topics_need_more">%1$d और चुनें</string>
+    <string name="topics_empty">कोई मिलता-जुलता विषय नहीं</string>
+</resources>

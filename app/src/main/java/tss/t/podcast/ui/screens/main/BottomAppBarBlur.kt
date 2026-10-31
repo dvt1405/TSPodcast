@@ -1,5 +1,6 @@
 package tss.t.podcast.ui.screens.main
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -45,6 +46,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -53,34 +55,35 @@ import tss.t.hazeandroid.HazeDefaults
 import tss.t.hazeandroid.HazeState
 import tss.t.hazeandroid.haze
 import tss.t.hazeandroid.hazeChild
+import tss.t.podcast.R
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 
 sealed class BottomBarTab(
-    val title: String,
+    @StringRes val title: Int,
     val icon: ImageVector,
     val color: Color,
 ) {
     data object Profile : BottomBarTab(
-        title = "Favorite",
+        title = R.string.favourite_screen_title,
         icon = Icons.Rounded.Favorite,
         color = Color(0xFFFFA574)
     )
 
     data object Home : BottomBarTab(
-        title = "TSPodcast",
+        title = R.string.app_name,
         icon = Icons.Rounded.Home,
         color = Color(0xFFFA6FFF)
     )
 
     data object Settings : BottomBarTab(
-        title = "Search",
+        title = R.string.search_screen_title,
         icon = Icons.Rounded.Search,
         color = Color(0xFFADFF64)
     )
 
     data object Radio : BottomBarTab(
-        title = "Radio",
+        title = R.string.radio_screen_title,
         icon = Icons.Rounded.Radio,
         color = Color(0xFFADFF64)
     )
@@ -139,10 +142,10 @@ fun BottomBarTabs(
                 ) {
                     Icon(
                         imageVector = tabs[tab].icon,
-                        contentDescription = tabs[tab].title
+                        contentDescription = stringResource(tabs[tab].title)
                     )
                     BasicText(
-                        text = tabs[tab].title,
+                        text = stringResource(tabs[tab].title),
                         maxLines = 1,
                         style = TextStyles.Title6.copy(color = textColor),
                         autoSize = TextAutoSize.StepBased(

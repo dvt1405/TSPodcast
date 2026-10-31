@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_title1">お気に入りのポッドキャストを見つけよう</string>
+    <string name="onboarding_title2">あなただけのためのコンテンツ</string>
+    <string name="onboarding_title3">いつでも、どこでも聴ける</string>
+    <string name="onboarding_title4">すっきり整理、いつも最新の状態に</string>
+    <string-array name="onboarding_title1_highlight">
+        <item>ポッドキャスト</item>
+        <item>お気に入り</item>
+    </string-array>
+    <string-array name="onboarding_title2_highlight">
+        <item>あなただけ</item>
+    </string-array>
+    <string-array name="onboarding_title3_highlight">
+        <item>いつでも、どこでも</item>
+    </string-array>
+    <string-array name="onboarding_title4_highlight">
+        <item>すっきり整理、いつも最新</item>
+    </string-array>
+    <string name="error_load_podcast_popup_title">問題が発生しました</string>
+    <string name="popup_btn_reload_title">再読み込み</string>
+    <string name="popup_btn_cancel_title">キャンセル</string>
+
+    <string name="dialog_error_title">エラー</string>
+    <string name="dialog_positive_btn_title">再読み込み</string>
+
+    <!-- Player basics (parity with iOS M6) -->
+    <string name="player_seek_back_15">15秒戻る</string>
+    <string name="player_seek_forward_30">30秒進む</string>
+    <string name="player_speed_title">再生速度</string>
+    <string name="player_speed_apply_all">すべての番組に適用</string>
+    <string name="player_speed_apply_all_hint">オフ: 番組ごとに速度を記憶します</string>
+    <string name="player_speed_slower">遅く</string>
+    <string name="player_speed_faster">速く</string>
+    <string name="player_speed_live">ライブ配信は常に 1.0× で再生されます</string>
+    <string name="player_sleep_title">スリープタイマー</string>
+    <string name="player_sleep_minutes">%1$d分</string>
+    <string name="player_sleep_end_of_episode">エピソードの終わり</string>
+    <string name="player_sleep_off">タイマーをオフ</string>
+    <string name="player_sleep_remaining">残り %1$s</string>
+    <string name="player_sleep_active_end_of_episode">エピソードの終わりで停止</string>
+    <string name="player_error_message">このコンテンツを再生できません</string>
+    <string name="player_error_retry">再試行</string>
+    <string name="player_play">再生</string>
+    <string name="player_pause">一時停止</string>
+    <string name="player_close">プレーヤーを閉じる</string>
+    <string name="player_up_next">次に再生</string>
+    <string name="cd_artwork">アートワーク</string>
+
+    <!-- System notification channel (Android Settings > Notifications) -->
+    <string name="notification_channel_name">通知</string>
+    <string name="notification_channel_description">TSPodcast からの通知</string>
+</resources>

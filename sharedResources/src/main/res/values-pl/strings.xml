@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_title1">Odkryj swoje ulubione podcasty</string>
+    <string name="onboarding_title2">Treści stworzone specjalnie dla Ciebie</string>
+    <string name="onboarding_title3">Słuchaj zawsze i wszędzie</string>
+    <string name="onboarding_title4">Wszystko uporządkowane i na bieżąco</string>
+    <string-array name="onboarding_title1_highlight">
+        <item>podcasty</item>
+        <item>swoje ulubione</item>
+    </string-array>
+    <string-array name="onboarding_title2_highlight">
+        <item>specjalnie dla Ciebie</item>
+    </string-array>
+    <string-array name="onboarding_title3_highlight">
+        <item>zawsze i wszędzie</item>
+    </string-array>
+    <string-array name="onboarding_title4_highlight">
+        <item>uporządkowane i na bieżąco</item>
+    </string-array>
+    <string name="error_load_podcast_popup_title">Coś poszło nie tak</string>
+    <string name="popup_btn_reload_title">Wczytaj ponownie</string>
+    <string name="popup_btn_cancel_title">Anuluj</string>
+
+    <string name="dialog_error_title">Ups!</string>
+    <string name="dialog_positive_btn_title">Wczytaj ponownie</string>
+
+    <!-- Player basics (parity with iOS M6) -->
+    <string name="player_seek_back_15">Cofnij o 15 sekund</string>
+    <string name="player_seek_forward_30">Przewiń o 30 sekund</string>
+    <string name="player_speed_title">Szybkość odtwarzania</string>
+    <string name="player_speed_apply_all">Zastosuj do wszystkich audycji</string>
+    <string name="player_speed_apply_all_hint">Wyłączone: każda audycja zapamiętuje własną szybkość</string>
+    <string name="player_speed_slower">Wolniej</string>
+    <string name="player_speed_faster">Szybciej</string>
+    <string name="player_speed_live">Transmisje na żywo są zawsze odtwarzane z szybkością 1.0×</string>
+    <string name="player_sleep_title">Wyłącznik czasowy</string>
+    <string name="player_sleep_minutes">%1$d min</string>
+    <string name="player_sleep_end_of_episode">Koniec odcinka</string>
+    <string name="player_sleep_off">Anuluj wyłącznik czasowy</string>
+    <string name="player_sleep_remaining">Pozostało: %1$s</string>
+    <string name="player_sleep_active_end_of_episode">Zatrzyma się na końcu odcinka</string>
+    <string name="player_error_message">Nie można odtworzyć tej treści</string>
+    <string name="player_error_retry">Spróbuj ponownie</string>
+    <string name="player_play">Odtwórz</string>
+    <string name="player_pause">Wstrzymaj</string>
+    <string name="player_close">Zamknij odtwarzacz</string>
+    <string name="player_up_next">NASTĘPNE</string>
+    <string name="cd_artwork">Okładka</string>
+
+    <!-- System notification channel (Android Settings > Notifications) -->
+    <string name="notification_channel_name">Powiadomienia</string>
+    <string name="notification_channel_description">Powiadomienia z TSPodcast</string>
+</resources>

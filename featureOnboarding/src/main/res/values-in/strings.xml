@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="select_favourite_category_screen_title">Topik favorit Anda</string>
+    <string name="select_favourite_category_screen_description">(Minimal 3 topik)</string>
+    <string name="select_favourite_category_screen_btn_confirm_title">Simpan dan lanjutkan</string>
+
+    <!-- Intro (brand tones) -->
+    <string name="onboarding_next">Lanjutkan</string>
+    <string name="onboarding_skip">Lewati</string>
+
+    <!-- Privacy step -->
+    <string name="privacy_title">Privasi Anda</string>
+    <string name="privacy_intro">Sebelum memulai, kami ingin Anda tahu persis bagaimana TSPodcast menangani informasi, dan membiarkan Anda memutuskan sendiri.</string>
+    <string name="privacy_not_collected_title">Yang tidak kami kumpulkan</string>
+    <string name="privacy_not_collected_body">Nama, email, nomor telepon, kontak, lokasi persis, atau ID perangkat (ANDROID_ID) Anda. Anda tidak perlu membuat akun.</string>
+    <string name="privacy_on_device_title">Hanya disimpan di perangkat Anda</string>
+    <string name="privacy_on_device_body">Topik favorit, daftar favorit, riwayat dan posisi mendengarkan, setelan. Menghapus instalasi aplikasi atau menghapus datanya akan menghapus semuanya.</string>
+    <string name="privacy_choices_title">Anda memilih apa yang dibagikan</string>
+    <string name="privacy_analytics_title">Statistik penggunaan anonim</string>
+    <string name="privacy_analytics_body">Layar yang Anda buka, fitur yang Anda gunakan, versi aplikasi dan sistem operasi, dikirim ke Google Firebase Analytics. Tujuan: mengetahui fitur mana yang berguna agar kami dapat meningkatkan aplikasi. Tidak dikaitkan dengan nama atau nomor telepon Anda.</string>
+    <string name="privacy_crash_title">Laporan error</string>
+    <string name="privacy_crash_body">Saat aplikasi mengalami error: detail error, model perangkat, versi Android, dan ID instalasi acak, dikirim ke Google Firebase Crashlytics. Tujuan: menemukan dan memperbaiki bug lebih cepat.</string>
+    <string name="privacy_rights">Anda dapat menarik persetujuan kapan saja di Setelan, dan meminta untuk melihat atau menghapus data Anda melalui email dukungan. Jika Anda tidak memberikan persetujuan, Anda tetap dapat menggunakan semua fitur.</string>
+    <string name="privacy_read_policy">Baca Kebijakan Privasi lengkap</string>
+    <string name="privacy_accept_all">Setuju membagikan keduanya</string>
+    <string name="privacy_save_choices">Simpan pilihan saya</string>
+    <string name="privacy_continue_without">Lanjutkan tanpa membagikan</string>
+    <string name="privacy_footer">Dengan mengetuk salah satu tombol, Anda mengonfirmasi bahwa Anda telah membaca informasi di atas. Pilihan Anda hanya berlaku untuk tujuan yang disebutkan.</string>
+
+    <!-- Topic picker -->
+    <string name="topics_title">Apa yang ingin Anda dengarkan?</string>
+    <string name="topics_subtitle">Pilih minimal 3 topik agar TSPodcast dapat menyarankan acara yang sesuai dengan selera Anda.</string>
+    <string name="topics_search_hint">Cari topik</string>
+    <string name="topics_popular">Populer</string>
+    <string name="topics_all">Semua topik</string>
+    <string name="topics_progress">%1$d/3 dipilih</string>
+    <string name="topics_selected">Topik dipilih: %1$d</string>
+    <string name="topics_continue">Lanjutkan</string>
+    <string name="topics_need_more">Pilih %1$d lagi</string>
+    <string name="topics_empty">Tidak ada topik yang cocok</string>
+</resources>

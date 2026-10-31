@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="select_favourite_category_screen_title">Je favoriete categorieën</string>
+    <string name="select_favourite_category_screen_description">(Minstens 3 categorieën)</string>
+    <string name="select_favourite_category_screen_btn_confirm_title">Opslaan en doorgaan</string>
+
+    <!-- Intro (brand tones) -->
+    <string name="onboarding_next">Doorgaan</string>
+    <string name="onboarding_skip">Overslaan</string>
+
+    <!-- Privacy step -->
+    <string name="privacy_title">Je privacy</string>
+    <string name="privacy_intro">Voordat je begint, willen we dat je precies weet hoe TSPodcast met informatie omgaat, en dat je zelf kunt beslissen.</string>
+    <string name="privacy_not_collected_title">Wat we niet verzamelen</string>
+    <string name="privacy_not_collected_body">Je naam, e-mailadres, telefoonnummer, contacten, precieze locatie of apparaat-ID (ANDROID_ID). Je hoeft geen account aan te maken.</string>
+    <string name="privacy_on_device_title">Alleen opgeslagen op je apparaat</string>
+    <string name="privacy_on_device_body">Favoriete onderwerpen, favorietenlijst, luistergeschiedenis en -positie, instellingen. Als je de app verwijdert of de app-gegevens wist, wordt alles verwijderd.</string>
+    <string name="privacy_choices_title">Jij kiest wat je deelt</string>
+    <string name="privacy_analytics_title">Anonieme gebruiksstatistieken</string>
+    <string name="privacy_analytics_body">De schermen die je opent, de functies die je gebruikt en de versies van de app en het besturingssysteem, verstuurd naar Google Firebase Analytics. Doel: ontdekken welke functies nuttig zijn, zodat we de app kunnen verbeteren. Niet gekoppeld aan je naam of telefoonnummer.</string>
+    <string name="privacy_crash_title">Crashrapporten</string>
+    <string name="privacy_crash_body">Als de app een fout tegenkomt: foutgegevens, apparaatmodel, Android-versie en een willekeurige installatie-ID, verstuurd naar Google Firebase Crashlytics. Doel: bugs sneller vinden en oplossen.</string>
+    <string name="privacy_rights">Je kunt je toestemming altijd intrekken in Instellingen, en via het support-e-mailadres vragen om je gegevens in te zien of te verwijderen. Als je geen toestemming geeft, kun je nog steeds alle functies gebruiken.</string>
+    <string name="privacy_read_policy">Lees het volledige privacybeleid</string>
+    <string name="privacy_accept_all">Akkoord met delen van beide</string>
+    <string name="privacy_save_choices">Mijn keuzes opslaan</string>
+    <string name="privacy_continue_without">Doorgaan zonder te delen</string>
+    <string name="privacy_footer">Door op een van beide knoppen te tikken, bevestig je dat je de bovenstaande informatie hebt gelezen. Je keuze geldt alleen voor de genoemde doelen.</string>
+
+    <!-- Topic picker -->
+    <string name="topics_title">Waar luister je graag naar?</string>
+    <string name="topics_subtitle">Kies minstens 3 onderwerpen, zodat TSPodcast programma\'s kan voorstellen die bij je smaak passen.</string>
+    <string name="topics_search_hint">Onderwerpen zoeken</string>
+    <string name="topics_popular">Populair</string>
+    <string name="topics_all">Alle onderwerpen</string>
+    <string name="topics_progress">%1$d/3 gekozen</string>
+    <string name="topics_selected">Gekozen onderwerpen: %1$d</string>
+    <string name="topics_continue">Doorgaan</string>
+    <string name="topics_need_more">Kies er nog %1$d</string>
+    <string name="topics_empty">Geen overeenkomende onderwerpen</string>
+</resources>

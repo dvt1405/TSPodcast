@@ -46,6 +46,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
@@ -245,7 +246,7 @@ fun BoxScope.SlideArea(
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                "UP NEXT",
+                stringResource(tss.t.sharedresources.R.string.player_up_next),
                 modifier = Modifier
                     .clickable {
                         coroutineScope.launch {

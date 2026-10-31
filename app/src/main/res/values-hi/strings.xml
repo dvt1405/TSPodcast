@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="discorver_screen_title">खोजें</string>
+    <string name="favourite_screen_title">पसंदीदा</string>
+    <string name="search_screen_title">सर्च</string>
+
+    <string name="search_hint_title">पॉडकास्ट, क्रिएटर सर्च करें</string>
+    <string name="search_result_title">%s के लिए टॉप नतीजे</string>
+    <string name="try_search_with_keyword_title">यह सर्च करके देखें: %s</string>
+    <string name="empty_search_title">कोई नतीजा नहीं मिला: </string>
+    <string name="search_suggest_key_title">बेहतरीन रेडियो</string>
+    <string name="search_mode_all">सभी</string>
+    <string name="search_mode_music">संगीत</string>
+    <string name="search_music_result_title">%s के लिए संगीत</string>
+    <string name="search_music_empty_hint">podcast:medium संगीत लाइब्रेरी अभी छोटी है, अंग्रेज़ी कीवर्ड आज़माएँ</string>
+    <string name="attribution_podcastindex">पॉडकास्ट डेटा Podcast Index द्वारा उपलब्ध कराया गया</string>
+    <string name="privacy_options_ads">निजता और विज्ञापन विकल्प</string>
+    <string name="music_feeds_title">संगीत लाइब्रेरी</string>
+    <string name="music_feeds_subtitle">podcast:medium मानक वाले संगीत फ़ीड</string>
+    <string name="empty_favourite_title">अभी तक कोई पसंदीदा शो नहीं है।</string>
+    <string name="btn_discover_more_title">और खोजें</string>
+    <string name="double_click_to_exit">बाहर निकलने के लिए फिर से बैक दबाएँ</string>
+    <string name="trending_podcast_title">ट्रेंडिंग पॉडकास्ट</string>
+    <string name="live_podcast_title">लाइव पॉडकास्ट</string>
+    <string name="recent_podcast_title">हाल में ट्रेंडिंग पॉडकास्ट</string>
+    <string name="fav_podcast_title">आपको ये पसंद आ सकते हैं</string>
+    <string name="radio_screen_title">रेडियो</string>
+    <string name="broken_install_title">इंस्टॉलेशन अधूरा है</string>
+    <string name="broken_install_message">इस डिवाइस के लिए ऐप के कुछ ज़रूरी हिस्से मौजूद नहीं हैं, आम तौर पर इसलिए क्योंकि ऐप Google Play के बजाय APK फ़ाइल से इंस्टॉल किया गया था। कृपया Google Play से ऐप फिर से इंस्टॉल करें।</string>
+    <string name="broken_install_action">Google Play खोलें</string>
+
+    <!-- Settings (parity with iOS) -->
+    <string name="settings_title">सेटिंग</string>
+    <string name="settings_open">सेटिंग खोलें</string>
+    <string name="settings_back">वापस</string>
+    <string name="settings_section_content">कंटेंट</string>
+    <string name="settings_explicit">एक्सप्लिसिट कंटेंट दिखाएँ</string>
+    <string name="settings_explicit_hint">एक्सप्लिसिट चिह्नित शो और एपिसोड डिफ़ॉल्ट रूप से छिपे रहते हैं</string>
+    <string name="settings_hidden_shows">छिपाए गए शो (%1$d)</string>
+    <string name="settings_hidden_shows_empty">आपने कोई शो नहीं छिपाया है। किसी शो को छिपाने के लिए खोजें या सर्च में उसे दबाकर रखें।</string>
+    <string name="settings_unhide">फिर से दिखाएँ</string>
+    <string name="settings_section_privacy">निजता</string>
+    <string name="settings_analytics">उपयोग एनालिटिक्स</string>
+    <string name="settings_analytics_hint">ऐप के उपयोग के गुमनाम आँकड़े, सुविधाओं को बेहतर बनाने के लिए</string>
+    <string name="settings_crash">क्रैश रिपोर्ट</string>
+    <string name="settings_crash_hint">ऐप में गड़बड़ी होने पर जानकारी भेजें, ताकि हम उसे जल्दी ठीक कर सकें</string>
+    <string name="settings_privacy_policy">निजता नीति</string>
+    <string name="settings_terms">उपयोग की शर्तें</string>
+    <string name="settings_delete_data">अपना डेटा मिटाएँ</string>
+    <string name="settings_section_app">ऐप</string>
+    <string name="settings_notifications">सूचनाएँ</string>
+    <string name="settings_feedback">फ़ीडबैक और बग रिपोर्ट</string>
+    <string name="settings_feedback_subject">TSPodcast फ़ीडबैक %1$s</string>
+    <string name="settings_version">वर्शन %1$s</string>
+
+    <!-- First-launch privacy question -->
+    <string name="consent_title">आपकी निजता</string>
+    <string name="consent_body">TSPodcast के लिए किसी खाते की ज़रूरत नहीं है और यह आपका नाम, ईमेल या फ़ोन नंबर इकट्ठा नहीं करता। क्या आप ऐप को बेहतर बनाने में हमारी मदद के लिए गुमनाम उपयोग आँकड़े और क्रैश रिपोर्ट भेजने के लिए सहमत हैं?</string>
+    <string name="consent_necessary_note">आप सेटिंग में कभी भी अपनी पसंद बदल सकते हैं। ऐप को सुरक्षित रखने के लिए स्पैम फ़िल्टर सूची फिर भी अपडेट होती रहती है।</string>
+    <string name="consent_accept_all">सहमत हूँ</string>
+    <string name="consent_necessary_only">सिर्फ़ ज़रूरी</string>
+
+    <!-- Show actions (hide / report / share) -->
+    <string name="show_hide">यह शो छिपाएँ</string>
+    <string name="show_report">कंटेंट की रिपोर्ट करें</string>
+    <string name="show_hidden_toast">शो छिपा दिया गया। इसे सेटिंग में फिर से दिखा सकते हैं।</string>
+    <string name="show_hide_confirm_title">यह शो छिपाएँ?</string>
+    <string name="show_hide_confirm_message">\"%1$s\" अब खोजें और सर्च में नहीं दिखेगा। आप इसे सेटिंग में फिर से दिखा सकते हैं।</string>
+    <string name="action_cancel">रद्द करें</string>
+    <string name="report_subject">कंटेंट रिपोर्ट: %1$s</string>
+    <string name="report_body">शो: %1$s
+फ़ीड ID: %2$s
+लिंक: %3$s
+ऐप वर्शन: %4$s
+
+रिपोर्ट का कारण:
+</string>
+    <string name="share">शेयर करें</string>
+    <string name="share_chooser_title">इसके ज़रिए शेयर करें</string>
+    <string name="share_podcast_text">TSPodcast पर \"%1$s\" सुनें: %2$s</string>
+    <string name="share_episode_text">TSPodcast पर एपिसोड \"%1$s\" सुनें: %2$s</string>
+    <string name="more_actions">और</string>
+    <string name="podcast_favourite">पसंदीदा में जोड़ें</string>
+    <string name="podcast_unfavourite">पसंदीदा से हटाएँ</string>
+
+    <!-- In-show search, categories, player menu -->
+    <string name="show_search_hint">इस शो में एपिसोड सर्च करें</string>
+    <string name="show_search_clear">साफ़ करें</string>
+    <string name="show_search_empty">कोई मिलता-जुलता एपिसोड नहीं</string>
+    <string name="show_search_count">मिलते-जुलते एपिसोड: %1$d</string>
+    <string name="search_categories_title">विषय</string>
+    <string name="player_more_share">यह एपिसोड शेयर करें</string>
+    <string name="player_more_report">कंटेंट की रिपोर्ट करें</string>
+
+    <!-- Launcher shortcuts -->
+    <string name="shortcut_continue_short">जारी रखें</string>
+    <string name="shortcut_continue_long">जो एपिसोड सुन रहे थे, उसे जारी रखें</string>
+    <string name="shortcut_pause_short">रोकें</string>
+    <string name="shortcut_pause_long">प्लेबैक रोकें</string>
+    <string name="shortcut_sleep_short">30 मिनट में बंद</string>
+    <string name="shortcut_sleep_long">स्लीप टाइमर: 30 मिनट</string>
+    <string name="shortcut_nothing_to_continue">कोई एपिसोड चालू नहीं है</string>
+    <string name="shortcut_sleep_toast">स्लीप टाइमर 30 मिनट के लिए सेट किया गया</string>
+
+    <string name="news_hub_title">समाचार और बुलेटिन</string>
+
+    <string name="settings_section_look">रूप-रंग</string>
+    <string name="settings_liquid_glass_hint">ग्लास-स्टाइल नेविगेशन बार, मिनी प्लेयर और प्लेयर कंट्रोल</string>
+
+    <string name="settings_language">भाषा</string>
+    <string name="settings_language_hint">ऐप और पॉडकास्ट सूचियों की भाषा (अंग्रेज़ी पॉडकास्ट हमेशा शामिल रहते हैं)</string>
+</resources>

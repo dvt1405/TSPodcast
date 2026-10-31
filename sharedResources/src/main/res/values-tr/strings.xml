@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_title1">Favori podcastlerinizi keşfedin</string>
+    <string name="onboarding_title2">Size özel içerikler</string>
+    <string name="onboarding_title3">İstediğiniz zaman, istediğiniz yerde dinleyin</string>
+    <string name="onboarding_title4">Her şey düzenli ve güncel</string>
+    <string-array name="onboarding_title1_highlight">
+        <item>podcastlerinizi</item>
+        <item>Favori</item>
+    </string-array>
+    <string-array name="onboarding_title2_highlight">
+        <item>Size özel</item>
+    </string-array>
+    <string-array name="onboarding_title3_highlight">
+        <item>İstediğiniz zaman, istediğiniz yerde</item>
+    </string-array>
+    <string-array name="onboarding_title4_highlight">
+        <item>düzenli ve güncel</item>
+    </string-array>
+    <string name="error_load_podcast_popup_title">Bir sorun oluştu</string>
+    <string name="popup_btn_reload_title">Yeniden yükle</string>
+    <string name="popup_btn_cancel_title">İptal</string>
+
+    <string name="dialog_error_title">Hay aksi!</string>
+    <string name="dialog_positive_btn_title">Yeniden yükle</string>
+
+    <!-- Player basics (parity with iOS M6) -->
+    <string name="player_seek_back_15">15 saniye geri</string>
+    <string name="player_seek_forward_30">30 saniye ileri</string>
+    <string name="player_speed_title">Oynatma hızı</string>
+    <string name="player_speed_apply_all">Tüm programlara uygula</string>
+    <string name="player_speed_apply_all_hint">Kapalı: her program kendi hızını hatırlar</string>
+    <string name="player_speed_slower">Daha yavaş</string>
+    <string name="player_speed_faster">Daha hızlı</string>
+    <string name="player_speed_live">Canlı yayınlar her zaman 1.0× hızında oynatılır</string>
+    <string name="player_sleep_title">Uyku zamanlayıcısı</string>
+    <string name="player_sleep_minutes">%1$d dk</string>
+    <string name="player_sleep_end_of_episode">Bölüm sonunda</string>
+    <string name="player_sleep_off">Zamanlayıcıyı kapat</string>
+    <string name="player_sleep_remaining">%1$s kaldı</string>
+    <string name="player_sleep_active_end_of_episode">Bölüm sonunda durur</string>
+    <string name="player_error_message">Bu içerik oynatılamıyor</string>
+    <string name="player_error_retry">Tekrar dene</string>
+    <string name="player_play">Oynat</string>
+    <string name="player_pause">Duraklat</string>
+    <string name="player_close">Oynatıcıyı kapat</string>
+    <string name="player_up_next">SIRADAKİ</string>
+    <string name="cd_artwork">Kapak görseli</string>
+
+    <!-- System notification channel (Android Settings > Notifications) -->
+    <string name="notification_channel_name">Bildirimler</string>
+    <string name="notification_channel_description">TSPodcast bildirimleri</string>
+</resources>

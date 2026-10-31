@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_title1">Scopri i tuoi podcast preferiti</string>
+    <string name="onboarding_title2">Contenuti pensati solo per te</string>
+    <string name="onboarding_title3">Ascolta quando e dove vuoi</string>
+    <string name="onboarding_title4">Resta organizzato e sempre aggiornato</string>
+    <string-array name="onboarding_title1_highlight">
+        <item>podcast</item>
+        <item>preferiti</item>
+    </string-array>
+    <string-array name="onboarding_title2_highlight">
+        <item>solo per te</item>
+    </string-array>
+    <string-array name="onboarding_title3_highlight">
+        <item>quando e dove vuoi</item>
+    </string-array>
+    <string-array name="onboarding_title4_highlight">
+        <item>organizzato e sempre aggiornato</item>
+    </string-array>
+    <string name="error_load_podcast_popup_title">Si è verificato un problema</string>
+    <string name="popup_btn_reload_title">Ricarica</string>
+    <string name="popup_btn_cancel_title">Annulla</string>
+
+    <string name="dialog_error_title">Ops!</string>
+    <string name="dialog_positive_btn_title">Ricarica</string>
+
+    <!-- Player basics (parity with iOS M6) -->
+    <string name="player_seek_back_15">Indietro di 15 secondi</string>
+    <string name="player_seek_forward_30">Avanti di 30 secondi</string>
+    <string name="player_speed_title">Velocità di riproduzione</string>
+    <string name="player_speed_apply_all">Applica a tutti i programmi</string>
+    <string name="player_speed_apply_all_hint">Disattivato: ogni programma ricorda la propria velocità</string>
+    <string name="player_speed_slower">Più lento</string>
+    <string name="player_speed_faster">Più veloce</string>
+    <string name="player_speed_live">Le dirette vengono sempre riprodotte a 1.0×</string>
+    <string name="player_sleep_title">Timer di spegnimento</string>
+    <string name="player_sleep_minutes">%1$d min</string>
+    <string name="player_sleep_end_of_episode">Fine dell\'episodio</string>
+    <string name="player_sleep_off">Disattiva timer</string>
+    <string name="player_sleep_remaining">Mancano %1$s</string>
+    <string name="player_sleep_active_end_of_episode">Si ferma a fine episodio</string>
+    <string name="player_error_message">Impossibile riprodurre questo contenuto</string>
+    <string name="player_error_retry">Riprova</string>
+    <string name="player_play">Riproduci</string>
+    <string name="player_pause">Pausa</string>
+    <string name="player_close">Chiudi player</string>
+    <string name="player_up_next">A SEGUIRE</string>
+    <string name="cd_artwork">Copertina</string>
+
+    <!-- System notification channel (Android Settings > Notifications) -->
+    <string name="notification_channel_name">Notifiche</string>
+    <string name="notification_channel_description">Notifiche di TSPodcast</string>
+</resources>

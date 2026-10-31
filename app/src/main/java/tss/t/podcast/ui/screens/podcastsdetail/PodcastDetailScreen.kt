@@ -659,13 +659,13 @@ fun PodcastDetailTopAppBar(
                     indication = null,
                     onClick = onBackPress,
                     role = Role.Button,
-                    onClickLabel = "Back"
+                    onClickLabel = stringResource(tss.t.podcast.R.string.settings_back)
                 )
                 .padding(12.dp)
         ) {
             Image(
                 Icons.Rounded.ArrowBack,
-                "Back",
+                stringResource(tss.t.podcast.R.string.settings_back),
                 modifier = Modifier,
                 colorFilter = ColorFilter.tint(Colors.White)
             )

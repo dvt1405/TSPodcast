@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="select_favourite_category_screen_title">Dina favoritämnen</string>
+    <string name="select_favourite_category_screen_description">(Minst 3 ämnen)</string>
+    <string name="select_favourite_category_screen_btn_confirm_title">Spara och fortsätt</string>
+
+    <!-- Intro (brand tones) -->
+    <string name="onboarding_next">Fortsätt</string>
+    <string name="onboarding_skip">Hoppa över</string>
+
+    <!-- Privacy step -->
+    <string name="privacy_title">Din integritet</string>
+    <string name="privacy_intro">Innan du börjar vill vi att du ska veta exakt hur TSPodcast hanterar information, och att du själv får bestämma.</string>
+    <string name="privacy_not_collected_title">Det här samlar vi inte in</string>
+    <string name="privacy_not_collected_body">Ditt namn, din e-postadress, ditt telefonnummer, dina kontakter, din exakta plats eller enhetens identifierare (ANDROID_ID). Du behöver inte skapa något konto.</string>
+    <string name="privacy_on_device_title">Sparas bara på din enhet</string>
+    <string name="privacy_on_device_body">Favoritämnen, favoritlista, lyssningshistorik och uppspelningsposition, inställningar. Om du avinstallerar appen eller rensar dess data raderas allt detta.</string>
+    <string name="privacy_choices_title">Du väljer vad som delas</string>
+    <string name="privacy_analytics_title">Anonym användningsstatistik</string>
+    <string name="privacy_analytics_body">Vilka skärmar du öppnar, vilka funktioner du använder samt app- och operativsystemversion, som skickas till Google Firebase Analytics. Syfte: att ta reda på vilka funktioner som är användbara så att vi kan förbättra appen. Kopplas inte till ditt namn eller telefonnummer.</string>
+    <string name="privacy_crash_title">Kraschrapporter</string>
+    <string name="privacy_crash_body">När appen stöter på ett fel: felinformation, enhetsmodell, Android-version och ett slumpmässigt installations-ID, som skickas till Google Firebase Crashlytics. Syfte: att hitta och åtgärda buggar snabbare.</string>
+    <string name="privacy_rights">Du kan när som helst återkalla ditt samtycke i Inställningar och begära att få se eller radera dina data via supportens e-postadress. Även om du inte samtycker kan du använda alla funktioner.</string>
+    <string name="privacy_read_policy">Läs hela integritetspolicyn</string>
+    <string name="privacy_accept_all">Godkänn att dela båda</string>
+    <string name="privacy_save_choices">Spara mina val</string>
+    <string name="privacy_continue_without">Fortsätt utan att dela</string>
+    <string name="privacy_footer">Genom att trycka på någon av knapparna bekräftar du att du har läst informationen ovan. Ditt val gäller endast de angivna syftena.</string>
+
+    <!-- Topic picker -->
+    <string name="topics_title">Vad gillar du att lyssna på?</string>
+    <string name="topics_subtitle">Välj minst 3 ämnen så att TSPodcast kan föreslå program som passar din smak.</string>
+    <string name="topics_search_hint">Sök ämnen</string>
+    <string name="topics_popular">Populära</string>
+    <string name="topics_all">Alla ämnen</string>
+    <string name="topics_progress">%1$d/3 valda</string>
+    <string name="topics_selected">Valda ämnen: %1$d</string>
+    <string name="topics_continue">Fortsätt</string>
+    <string name="topics_need_more">Välj %1$d till</string>
+    <string name="topics_empty">Inga matchande ämnen</string>
+</resources>

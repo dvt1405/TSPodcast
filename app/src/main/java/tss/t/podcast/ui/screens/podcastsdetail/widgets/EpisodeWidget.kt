@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -98,7 +99,7 @@ fun EpisodeWidget(
     ) {
         AsyncImage(
             model = imageRequest,
-            contentDescription = "Image",
+            contentDescription = stringResource(R.string.cd_artwork),
             modifier = Modifier
                 .size(60.dp)
                 .clip(episodeCoverShape)
@@ -210,7 +211,7 @@ fun EpisodeWidget(
     ) {
         AsyncImage(
             model = imageRequest,
-            contentDescription = "Image",
+            contentDescription = stringResource(R.string.cd_artwork),
             modifier = Modifier
                 .size(60.dp)
                 .clip(episodeCoverShape)

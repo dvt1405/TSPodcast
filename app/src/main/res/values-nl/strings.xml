@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="discorver_screen_title">Ontdekken</string>
+    <string name="favourite_screen_title">Favorieten</string>
+    <string name="search_screen_title">Zoeken</string>
+
+    <string name="search_hint_title">Zoek podcasts, makers</string>
+    <string name="search_result_title">Topresultaten voor: %s</string>
+    <string name="try_search_with_keyword_title">Probeer te zoeken op: %s</string>
+    <string name="empty_search_title">Geen resultaten voor: </string>
+    <string name="search_suggest_key_title">Beste radiozenders</string>
+    <string name="search_mode_all">Alles</string>
+    <string name="search_mode_music">Muziek</string>
+    <string name="search_music_result_title">Muziek voor: %s</string>
+    <string name="search_music_empty_hint">De muziekbibliotheek volgens de podcast:medium-standaard is nog klein, probeer Engelse zoekwoorden</string>
+    <string name="attribution_podcastindex">Podcastgegevens geleverd door Podcast Index</string>
+    <string name="privacy_options_ads">Privacy- en advertentieopties</string>
+    <string name="music_feeds_title">Muziekbibliotheek</string>
+    <string name="music_feeds_subtitle">Muziekfeeds volgens de podcast:medium-standaard</string>
+    <string name="empty_favourite_title">Nog geen favoriete programma\'s.</string>
+    <string name="btn_discover_more_title">Meer ontdekken</string>
+    <string name="double_click_to_exit">Druk nogmaals op Terug om af te sluiten</string>
+    <string name="trending_podcast_title">Populaire podcasts</string>
+    <string name="live_podcast_title">Livepodcasts</string>
+    <string name="recent_podcast_title">Recent populaire podcasts</string>
+    <string name="fav_podcast_title">Misschien vind je dit leuk</string>
+    <string name="radio_screen_title">Radio</string>
+    <string name="broken_install_title">Onvolledige installatie</string>
+    <string name="broken_install_message">De app mist onderdelen voor dit apparaat, meestal omdat hij via een APK-bestand is geïnstalleerd in plaats van via Google Play. Installeer de app opnieuw via Google Play.</string>
+    <string name="broken_install_action">Google Play openen</string>
+
+    <!-- Settings (parity with iOS) -->
+    <string name="settings_title">Instellingen</string>
+    <string name="settings_open">Instellingen openen</string>
+    <string name="settings_back">Terug</string>
+    <string name="settings_section_content">Content</string>
+    <string name="settings_explicit">Expliciete content tonen</string>
+    <string name="settings_explicit_hint">Programma\'s en afleveringen die als expliciet zijn gemarkeerd, worden standaard verborgen</string>
+    <string name="settings_hidden_shows">Verborgen programma\'s (%1$d)</string>
+    <string name="settings_hidden_shows_empty">Je hebt nog geen programma\'s verborgen. Houd een programma ingedrukt in Ontdekken of Zoeken om het te verbergen.</string>
+    <string name="settings_unhide">Weer tonen</string>
+    <string name="settings_section_privacy">Privacy</string>
+    <string name="settings_analytics">Gebruiksanalyse</string>
+    <string name="settings_analytics_hint">Anonieme statistieken over hoe de app wordt gebruikt, om functies te verbeteren</string>
+    <string name="settings_crash">Crashrapporten</string>
+    <string name="settings_crash_hint">Gegevens versturen als de app een fout tegenkomt, zodat we die sneller kunnen oplossen</string>
+    <string name="settings_privacy_policy">Privacybeleid</string>
+    <string name="settings_terms">Gebruiksvoorwaarden</string>
+    <string name="settings_delete_data">Je gegevens verwijderen</string>
+    <string name="settings_section_app">App</string>
+    <string name="settings_notifications">Meldingen</string>
+    <string name="settings_feedback">Feedback &amp; bugmeldingen</string>
+    <string name="settings_feedback_subject">TSPodcast-feedback %1$s</string>
+    <string name="settings_version">Versie %1$s</string>
+
+    <!-- First-launch privacy question -->
+    <string name="consent_title">Je privacy</string>
+    <string name="consent_body">TSPodcast heeft geen account nodig en verzamelt niet je naam, e-mailadres of telefoonnummer. Ga je ermee akkoord dat we anonieme gebruiksstatistieken en crashrapporten versturen om de app te verbeteren?</string>
+    <string name="consent_necessary_note">Je kunt je keuze altijd wijzigen in Instellingen. De spamfilterlijst wordt nog steeds bijgewerkt om de app veilig te houden.</string>
+    <string name="consent_accept_all">Akkoord</string>
+    <string name="consent_necessary_only">Alleen het noodzakelijke</string>
+
+    <!-- Show actions (hide / report / share) -->
+    <string name="show_hide">Dit programma verbergen</string>
+    <string name="show_report">Content melden</string>
+    <string name="show_hidden_toast">Programma verborgen. Weer tonen kan in Instellingen.</string>
+    <string name="show_hide_confirm_title">Dit programma verbergen?</string>
+    <string name="show_hide_confirm_message">“%1$s” verschijnt niet meer in Ontdekken en Zoeken. Je kunt het weer tonen in Instellingen.</string>
+    <string name="action_cancel">Annuleren</string>
+    <string name="report_subject">Contentmelding: %1$s</string>
+    <string name="report_body">Programma: %1$s
+Feed-ID: %2$s
+Link: %3$s
+Appversie: %4$s
+
+Reden van melding:
+</string>
+    <string name="share">Delen</string>
+    <string name="share_chooser_title">Delen via</string>
+    <string name="share_podcast_text">Luister naar “%1$s” op TSPodcast: %2$s</string>
+    <string name="share_episode_text">Luister naar de aflevering “%1$s” op TSPodcast: %2$s</string>
+    <string name="more_actions">Meer</string>
+    <string name="podcast_favourite">Toevoegen aan favorieten</string>
+    <string name="podcast_unfavourite">Verwijderen uit favorieten</string>
+
+    <!-- In-show search, categories, player menu -->
+    <string name="show_search_hint">Zoek afleveringen in dit programma</string>
+    <string name="show_search_clear">Wissen</string>
+    <string name="show_search_empty">Geen overeenkomende afleveringen</string>
+    <string name="show_search_count">Overeenkomende afleveringen: %1$d</string>
+    <string name="search_categories_title">Onderwerpen</string>
+    <string name="player_more_share">Deze aflevering delen</string>
+    <string name="player_more_report">Content melden</string>
+
+    <!-- Launcher shortcuts -->
+    <string name="shortcut_continue_short">Verder luisteren</string>
+    <string name="shortcut_continue_long">Verder met de aflevering waar je was</string>
+    <string name="shortcut_pause_short">Pauzeren</string>
+    <string name="shortcut_pause_long">Afspelen pauzeren</string>
+    <string name="shortcut_sleep_short">Stop over 30 min</string>
+    <string name="shortcut_sleep_long">Slaaptimer: 30 minuten</string>
+    <string name="shortcut_nothing_to_continue">Geen aflevering bezig</string>
+    <string name="shortcut_sleep_toast">Slaaptimer ingesteld op 30 minuten</string>
+
+    <string name="news_hub_title">Nieuws &amp; bulletins</string>
+
+    <string name="settings_section_look">Weergave</string>
+    <string name="settings_liquid_glass_hint">Navigatiebalk, minispeler en bedieningsknoppen in glaslook</string>
+
+    <string name="settings_language">Taal</string>
+    <string name="settings_language_hint">Taal van de app en van de podcastlijsten (Engelstalige podcasts zijn altijd inbegrepen)</string>
+</resources>
