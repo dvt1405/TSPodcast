@@ -128,7 +128,7 @@ fun SettingsScreen(
                                 .clip(RoundedCornerShape(8.dp))
                         )
                         Text(
-                            show.title,
+                            (show.title as String?).orEmpty(),
                             style = TextStyles.SubTitle3,
                             maxLines = 2,
                             modifier = Modifier

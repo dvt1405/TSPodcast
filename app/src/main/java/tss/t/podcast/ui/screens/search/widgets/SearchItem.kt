@@ -47,7 +47,8 @@ fun SearchPodcastItem(
             .padding(12.dp)
     ) {
         ShowActionsMenu(
-            show = ShowRef(feed.id, feed.title, feed.image),
+            // Gson can leave these "non-null" fields null; never pass them on unchecked.
+            show = ShowRef(feed.id, (feed.title as String?).orEmpty(), feed.image as String?),
             expanded = menuOpen,
             onDismiss = { menuOpen = false }
         )

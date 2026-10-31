@@ -48,7 +48,7 @@ fun NewsRow(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AsyncImage(
-                        model = item.episode.feedImage.ifEmpty { item.podcast.image },
+                        model = (item.episode.feedImage as String?).orEmpty().ifEmpty { item.podcast.image as String? },
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -73,7 +73,7 @@ fun NewsRow(
                 }
                 Spacer(Modifier.size(8.dp))
                 Text(
-                    item.episode.title.orEmpty(),
+                    (item.episode.title as String?).orEmpty(),
                     style = TextStyles.SubTitle2,
                     maxLines = 2,
                     minLines = 2,

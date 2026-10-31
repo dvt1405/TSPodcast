@@ -84,7 +84,7 @@ Lý do báo cáo:
     <string name="podcast_unfavourite">Bỏ khỏi Yêu thích</string>
 
     <!-- In-show search, categories, player menu -->
-    <string name="show_search_hint">Tìm trong show (gõ không dấu cũng được)</string>
+    <string name="show_search_hint">Tìm tập trong show</string>
     <string name="show_search_clear">Xoá</string>
     <string name="show_search_empty">Không có tập nào khớp</string>
     <string name="show_search_count">%1$d tập khớp</string>
