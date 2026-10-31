@@ -3,7 +3,8 @@ import XCTest
 
 /// M1-AC8: the String Catalog compiles into vi and en tables with the §4.5 texts; M2 §4.8
 /// adds the Podcast detail and Search texts; M4-AC23 every M4 key (§4.7) in both languages;
-/// M5-AC11 the Up next peek strings; M6-AC23 the Player basics, show safety, consent and the news hub.
+/// M5-AC11 the Up next peek strings; M6-AC23 the Player basics, show safety, consent and the news hub;
+/// i18n: every key in all 15 app languages with the placeholders of vi.
 final class LocalizationTests: XCTestCase {
     private func bundle(_ language: String) throws -> Bundle {
         let path = try XCTUnwrap(Bundle.main.path(forResource: language, ofType: "lproj"), "\(language).lproj missing")
@@ -14,10 +15,92 @@ final class LocalizationTests: XCTestCase {
         try bundle(language).localizedString(forKey: key, value: "<missing>", table: "Localizable")
     }
 
+    /// The 15 app languages (shared `ContentLanguage`); several localizations is what makes iOS
+    /// show Settings → TSPodcast → Language.
+    static let languages = ["vi", "en", "es", "pt-BR", "fr", "de", "it", "nl", "sv", "pl", "tr", "ja", "ko", "id", "hi"]
+
     func testVietnameseIsTheDevelopmentLanguage() {
         XCTAssertEqual(Bundle.main.developmentLocalization, "vi")
-        XCTAssertTrue(Bundle.main.localizations.contains("vi"))
-        XCTAssertTrue(Bundle.main.localizations.contains("en"))
+        for language in Self.languages {
+            XCTAssertTrue(Bundle.main.localizations.contains(language), language)
+        }
+        let declared = Bundle.main.object(forInfoDictionaryKey: "CFBundleLocalizations") as? [String]
+        XCTAssertEqual(Set(declared ?? []), Set(Self.languages), "CFBundleLocalizations")
+    }
+
+    /// Compiled `Localizable` table of `language`: the `.strings` values and the keys of the
+    /// `.stringsdict` (plural variations).
+    private func table(_ language: String) throws -> (strings: [String: String], plurals: Set<String>) {
+        let path = try XCTUnwrap(Bundle.main.path(forResource: language, ofType: "lproj"), "\(language).lproj missing")
+        let strings = NSDictionary(contentsOfFile: "\(path)/Localizable.strings") as? [String: String] ?? [:]
+        let plurals = (NSDictionary(contentsOfFile: "\(path)/Localizable.stringsdict") as? [String: Any]).map { Set($0.keys) } ?? []
+        return (strings, plurals)
+    }
+
+    private static let placeholderPattern = try! NSRegularExpression(pattern: #"%(?:\d+\$)?(?:lld|ld|d|@|f)"#)
+
+    /// Format placeholders of `text`, sorted (`%@`, `%lld`, `%1$@`…).
+    static func placeholders(_ text: String) -> [String] {
+        let range = NSRange(text.startIndex..., in: text)
+        return placeholderPattern.matches(in: text, range: range)
+            .map { (text as NSString).substring(with: $0.range) }
+            .sorted()
+    }
+
+    /// Every key of the vi table exists, non-empty, in all 15 languages with the placeholders of
+    /// vi; a plural key formats a count in every language.
+    func testEveryKeyInEveryLanguage() throws {
+        let vietnamese = try table("vi")
+        let keys = Set(vietnamese.strings.keys).union(vietnamese.plurals)
+        XCTAssertGreaterThanOrEqual(keys.count, 158)
+        for language in Self.languages {
+            let compiled = try table(language)
+            XCTAssertEqual(Set(compiled.strings.keys).union(compiled.plurals), keys, "\(language): same keys as vi")
+            for key in keys {
+                let value = try text(key, language)
+                XCTAssertNotEqual(value, "<missing>", "\(language) \(key)")
+                XCTAssertFalse(value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "\(language) \(key)")
+                let expected = Self.placeholders(vietnamese.strings[key] ?? "")
+                if compiled.plurals.contains(key) {
+                    XCTAssertEqual(expected, ["%lld"], "\(key): a plural key takes one count")
+                    let formatted = String(format: value, locale: Locale(identifier: language), 3)
+                    XCTAssertTrue(formatted.contains("3") && !formatted.contains("%"), "\(language) \(key): '\(formatted)'")
+                } else {
+                    XCTAssertEqual(Self.placeholders(value), expected, "\(language) \(key)")
+                }
+            }
+        }
+    }
+
+    /// Plural variations pick the right form (Polish has one/few/many).
+    func testPluralForms() throws {
+        let pl = Locale(identifier: "pl")
+        let episodes = try text("news.brief.episodes %lld", "pl")
+        XCTAssertEqual(String(format: episodes, locale: pl, 1), "1 odcinek")
+        XCTAssertEqual(String(format: episodes, locale: pl, 3), "3 odcinki")
+        XCTAssertEqual(String(format: episodes, locale: pl, 5), "5 odcinków")
+        let es = Locale(identifier: "es")
+        XCTAssertEqual(String(format: try text("news.brief.episodes %lld", "es"), locale: es, 1), "1 episodio")
+        XCTAssertEqual(String(format: try text("news.brief.episodes %lld", "es"), locale: es, 4), "4 episodios")
+        XCTAssertEqual(String(format: try text("news.brief.episodes %lld", "ja"), locale: Locale(identifier: "ja"), 4), "4エピソード")
+    }
+
+    /// The Siri phrases name the app in every language.
+    func testSiriPhrasesInEveryLanguage() throws {
+        let phrases = ["Continue listening on ${applicationName}", "Pause ${applicationName}", "Set a sleep timer in ${applicationName}"]
+        for language in Self.languages {
+            for phrase in phrases {
+                let value = try bundle(language).localizedString(forKey: phrase, value: "<missing>", table: "AppShortcuts")
+                XCTAssertNotEqual(value, "<missing>", "\(language) \(phrase)")
+                XCTAssertTrue(value.contains("${applicationName}"), "\(language) \(phrase): '\(value)'")
+            }
+        }
+    }
+
+    func testLanguageRowStrings() throws {
+        XCTAssertEqual(try text("settings.language", "vi"), "Ngôn ngữ")
+        XCTAssertEqual(try text("settings.language", "en"), "Language")
+        XCTAssertEqual(try text("settings.language.hint", "en"), "Podcasts follow the app language and always include English shows.")
     }
 
     func testVietnameseTexts() throws {
@@ -319,7 +402,7 @@ final class LocalizationTests: XCTestCase {
             3: ["onboarding.title.3.highlight.1"],
             4: ["onboarding.title.4.highlight.1"],
         ]
-        for language in ["vi", "en"] {
+        for language in Self.languages {
             for (page, keys) in highlights {
                 let title = try text("onboarding.title.\(page)", language)
                 for key in keys {
