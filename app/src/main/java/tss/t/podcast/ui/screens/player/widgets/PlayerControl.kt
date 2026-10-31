@@ -78,7 +78,10 @@ fun PlayerControl(
         Icon(
             if (fav) Icons.Rounded.Favorite
             else Icons.Rounded.FavoriteBorder,
-            "Fav",
+            stringResource(
+                if (fav) tss.t.podcast.R.string.podcast_unfavourite
+                else tss.t.podcast.R.string.podcast_favourite
+            ),
             modifier = Modifier
                 .size(60.dp)
                 .then(glassButton)

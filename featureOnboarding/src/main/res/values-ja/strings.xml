@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="select_favourite_category_screen_title">好きなトピック</string>
+    <string name="select_favourite_category_screen_description">（3つ以上選択）</string>
+    <string name="select_favourite_category_screen_btn_confirm_title">保存して次へ</string>
+
+    <!-- Intro (brand tones) -->
+    <string name="onboarding_next">次へ</string>
+    <string name="onboarding_skip">スキップ</string>
+
+    <!-- Privacy step -->
+    <string name="privacy_title">プライバシーについて</string>
+    <string name="privacy_intro">ご利用を始める前に、TSPodcast が情報をどのように取り扱うかを正確にお知らせし、ご自身で決めていただけるようにしたいと考えています。</string>
+    <string name="privacy_not_collected_title">収集しない情報</string>
+    <string name="privacy_not_collected_body">お名前、メールアドレス、電話番号、連絡先、正確な位置情報、デバイス識別子（ANDROID_ID）。アカウントを作成する必要はありません。</string>
+    <string name="privacy_on_device_title">お使いのデバイスにのみ保存される情報</string>
+    <string name="privacy_on_device_body">好きなトピック、お気に入りリスト、再生履歴と再生位置、設定。アプリをアンインストールするか、アプリのデータを消去すると、すべて削除されます。</string>
+    <string name="privacy_choices_title">共有する情報はご自身で選べます</string>
+    <string name="privacy_analytics_title">匿名の利用統計</string>
+    <string name="privacy_analytics_body">開いた画面、使用した機能、アプリと OS のバージョンを Google Firebase Analytics に送信します。目的: どの機能が役立っているかを把握し、アプリを改善するため。お名前や電話番号とは紐づけられません。</string>
+    <string name="privacy_crash_title">クラッシュレポート</string>
+    <string name="privacy_crash_body">アプリでエラーが発生したときに、エラーの詳細、デバイスのモデル、Android のバージョン、ランダムなインストール ID を Google Firebase Crashlytics に送信します。目的: 不具合をより早く見つけて修正するため。</string>
+    <string name="privacy_rights">同意は「設定」からいつでも撤回できます。また、サポート用のメールアドレスから、ご自身のデータの確認や削除を依頼できます。同意しなくても、すべての機能をご利用いただけます。</string>
+    <string name="privacy_read_policy">プライバシーポリシーの全文を読む</string>
+    <string name="privacy_accept_all">両方の共有に同意する</string>
+    <string name="privacy_save_choices">選択内容を保存</string>
+    <string name="privacy_continue_without">共有せずに続ける</string>
+    <string name="privacy_footer">いずれかのボタンをタップすると、上記の情報を読んだことを確認したことになります。選択内容は記載された目的にのみ適用されます。</string>
+
+    <!-- Topic picker -->
+    <string name="topics_title">どんなトピックを聴きたいですか？</string>
+    <string name="topics_subtitle">トピックを3つ以上選ぶと、TSPodcast があなたの好みに合った番組をおすすめします。</string>
+    <string name="topics_search_hint">トピックを検索</string>
+    <string name="topics_popular">人気</string>
+    <string name="topics_all">すべてのトピック</string>
+    <string name="topics_progress">%1$d/3 選択済み</string>
+    <string name="topics_selected">選択したトピック: %1$d</string>
+    <string name="topics_continue">次へ</string>
+    <string name="topics_need_more">あと %1$d 個選んでください</string>
+    <string name="topics_empty">該当するトピックはありません</string>
+</resources>

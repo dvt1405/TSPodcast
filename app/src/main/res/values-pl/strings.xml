@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="discorver_screen_title">Odkrywaj</string>
+    <string name="favourite_screen_title">Ulubione</string>
+    <string name="search_screen_title">Szukaj</string>
+
+    <string name="search_hint_title">Szukaj podcastów i twórców</string>
+    <string name="search_result_title">Najlepsze wyniki dla: %s</string>
+    <string name="try_search_with_keyword_title">Spróbuj wyszukać: %s</string>
+    <string name="empty_search_title">Brak wyników dla: </string>
+    <string name="search_suggest_key_title">Najlepsze radio</string>
+    <string name="search_mode_all">Wszystko</string>
+    <string name="search_mode_music">Muzyka</string>
+    <string name="search_music_result_title">Muzyka dla: %s</string>
+    <string name="search_music_empty_hint">Biblioteka muzyki w standardzie podcast:medium jest jeszcze mała, spróbuj angielskich słów kluczowych</string>
+    <string name="attribution_podcastindex">Dane podcastów pochodzą z Podcast Index</string>
+    <string name="privacy_options_ads">Opcje prywatności i reklam</string>
+    <string name="music_feeds_title">Biblioteka muzyki</string>
+    <string name="music_feeds_subtitle">Kanały muzyczne w standardzie podcast:medium</string>
+    <string name="empty_favourite_title">Nie masz jeszcze ulubionych audycji.</string>
+    <string name="btn_discover_more_title">Odkryj więcej</string>
+    <string name="double_click_to_exit">Naciśnij Wstecz jeszcze raz, aby wyjść</string>
+    <string name="trending_podcast_title">Popularne podcasty</string>
+    <string name="live_podcast_title">Podcasty na żywo</string>
+    <string name="recent_podcast_title">Ostatnio popularne podcasty</string>
+    <string name="fav_podcast_title">Może Ci się spodobać</string>
+    <string name="radio_screen_title">Radio</string>
+    <string name="broken_install_title">Niepełna instalacja</string>
+    <string name="broken_install_message">W aplikacji brakuje komponentów dla tego urządzenia, zwykle dlatego, że została zainstalowana z pliku APK zamiast z Google Play. Zainstaluj aplikację ponownie z Google Play.</string>
+    <string name="broken_install_action">Otwórz Google Play</string>
+
+    <!-- Settings (parity with iOS) -->
+    <string name="settings_title">Ustawienia</string>
+    <string name="settings_open">Otwórz ustawienia</string>
+    <string name="settings_back">Wstecz</string>
+    <string name="settings_section_content">Treści</string>
+    <string name="settings_explicit">Pokazuj treści dla dorosłych</string>
+    <string name="settings_explicit_hint">Audycje i odcinki oznaczone jako treści dla dorosłych są domyślnie ukryte</string>
+    <string name="settings_hidden_shows">Ukryte audycje (%1$d)</string>
+    <string name="settings_hidden_shows_empty">Nie ukryto jeszcze żadnej audycji. Przytrzymaj audycję w sekcji Odkrywaj lub Szukaj, aby ją ukryć.</string>
+    <string name="settings_unhide">Pokaż ponownie</string>
+    <string name="settings_section_privacy">Prywatność</string>
+    <string name="settings_analytics">Statystyki użytkowania</string>
+    <string name="settings_analytics_hint">Anonimowe statystyki korzystania z aplikacji, które pomagają ulepszać funkcje</string>
+    <string name="settings_crash">Raporty o awariach</string>
+    <string name="settings_crash_hint">Wysyłaj szczegóły, gdy w aplikacji wystąpi błąd, abyśmy mogli szybciej go naprawić</string>
+    <string name="settings_privacy_policy">Polityka prywatności</string>
+    <string name="settings_terms">Warunki korzystania</string>
+    <string name="settings_delete_data">Usuń swoje dane</string>
+    <string name="settings_section_app">Aplikacja</string>
+    <string name="settings_notifications">Powiadomienia</string>
+    <string name="settings_feedback">Opinie i zgłaszanie błędów</string>
+    <string name="settings_feedback_subject">Opinia o TSPodcast %1$s</string>
+    <string name="settings_version">Wersja %1$s</string>
+
+    <!-- First-launch privacy question -->
+    <string name="consent_title">Twoja prywatność</string>
+    <string name="consent_body">TSPodcast nie wymaga konta i nie zbiera Twojego imienia i nazwiska, adresu e-mail ani numeru telefonu. Czy zgadzasz się na wysyłanie anonimowych statystyk użytkowania i raportów o awariach, aby pomóc nam ulepszać aplikację?</string>
+    <string name="consent_necessary_note">Możesz zmienić swój wybór w dowolnej chwili w Ustawieniach. Lista filtrów spamu jest nadal aktualizowana, aby aplikacja była bezpieczna.</string>
+    <string name="consent_accept_all">Zgadzam się</string>
+    <string name="consent_necessary_only">Tylko niezbędne</string>
+
+    <!-- Show actions (hide / report / share) -->
+    <string name="show_hide">Ukryj tę audycję</string>
+    <string name="show_report">Zgłoś treść</string>
+    <string name="show_hidden_toast">Audycja ukryta. Możesz ją pokazać ponownie w Ustawieniach.</string>
+    <string name="show_hide_confirm_title">Ukryć tę audycję?</string>
+    <string name="show_hide_confirm_message">Audycja „%1$s” nie będzie już widoczna w sekcjach Odkrywaj i Szukaj. Możesz ją pokazać ponownie w Ustawieniach.</string>
+    <string name="action_cancel">Anuluj</string>
+    <string name="report_subject">Zgłoszenie treści: %1$s</string>
+    <string name="report_body">Audycja: %1$s
+ID kanału: %2$s
+Link: %3$s
+Wersja aplikacji: %4$s
+
+Powód zgłoszenia:
+</string>
+    <string name="share">Udostępnij</string>
+    <string name="share_chooser_title">Udostępnij przez</string>
+    <string name="share_podcast_text">Posłuchaj „%1$s” w TSPodcast: %2$s</string>
+    <string name="share_episode_text">Posłuchaj odcinka „%1$s” w TSPodcast: %2$s</string>
+    <string name="more_actions">Więcej</string>
+    <string name="podcast_favourite">Dodaj do Ulubionych</string>
+    <string name="podcast_unfavourite">Usuń z Ulubionych</string>
+
+    <!-- In-show search, categories, player menu -->
+    <string name="show_search_hint">Szukaj odcinków w tej audycji</string>
+    <string name="show_search_clear">Wyczyść</string>
+    <string name="show_search_empty">Brak pasujących odcinków</string>
+    <string name="show_search_count">Pasujące odcinki: %1$d</string>
+    <string name="search_categories_title">Tematy</string>
+    <string name="player_more_share">Udostępnij ten odcinek</string>
+    <string name="player_more_report">Zgłoś treść</string>
+
+    <!-- Launcher shortcuts -->
+    <string name="shortcut_continue_short">Kontynuuj</string>
+    <string name="shortcut_continue_long">Kontynuuj rozpoczęty odcinek</string>
+    <string name="shortcut_pause_short">Wstrzymaj</string>
+    <string name="shortcut_pause_long">Wstrzymaj odtwarzanie</string>
+    <string name="shortcut_sleep_short">Zatrzymaj za 30 min</string>
+    <string name="shortcut_sleep_long">Wyłącznik czasowy: 30 minut</string>
+    <string name="shortcut_nothing_to_continue">Brak rozpoczętego odcinka</string>
+    <string name="shortcut_sleep_toast">Wyłącznik czasowy ustawiony na 30 minut</string>
+
+    <string name="news_hub_title">Wiadomości i serwisy</string>
+
+    <string name="settings_section_look">Wygląd</string>
+    <string name="settings_liquid_glass_hint">Szklany pasek nawigacji, miniodtwarzacz i przyciski odtwarzacza</string>
+
+    <string name="settings_language">Język</string>
+    <string name="settings_language_hint">Język aplikacji i list podcastów (podcasty anglojęzyczne są zawsze uwzględniane)</string>
+</resources>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_title1">Upptäck poddar du älskar</string>
+    <string name="onboarding_title2">Innehåll skapat just för dig</string>
+    <string name="onboarding_title3">Lyssna när och var du vill</string>
+    <string name="onboarding_title4">Håll dig organiserad och uppdaterad</string>
+    <string-array name="onboarding_title1_highlight">
+        <item>poddar</item>
+        <item>du älskar</item>
+    </string-array>
+    <string-array name="onboarding_title2_highlight">
+        <item>just för dig</item>
+    </string-array>
+    <string-array name="onboarding_title3_highlight">
+        <item>när och var du vill</item>
+    </string-array>
+    <string-array name="onboarding_title4_highlight">
+        <item>organiserad och uppdaterad</item>
+    </string-array>
+    <string name="error_load_podcast_popup_title">Något gick fel</string>
+    <string name="popup_btn_reload_title">Läs in igen</string>
+    <string name="popup_btn_cancel_title">Avbryt</string>
+
+    <string name="dialog_error_title">Hoppsan!</string>
+    <string name="dialog_positive_btn_title">Läs in igen</string>
+
+    <!-- Player basics (parity with iOS M6) -->
+    <string name="player_seek_back_15">Bakåt 15 sekunder</string>
+    <string name="player_seek_forward_30">Framåt 30 sekunder</string>
+    <string name="player_speed_title">Uppspelningshastighet</string>
+    <string name="player_speed_apply_all">Använd för alla program</string>
+    <string name="player_speed_apply_all_hint">Av: varje program kommer ihåg sin egen hastighet</string>
+    <string name="player_speed_slower">Långsammare</string>
+    <string name="player_speed_faster">Snabbare</string>
+    <string name="player_speed_live">Livesändningar spelas alltid upp i 1.0×</string>
+    <string name="player_sleep_title">Insomningstimer</string>
+    <string name="player_sleep_minutes">%1$d min</string>
+    <string name="player_sleep_end_of_episode">När avsnittet slutar</string>
+    <string name="player_sleep_off">Stäng av timern</string>
+    <string name="player_sleep_remaining">%1$s kvar</string>
+    <string name="player_sleep_active_end_of_episode">Stoppas när avsnittet slutar</string>
+    <string name="player_error_message">Det går inte att spela upp det här innehållet</string>
+    <string name="player_error_retry">Försök igen</string>
+    <string name="player_play">Spela upp</string>
+    <string name="player_pause">Pausa</string>
+    <string name="player_close">Stäng spelaren</string>
+    <string name="player_up_next">HÄRNÄST</string>
+    <string name="cd_artwork">Omslagsbild</string>
+
+    <!-- System notification channel (Android Settings > Notifications) -->
+    <string name="notification_channel_name">Aviseringar</string>
+    <string name="notification_channel_description">Aviseringar från TSPodcast</string>
+</resources>

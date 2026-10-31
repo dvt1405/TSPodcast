@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_title1">Temukan Podcast Favorit Anda</string>
+    <string name="onboarding_title2">Konten Khusus untuk Anda</string>
+    <string name="onboarding_title3">Dengarkan Kapan Saja, di Mana Saja</string>
+    <string name="onboarding_title4">Tetap Teratur dan Selalu Terkini</string>
+    <string-array name="onboarding_title1_highlight">
+        <item>Podcast</item>
+        <item>Favorit Anda</item>
+    </string-array>
+    <string-array name="onboarding_title2_highlight">
+        <item>Khusus untuk Anda</item>
+    </string-array>
+    <string-array name="onboarding_title3_highlight">
+        <item>Kapan Saja, di Mana Saja</item>
+    </string-array>
+    <string-array name="onboarding_title4_highlight">
+        <item>Teratur dan Selalu Terkini</item>
+    </string-array>
+    <string name="error_load_podcast_popup_title">Terjadi kesalahan</string>
+    <string name="popup_btn_reload_title">Muat ulang</string>
+    <string name="popup_btn_cancel_title">Batal</string>
+
+    <string name="dialog_error_title">Ups!</string>
+    <string name="dialog_positive_btn_title">Muat ulang</string>
+
+    <!-- Player basics (parity with iOS M6) -->
+    <string name="player_seek_back_15">Mundur 15 detik</string>
+    <string name="player_seek_forward_30">Maju 30 detik</string>
+    <string name="player_speed_title">Kecepatan putar</string>
+    <string name="player_speed_apply_all">Terapkan ke semua acara</string>
+    <string name="player_speed_apply_all_hint">Nonaktif: setiap acara mengingat kecepatannya sendiri</string>
+    <string name="player_speed_slower">Lebih lambat</string>
+    <string name="player_speed_faster">Lebih cepat</string>
+    <string name="player_speed_live">Siaran langsung selalu diputar pada 1.0×</string>
+    <string name="player_sleep_title">Timer tidur</string>
+    <string name="player_sleep_minutes">%1$d mnt</string>
+    <string name="player_sleep_end_of_episode">Akhir episode</string>
+    <string name="player_sleep_off">Matikan timer</string>
+    <string name="player_sleep_remaining">Sisa %1$s</string>
+    <string name="player_sleep_active_end_of_episode">Berhenti di akhir episode</string>
+    <string name="player_error_message">Tidak dapat memutar konten ini</string>
+    <string name="player_error_retry">Coba lagi</string>
+    <string name="player_play">Putar</string>
+    <string name="player_pause">Jeda</string>
+    <string name="player_close">Tutup pemutar</string>
+    <string name="player_up_next">BERIKUTNYA</string>
+    <string name="cd_artwork">Gambar sampul</string>
+
+    <!-- System notification channel (Android Settings > Notifications) -->
+    <string name="notification_channel_name">Notifikasi</string>
+    <string name="notification_channel_description">Notifikasi dari TSPodcast</string>
+</resources>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="discorver_screen_title">Keşfet</string>
+    <string name="favourite_screen_title">Favoriler</string>
+    <string name="search_screen_title">Ara</string>
+
+    <string name="search_hint_title">Podcast ve içerik üreticisi arayın</string>
+    <string name="search_result_title">En iyi sonuçlar: %s</string>
+    <string name="try_search_with_keyword_title">Şunu aramayı deneyin: %s</string>
+    <string name="empty_search_title">Sonuç bulunamadı: </string>
+    <string name="search_suggest_key_title">En iyi radyo</string>
+    <string name="search_mode_all">Tümü</string>
+    <string name="search_mode_music">Müzik</string>
+    <string name="search_music_result_title">Müzik sonuçları: %s</string>
+    <string name="search_music_empty_hint">podcast:medium standardındaki müzik arşivi henüz küçük, İngilizce anahtar kelimeler deneyin</string>
+    <string name="attribution_podcastindex">Podcast verileri Podcast Index tarafından sağlanmaktadır</string>
+    <string name="privacy_options_ads">Gizlilik ve reklam seçenekleri</string>
+    <string name="music_feeds_title">Müzik arşivi</string>
+    <string name="music_feeds_subtitle">podcast:medium standardını kullanan müzik akışları</string>
+    <string name="empty_favourite_title">Henüz favori programınız yok.</string>
+    <string name="btn_discover_more_title">Daha fazlasını keşfedin</string>
+    <string name="double_click_to_exit">Çıkmak için tekrar Geri\'ye basın</string>
+    <string name="trending_podcast_title">Trend podcastler</string>
+    <string name="live_podcast_title">Canlı podcastler</string>
+    <string name="recent_podcast_title">Son dönemde trend olan podcastler</string>
+    <string name="fav_podcast_title">Beğenebilecekleriniz</string>
+    <string name="radio_screen_title">Radyo</string>
+    <string name="broken_install_title">Eksik kurulum</string>
+    <string name="broken_install_message">Uygulamada bu cihaz için gereken bileşenler eksik. Bu genellikle uygulamanın Google Play yerine bir APK dosyasından yüklenmesinden kaynaklanır. Lütfen uygulamayı Google Play\'den yeniden yükleyin.</string>
+    <string name="broken_install_action">Google Play\'i aç</string>
+
+    <!-- Settings (parity with iOS) -->
+    <string name="settings_title">Ayarlar</string>
+    <string name="settings_open">Ayarları aç</string>
+    <string name="settings_back">Geri</string>
+    <string name="settings_section_content">İçerik</string>
+    <string name="settings_explicit">Müstehcen içeriği göster</string>
+    <string name="settings_explicit_hint">Müstehcen olarak işaretlenen programlar ve bölümler varsayılan olarak gizlenir</string>
+    <string name="settings_hidden_shows">Gizlenen programlar (%1$d)</string>
+    <string name="settings_hidden_shows_empty">Henüz hiçbir programı gizlemediniz. Gizlemek için Keşfet veya Ara bölümündeki bir programa uzun basın.</string>
+    <string name="settings_unhide">Gizlemeyi kaldır</string>
+    <string name="settings_section_privacy">Gizlilik</string>
+    <string name="settings_analytics">Kullanım istatistikleri</string>
+    <string name="settings_analytics_hint">Özellikleri geliştirmek için uygulamanın nasıl kullanıldığına dair anonim istatistikler</string>
+    <string name="settings_crash">Kilitlenme raporları</string>
+    <string name="settings_crash_hint">Uygulamada hata oluştuğunda, daha hızlı düzeltebilmemiz için ayrıntıları gönderin</string>
+    <string name="settings_privacy_policy">Gizlilik politikası</string>
+    <string name="settings_terms">Kullanım koşulları</string>
+    <string name="settings_delete_data">Verilerinizi silin</string>
+    <string name="settings_section_app">Uygulama</string>
+    <string name="settings_notifications">Bildirimler</string>
+    <string name="settings_feedback">Geri bildirim ve hata bildirimi</string>
+    <string name="settings_feedback_subject">TSPodcast geri bildirimi %1$s</string>
+    <string name="settings_version">Sürüm %1$s</string>
+
+    <!-- First-launch privacy question -->
+    <string name="consent_title">Gizliliğiniz</string>
+    <string name="consent_body">TSPodcast hesap gerektirmez ve adınızı, e-posta adresinizi veya telefon numaranızı toplamaz. Uygulamayı geliştirmemize yardımcı olmak için anonim kullanım istatistikleri ve kilitlenme raporları göndermeyi kabul ediyor musunuz?</string>
+    <string name="consent_necessary_note">Seçiminizi istediğiniz zaman Ayarlar\'dan değiştirebilirsiniz. Uygulamanın güvenliği için spam filtresi listesi yine de güncellenir.</string>
+    <string name="consent_accept_all">Kabul et</string>
+    <string name="consent_necessary_only">Yalnızca gerekli olanlar</string>
+
+    <!-- Show actions (hide / report / share) -->
+    <string name="show_hide">Bu programı gizle</string>
+    <string name="show_report">İçeriği bildir</string>
+    <string name="show_hidden_toast">Program gizlendi. Ayarlar\'dan gizlemeyi kaldırabilirsiniz.</string>
+    <string name="show_hide_confirm_title">Bu program gizlensin mi?</string>
+    <string name="show_hide_confirm_message">“%1$s” artık Keşfet ve Ara bölümlerinde görünmeyecek. Ayarlar\'dan gizlemeyi kaldırabilirsiniz.</string>
+    <string name="action_cancel">İptal</string>
+    <string name="report_subject">İçerik bildirimi: %1$s</string>
+    <string name="report_body">Program: %1$s
+Feed kimliği: %2$s
+Bağlantı: %3$s
+Uygulama sürümü: %4$s
+
+Bildirme nedeni:
+</string>
+    <string name="share">Paylaş</string>
+    <string name="share_chooser_title">Şununla paylaş</string>
+    <string name="share_podcast_text">“%1$s” programını TSPodcast\'te dinleyin: %2$s</string>
+    <string name="share_episode_text">“%1$s” bölümünü TSPodcast\'te dinleyin: %2$s</string>
+    <string name="more_actions">Daha fazla</string>
+    <string name="podcast_favourite">Favorilere ekle</string>
+    <string name="podcast_unfavourite">Favorilerden kaldır</string>
+
+    <!-- In-show search, categories, player menu -->
+    <string name="show_search_hint">Bu programda bölüm arayın</string>
+    <string name="show_search_clear">Temizle</string>
+    <string name="show_search_empty">Eşleşen bölüm yok</string>
+    <string name="show_search_count">Eşleşen bölümler: %1$d</string>
+    <string name="search_categories_title">Konular</string>
+    <string name="player_more_share">Bu bölümü paylaş</string>
+    <string name="player_more_report">İçeriği bildir</string>
+
+    <!-- Launcher shortcuts -->
+    <string name="shortcut_continue_short">Devam et</string>
+    <string name="shortcut_continue_long">Yarım kalan bölüme devam edin</string>
+    <string name="shortcut_pause_short">Duraklat</string>
+    <string name="shortcut_pause_long">Oynatmayı duraklat</string>
+    <string name="shortcut_sleep_short">30 dk sonra durdur</string>
+    <string name="shortcut_sleep_long">Uyku zamanlayıcısı: 30 dakika</string>
+    <string name="shortcut_nothing_to_continue">Yarım kalan bölüm yok</string>
+    <string name="shortcut_sleep_toast">Uyku zamanlayıcısı 30 dakikaya ayarlandı</string>
+
+    <string name="news_hub_title">Haberler &amp; Bültenler</string>
+
+    <string name="settings_section_look">Görünüm</string>
+    <string name="settings_liquid_glass_hint">Cam görünümlü gezinme çubuğu, mini oynatıcı ve oynatıcı kontrolleri</string>
+
+    <string name="settings_language">Dil</string>
+    <string name="settings_language_hint">Uygulamanın ve podcast listelerinin dili (İngilizce podcastler her zaman dahildir)</string>
+</resources>

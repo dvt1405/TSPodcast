@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TSPodcast</string>
+    <string name="app_name" translatable="false">TSPodcast</string>
     <string name="discorver_screen_title">Khám phá</string>
     <string name="favourite_screen_title">Yêu thích</string>
     <string name="search_screen_title">Tìm kiếm</string>
@@ -105,7 +105,7 @@ Lý do báo cáo:
     <string name="news_hub_title">Thời sự &amp; Bản tin</string>
 
     <string name="settings_section_look">Giao diện</string>
-    <string name="settings_liquid_glass">Liquid Glass</string>
+    <string name="settings_liquid_glass" translatable="false">Liquid Glass</string>
     <string name="settings_liquid_glass_hint">Thanh điều hướng, trình phát thu nhỏ và nút điều khiển dạng kính trong suốt</string>
 
     <string name="settings_language">Ngôn ngữ</string>

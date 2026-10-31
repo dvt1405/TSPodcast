@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="select_favourite_category_screen_title">Favori konularınız</string>
+    <string name="select_favourite_category_screen_description">(En az 3 konu)</string>
+    <string name="select_favourite_category_screen_btn_confirm_title">Kaydet ve devam et</string>
+
+    <!-- Intro (brand tones) -->
+    <string name="onboarding_next">Devam</string>
+    <string name="onboarding_skip">Atla</string>
+
+    <!-- Privacy step -->
+    <string name="privacy_title">Gizliliğiniz</string>
+    <string name="privacy_intro">Başlamadan önce TSPodcast\'in bilgileri tam olarak nasıl işlediğini bilmenizi ve kararı kendiniz vermenizi istiyoruz.</string>
+    <string name="privacy_not_collected_title">Neleri toplamıyoruz</string>
+    <string name="privacy_not_collected_body">Adınız, e-posta adresiniz, telefon numaranız, kişileriniz, kesin konumunuz veya cihaz tanımlayıcınız (ANDROID_ID). Hesap oluşturmanız gerekmez.</string>
+    <string name="privacy_on_device_title">Yalnızca cihazınızda saklananlar</string>
+    <string name="privacy_on_device_body">Favori konular, favoriler listesi, dinleme geçmişi ve kaldığınız yer, ayarlar. Uygulamayı kaldırmak veya verilerini temizlemek bunların tümünü siler.</string>
+    <string name="privacy_choices_title">Neyi paylaşacağınızı siz seçersiniz</string>
+    <string name="privacy_analytics_title">Anonim kullanım istatistikleri</string>
+    <string name="privacy_analytics_body">Açtığınız ekranlar, kullandığınız özellikler, uygulama ve işletim sistemi sürümleri; Google Firebase Analytics\'e gönderilir. Amaç: Uygulamayı geliştirebilmemiz için hangi özelliklerin işe yaradığını öğrenmek. Adınızla veya telefon numaranızla ilişkilendirilmez.</string>
+    <string name="privacy_crash_title">Kilitlenme raporları</string>
+    <string name="privacy_crash_body">Uygulamada hata oluştuğunda: hata ayrıntıları, cihaz modeli, Android sürümü ve rastgele bir kurulum kimliği; Google Firebase Crashlytics\'e gönderilir. Amaç: Hataları daha hızlı bulup düzeltmek.</string>
+    <string name="privacy_rights">Onayınızı istediğiniz zaman Ayarlar\'dan geri çekebilir, destek e-posta adresi üzerinden verilerinizi görmeyi veya silinmesini talep edebilirsiniz. Onay vermeseniz de tüm özellikleri kullanabilirsiniz.</string>
+    <string name="privacy_read_policy">Gizlilik Politikası\'nın tamamını okuyun</string>
+    <string name="privacy_accept_all">İkisini de paylaşmayı kabul et</string>
+    <string name="privacy_save_choices">Seçimlerimi kaydet</string>
+    <string name="privacy_continue_without">Paylaşmadan devam et</string>
+    <string name="privacy_footer">Düğmelerden birine dokunarak yukarıdaki bilgileri okuduğunuzu onaylarsınız. Seçiminiz yalnızca belirtilen amaçlar için geçerlidir.</string>
+
+    <!-- Topic picker -->
+    <string name="topics_title">Ne dinlemeyi seversiniz?</string>
+    <string name="topics_subtitle">TSPodcast\'in zevkinize uygun programlar önerebilmesi için en az 3 konu seçin.</string>
+    <string name="topics_search_hint">Konu arayın</string>
+    <string name="topics_popular">Popüler</string>
+    <string name="topics_all">Tüm konular</string>
+    <string name="topics_progress">%1$d/3 seçildi</string>
+    <string name="topics_selected">Seçilen konular: %1$d</string>
+    <string name="topics_continue">Devam</string>
+    <string name="topics_need_more">%1$d konu daha seçin</string>
+    <string name="topics_empty">Eşleşen konu yok</string>
+</resources>

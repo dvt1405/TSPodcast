@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_title1">좋아하는 팟캐스트를 찾아보세요</string>
+    <string name="onboarding_title2">나만을 위한 맞춤 콘텐츠</string>
+    <string name="onboarding_title3">언제 어디서나 들어 보세요</string>
+    <string name="onboarding_title4">깔끔한 정리, 언제나 최신 상태로</string>
+    <string-array name="onboarding_title1_highlight">
+        <item>팟캐스트</item>
+        <item>좋아하는</item>
+    </string-array>
+    <string-array name="onboarding_title2_highlight">
+        <item>나만을 위한</item>
+    </string-array>
+    <string-array name="onboarding_title3_highlight">
+        <item>언제 어디서나</item>
+    </string-array>
+    <string-array name="onboarding_title4_highlight">
+        <item>깔끔한 정리, 언제나 최신</item>
+    </string-array>
+    <string name="error_load_podcast_popup_title">문제가 발생했어요</string>
+    <string name="popup_btn_reload_title">다시 불러오기</string>
+    <string name="popup_btn_cancel_title">취소</string>
+
+    <string name="dialog_error_title">앗!</string>
+    <string name="dialog_positive_btn_title">다시 불러오기</string>
+
+    <!-- Player basics (parity with iOS M6) -->
+    <string name="player_seek_back_15">15초 뒤로</string>
+    <string name="player_seek_forward_30">30초 앞으로</string>
+    <string name="player_speed_title">재생 속도</string>
+    <string name="player_speed_apply_all">모든 프로그램에 적용</string>
+    <string name="player_speed_apply_all_hint">끄면 프로그램마다 속도를 따로 기억해요</string>
+    <string name="player_speed_slower">느리게</string>
+    <string name="player_speed_faster">빠르게</string>
+    <string name="player_speed_live">라이브 스트림은 항상 1.0×로 재생돼요</string>
+    <string name="player_sleep_title">수면 타이머</string>
+    <string name="player_sleep_minutes">%1$d분</string>
+    <string name="player_sleep_end_of_episode">에피소드가 끝날 때</string>
+    <string name="player_sleep_off">타이머 끄기</string>
+    <string name="player_sleep_remaining">%1$s 남음</string>
+    <string name="player_sleep_active_end_of_episode">에피소드가 끝나면 정지</string>
+    <string name="player_error_message">이 콘텐츠를 재생할 수 없어요</string>
+    <string name="player_error_retry">다시 시도</string>
+    <string name="player_play">재생</string>
+    <string name="player_pause">일시정지</string>
+    <string name="player_close">플레이어 닫기</string>
+    <string name="player_up_next">다음 재생</string>
+    <string name="cd_artwork">아트워크</string>
+
+    <!-- System notification channel (Android Settings > Notifications) -->
+    <string name="notification_channel_name">알림</string>
+    <string name="notification_channel_description">TSPodcast 알림</string>
+</resources>

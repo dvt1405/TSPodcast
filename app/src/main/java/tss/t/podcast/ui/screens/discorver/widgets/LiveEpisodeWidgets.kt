@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -61,7 +62,7 @@ fun LiveEpisodeWidgets(
                         RoundedCornerShape(12.dp)
                     ),
                 painter = painterResource(R.drawable.onboarding_slide_7),
-                contentDescription = "Fav"
+                contentDescription = stringResource(R.string.cd_artwork)
             )
         } else {
             AsyncImage(

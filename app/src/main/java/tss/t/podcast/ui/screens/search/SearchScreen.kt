@@ -143,7 +143,7 @@ fun SearchScreen(
                     {
                         Icon(
                             Icons.Rounded.Close,
-                            contentDescription = "Close",
+                            contentDescription = stringResource(R.string.show_search_clear),
                             modifier = Modifier
                                 .padding(end = 10.dp)
                                 .size(40.dp)
@@ -287,7 +287,7 @@ fun EmptySearchWidget(
     ) {
         Image(
             painter = painterResource(tss.t.sharedresources.R.drawable.ic_empty_search),
-            contentDescription = "EmptySearch",
+            contentDescription = null,
             colorFilter = null
         )
         Text(

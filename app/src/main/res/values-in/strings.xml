@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="discorver_screen_title">Jelajahi</string>
+    <string name="favourite_screen_title">Favorit</string>
+    <string name="search_screen_title">Cari</string>
+
+    <string name="search_hint_title">Cari podcast, kreator</string>
+    <string name="search_result_title">Hasil teratas untuk: %s</string>
+    <string name="try_search_with_keyword_title">Coba cari: %s</string>
+    <string name="empty_search_title">Tidak ada hasil untuk: </string>
+    <string name="search_suggest_key_title">Radio terbaik</string>
+    <string name="search_mode_all">Semua</string>
+    <string name="search_mode_music">Musik</string>
+    <string name="search_music_result_title">Musik untuk: %s</string>
+    <string name="search_music_empty_hint">Koleksi musik podcast:medium masih sedikit, coba kata kunci bahasa Inggris</string>
+    <string name="attribution_podcastindex">Data podcast disediakan oleh Podcast Index</string>
+    <string name="privacy_options_ads">Opsi privasi &amp; iklan</string>
+    <string name="music_feeds_title">Koleksi musik</string>
+    <string name="music_feeds_subtitle">Feed musik dengan standar podcast:medium</string>
+    <string name="empty_favourite_title">Belum ada acara favorit.</string>
+    <string name="btn_discover_more_title">Jelajahi lainnya</string>
+    <string name="double_click_to_exit">Tekan kembali sekali lagi untuk keluar</string>
+    <string name="trending_podcast_title">Podcast trending</string>
+    <string name="live_podcast_title">Podcast live</string>
+    <string name="recent_podcast_title">Podcast yang baru-baru ini trending</string>
+    <string name="fav_podcast_title">Mungkin Anda suka</string>
+    <string name="radio_screen_title">Radio</string>
+    <string name="broken_install_title">Instalasi tidak lengkap</string>
+    <string name="broken_install_message">Aplikasi tidak memiliki komponen yang dibutuhkan perangkat ini, biasanya karena diinstal dari file APK, bukan dari Google Play. Instal ulang aplikasi dari Google Play.</string>
+    <string name="broken_install_action">Buka Google Play</string>
+
+    <!-- Settings (parity with iOS) -->
+    <string name="settings_title">Setelan</string>
+    <string name="settings_open">Buka setelan</string>
+    <string name="settings_back">Kembali</string>
+    <string name="settings_section_content">Konten</string>
+    <string name="settings_explicit">Tampilkan konten eksplisit</string>
+    <string name="settings_explicit_hint">Acara dan episode bertanda eksplisit disembunyikan secara default</string>
+    <string name="settings_hidden_shows">Acara tersembunyi (%1$d)</string>
+    <string name="settings_hidden_shows_empty">Anda belum menyembunyikan acara apa pun. Tekan lama sebuah acara di Jelajahi atau Cari untuk menyembunyikannya.</string>
+    <string name="settings_unhide">Tampilkan lagi</string>
+    <string name="settings_section_privacy">Privasi</string>
+    <string name="settings_analytics">Analitik penggunaan</string>
+    <string name="settings_analytics_hint">Statistik anonim tentang cara aplikasi digunakan, untuk meningkatkan fitur</string>
+    <string name="settings_crash">Laporan error</string>
+    <string name="settings_crash_hint">Kirim detail saat aplikasi mengalami error agar kami dapat memperbaikinya lebih cepat</string>
+    <string name="settings_privacy_policy">Kebijakan privasi</string>
+    <string name="settings_terms">Ketentuan penggunaan</string>
+    <string name="settings_delete_data">Hapus data Anda</string>
+    <string name="settings_section_app">Aplikasi</string>
+    <string name="settings_notifications">Notifikasi</string>
+    <string name="settings_feedback">Masukan &amp; laporan bug</string>
+    <string name="settings_feedback_subject">Masukan TSPodcast %1$s</string>
+    <string name="settings_version">Versi %1$s</string>
+
+    <!-- First-launch privacy question -->
+    <string name="consent_title">Privasi Anda</string>
+    <string name="consent_body">TSPodcast tidak memerlukan akun dan tidak mengumpulkan nama, email, atau nomor telepon Anda. Apakah Anda setuju mengirim statistik penggunaan anonim dan laporan error untuk membantu kami meningkatkan aplikasi?</string>
+    <string name="consent_necessary_note">Anda dapat mengubah pilihan kapan saja di Setelan. Daftar filter spam tetap diperbarui agar aplikasi tetap aman.</string>
+    <string name="consent_accept_all">Setuju</string>
+    <string name="consent_necessary_only">Hanya yang diperlukan</string>
+
+    <!-- Show actions (hide / report / share) -->
+    <string name="show_hide">Sembunyikan acara ini</string>
+    <string name="show_report">Laporkan konten</string>
+    <string name="show_hidden_toast">Acara disembunyikan. Tampilkan lagi di Setelan.</string>
+    <string name="show_hide_confirm_title">Sembunyikan acara ini?</string>
+    <string name="show_hide_confirm_message">\"%1$s\" tidak akan muncul lagi di Jelajahi dan Cari. Anda dapat menampilkannya lagi di Setelan.</string>
+    <string name="action_cancel">Batal</string>
+    <string name="report_subject">Laporan konten: %1$s</string>
+    <string name="report_body">Acara: %1$s
+ID feed: %2$s
+Tautan: %3$s
+Versi aplikasi: %4$s
+
+Alasan laporan:
+</string>
+    <string name="share">Bagikan</string>
+    <string name="share_chooser_title">Bagikan melalui</string>
+    <string name="share_podcast_text">Dengarkan \"%1$s\" di TSPodcast: %2$s</string>
+    <string name="share_episode_text">Dengarkan episode \"%1$s\" di TSPodcast: %2$s</string>
+    <string name="more_actions">Lainnya</string>
+    <string name="podcast_favourite">Tambahkan ke Favorit</string>
+    <string name="podcast_unfavourite">Hapus dari Favorit</string>
+
+    <!-- In-show search, categories, player menu -->
+    <string name="show_search_hint">Cari episode di acara ini</string>
+    <string name="show_search_clear">Hapus</string>
+    <string name="show_search_empty">Tidak ada episode yang cocok</string>
+    <string name="show_search_count">Episode yang cocok: %1$d</string>
+    <string name="search_categories_title">Topik</string>
+    <string name="player_more_share">Bagikan episode ini</string>
+    <string name="player_more_report">Laporkan konten</string>
+
+    <!-- Launcher shortcuts -->
+    <string name="shortcut_continue_short">Lanjutkan</string>
+    <string name="shortcut_continue_long">Lanjutkan episode yang sedang Anda dengarkan</string>
+    <string name="shortcut_pause_short">Jeda</string>
+    <string name="shortcut_pause_long">Jeda pemutaran</string>
+    <string name="shortcut_sleep_short">Timer 30 menit</string>
+    <string name="shortcut_sleep_long">Timer tidur: 30 menit</string>
+    <string name="shortcut_nothing_to_continue">Tidak ada episode yang sedang diputar</string>
+    <string name="shortcut_sleep_toast">Timer tidur disetel ke 30 menit</string>
+
+    <string name="news_hub_title">Berita &amp; Buletin</string>
+
+    <string name="settings_section_look">Tampilan</string>
+    <string name="settings_liquid_glass_hint">Bilah navigasi, pemutar mini, dan kontrol pemutar bergaya kaca</string>
+
+    <string name="settings_language">Bahasa</string>
+    <string name="settings_language_hint">Bahasa aplikasi dan daftar podcast (podcast berbahasa Inggris selalu disertakan)</string>
+</resources>

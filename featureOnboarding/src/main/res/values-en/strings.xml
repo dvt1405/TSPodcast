@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="select_favourite_category_screen_title">Your favourite categories</string>
+    <string name="select_favourite_category_screen_description">(At least 3 categories)</string>
+    <string name="select_favourite_category_screen_btn_confirm_title">Save and continue</string>
+
+    <!-- Intro (brand tones) -->
+    <string name="onboarding_next">Continue</string>
+    <string name="onboarding_skip">Skip</string>
+
+    <!-- Privacy step -->
+    <string name="privacy_title">Your privacy</string>
+    <string name="privacy_intro">Before you start, we want you to know exactly how TSPodcast handles information, and to let you decide for yourself.</string>
+    <string name="privacy_not_collected_title">What we don\'t collect</string>
+    <string name="privacy_not_collected_body">Your name, email, phone number, contacts, precise location or device identifier (ANDROID_ID). You don\'t need to create an account.</string>
+    <string name="privacy_on_device_title">Stored only on your device</string>
+    <string name="privacy_on_device_body">Favourite topics, favourites list, listening history and position, settings. Uninstalling the app or clearing its data deletes all of it.</string>
+    <string name="privacy_choices_title">You choose what to share</string>
+    <string name="privacy_analytics_title">Anonymous usage statistics</string>
+    <string name="privacy_analytics_body">The screens you open, the features you use, the app and operating system versions, sent to Google Firebase Analytics. Purpose: to learn which features are useful so we can improve the app. Not linked to your name or phone number.</string>
+    <string name="privacy_crash_title">Crash reports</string>
+    <string name="privacy_crash_body">When the app runs into an error: error details, device model, Android version and a random installation ID, sent to Google Firebase Crashlytics. Purpose: to find and fix bugs faster.</string>
+    <string name="privacy_rights">You can withdraw your consent at any time in Settings, and ask to see or delete your data via the support email. If you don\'t consent, you can still use every feature.</string>
+    <string name="privacy_read_policy">Read the full Privacy Policy</string>
+    <string name="privacy_accept_all">Agree to share both</string>
+    <string name="privacy_save_choices">Save my choices</string>
+    <string name="privacy_continue_without">Continue without sharing</string>
+    <string name="privacy_footer">By tapping either button, you confirm you have read the information above. Your choice applies only to the purposes stated.</string>
+
+    <!-- Topic picker -->
+    <string name="topics_title">What do you like to listen to?</string>
+    <string name="topics_subtitle">Pick at least 3 topics so TSPodcast can suggest shows that suit your taste.</string>
+    <string name="topics_search_hint">Search topics</string>
+    <string name="topics_popular">Popular</string>
+    <string name="topics_all">All topics</string>
+    <string name="topics_progress">%1$d/3 selected</string>
+    <string name="topics_selected">Topics selected: %1$d</string>
+    <string name="topics_continue">Continue</string>
+    <string name="topics_need_more">Pick %1$d more</string>
+    <string name="topics_empty">No matching topics</string>
+</resources>

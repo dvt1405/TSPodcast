@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="discorver_screen_title">둘러보기</string>
+    <string name="favourite_screen_title">즐겨찾기</string>
+    <string name="search_screen_title">검색</string>
+
+    <string name="search_hint_title">팟캐스트, 크리에이터 검색</string>
+    <string name="search_result_title">“%s” 상위 검색 결과</string>
+    <string name="try_search_with_keyword_title">이렇게 검색해 보세요: %s</string>
+    <string name="empty_search_title">검색 결과 없음: </string>
+    <string name="search_suggest_key_title">인기 라디오</string>
+    <string name="search_mode_all">전체</string>
+    <string name="search_mode_music">음악</string>
+    <string name="search_music_result_title">“%s” 음악</string>
+    <string name="search_music_empty_hint">podcast:medium 음악 라이브러리는 아직 작아요. 영어 키워드로 검색해 보세요</string>
+    <string name="attribution_podcastindex">팟캐스트 데이터 제공: Podcast Index</string>
+    <string name="privacy_options_ads">개인정보 보호 및 광고 옵션</string>
+    <string name="music_feeds_title">음악 라이브러리</string>
+    <string name="music_feeds_subtitle">podcast:medium 표준을 사용하는 음악 피드</string>
+    <string name="empty_favourite_title">아직 즐겨찾기한 프로그램이 없어요.</string>
+    <string name="btn_discover_more_title">더 둘러보기</string>
+    <string name="double_click_to_exit">한 번 더 누르면 종료돼요</string>
+    <string name="trending_podcast_title">지금 뜨는 팟캐스트</string>
+    <string name="live_podcast_title">라이브 팟캐스트</string>
+    <string name="recent_podcast_title">최근 화제의 팟캐스트</string>
+    <string name="fav_podcast_title">좋아할 만한 팟캐스트</string>
+    <string name="radio_screen_title">라디오</string>
+    <string name="broken_install_title">설치가 완료되지 않았어요</string>
+    <string name="broken_install_message">이 기기에 필요한 구성 요소가 없어요. 보통 Google Play가 아닌 APK 파일로 앱을 설치했을 때 발생해요. Google Play에서 앱을 다시 설치해 주세요.</string>
+    <string name="broken_install_action">Google Play 열기</string>
+
+    <!-- Settings (parity with iOS) -->
+    <string name="settings_title">설정</string>
+    <string name="settings_open">설정 열기</string>
+    <string name="settings_back">뒤로</string>
+    <string name="settings_section_content">콘텐츠</string>
+    <string name="settings_explicit">성인용 콘텐츠 표시</string>
+    <string name="settings_explicit_hint">성인용으로 표시된 프로그램과 에피소드는 기본적으로 숨겨져요</string>
+    <string name="settings_hidden_shows">숨긴 프로그램 (%1$d)</string>
+    <string name="settings_hidden_shows_empty">숨긴 프로그램이 없어요. 둘러보기나 검색에서 프로그램을 길게 누르면 숨길 수 있어요.</string>
+    <string name="settings_unhide">숨김 해제</string>
+    <string name="settings_section_privacy">개인정보 보호</string>
+    <string name="settings_analytics">사용 분석</string>
+    <string name="settings_analytics_hint">기능 개선을 위해 앱 사용 방식에 관한 익명 통계를 보내요</string>
+    <string name="settings_crash">오류 보고서</string>
+    <string name="settings_crash_hint">앱에 오류가 발생하면 세부 정보를 보내 더 빨리 수정할 수 있게 해요</string>
+    <string name="settings_privacy_policy">개인정보 처리방침</string>
+    <string name="settings_terms">이용약관</string>
+    <string name="settings_delete_data">내 데이터 삭제</string>
+    <string name="settings_section_app">앱</string>
+    <string name="settings_notifications">알림</string>
+    <string name="settings_feedback">의견 보내기 및 버그 신고</string>
+    <string name="settings_feedback_subject">TSPodcast 의견 %1$s</string>
+    <string name="settings_version">버전 %1$s</string>
+
+    <!-- First-launch privacy question -->
+    <string name="consent_title">개인정보 보호</string>
+    <string name="consent_body">TSPodcast는 계정이 필요 없고 이름, 이메일, 전화번호를 수집하지 않아요. 앱 개선을 위해 익명 사용 통계와 오류 보고서를 보내는 데 동의하시나요?</string>
+    <string name="consent_necessary_note">선택은 언제든지 설정에서 바꿀 수 있어요. 앱을 안전하게 유지하기 위해 스팸 필터 목록은 계속 업데이트돼요.</string>
+    <string name="consent_accept_all">동의</string>
+    <string name="consent_necessary_only">필수 항목만</string>
+
+    <!-- Show actions (hide / report / share) -->
+    <string name="show_hide">이 프로그램 숨기기</string>
+    <string name="show_report">콘텐츠 신고</string>
+    <string name="show_hidden_toast">프로그램을 숨겼어요. 설정에서 숨김을 해제할 수 있어요.</string>
+    <string name="show_hide_confirm_title">이 프로그램을 숨길까요?</string>
+    <string name="show_hide_confirm_message">“%1$s” 프로그램은 둘러보기와 검색에 더 이상 표시되지 않아요. 설정에서 숨김을 해제할 수 있어요.</string>
+    <string name="action_cancel">취소</string>
+    <string name="report_subject">콘텐츠 신고: %1$s</string>
+    <string name="report_body">프로그램: %1$s
+피드 ID: %2$s
+링크: %3$s
+앱 버전: %4$s
+
+신고 사유:
+</string>
+    <string name="share">공유</string>
+    <string name="share_chooser_title">공유 방법 선택</string>
+    <string name="share_podcast_text">TSPodcast에서 “%1$s” 듣기: %2$s</string>
+    <string name="share_episode_text">TSPodcast에서 “%1$s” 에피소드 듣기: %2$s</string>
+    <string name="more_actions">더보기</string>
+    <string name="podcast_favourite">즐겨찾기에 추가</string>
+    <string name="podcast_unfavourite">즐겨찾기에서 삭제</string>
+
+    <!-- In-show search, categories, player menu -->
+    <string name="show_search_hint">이 프로그램의 에피소드 검색</string>
+    <string name="show_search_clear">지우기</string>
+    <string name="show_search_empty">일치하는 에피소드가 없어요</string>
+    <string name="show_search_count">일치하는 에피소드: %1$d개</string>
+    <string name="search_categories_title">주제</string>
+    <string name="player_more_share">이 에피소드 공유</string>
+    <string name="player_more_report">콘텐츠 신고</string>
+
+    <!-- Launcher shortcuts -->
+    <string name="shortcut_continue_short">이어 듣기</string>
+    <string name="shortcut_continue_long">듣던 에피소드 이어 듣기</string>
+    <string name="shortcut_pause_short">일시정지</string>
+    <string name="shortcut_pause_long">재생 일시정지</string>
+    <string name="shortcut_sleep_short">30분 후 정지</string>
+    <string name="shortcut_sleep_long">수면 타이머: 30분</string>
+    <string name="shortcut_nothing_to_continue">재생 중인 에피소드가 없어요</string>
+    <string name="shortcut_sleep_toast">수면 타이머를 30분으로 설정했어요</string>
+
+    <string name="news_hub_title">시사·뉴스</string>
+
+    <string name="settings_section_look">화면 스타일</string>
+    <string name="settings_liquid_glass_hint">유리 스타일의 탐색 바, 미니 플레이어, 재생 컨트롤</string>
+
+    <string name="settings_language">언어</string>
+    <string name="settings_language_hint">앱과 팟캐스트 목록의 언어 (영어 팟캐스트는 항상 포함돼요)</string>
+</resources>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="select_favourite_category_screen_title">Vos catégories préférées</string>
+    <string name="select_favourite_category_screen_description">(Au moins 3 catégories)</string>
+    <string name="select_favourite_category_screen_btn_confirm_title">Enregistrer et continuer</string>
+
+    <!-- Intro (brand tones) -->
+    <string name="onboarding_next">Continuer</string>
+    <string name="onboarding_skip">Passer</string>
+
+    <!-- Privacy step -->
+    <string name="privacy_title">Votre confidentialité</string>
+    <string name="privacy_intro">Avant de commencer, nous voulons que vous sachiez précisément comment TSPodcast traite les informations, et vous laisser décider vous-même.</string>
+    <string name="privacy_not_collected_title">Ce que nous ne collectons pas</string>
+    <string name="privacy_not_collected_body">Votre nom, votre e-mail, votre numéro de téléphone, vos contacts, votre position précise ou l\'identifiant de votre appareil (ANDROID_ID). Vous n\'avez pas besoin de créer de compte.</string>
+    <string name="privacy_on_device_title">Stocké uniquement sur votre appareil</string>
+    <string name="privacy_on_device_body">Thèmes préférés, liste de favoris, historique et position d\'écoute, paramètres. Désinstaller l\'application ou effacer ses données supprime tout.</string>
+    <string name="privacy_choices_title">Vous choisissez ce que vous partagez</string>
+    <string name="privacy_analytics_title">Statistiques d\'utilisation anonymes</string>
+    <string name="privacy_analytics_body">Les écrans que vous ouvrez, les fonctionnalités que vous utilisez, les versions de l\'application et du système d\'exploitation, envoyés à Google Firebase Analytics. Finalité : savoir quelles fonctionnalités sont utiles afin d\'améliorer l\'application. Non associées à votre nom ni à votre numéro de téléphone.</string>
+    <string name="privacy_crash_title">Rapports de plantage</string>
+    <string name="privacy_crash_body">Lorsque l\'application rencontre une erreur : détails de l\'erreur, modèle de l\'appareil, version d\'Android et un identifiant d\'installation aléatoire, envoyés à Google Firebase Crashlytics. Finalité : trouver et corriger les bugs plus rapidement.</string>
+    <string name="privacy_rights">Vous pouvez retirer votre consentement à tout moment dans les Paramètres, et demander à consulter ou supprimer vos données via l\'e-mail d\'assistance. Si vous ne donnez pas votre consentement, vous pouvez quand même utiliser toutes les fonctionnalités.</string>
+    <string name="privacy_read_policy">Lire la Politique de confidentialité complète</string>
+    <string name="privacy_accept_all">Accepter de partager les deux</string>
+    <string name="privacy_save_choices">Enregistrer mes choix</string>
+    <string name="privacy_continue_without">Continuer sans partager</string>
+    <string name="privacy_footer">En appuyant sur l\'un ou l\'autre bouton, vous confirmez avoir lu les informations ci-dessus. Votre choix s\'applique uniquement aux finalités indiquées.</string>
+
+    <!-- Topic picker -->
+    <string name="topics_title">Qu\'aimez-vous écouter ?</string>
+    <string name="topics_subtitle">Choisissez au moins 3 thèmes pour que TSPodcast vous suggère des émissions à votre goût.</string>
+    <string name="topics_search_hint">Rechercher des thèmes</string>
+    <string name="topics_popular">Populaires</string>
+    <string name="topics_all">Tous les thèmes</string>
+    <string name="topics_progress">%1$d/3 sélectionnés</string>
+    <string name="topics_selected">Thèmes sélectionnés : %1$d</string>
+    <string name="topics_continue">Continuer</string>
+    <string name="topics_need_more">Encore %1$d à choisir</string>
+    <string name="topics_empty">Aucun thème correspondant</string>
+</resources>

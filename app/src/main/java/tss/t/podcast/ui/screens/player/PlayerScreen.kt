@@ -194,7 +194,7 @@ internal fun PlayerScreen(
         ) {
             Icon(
                 Icons.Rounded.KeyboardArrowDown,
-                contentDescription = "ClosePlayer",
+                contentDescription = stringResource(tss.t.sharedresources.R.string.player_close),
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)

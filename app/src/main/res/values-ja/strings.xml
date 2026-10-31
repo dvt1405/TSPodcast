@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="discorver_screen_title">見つける</string>
+    <string name="favourite_screen_title">お気に入り</string>
+    <string name="search_screen_title">検索</string>
+
+    <string name="search_hint_title">ポッドキャスト、制作者を検索</string>
+    <string name="search_result_title">「%s」の上位の結果</string>
+    <string name="try_search_with_keyword_title">検索してみましょう: %s</string>
+    <string name="empty_search_title">検索結果なし: </string>
+    <string name="search_suggest_key_title">おすすめラジオ</string>
+    <string name="search_mode_all">すべて</string>
+    <string name="search_mode_music">音楽</string>
+    <string name="search_music_result_title">「%s」の音楽</string>
+    <string name="search_music_empty_hint">podcast:medium の音楽ライブラリはまだ小規模です。英語のキーワードで検索してみてください</string>
+    <string name="attribution_podcastindex">ポッドキャストデータ提供: Podcast Index</string>
+    <string name="privacy_options_ads">プライバシーと広告の設定</string>
+    <string name="music_feeds_title">音楽ライブラリ</string>
+    <string name="music_feeds_subtitle">podcast:medium 規格を使った音楽フィード</string>
+    <string name="empty_favourite_title">お気に入りの番組はまだありません。</string>
+    <string name="btn_discover_more_title">もっと見つける</string>
+    <string name="double_click_to_exit">もう一度戻るを押すと終了します</string>
+    <string name="trending_podcast_title">トレンドのポッドキャスト</string>
+    <string name="live_podcast_title">ライブ配信中のポッドキャスト</string>
+    <string name="recent_podcast_title">最近話題のポッドキャスト</string>
+    <string name="fav_podcast_title">あなたへのおすすめ</string>
+    <string name="radio_screen_title">ラジオ</string>
+    <string name="broken_install_title">インストールが完了していません</string>
+    <string name="broken_install_message">このデバイスに必要なコンポーネントが不足しています。通常、Google Play ではなく APK ファイルからインストールした場合に起こります。Google Play からアプリを再インストールしてください。</string>
+    <string name="broken_install_action">Google Play を開く</string>
+
+    <!-- Settings (parity with iOS) -->
+    <string name="settings_title">設定</string>
+    <string name="settings_open">設定を開く</string>
+    <string name="settings_back">戻る</string>
+    <string name="settings_section_content">コンテンツ</string>
+    <string name="settings_explicit">露骨な表現を含むコンテンツを表示</string>
+    <string name="settings_explicit_hint">露骨な表現を含む番組やエピソードは、デフォルトで非表示になります</string>
+    <string name="settings_hidden_shows">非表示の番組 (%1$d)</string>
+    <string name="settings_hidden_shows_empty">非表示にした番組はありません。「見つける」または「検索」で番組を長押しすると非表示にできます。</string>
+    <string name="settings_unhide">再表示</string>
+    <string name="settings_section_privacy">プライバシー</string>
+    <string name="settings_analytics">利用状況の分析</string>
+    <string name="settings_analytics_hint">アプリの使われ方に関する匿名の統計を送信し、機能の改善に役立てます</string>
+    <string name="settings_crash">クラッシュレポート</string>
+    <string name="settings_crash_hint">アプリでエラーが発生したときに詳細を送信し、より早い修正に役立てます</string>
+    <string name="settings_privacy_policy">プライバシーポリシー</string>
+    <string name="settings_terms">利用規約</string>
+    <string name="settings_delete_data">データを削除</string>
+    <string name="settings_section_app">アプリ</string>
+    <string name="settings_notifications">通知</string>
+    <string name="settings_feedback">フィードバックと不具合の報告</string>
+    <string name="settings_feedback_subject">TSPodcast へのフィードバック %1$s</string>
+    <string name="settings_version">バージョン %1$s</string>
+
+    <!-- First-launch privacy question -->
+    <string name="consent_title">プライバシーについて</string>
+    <string name="consent_body">TSPodcast はアカウント不要で、お名前、メールアドレス、電話番号を収集しません。アプリの改善のため、匿名の利用統計とクラッシュレポートの送信に同意しますか？</string>
+    <string name="consent_necessary_note">選択内容は「設定」からいつでも変更できます。アプリの安全を保つため、スパムフィルタのリストは引き続き更新されます。</string>
+    <string name="consent_accept_all">同意する</string>
+    <string name="consent_necessary_only">必要なもののみ</string>
+
+    <!-- Show actions (hide / report / share) -->
+    <string name="show_hide">この番組を非表示</string>
+    <string name="show_report">コンテンツを報告</string>
+    <string name="show_hidden_toast">番組を非表示にしました。「設定」で再表示できます。</string>
+    <string name="show_hide_confirm_title">この番組を非表示にしますか？</string>
+    <string name="show_hide_confirm_message">「%1$s」は「見つける」と「検索」に表示されなくなります。「設定」で再表示できます。</string>
+    <string name="action_cancel">キャンセル</string>
+    <string name="report_subject">コンテンツの報告: %1$s</string>
+    <string name="report_body">番組: %1$s
+フィード ID: %2$s
+リンク: %3$s
+アプリのバージョン: %4$s
+
+報告の理由:
+</string>
+    <string name="share">共有</string>
+    <string name="share_chooser_title">共有方法を選択</string>
+    <string name="share_podcast_text">TSPodcast で「%1$s」を聴こう: %2$s</string>
+    <string name="share_episode_text">TSPodcast でエピソード「%1$s」を聴こう: %2$s</string>
+    <string name="more_actions">その他</string>
+    <string name="podcast_favourite">お気に入りに追加</string>
+    <string name="podcast_unfavourite">お気に入りから削除</string>
+
+    <!-- In-show search, categories, player menu -->
+    <string name="show_search_hint">この番組のエピソードを検索</string>
+    <string name="show_search_clear">クリア</string>
+    <string name="show_search_empty">該当するエピソードはありません</string>
+    <string name="show_search_count">該当するエピソード: %1$d 件</string>
+    <string name="search_categories_title">トピック</string>
+    <string name="player_more_share">このエピソードを共有</string>
+    <string name="player_more_report">コンテンツを報告</string>
+
+    <!-- Launcher shortcuts -->
+    <string name="shortcut_continue_short">続きを再生</string>
+    <string name="shortcut_continue_long">再生中のエピソードの続きを再生</string>
+    <string name="shortcut_pause_short">一時停止</string>
+    <string name="shortcut_pause_long">再生を一時停止</string>
+    <string name="shortcut_sleep_short">30分後に停止</string>
+    <string name="shortcut_sleep_long">スリープタイマー: 30分</string>
+    <string name="shortcut_nothing_to_continue">再生中のエピソードはありません</string>
+    <string name="shortcut_sleep_toast">スリープタイマーを30分に設定しました</string>
+
+    <string name="news_hub_title">ニュース・時事</string>
+
+    <string name="settings_section_look">外観</string>
+    <string name="settings_liquid_glass_hint">ナビゲーションバー、ミニプレーヤー、再生コントロールをガラス風のデザインに</string>
+
+    <string name="settings_language">言語</string>
+    <string name="settings_language_hint">アプリとポッドキャスト一覧の言語（英語のポッドキャストは常に含まれます）</string>
+</resources>
