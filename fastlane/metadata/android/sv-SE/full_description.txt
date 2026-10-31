@@ -1,0 +1,39 @@
+TSPodcast hjälper dig att hitta poddar värda din tid och lyssna som du vill. Populära program på ditt språk och på engelska, förslag utifrån de ämnen du väljer och en spelare med hastighet, insomningstimer och fortsätt där du slutade, helt utan konto.
+
+<b>Upptäck poddar</b>
+• Populära poddar på ditt språk och på engelska, uppdateras löpande från den öppna katalogen Podcast Index
+• Välj bland fler än 100 ämnen (nyheter, ekonomi, teknik, utbildning, historia, hälsa, humor, sport, fiktion…) för förslag som passar dig
+• Sök på programnamn eller nyckelord, med program på ditt språk först
+• Sök inuti ett program efter rätt avsnitt
+• Livepoddar: lyssna på avsnitt som sänds just nu
+
+<b>Lyssna som du vill</b>
+• Uppspelningshastighet från 0,5× till 3,0×, sparas för varje program
+• Insomningstimer: 5 till 60 minuter eller när avsnittet är slut
+• Hoppa 15 sekunder bakåt och 30 sekunder framåt
+• Fortsätt varje avsnitt där du slutade
+• Uppspelning i bakgrunden med kontroller i aviseringen, på låsskärmen och i Bluetooth-hörlurar
+• Minispelare medan du fortsätter att bläddra
+• Genvägar: håll in appikonen för att fortsätta lyssna, pausa eller starta en insomningstimer på 30 minuter
+
+<b>Musik och radio</b>
+• Öppet musikbibliotek: flöden som oberoende artister själva publicerar (Podcasting 2.0), med ett musikfilter i sökningen
+• Vietnamesisk radio: lyssna live på kanaler från Vietnam
+
+<b>Ditt bibliotek, dina val</b>
+• Spara favoritavsnitt på ett ställe
+• Dölj program du inte vill se och ta tillbaka dem när som helst i Inställningar
+• Anmäl ett program eller avsnitt som bryter mot reglerna
+• Dela länkar till program och avsnitt
+• Spam- och spelprogram filtreras bort med en regelbundet uppdaterad blockeringslista
+
+<b>Ditt språk, din integritet</b>
+• Appen finns på 15 språk, och poddlistorna följer språket du väljer
+• Liquid Glass-utseende med genomskinliga fält, minispelare och knappar, som går att stänga av i Inställningar
+• Användningsstatistik och kraschrapporter skickas bara med ditt samtycke, och du kan ändra ditt val när som helst
+
+TSPodcast är en fristående app utan koppling till poddproducenter eller radiostationer. Podd- och musikinnehållet tillhör sina skapare; katalogdata kommer från Podcast Index.
+
+Synpunkter, felrapporter eller begäran om borttagning av innehåll: mejla supportadressen på den här sidan. Alla meddelanden läses.
+
+TSPodcast är gratis och kräver inget konto.

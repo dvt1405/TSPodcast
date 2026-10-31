@@ -437,7 +437,7 @@ platform :ios do
     upload_symbols_to_crashlytics(
       gsp_path: "Config/Firebase/Release/GoogleService-Info.plist")
     upload_to_testflight(api_key: key, skip_waiting_for_build_processing: true,
-                         changelog: File.read("../distribution/whatsnew/whatsnew-vi-VN") rescue nil)
+                         changelog: File.read("../distribution/whatsnew/whatsnew-vi") rescue nil)
   end
 
   lane :metadata do

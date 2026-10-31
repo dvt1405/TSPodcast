@@ -1,0 +1,38 @@
+TSPodcast helps you discover podcasts worth your time and listen the way you like. Trending shows, suggestions based on the topics you pick, and a player with speed control, sleep timer and resume, all without an account.
+
+Discover podcasts
+• Trending podcasts in the language you choose, plus English, updated continuously from the open Podcast Index directory
+• Choose from more than 100 topics (news, business, technology, education, history, health, comedy, sports, fiction…) to personalize your suggestions
+• Search by show name or keyword, with shows in your language first
+• Search inside a show to find the right episode
+• Live podcasts: listen to episodes streaming right now
+
+Listen your way
+• Playback speed from 0.5× to 3.0×, remembered for each show
+• Sleep timer: 5 to 60 minutes or at the end of the episode
+• Skip back 15 seconds and forward 30 seconds
+• Pick up every episode where you left off
+• Background playback with controls on the lock screen and on Bluetooth headphones
+• Mini player while you keep browsing
+• App Shortcuts to continue listening, pause or set a sleep timer
+
+Music
+• Open music library: music feeds published by independent artists (Podcasting 2.0), with a Music filter in search
+
+Your library, your choice
+• Save favorite episodes in one place
+• Hide shows you don't want to see, and bring them back any time in Settings
+• Report a show or episode that breaks the rules
+• Share links to shows and episodes
+• Spam and gambling shows filtered out by a regularly updated block list
+
+Your language, your privacy
+• App in 15 languages, and podcast lists follow the language you choose
+• Liquid Glass design on iOS 26
+• Analytics and crash reports are sent only with your consent, and you can change your choice any time
+
+TSPodcast is an independent app, not affiliated with any podcast producer. Podcast and music content belongs to its creators; directory data is provided by Podcast Index.
+
+Feedback, bug reports or content removal requests: use the support link on this page. Every message is read.
+
+TSPodcast is free, no account needed.

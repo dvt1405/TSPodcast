@@ -1,0 +1,42 @@
+TSPodcast là ứng dụng nghe podcast tiếng Việt và quốc tế, nghe radio online và khám phá kho nhạc mở, gọn trong một app. Chọn chủ đề bạn thích, mở app là có chương trình hợp gu để nghe ngay, với trình phát chỉnh tốc độ, hẹn giờ tắt và nhớ chỗ đang nghe, không cần tài khoản.
+
+<b>Khám phá podcast mỗi ngày</b>
+• Podcast thịnh hành bằng tiếng Việt và tiếng Anh, cập nhật liên tục từ thư mục mở Podcast Index
+• Chọn trong hơn 100 chủ đề (tin tức, kinh doanh, công nghệ, giáo dục, lịch sử, sức khoẻ, hài, thể thao, truyện…) để nhận gợi ý hợp gu
+• Tìm podcast theo tên chương trình hoặc từ khoá, chương trình tiếng Việt hiện trước
+• Tìm tập ngay trong một chương trình
+• Podcast live: nghe các tập đang phát trực tiếp
+
+<b>Nghe radio online</b>
+• Nghe trực tiếp các kênh phát thanh của VOV và VOH
+• Chạm là phát, nghe đài ngay trên điện thoại
+
+<b>Nghe thoải mái, không gián đoạn</b>
+• Chỉnh tốc độ phát từ 0.5× đến 3.0×, nhớ riêng cho từng chương trình
+• Hẹn giờ tắt: 5 đến 60 phút hoặc khi hết tập
+• Tua lùi 15 giây, tua tới 30 giây
+• Nhớ vị trí đang nghe, mở lại là nghe tiếp
+• Phát nền: tắt màn hình hay mở app khác vẫn nghe tiếp, điều khiển trên thanh thông báo, màn hình khoá và tai nghe Bluetooth
+• Trình phát thu nhỏ khi bạn tiếp tục duyệt app
+• Lối tắt ứng dụng: nhấn giữ biểu tượng app để nghe tiếp, tạm dừng hoặc hẹn giờ tắt sau 30 phút
+
+<b>Kho nhạc mở</b>
+• Feed nhạc do nghệ sĩ độc lập tự phát hành theo chuẩn Podcasting 2.0, có bộ lọc "Nhạc" ngay trong tìm kiếm
+
+<b>Thư viện của bạn</b>
+• Lưu tập yêu thích về một chỗ
+• Ẩn chương trình bạn không muốn thấy, bỏ ẩn bất cứ lúc nào trong Cài đặt
+• Báo cáo chương trình hoặc tập có nội dung vi phạm
+• Chia sẻ đường link chương trình và tập cho bạn bè
+• Tự lọc chương trình rác, cờ bạc bằng danh sách chặn cập nhật thường xuyên
+
+<b>Gọn gàng và riêng tư</b>
+• Giao diện tiếng Việt, đổi được sang 14 ngôn ngữ khác
+• Giao diện Liquid Glass: thanh điều hướng, trình phát thu nhỏ và nút điều khiển dạng kính trong suốt, tắt được trong Cài đặt
+• Chỉ gửi thống kê sử dụng và báo cáo sự cố khi bạn đồng ý, đổi lựa chọn bất cứ lúc nào
+
+TSPodcast là ứng dụng độc lập, không liên kết với các đài phát thanh hay nhà sản xuất podcast. Nội dung podcast và âm nhạc thuộc về nhà sản xuất; dữ liệu thư mục do Podcast Index cung cấp.
+
+Góp ý, báo lỗi hoặc yêu cầu gỡ nội dung: gửi email tới địa chỉ hỗ trợ trên trang này. Mỗi góp ý đều được đọc.
+
+TSPodcast miễn phí, không cần tài khoản.

@@ -1,0 +1,38 @@
+TSPodcast, vaktine değecek podcastleri keşfetmene ve onları istediğin gibi dinlemene yardımcı olur. Kendi dilinde ve İngilizce popüler programlar, seçtiğin konulara göre öneriler ve hız ayarı, uyku zamanlayıcısı ve kaldığın yerden devam özelliği olan bir oynatıcı; hesap gerekmez.
+
+Podcast keşfet
+• Kendi dilinde ve İngilizce popüler podcastler, açık Podcast Index dizininden sürekli güncellenir
+• 100'den fazla konu arasından seç (haberler, iş dünyası, teknoloji, eğitim, tarih, sağlık, komedi, spor, kurgu…), öneriler sana göre şekillensin
+• Program adına veya anahtar kelimeye göre ara; kendi dilindeki programlar önce gelir
+• Doğru bölümü bulmak için bir programın içinde ara
+• Canlı podcastler: şu anda yayında olan bölümleri dinle
+
+İstediğin gibi dinle
+• 0,5× ile 3,0× arası oynatma hızı, her program için hatırlanır
+• Uyku zamanlayıcısı: 5 ila 60 dakika ya da bölüm bitince
+• 15 saniye geri, 30 saniye ileri sar
+• Her bölüme kaldığın yerden devam et
+• Arka planda oynatma; kilit ekranından ve Bluetooth kulaklıktan kontrol
+• Gezinmeye devam ederken mini oynatıcı
+• Dinlemeye devam etmek, duraklatmak veya uyku zamanlayıcısı kurmak için uygulama kestirmeleri
+
+Müzik
+• Açık müzik kütüphanesi: bağımsız sanatçıların kendi yayımladığı akışlar (Podcasting 2.0), aramada müzik filtresiyle
+
+Senin kütüphanen, senin seçimin
+• Favori bölümlerini tek bir yerde sakla
+• Görmek istemediğin programları gizle, istediğin zaman Ayarlar'dan geri getir
+• Kurallara aykırı bir programı veya bölümü bildir
+• Program ve bölüm bağlantılarını paylaş
+• Spam ve kumar içerikli programlar düzenli güncellenen bir engel listesiyle filtrelenir
+
+Senin dilin, senin gizliliğin
+• Uygulama 15 dilde; podcast listeleri seçtiğin dili izler
+• iOS 26'da Liquid Glass tasarımı
+• Kullanım istatistikleri ve kilitlenme raporları yalnızca onay verirsen gönderilir; seçimini istediğin zaman değiştirebilirsin
+
+TSPodcast bağımsız bir uygulamadır; hiçbir podcast yapımcısıyla bağlantısı yoktur. Podcast ve müzik içerikleri sahiplerine aittir; dizin verileri Podcast Index tarafından sağlanır.
+
+Görüş, hata bildirimi veya içerik kaldırma talepleri için bu sayfadaki destek bağlantısını kullan. Her mesaj okunur.
+
+TSPodcast ücretsizdir, hesap gerekmez.

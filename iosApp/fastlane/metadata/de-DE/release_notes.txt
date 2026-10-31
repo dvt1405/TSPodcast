@@ -1,0 +1,1 @@
+Erste Version von TSPodcast: angesagte Podcasts in deiner Sprache und auf Englisch, über 100 Themen, Suche in Sendungen, Tempo, Sleep-Timer, Sprünge und Fortsetzen, App in 15 Sprachen.

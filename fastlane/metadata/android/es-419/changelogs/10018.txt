@@ -1,0 +1,9 @@
+• App en 15 idiomas, con podcasts en tu idioma y en inglés
+• Nueva bienvenida y selector de más de 100 temas
+• Velocidad 0,5×–3,0× por programa, temporizador de apagado, saltos −15/+30 s
+• Retoma los episodios donde los dejaste
+• Búsqueda dentro de un programa
+• Oculta, reporta o comparte programas y episodios
+• Accesos directos: seguir, pausar, temporizador
+• Aspecto Liquid Glass, con interruptor en Configuración
+• Configuración de privacidad para estadísticas e informes de errores

@@ -1,31 +1,39 @@
-TSPodcast lets you listen to Vietnamese and international podcasts, live radio and open music feeds in one app. Pick the topics you like and the app opens on shows that match, ready to play, with no account needed.
+TSPodcast helps you discover podcasts worth your time and listen the way you like. Trending shows, suggestions based on the topics you pick, and a player with speed control, sleep timer and resume, all without an account.
 
-<b>Discover podcasts every day</b>
-• Trending podcasts, Vietnamese shows first, updated continuously from the open Podcast Index directory
-• Pick your favourite topics from more than 100 (news, business, technology, education, history, health, comedy, sports, stories…) and "You may like" suggests shows to match
-• Search podcasts by show name or keyword
+<b>Discover podcasts</b>
+• Trending podcasts in the language you choose, plus English, updated continuously from the open Podcast Index directory
+• Choose from more than 100 topics (news, business, technology, education, history, health, comedy, sports, fiction…) to personalize your suggestions
+• Search by show name or keyword, with shows in your language first
+• Search inside a show to find the right episode
 • Live podcasts: listen to episodes streaming right now
 
-<b>Live radio</b>
-• Listen live to VOV and VOH radio channels
-• Tap to play, radio right on your phone
-
-<b>Open music library</b>
-• Music feeds published by the artists themselves (Podcasting 2.0)
-• A "Music" filter right in search
-
 <b>Listen your way</b>
-• Background playback: keep listening with the screen off or in other apps
-• Controls in the notification, on the lock screen and on Bluetooth headphones
+• Playback speed from 0.5× to 3.0×, remembered for each show
+• Sleep timer: 5 to 60 minutes or at the end of the episode
+• Skip back 15 seconds and forward 30 seconds
+• Pick up every episode where you left off
+• Background playback with controls in the notification, on the lock screen and on Bluetooth headphones
 • Mini player while you keep browsing
-• Episode list to switch episodes quickly
-• Save favourite episodes in one place
-• No full-screen ads while you are listening
+• App shortcuts: long-press the app icon to continue listening, pause or start a 30-minute sleep timer
 
-<b>Made for Vietnamese listeners</b>
-• Vietnamese interface
+<b>Music and radio</b>
+• Open music library: music feeds published by independent artists (Podcasting 2.0), with a Music filter in search
+• Vietnamese radio: listen live to radio channels from Vietnam
+
+<b>Your library, your choice</b>
+• Save favorite episodes in one place
+• Hide shows you don't want to see, and bring them back any time in Settings
+• Report a show or episode that breaks the rules
+• Share links to shows and episodes
 • Spam and gambling shows filtered out by a regularly updated block list
 
-TSPodcast is free and ad-supported. TSPodcast is an independent app, not affiliated with any radio station or podcast producer. Podcast and music content belongs to its creators; directory data is provided by Podcast Index.
+<b>Your language, your privacy</b>
+• App in 15 languages, and podcast lists follow the language you choose
+• Liquid Glass look with translucent bars, mini player and buttons, which you can turn off in Settings
+• Analytics and crash reports are sent only with your consent, and you can change your choice any time
+
+TSPodcast is an independent app, not affiliated with any podcast producer or radio station. Podcast and music content belongs to its creators; directory data is provided by Podcast Index.
 
 Feedback, bug reports or content removal requests: email the support address on this page. Every message is read.
+
+TSPodcast is free, no account needed.
