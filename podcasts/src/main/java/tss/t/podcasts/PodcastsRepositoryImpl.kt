@@ -42,8 +42,12 @@ class PodcastsRepositoryImpl @Inject constructor(
     /** Search results without blocked, hidden or (unless allowed) explicit feeds. */
     private fun TSDataState<SearchResponse>.filtered(): TSDataState<SearchResponse> {
         if (this !is TSDataState.Success) return this
-        val feeds = data.feeds.filter(contentFilter::allows)
-        return TSDataState.Success(data.copy(count = feeds.size, feeds = feeds))
+        // Gson leaves "non-null" Kotlin fields null when the JSON lacks them (bymedium has no
+        // "query"), and data-class copy() then throws; build the result explicitly instead.
+        @Suppress("USELESS_ELVIS")
+        val feeds = (data.feeds ?: emptyList()).filter(contentFilter::allows)
+        @Suppress("USELESS_ELVIS")
+        return TSDataState.Success(SearchResponse(count = feeds.size, feeds = feeds, query = data.query ?: ""))
     }
 
     override suspend fun searchPodcasts(
