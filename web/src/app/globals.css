@@ -149,12 +149,213 @@ input[type="range"].seek::-moz-range-thumb {
   word-break: break-word;
 }
 
+/* ------------------------------------------------------------------ motion
+   Everything below animates transform and opacity only, and is switched off by
+   the prefers-reduced-motion block at the end of the file. */
+:root {
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 160ms;
+  --dur: 240ms;
+  --dur-slow: 420ms;
+}
+
+/* Smooth in-page scrolling (anchors, "skip to content"). <html data-scroll-behavior="smooth">
+   lets Next.js switch it off during route changes so a new page starts at the top instantly. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Shelves: momentum scrolling that does not drag the page sideways. */
+.shelf {
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: 1rem;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+@keyframes slide-up-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Component classes live in the components layer so Tailwind utilities on the same
+   element (rounded-*, transition-*) still win. */
+@layer components {
+/* Entrance for a block that appears once (home hero, page headers). */
+.rise-in {
+  animation: rise-in var(--dur-slow) var(--ease-out) both;
+}
+
+/* Cards: lift on hover, press on tap. The artwork zooms inside its rounded frame. */
+.card-lift {
+  transition:
+    transform var(--dur) var(--ease-out),
+    background-color var(--dur-fast) ease-out;
+}
+.card-lift:hover {
+  transform: translateY(-3px);
+}
+.card-lift:active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 90ms;
+}
+.art-frame {
+  overflow: hidden;
+  border-radius: 0.75rem;
+  isolation: isolate;
+}
+.art-frame > * {
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+.group:hover .art-frame > * {
+  transform: scale(1.05);
+}
+
+/* Small round buttons (play, queue, player controls): springy press. */
+.press {
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) ease-out,
+    opacity var(--dur-fast) ease-out;
+}
+.press:hover {
+  transform: scale(1.06);
+}
+.press:active {
+  transform: scale(0.92);
+  transition-duration: 80ms;
+}
+
+/* Player: slides up the first time something plays; queue drops in; artwork and
+   title crossfade when the track changes (the wrapper is keyed by track). */
+.player-bar {
+  view-transition-name: player-bar;
+  animation: slide-up-in var(--dur-slow) var(--ease-out) both;
+}
+.queue-panel {
+  animation: drop-in var(--dur) var(--ease-out) both;
+}
+.track-swap {
+  animation: fade-in var(--dur) ease-out both;
+}
+.track-swap img,
+.track-swap [role="img"] {
+  animation: pop-in var(--dur) var(--ease-out) both;
+}
+
+/* Loading skeleton: a soft light sweep instead of blinking. */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.45), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 1.4s var(--ease-in-out) infinite;
+}
+.dark .skeleton::after {
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent);
+}
+
+}
+
+/* Route changes: the old page fades out quickly, the new one fades up into place.
+   The header and the player stay put. Browsers without the View Transitions API
+   just swap pages as before. */
+.site-header {
+  view-transition-name: site-header;
+}
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-old(.page) {
+  animation: 140ms ease-in both fade-out;
+}
+::view-transition-new(.page) {
+  animation:
+    260ms var(--ease-out) 100ms both fade-in,
+    360ms var(--ease-out) both page-rise;
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes page-rise {
+  from {
+    transform: translateY(10px);
+  }
+}
+::view-transition-group(site-header),
+::view-transition-group(player-bar) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header),
+::view-transition-old(player-bar) {
+  display: none;
+}
+::view-transition-new(site-header),
+::view-transition-new(player-bar) {
+  animation: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+  .card-lift:hover,
+  .press:hover,
+  .group:hover .art-frame > * {
+    transform: none;
   }
 }

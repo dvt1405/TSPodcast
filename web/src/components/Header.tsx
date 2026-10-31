@@ -7,9 +7,9 @@ import { SITE_NAME, STATIC_EXPORT } from "@/lib/site";
 
 export function Logo() {
   return (
-    <Link href="/" className="flex shrink-0 items-center gap-2 font-bold tracking-tight" aria-label={SITE_NAME}>
+    <Link href="/" className="group flex shrink-0 items-center gap-2 font-bold tracking-tight" aria-label={SITE_NAME}>
       {/* eslint-disable-next-line @next/next/no-img-element -- tiny static SVG brand mark (brand/web/favicon.svg) */}
-      <img src="/favicon.svg" alt="" width={32} height={32} className="size-8 rounded-xl shadow-sm" />
+      <img src="/favicon.svg" alt="" width={32} height={32} className="size-8 rounded-xl shadow-sm transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-105" />
       <span className="text-lg">
         TS<span className="text-primary">Podcast</span>
       </span>
@@ -19,7 +19,7 @@ export function Logo() {
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur">
+    <header className="site-header sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
         <Logo />
         <nav aria-label={t.nav.mainNav} className="ml-4 hidden md:block">

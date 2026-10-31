@@ -41,15 +41,11 @@ export function PodcastCard({ podcast, priority = false }: { podcast: PodcastSum
   return (
     <Link
       href={podcastPath(podcast)}
-      className="group block rounded-xl p-1.5 transition hover:bg-surface focus-visible:bg-surface"
+      className="card-lift group block rounded-xl p-1.5 hover:bg-surface focus-visible:bg-surface"
     >
-      <Artwork
-        src={podcast.image}
-        alt=""
-        fluid
-        priority={priority}
-        className="rounded-xl shadow-sm transition group-hover:shadow-md"
-      />
+      <div className="art-frame shadow-sm transition-shadow duration-300 group-hover:shadow-md">
+        <Artwork src={podcast.image} alt="" fluid priority={priority} />
+      </div>
       <h3 className="mt-2 line-clamp-2 text-sm font-semibold leading-snug">{podcast.title}</h3>
       {podcast.author && <p className="mt-0.5 line-clamp-1 text-xs text-subtle">{podcast.author}</p>}
     </Link>
@@ -96,9 +92,9 @@ export function EpisodeRow({
   const meta = [formatDate(episode.datePublished), formatDuration(episode.duration)].filter(Boolean).join(" · ");
   const desc = snippet(episode.description, 160);
   return (
-    <li className="flex gap-3 rounded-xl p-2 transition hover:bg-surface">
-      <Link href={track.href!} className="shrink-0" tabIndex={-1} aria-hidden="true">
-        <Artwork src={track.image} alt="" size={72} className="rounded-lg" />
+    <li className="group flex gap-3 rounded-xl p-2 transition-colors duration-200 hover:bg-surface">
+      <Link href={track.href!} className="art-frame shrink-0 rounded-lg" tabIndex={-1} aria-hidden="true">
+        <Artwork src={track.image} alt="" size={72} />
       </Link>
       <div className="min-w-0 flex-1">
         <h3 className="line-clamp-2 text-sm font-semibold leading-snug sm:text-base">

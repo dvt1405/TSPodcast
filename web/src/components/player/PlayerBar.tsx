@@ -79,7 +79,7 @@ function QueuePanel({ onClose }: { onClose: () => void }) {
       id="player-queue"
       role="region"
       aria-label={t.player.queue}
-      className="mx-auto max-h-[50vh] max-w-6xl overflow-y-auto border-b border-border px-3 py-3"
+      className="queue-panel mx-auto max-h-[50vh] max-w-6xl overflow-y-auto overscroll-contain border-b border-border px-3 py-3"
     >
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-sm font-bold">
@@ -148,7 +148,7 @@ function QueuePanel({ onClose }: { onClose: () => void }) {
 }
 
 const ctrl =
-  "inline-flex size-10 shrink-0 items-center justify-center rounded-full text-foreground transition hover:bg-surface-2 disabled:opacity-40";
+  "press inline-flex size-10 shrink-0 items-center justify-center rounded-full text-foreground hover:bg-surface-2 disabled:opacity-40";
 
 export function PlayerBar() {
   const state = usePlayerState();
@@ -163,24 +163,27 @@ export function PlayerBar() {
       <div aria-hidden="true" className="h-32" />
       <section
         aria-label={t.player.player}
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgb(0_0_0/0.08)] backdrop-blur"
+        className="player-bar fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgb(0_0_0/0.08)] backdrop-blur"
       >
         {queueOpen && <QueuePanel onClose={() => setQueueOpen(false)} />}
         <div className="mx-auto max-w-6xl px-3 pb-2">
           <SeekBar live={live} />
           <div className="flex items-center gap-2 sm:gap-3">
-            <Artwork src={track.image} alt="" size={48} className="rounded-lg" />
-            <div className="min-w-0 flex-1">
-              {track.href ? (
-                <Link href={track.href} className="block truncate text-sm font-semibold hover:underline">
-                  {track.title}
-                </Link>
-              ) : (
-                <p className="truncate text-sm font-semibold">{track.title}</p>
-              )}
-              <p className="truncate text-xs text-subtle" aria-live="polite">
-                {state.error ? <span className="text-danger">{t.player.error}</span> : track.subtitle}
-              </p>
+            {/* Keyed by track so the artwork and title fade in when the track changes. */}
+            <div key={track.key} className="track-swap flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+              <Artwork src={track.image} alt="" size={48} className="rounded-lg" />
+              <div className="min-w-0 flex-1">
+                {track.href ? (
+                  <Link href={track.href} className="block truncate text-sm font-semibold hover:underline">
+                    {track.title}
+                  </Link>
+                ) : (
+                  <p className="truncate text-sm font-semibold">{track.title}</p>
+                )}
+                <p className="truncate text-xs text-subtle" aria-live="polite">
+                  {state.error ? <span className="text-danger">{t.player.error}</span> : track.subtitle}
+                </p>
+              </div>
             </div>
 
             <div className="flex items-center gap-0.5 sm:gap-1">
@@ -201,7 +204,7 @@ export function PlayerBar() {
                 type="button"
                 onClick={() => player.toggle()}
                 aria-label={state.playing ? t.player.pause : t.player.play}
-                className={`inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary shadow transition hover:opacity-90 ${state.buffering ? "animate-pulse" : ""}`}
+                className={`press inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary shadow hover:opacity-90 ${state.buffering ? "animate-pulse" : ""}`}
               >
                 {state.playing ? <PauseIcon size={20} /> : <PlayIcon size={20} />}
               </button>
