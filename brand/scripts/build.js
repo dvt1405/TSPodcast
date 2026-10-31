@@ -7,6 +7,7 @@ const { fetchFonts } = require('./fetch-fonts');
   await fetchFonts();
   await require('./logo').main();
   await require('./android').main();
+  await require('./ios').main();
   await require('./store').main();
   const frame = require('./frame');
   frame.writeTemplates();
