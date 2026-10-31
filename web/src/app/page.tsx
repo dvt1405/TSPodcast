@@ -49,7 +49,7 @@ export default async function HomePage() {
     <div className="space-y-10">
       <section
         aria-labelledby="hero-title"
-        className="rounded-3xl bg-gradient-to-br from-primary to-secondary px-5 py-8 text-white shadow-sm sm:px-10 sm:py-12"
+        className="rise-in rounded-3xl bg-gradient-to-br from-primary to-secondary px-5 py-8 text-white shadow-sm sm:px-10 sm:py-12"
       >
         <h1 id="hero-title" className="text-2xl font-bold tracking-tight sm:text-4xl">
           {t.home.heroTitle}

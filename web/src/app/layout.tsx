@@ -9,6 +9,7 @@ import { isAiEnabled } from "@/lib/ai";
 import { htmlLang, ogLocale, t } from "@/lib/i18n";
 import { JsonLd } from "@/components/JsonLd";
 import { ANDROID_PACKAGE, OG_IMAGES, PLAY_STORE_URL, SITE_NAME, SITE_URL } from "@/lib/site";
+import { PageTransition } from "@/components/PageTransition";
 import "./globals.css";
 
 // The Android app's typeface (sharedLibrary Fonts.openSans), with the
@@ -63,7 +64,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang={htmlLang} className={`${openSans.variable} h-full antialiased`} suppressHydrationWarning>
+    <html
+      lang={htmlLang}
+      className={`${openSans.variable} h-full antialiased`}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
@@ -100,7 +106,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppBanner />
         <Header />
         <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 pt-5">
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
         <Footer aiEnabled={isAiEnabled()} />
         <PlayerBar />

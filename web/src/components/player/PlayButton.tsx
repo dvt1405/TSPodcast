@@ -34,7 +34,7 @@ export function PlayButton({ track, queue, variant = "icon", label, className = 
         type="button"
         onClick={onClick}
         aria-label={`${text}: ${track.title}`}
-        className={`inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary shadow-sm transition hover:opacity-90 disabled:opacity-60 ${className}`}
+        className={`inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary shadow-sm transition hover:-translate-y-0.5 hover:opacity-90 active:translate-y-0 active:scale-[0.97] disabled:opacity-60 ${className}`}
       >
         {isPlaying ? <PauseIcon size={18} /> : <PlayIcon size={18} />}
         <span>{busy ? t.player.loading : text}</span>
@@ -48,7 +48,7 @@ export function PlayButton({ track, queue, variant = "icon", label, className = 
       onClick={onClick}
       aria-label={`${isPlaying ? t.player.pause : t.player.play}: ${track.title}`}
       aria-pressed={isPlaying}
-      className={`inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary shadow-sm transition hover:opacity-90 ${busy ? "animate-pulse" : ""} ${className}`}
+      className={`press inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary shadow-sm hover:opacity-90 ${busy ? "animate-pulse" : ""} ${className}`}
     >
       {isPlaying ? <PauseIcon size={18} /> : <PlayIcon size={18} />}
     </button>
@@ -70,7 +70,7 @@ export function QueueButton({ track, className = "" }: { track: Track; className
       disabled={inQueue}
       aria-label={`${inQueue ? t.player.added : t.player.addToQueue}: ${track.title}`}
       title={inQueue ? t.player.added : t.player.addToQueue}
-      className={`inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-border text-muted transition hover:border-primary hover:text-primary disabled:cursor-default disabled:opacity-70 ${className}`}
+      className={`press inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-border text-muted hover:border-primary hover:text-primary disabled:cursor-default disabled:opacity-70 ${className}`}
     >
       {inQueue || justAdded ? <CheckIcon size={16} /> : <PlusIcon size={16} />}
     </button>

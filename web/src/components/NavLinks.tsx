@@ -26,8 +26,8 @@ export function NavLinks({ compact = false }: { compact?: boolean }) {
               aria-current={active ? "page" : undefined}
               className={
                 compact
-                  ? `flex items-center gap-1.5 py-2 text-xs font-semibold ${active ? "text-primary" : "text-muted"}`
-                  : `rounded-full px-3 py-1.5 text-sm font-semibold transition ${
+                  ? `flex items-center gap-1.5 py-2 text-xs font-semibold transition-colors duration-200 ${active ? "text-primary" : "text-muted"}`
+                  : `rounded-full px-3 py-1.5 text-sm font-semibold transition-colors duration-200 ${
                       active ? "bg-primary-soft text-primary" : "text-muted hover:text-foreground"
                     }`
               }
