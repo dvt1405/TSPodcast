@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://podcast-25c93.web.app/</loc>
+    <lastmod>2026-11-01</lastmod>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://podcast-25c93.web.app/privacy</loc>
+    <lastmod>2026-11-01</lastmod>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://podcast-25c93.web.app/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://podcast-25c93.web.app/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://podcast-25c93.web.app/privacy"/>
+  </url>
+  <url>
+    <loc>https://podcast-25c93.web.app/en/privacy</loc>
+    <lastmod>2026-11-01</lastmod>
+    <priority>0.2</priority>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://podcast-25c93.web.app/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://podcast-25c93.web.app/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://podcast-25c93.web.app/privacy"/>
+  </url>
+  <url>
+    <loc>https://podcast-25c93.web.app/terms</loc>
+    <lastmod>2026-11-01</lastmod>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://podcast-25c93.web.app/terms"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://podcast-25c93.web.app/en/terms"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://podcast-25c93.web.app/terms"/>
+  </url>
+  <url>
+    <loc>https://podcast-25c93.web.app/en/terms</loc>
+    <lastmod>2026-11-01</lastmod>
+    <priority>0.2</priority>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://podcast-25c93.web.app/terms"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://podcast-25c93.web.app/en/terms"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://podcast-25c93.web.app/terms"/>
+  </url>
+  <url>
+    <loc>https://podcast-25c93.web.app/delete-data</loc>
+    <lastmod>2026-11-01</lastmod>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://podcast-25c93.web.app/delete-data"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://podcast-25c93.web.app/en/delete-data"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://podcast-25c93.web.app/delete-data"/>
+  </url>
+  <url>
+    <loc>https://podcast-25c93.web.app/en/delete-data</loc>
+    <lastmod>2026-11-01</lastmod>
+    <priority>0.2</priority>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://podcast-25c93.web.app/delete-data"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://podcast-25c93.web.app/en/delete-data"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://podcast-25c93.web.app/delete-data"/>
+  </url>
+</urlset>

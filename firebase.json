@@ -1,28 +1,81 @@
 {
-  "hosting": {
-    "site": "tspodcast",
-    "public": "web/out",
-    "cleanUrls": true,
-    "trailingSlash": false,
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "headers": [
-      {
-        "source": "**",
-        "headers": [
-          { "key": "X-Content-Type-Options", "value": "nosniff" },
-          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-          { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-          { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
-        ]
-      },
-      {
-        "source": "/_next/static/**",
-        "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
-      },
-      {
-        "source": "**/*.@(html|txt)",
-        "headers": [{ "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" }]
-      }
-    ]
-  }
+  "hosting": [
+    {
+      "site": "tspodcast",
+      "public": "web/out",
+      "cleanUrls": true,
+      "trailingSlash": false,
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            { "key": "X-Content-Type-Options", "value": "nosniff" },
+            { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+            { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+            { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+          ]
+        },
+        {
+          "source": "/_next/static/**",
+          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+        },
+        {
+          "source": "**/*.@(html|txt)",
+          "headers": [{ "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" }]
+        }
+      ]
+    },
+    {
+      "site": "podcast-25c93",
+      "public": "site",
+      "cleanUrls": true,
+      "trailingSlash": false,
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "_src/**", "README.md"],
+      "redirects": [
+        { "source": "/privacy-policy", "destination": "/privacy", "type": 301 },
+        { "source": "/privacy-policy.html", "destination": "/privacy", "type": 301 },
+        { "source": "/policy", "destination": "/privacy", "type": 301 },
+        { "source": "/policy.html", "destination": "/privacy", "type": 301 },
+        { "source": "/data-deletion", "destination": "/delete-data", "type": 301 }
+      ],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            { "key": "X-Content-Type-Options", "value": "nosniff" },
+            { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+            { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+            { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+            { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
+            { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'sha256-rhso6By1F6S+JSjsr/wbHy5e61zRkx8Jq4veAUWiTPk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'self'; upgrade-insecure-requests" }
+          ]
+        },
+        {
+          "source": "/",
+          "headers": [{ "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" }]
+        },
+        {
+          "source": "**/!(*.*)",
+          "headers": [{ "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" }]
+        },
+        {
+          "source": "**/*.@(html|txt|xml|webmanifest)",
+          "headers": [{ "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" }]
+        },
+        {
+          "source": "/assets/fonts/**",
+          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+        },
+        {
+          "source": "**/*.@(webp|png|svg|ico)",
+          "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }]
+        },
+        {
+          "source": "/l/**",
+          "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }]
+        }
+      ]
+    }
+  ]
 }
