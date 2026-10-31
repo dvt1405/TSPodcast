@@ -28,6 +28,12 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         # List C/C++ source files with relative paths to this CMakeLists.txt.
         securedtoken.cpp)
 
+# CMake can shorten clang++.exe to CLANG_~1.EXE when the NDK path contains
+# spaces on Windows. Explicitly select the C++ driver so it links libc++.
+if(ANDROID AND CMAKE_HOST_WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_link_options(${CMAKE_PROJECT_NAME} PRIVATE --driver-mode=g++)
+endif()
+
 # Specifies libraries CMake should link to your target library. You
 # can link libraries from various origins, such as libraries defined in this
 # build script, prebuilt third-party libraries, or Android system libraries.

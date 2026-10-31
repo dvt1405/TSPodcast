@@ -41,7 +41,7 @@ Thiếu khoá Podcast Index thì web **vẫn chạy**: các trang hiện hướn
 | `NEXT_PUBLIC_SITE_LOCALE` | Không | `vi` (mặc định) hoặc `en` |
 | `SITE_NOINDEX` | Không | `1` cho môi trường preview/staging để chặn index toàn bộ |
 | `GOOGLE_SITE_VERIFICATION` | Không | Mã xác minh Search Console (thẻ meta) |
-| `APP_ADS_TXT` | Không | Nội dung `/app-ads.txt` cho AdMob, nhiều dòng thì nối bằng `\n` |
+| `APP_ADS_TXT` | Không | Ghi đè nội dung `/app-ads.txt`; mặc định dùng publisher `pub-8696388065064767`, nhiều dòng thì nối bằng `\n` |
 | `ANDROID_CERT_SHA256` | Không | Vân tay SHA-256 cho `/.well-known/assetlinks.json`, nhiều giá trị cách nhau bởi dấu phẩy |
 
 **Lưu ý với file `.env*`:** Next.js tự thay `$TEN_BIEN` trong file env. Nếu secret có ký tự `$`, hãy viết thành `\$`. Nếu không, secret bị cắt ngắn mà không báo lỗi và mọi request tới Podcast Index trả **401**. Nhập trên dashboard của Vercel/Cloudflare/Firebase thì không cần escape.
