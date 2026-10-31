@@ -306,6 +306,12 @@ final class LocalizationTests: XCTestCase {
         }
     }
 
+    /// Brand intro before onboarding: the BRAND tagline in both languages.
+    func testIntroTagline() throws {
+        XCTAssertEqual(try text("intro.tagline", "vi"), "Thế giới trong tai bạn")
+        XCTAssertEqual(try text("intro.tagline", "en"), "The world in your ears")
+    }
+
     func testOnboardingHighlightsAppearInTheirTitles() throws {
         let highlights = [
             1: ["onboarding.title.1.highlight.1", "onboarding.title.1.highlight.2"],

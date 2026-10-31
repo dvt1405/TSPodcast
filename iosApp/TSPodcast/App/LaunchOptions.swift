@@ -36,6 +36,9 @@ struct LaunchOptions: Equatable, Sendable {
     /// `-uitest-queue=N` (1…200): once Main shows, play a fixture queue of N items and open the
     /// Player, so the Up next panel has a list long enough to scroll without the network.
     var fixtureQueueCount = 0
+    /// Any `-uitest-…` argument: the brand intro before Onboarding is skipped, so UI tests land
+    /// on the first onboarding page as before the intro existed.
+    var skipIntro = false
 
     enum ConsentChoice: String, Equatable, Sendable {
         case all
@@ -57,6 +60,7 @@ struct LaunchOptions: Equatable, Sendable {
 
     init(arguments: [String], environment: [String: String]) {
         #if DEBUG
+        skipIntro = arguments.contains { $0.hasPrefix("-uitest-") }
         resetState = arguments.contains("-uitest-reset")
         skipOnboarding = arguments.contains("-uitest-skip-onboarding")
         slowNetwork = arguments.contains("-uitest-slow-network")
