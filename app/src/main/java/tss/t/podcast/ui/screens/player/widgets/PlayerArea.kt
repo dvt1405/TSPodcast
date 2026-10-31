@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
@@ -38,6 +40,9 @@ import androidx.media3.common.util.Util
 import coil.compose.AsyncImage
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.utils.imageRequestBuilder
+import tss.t.sharedplayer.player.PlaybackExtrasState
+import tss.t.sharedplayer.playback.SleepTimerOption
+import tss.t.sharedresources.R
 import java.util.Formatter
 import java.util.Locale
 
@@ -58,9 +63,15 @@ fun BoxScope.PlayerArea(
     currentPosition: Long = 0L,
     contentDuration: Long = 0L,
     progress: () -> Float = { 0f },
+    extras: PlaybackExtrasState = PlaybackExtrasState(),
+    hasError: Boolean = false,
     onFavourite: (Boolean) -> Unit = {},
-    onSkipPrevious: () -> Unit = {},
-    onSkipToNext: () -> Unit = {},
+    onSeekBack: () -> Unit = {},
+    onSeekForward: () -> Unit = {},
+    onSpeedChanged: (Int) -> Unit = {},
+    onApplyToAllChanged: (Boolean) -> Unit = {},
+    onSleepTimerSelected: (SleepTimerOption) -> Unit = {},
+    onRetry: () -> Unit = {},
     onPlayPause: () -> Unit = {},
     onPlayListClick: () -> Unit = {},
     onLoop: () -> Unit = {},
@@ -182,14 +193,38 @@ fun BoxScope.PlayerArea(
                 ), style = TextStyles.SubTitle4
             )
         }
+        if (hasError) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(stringResource(R.string.player_error_message), style = TextStyles.SubTitle3)
+                TextButton(onClick = onRetry) {
+                    Text(stringResource(R.string.player_error_retry))
+                }
+            }
+        }
         PlayerControl(
             isPlaying = isPlaying,
             isFav = isEpisodeFavourite,
+            canSeek = !extras.isLive,
             onFavourite = onFavourite,
-            onSkipPrevious = onSkipPrevious,
+            onSeekBack = onSeekBack,
             onPlayPause = onPlayPause,
-            onSkipToNext = onSkipToNext,
+            onSeekForward = onSeekForward,
             onPlayListClick = onPlayListClick
+        )
+        PlayerExtrasRow(
+            state = extras,
+            onSpeedChanged = onSpeedChanged,
+            onApplyToAllChanged = onApplyToAllChanged,
+            onSleepTimerSelected = onSleepTimerSelected,
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .padding(top = 4.dp)
         )
     }
 }

@@ -263,13 +263,15 @@ class TSNotificationProvider @Inject constructor(
             if (compactViewIndex >= 0 && compactViewIndex < compactViewIndices.size) {
                 compactViewCommandCount++
                 compactViewIndices[compactViewIndex] = i
-            } else if (commandButton.playerCommand == Player.COMMAND_SEEK_TO_PREVIOUS
+            } else if (commandButton.playerCommand == Player.COMMAND_SEEK_BACK
+                || commandButton.playerCommand == Player.COMMAND_SEEK_TO_PREVIOUS
                 || commandButton.playerCommand == Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM
             ) {
                 defaultCompactViewIndices[0] = i
             } else if (commandButton.playerCommand == Player.COMMAND_PLAY_PAUSE) {
                 defaultCompactViewIndices[1] = i
-            } else if (commandButton.playerCommand == Player.COMMAND_SEEK_TO_NEXT
+            } else if (commandButton.playerCommand == Player.COMMAND_SEEK_FORWARD
+                || commandButton.playerCommand == Player.COMMAND_SEEK_TO_NEXT
                 || commandButton.playerCommand == Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM
             ) {
                 defaultCompactViewIndices[2] = i
@@ -306,7 +308,19 @@ class TSNotificationProvider @Inject constructor(
     ): ImmutableList<CommandButton> {
         // Skip to previous action.
         val commandButtons = ImmutableList.Builder<CommandButton>()
-        if (playerCommands.containsAny(
+        // −15 s / +30 s instead of previous/next when the item can seek (same as the session's
+        // media button preferences and the iOS lock screen); previous/next otherwise (live).
+        if (playerCommands.contains(Player.COMMAND_SEEK_BACK)) {
+            commandButtons.add(
+                CommandButton.Builder(CommandButton.ICON_SKIP_BACK_15)
+                    .setPlayerCommand(Player.COMMAND_SEEK_BACK)
+                    .setDisplayName(context.getString(tss.t.sharedresources.R.string.player_seek_back_15))
+                    .setExtras(Bundle().apply {
+                        putInt(DefaultMediaNotificationProvider.COMMAND_KEY_COMPACT_VIEW_INDEX, C.INDEX_UNSET)
+                    })
+                    .build()
+            )
+        } else if (playerCommands.containsAny(
                 Player.COMMAND_SEEK_TO_PREVIOUS,
                 Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM
             )
@@ -351,7 +365,17 @@ class TSNotificationProvider @Inject constructor(
             }
         }
         // Skip to next action.
-        if (playerCommands.containsAny(
+        if (playerCommands.contains(Player.COMMAND_SEEK_FORWARD)) {
+            commandButtons.add(
+                CommandButton.Builder(CommandButton.ICON_SKIP_FORWARD_30)
+                    .setPlayerCommand(Player.COMMAND_SEEK_FORWARD)
+                    .setDisplayName(context.getString(tss.t.sharedresources.R.string.player_seek_forward_30))
+                    .setExtras(Bundle().apply {
+                        putInt(DefaultMediaNotificationProvider.COMMAND_KEY_COMPACT_VIEW_INDEX, C.INDEX_UNSET)
+                    })
+                    .build()
+            )
+        } else if (playerCommands.containsAny(
                 Player.COMMAND_SEEK_TO_NEXT,
                 Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM
             )

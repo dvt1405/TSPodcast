@@ -45,6 +45,8 @@ import tss.t.coreapi.models.TrendingPodcastRes
 import tss.t.podcast.ui.screens.player.widgets.PlayerArea
 import tss.t.podcast.ui.screens.player.widgets.SlideArea
 import tss.t.podcast.ui.screens.player.widgets.SlideAreaState
+import tss.t.sharedplayer.player.PlaybackExtrasState
+import tss.t.sharedplayer.playback.SleepTimerOption
 import tss.t.sharedlibrary.theme.Colors
 
 @Composable
@@ -54,6 +56,7 @@ fun PlayerScreen(
     viewmodel: PlayerViewModel
 ) {
     val playerControlUIState by viewmodel.playerControlState.collectAsState()
+    val extras by viewmodel.playbackExtras.collectAsState()
     var slideState by remember {
         mutableStateOf(SlideAreaState.Hidden)
     }
@@ -68,15 +71,17 @@ fun PlayerScreen(
         progress = {
             playerControlUIState.currentProgress
         },
+        extras = extras,
+        hasError = playerControlUIState.exception != null,
         onFavourite = {
             viewmodel.onFavouriteChanged(it)
         },
-        onSkipPrevious = {
-            viewmodel.onSkipToPrevious()
-        },
-        onSkipToNext = {
-            viewmodel.onSkipToNext()
-        },
+        onSeekBack = viewmodel::onSeekBack,
+        onSeekForward = viewmodel::onSeekForward,
+        onSpeedChanged = viewmodel::onSpeedChanged,
+        onApplyToAllChanged = viewmodel::onApplySpeedToAllChanged,
+        onSleepTimerSelected = viewmodel::onSleepTimerSelected,
+        onRetry = viewmodel::onRetry,
         onPlayPause = {
             viewmodel.onPlayPause()
         },
@@ -116,9 +121,15 @@ internal fun PlayerScreen(
     contentDuration: Long = 0L,
     playList: List<MediaItem>,
     progress: () -> Float = { 0f },
+    extras: PlaybackExtrasState = PlaybackExtrasState(),
+    hasError: Boolean = false,
     onFavourite: (Boolean) -> Unit = {},
-    onSkipPrevious: () -> Unit = {},
-    onSkipToNext: () -> Unit = {},
+    onSeekBack: () -> Unit = {},
+    onSeekForward: () -> Unit = {},
+    onSpeedChanged: (Int) -> Unit = {},
+    onApplyToAllChanged: (Boolean) -> Unit = {},
+    onSleepTimerSelected: (SleepTimerOption) -> Unit = {},
+    onRetry: () -> Unit = {},
     onPlayPause: () -> Unit = {},
     onPlayListClick: () -> Unit = {},
     onLoop: () -> Unit = {},
@@ -205,9 +216,15 @@ internal fun PlayerScreen(
             currentPosition = currentPosition,
             contentDuration = contentDuration,
             progress = progress,
+            extras = extras,
+            hasError = hasError,
             onFavourite = onFavourite,
-            onSkipPrevious = onSkipPrevious,
-            onSkipToNext = onSkipToNext,
+            onSeekBack = onSeekBack,
+            onSeekForward = onSeekForward,
+            onSpeedChanged = onSpeedChanged,
+            onApplyToAllChanged = onApplyToAllChanged,
+            onSleepTimerSelected = onSleepTimerSelected,
+            onRetry = onRetry,
             onPlayPause = onPlayPause,
             onPlayListClick = onPlayListClick,
             onLoop = onLoop,

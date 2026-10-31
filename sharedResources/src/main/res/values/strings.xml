@@ -22,7 +22,25 @@
     <string name="popup_btn_cancel_title">Huỷ</string>
 
     <string name="detail_placeholder">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut tempus, sem vitae convallis imperdiet, lectus nunc pharetra diam, ac rhoncus quam eros eu risus. Nulla pulvinar condimentum erat, pulvinar tempus turpis blandit ut. Etiam sed ipsum sed lacus eleifend hendrerit eu quis quam. Etiam ligula eros, finibus vestibulum tortor ac, ultrices accumsan dolor. Vivamus vel nisl a libero lobortis posuere. Aenean facilisis nibh vel ultrices bibendum. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Suspendisse ac est vitae lacus commodo efficitur at ut massa. Etiam vestibulum sit amet sapien sed varius. Aliquam non ipsum imperdiet, pulvinar enim nec, mollis risus. Fusce id tincidunt nisl.</string>
-    <string name="dialog_error_title">Opps!</string>
+    <string name="dialog_error_title">Rất tiếc!</string>
     <string name="dialog_positive_btn_title">Tải lại</string>
+
+    <!-- Player basics (parity with iOS M6) -->
+    <string name="player_seek_back_15">Lùi 15 giây</string>
+    <string name="player_seek_forward_30">Tới 30 giây</string>
+    <string name="player_speed_title">Tốc độ phát</string>
+    <string name="player_speed_apply_all">Áp dụng cho mọi show</string>
+    <string name="player_speed_apply_all_hint">Tắt: mỗi show nhớ tốc độ riêng</string>
+    <string name="player_speed_slower">Chậm hơn</string>
+    <string name="player_speed_faster">Nhanh hơn</string>
+    <string name="player_speed_live">Phát trực tiếp luôn ở tốc độ 1.0×</string>
+    <string name="player_sleep_title">Hẹn giờ tắt</string>
+    <string name="player_sleep_minutes">%1$d phút</string>
+    <string name="player_sleep_end_of_episode">Hết tập này</string>
+    <string name="player_sleep_off">Tắt hẹn giờ</string>
+    <string name="player_sleep_remaining">Còn %1$s</string>
+    <string name="player_sleep_active_end_of_episode">Tắt khi hết tập</string>
+    <string name="player_error_message">Không phát được nội dung này</string>
+    <string name="player_error_retry">Thử lại</string>
 
 </resources>

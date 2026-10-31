@@ -1,5 +1,5 @@
-• New logo, app icon and splash screen
-• Fixed a blank player screen and missing mini player
-• Fixed a crash on launch on some devices
-• Moved to Google AdMob ads with a privacy consent prompt
-• No full-screen ads while you are listening
+• Playback speed 0.5×–3.0×, remembered per show
+• Sleep timer by minutes or at the end of the episode
+• Skip back 15 s and forward 30 s in the player and on the lock screen
+• Resume an episode where you left off
+• Clearer message with a Retry button when playback fails

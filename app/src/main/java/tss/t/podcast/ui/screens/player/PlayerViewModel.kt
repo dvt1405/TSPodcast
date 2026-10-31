@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
@@ -44,7 +45,9 @@ import tss.t.podcasts.usecase.history.GetEpisodeLocalUseCase
 import tss.t.podcasts.usecase.history.SaveCurrentPlayingUseCase
 import tss.t.sharedplayer.controller.TSMediaController
 import tss.t.sharedplayer.utils.progressOf
+import tss.t.sharedplayer.player.PlaybackExtrasState
 import tss.t.sharedplayer.player.PlayerManager
+import tss.t.sharedplayer.playback.SleepTimerOption
 import tss.t.sharedplayer.utils.ext.album
 import tss.t.sharedplayer.utils.ext.mediaType
 import javax.inject.Inject
@@ -70,6 +73,31 @@ class PlayerViewModel @Inject constructor(
 
     val playerControlState: StateFlow<PlayerControlState>
         get() = _playerControlState.asStateFlow()
+
+    /** Speed, sleep timer and live flag of the current item (kept by [PlayerManager], so they survive the screen). */
+    val playbackExtras: StateFlow<PlaybackExtrasState>
+        get() = playerManager.extras
+
+    fun onSeekBack() = playerManager.seekBack()
+
+    fun onSeekForward() = playerManager.seekForward()
+
+    fun onSpeedChanged(tenths: Int) = playerManager.setSpeed(tenths)
+
+    fun onApplySpeedToAllChanged(on: Boolean) = playerManager.setApplyToAll(on)
+
+    fun onSleepTimerSelected(option: SleepTimerOption) = playerManager.setSleepTimer(option)
+
+    /** "Thử lại" after a playback error: prepare the same item again from where it stopped. */
+    fun onRetry() {
+        _playerControlState.update { it.copy(exception = null, isLoading = true) }
+        currentPlayer.prepare()
+        currentPlayer.play()
+    }
+
+    override fun onPlayerError(error: PlaybackException) {
+        _playerControlState.update { it.copy(exception = error, isLoading = false, isPlaying = false) }
+    }
 
     suspend fun playerEpisode(
         episode: Episode,
@@ -656,7 +684,8 @@ fun Episode.toMediaItem(album: CharSequence? = null): MediaItem {
                 .setAlbumTitle(album)
                 .setExtras(
                     bundleOf(
-                        Constants.EXTRA_MEDIA_TYPE_KEY to Constants.MEDIA_TYPE_EPISODE
+                        Constants.EXTRA_MEDIA_TYPE_KEY to Constants.MEDIA_TYPE_EPISODE,
+                        PlayerManager.EXTRA_FEED_ID to feedId
                     )
                 )
                 .build()
