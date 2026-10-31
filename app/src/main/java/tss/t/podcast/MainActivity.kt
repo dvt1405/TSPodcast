@@ -138,6 +138,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var sharedPref: tss.t.core.storage.SharedPref
 
+    @Inject
+    lateinit var uiPrefs: tss.t.core.storage.UiPrefs
+
     private var navHostController: NavHostController? = null
     private var homeInnerNavHostController: NavHostController? = null
     private var onBackPressedCallback: OnBackPressedCallback? = null
@@ -213,6 +216,7 @@ class MainActivity : ComponentActivity() {
                     report = { reportShow(it) }
                 )
             }
+            val liquidGlass by uiPrefs.liquidGlass.collectAsState()
             PodcastTheme {
                 val windowInset = WindowInsets.systemBars.asPaddingValues()
                 val playerControlState by playerViewModel.playerControlState.collectAsState()
@@ -226,7 +230,8 @@ class MainActivity : ComponentActivity() {
                         LocalAdsController provides adsController,
                         LocalRemoteConfigScope provides tsRemoteConfig,
                         LocalRemoteConfig provides tsRemoteConfig,
-                        LocalShowActions provides showActions
+                        LocalShowActions provides showActions,
+                        tss.t.sharedlibrary.ui.glass.LocalLiquidGlass provides liquidGlass
                     ) {
                         TSNavGraph(
                             innerNavHost = innerNavGraph,

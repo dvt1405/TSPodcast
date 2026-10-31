@@ -13,7 +13,12 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val contentPrefs: ContentPrefs,
     private val privacyConsent: PrivacyConsent,
+    private val uiPrefs: tss.t.core.storage.UiPrefs,
 ) : ViewModel() {
+
+    val liquidGlass: StateFlow<Boolean> = uiPrefs.liquidGlass
+
+    fun setLiquidGlass(enabled: Boolean) = uiPrefs.setLiquidGlass(enabled)
 
     val allowExplicit: StateFlow<Boolean> = contentPrefs.allowExplicit
     val hiddenShows: StateFlow<List<HiddenShow>> = contentPrefs.hiddenShows

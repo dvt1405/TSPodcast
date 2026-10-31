@@ -1,5 +1,8 @@
 package tss.t.podcast.ui.screens.player.widgets
 
+import tss.t.sharedlibrary.ui.glass.LocalLiquidGlass
+import tss.t.sharedlibrary.ui.glass.glassSurface
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -73,25 +76,36 @@ fun PlayerWidgetMain(
         }
     }
 
+    val glass = LocalLiquidGlass.current
+    val capsule = RoundedCornerShape(24.dp)
     Box(
         modifier = modifier
+            // Liquid Glass: a floating capsule with side margins instead of a full-width strip.
+            .then(if (glass) Modifier.padding(horizontal = 12.dp, vertical = 6.dp) else Modifier)
+            .then(
+                if (glass) Modifier.glassSurface(capsule, fill = Color.White.copy(alpha = 0.78f), elevation = 12.dp)
+                else Modifier
+            )
             .clickable(onClick = onClick)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .background(
-                    Brush.radialGradient(
-                        listOf(
-                            Color(0xFFf1f4f9),
-                            Color(0xFFE2E9F3)
-                        ),
-                        radius = 100.dp.toPx()
+                .then(
+                    if (glass) Modifier
+                    else Modifier.background(
+                        Brush.radialGradient(
+                            listOf(
+                                Color(0xFFf1f4f9),
+                                Color(0xFFE2E9F3)
+                            ),
+                            radius = 100.dp.toPx()
+                        )
                     )
                 )
                 .height(60.dp)
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = if (glass) 10.dp else 16.dp)
                 .graphicsLayer {
                     alpha = animateAlpha.value
                 }
@@ -103,7 +117,9 @@ fun PlayerWidgetMain(
                     .placeholder(R.drawable.image_loader_place_holder_12dp)
                     .build(),
                 contentDescription = id,
-                modifier = Modifier.size(60.dp)
+                modifier = Modifier
+                    .size(if (glass) 44.dp else 60.dp)
+                    .then(if (glass) Modifier.clip(RoundedCornerShape(12.dp)) else Modifier)
             )
             Column(
                 modifier = Modifier

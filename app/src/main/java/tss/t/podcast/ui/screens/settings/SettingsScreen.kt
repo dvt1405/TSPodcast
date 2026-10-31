@@ -68,6 +68,7 @@ fun SettingsScreen(
     val allowExplicit by viewModel.allowExplicit.collectAsState()
     val hiddenShows by viewModel.hiddenShows.collectAsState()
     val privacy by viewModel.privacy.collectAsState()
+    val liquidGlass by viewModel.liquidGlass.collectAsState()
 
     Scaffold(
         topBar = {
@@ -168,6 +169,17 @@ fun SettingsScreen(
             }
             item {
                 LinkRow(stringResource(R.string.settings_delete_data)) { context.openUrl(SitePages.DELETE_DATA) }
+            }
+
+            item { Divider() }
+            item { SectionHeader(stringResource(R.string.settings_section_look)) }
+            item {
+                SwitchRow(
+                    title = stringResource(R.string.settings_liquid_glass),
+                    subtitle = stringResource(R.string.settings_liquid_glass_hint),
+                    checked = liquidGlass,
+                    onChange = viewModel::setLiquidGlass
+                )
             }
 
             item { Divider() }

@@ -1,5 +1,7 @@
 package tss.t.podcast.ui.screens.podcastsdetail.widgets
 
+import tss.t.sharedlibrary.ui.glass.LocalLiquidGlass
+import tss.t.sharedlibrary.ui.glass.glassSurface
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -133,11 +135,14 @@ fun PodcastDetailActions(
 
 @Composable
 private fun RoundButton(icon: ImageVector, description: String, onClick: () -> Unit) {
+    val glass = LocalLiquidGlass.current
     Box(
         modifier = Modifier
             .size(40.dp)
-            .clip(CircleShape)
-            .background(Color.Black.copy(0.3f))
+            .then(
+                if (glass) Modifier.glassSurface(CircleShape, fill = Color.White.copy(alpha = 0.22f), elevation = 6.dp)
+                else Modifier.clip(CircleShape).background(Color.Black.copy(0.3f))
+            )
             .clickable(role = Role.Button, onClickLabel = description, onClick = onClick)
             .padding(10.dp)
     ) {

@@ -62,3 +62,23 @@ class ContentPrefs @Inject constructor(
         const val KEY_HIDDEN_SHOWS = "HiddenShows"
     }
 }
+
+/** Look-and-feel choices kept on the device (Settings → Giao diện). */
+@Singleton
+class UiPrefs @Inject constructor(
+    private val sharedPref: SharedPref,
+) {
+    private val _liquidGlass = MutableStateFlow(sharedPref.get<Boolean>(KEY_LIQUID_GLASS) ?: true)
+
+    /** "Liquid Glass" surfaces (bars, mini player, Player buttons); on by default. */
+    val liquidGlass: StateFlow<Boolean> = _liquidGlass.asStateFlow()
+
+    fun setLiquidGlass(enabled: Boolean) {
+        sharedPref.save(KEY_LIQUID_GLASS, enabled)
+        _liquidGlass.value = enabled
+    }
+
+    companion object {
+        const val KEY_LIQUID_GLASS = "LiquidGlass"
+    }
+}

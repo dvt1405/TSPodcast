@@ -2,6 +2,11 @@
 
 package tss.t.podcast.ui.screens.main
 
+import tss.t.sharedlibrary.ui.glass.glassHighlight
+import tss.t.sharedlibrary.ui.glass.glassRim
+import androidx.compose.ui.draw.shadow
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.fillMaxSize
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -421,35 +426,76 @@ private fun TSBottomNavigation(
     tabs: List<BottomBarTab> = tabDefaults,
     onTabSelected: (BottomBarTab, Int) -> Unit = { _, _ -> }
 ) {
+    val glass = tss.t.sharedlibrary.ui.glass.LocalLiquidGlass.current
+    val pill = RoundedCornerShape(100.dp)
     Box(
         modifier = modifier
             .navigationBarsPadding()
             .padding(horizontal = 64.dp)
             .fillMaxWidth()
             .height(64.dp)
-            .clip(RoundedCornerShape(100.dp))
+            .then(
+                if (glass) Modifier.shadow(
+                    16.dp, pill,
+                    ambientColor = tss.t.sharedlibrary.ui.glass.GlassTokens.ShadowColor,
+                    spotColor = tss.t.sharedlibrary.ui.glass.GlassTokens.ShadowColor
+                ) else Modifier
+            )
+            .clip(pill)
             .background(Color.Transparent)
             .hazeChild(
                 state = hazeState,
                 style = HazeDefaults.style(
                     backgroundColor = Colors.White,
-                    tint = Colors.White.copy(.6f),
-                    blurRadius = 32.dp,
-                    noiseFactor = 0.5f
+                    // Liquid Glass: thinner tint so the content shows through, more blur.
+                    tint = Colors.White.copy(if (glass) .35f else .6f),
+                    blurRadius = if (glass) 24.dp else 32.dp,
+                    noiseFactor = if (glass) 0.15f else 0.5f
                 )
             )
-            .border(
-                width = Dp.Hairline,
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Colors.Primary.copy(alpha = .8f),
-                        Colors.Primary.copy(alpha = .2f),
-                    ),
-                ),
-                shape = CircleShape
+            .then(
+                if (glass) {
+                    Modifier
+                        .glassHighlight()
+                        .glassRim(CircleShape)
+                } else {
+                    Modifier.border(
+                        width = Dp.Hairline,
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Colors.Primary.copy(alpha = .8f),
+                                Colors.Primary.copy(alpha = .2f),
+                            ),
+                        ),
+                        shape = CircleShape
+                    )
+                }
             )
             .padding(bottom = 4.dp)
     ) {
+        if (glass) {
+            // Glass lens that slides under the selected tab.
+            androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
+                val tabWidth = maxWidth / tabs.size
+                val offset by androidx.compose.animation.core.animateDpAsState(
+                    tabWidth * selectedTab,
+                    animationSpec = androidx.compose.animation.core.spring(
+                        dampingRatio = 0.7f,
+                        stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow
+                    ),
+                    label = "glassLens"
+                )
+                Box(
+                    Modifier
+                        .padding(start = offset, top = 6.dp, bottom = 2.dp)
+                        .size(width = tabWidth, height = maxHeight)
+                        .padding(horizontal = 6.dp)
+                        .clip(pill)
+                        .background(Colors.Primary.copy(alpha = 0.10f))
+                        .glassRim(pill)
+                )
+            }
+        }
         BottomBarTabs(
             tabs = tabs,
             textColor = Colors.TextColor,

@@ -1,5 +1,7 @@
 package tss.t.podcast.ui.screens.player.widgets
 
+import tss.t.sharedlibrary.ui.glass.LocalLiquidGlass
+import tss.t.sharedlibrary.ui.glass.glassSurface
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -68,6 +70,10 @@ fun PlayerExtrasRow(
 ) {
     var showSpeed by rememberSaveable { mutableStateOf(false) }
     var showTimer by rememberSaveable { mutableStateOf(false) }
+    val glass = LocalLiquidGlass.current
+    val capsule = RoundedCornerShape(50)
+    val chipModifier = if (glass) Modifier.glassSurface(capsule, elevation = 4.dp) else Modifier
+    val chipBorder = if (glass) null else BorderStroke(1.dp, androidx.compose.material3.LocalContentColor.current.copy(alpha = 0.4f))
 
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -76,8 +82,9 @@ fun PlayerExtrasRow(
     ) {
         OutlinedButton(
             onClick = { showSpeed = true },
-            shape = RoundedCornerShape(50),
-            border = BorderStroke(1.dp, androidx.compose.material3.LocalContentColor.current.copy(alpha = 0.4f)),
+            modifier = chipModifier,
+            shape = capsule,
+            border = chipBorder,
         ) {
             Text(
                 text = PlaybackSpeed.label(state.speedTenths),
@@ -87,8 +94,9 @@ fun PlayerExtrasRow(
         val timer = state.sleepTimer
         OutlinedButton(
             onClick = { showTimer = true },
-            shape = RoundedCornerShape(50),
-            border = BorderStroke(1.dp, androidx.compose.material3.LocalContentColor.current.copy(alpha = 0.4f)),
+            modifier = chipModifier,
+            shape = capsule,
+            border = chipBorder,
         ) {
             Icon(Icons.Rounded.Bedtime, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))
