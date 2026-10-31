@@ -1,24 +1,31 @@
-TSPodcast giúp bạn khám phá và nghe podcast tiếng Việt và quốc tế, radio trực tiếp và kho nhạc mở, gọn trong một ứng dụng.
+TSPodcast là ứng dụng nghe podcast tiếng Việt và quốc tế, nghe radio online và khám phá kho nhạc mở, gọn trong một app. Chọn chủ đề bạn thích, mở app là có chương trình hợp gu để nghe ngay, không cần tài khoản.
 
-KHÁM PHÁ PODCAST
-• Podcast xu hướng, cập nhật liên tục từ thư mục mở Podcast Index
-• Duyệt theo chủ đề: tin tức, kinh doanh, công nghệ, giáo dục, sức khoẻ, hài, thể thao…
-• Chọn chủ đề yêu thích ngay lần đầu mở app để có gợi ý hợp gu
-• Tìm kiếm chương trình theo tên hoặc từ khoá
+<b>Khám phá podcast mỗi ngày</b>
+• Podcast thịnh hành, ưu tiên chương trình tiếng Việt, cập nhật liên tục từ thư mục mở Podcast Index
+• Chọn chủ đề yêu thích trong hơn 100 chủ đề (tin tức, kinh doanh, công nghệ, giáo dục, lịch sử, sức khoẻ, hài, thể thao, truyện…), mục "Có thể bạn yêu thích" sẽ gợi ý theo đó
+• Tìm podcast theo tên chương trình hoặc từ khoá
+• Podcast live: nghe các tập đang phát trực tiếp
 
-RADIO TRỰC TUYẾN
-• Nghe các kênh VOV và VOH phát trực tiếp
+<b>Nghe radio online</b>
+• Nghe trực tiếp các kênh phát thanh của VOV và VOH
+• Chạm là phát, nghe đài ngay trên điện thoại
 
-KHO NHẠC
-• Tìm và nghe các feed nhạc mở theo chuẩn Podcasting 2.0
-• Bộ lọc "Nhạc" trong tìm kiếm
+<b>Kho nhạc mở</b>
+• Feed nhạc do nghệ sĩ tự phát hành theo chuẩn Podcasting 2.0
+• Bộ lọc "Nhạc" ngay trong tìm kiếm
 
-NGHE THOẢI MÁI
+<b>Nghe thoải mái, không gián đoạn</b>
 • Phát nền: tắt màn hình hay mở app khác vẫn nghe tiếp
-• Điều khiển trên thanh thông báo và màn hình khoá
-• Trình phát thu nhỏ khi duyệt app
-• Lưu kênh yêu thích và danh sách phát
+• Điều khiển trên thanh thông báo, màn hình khoá và tai nghe Bluetooth
+• Trình phát thu nhỏ khi bạn tiếp tục duyệt app
+• Danh sách tập để chuyển tập nhanh
+• Lưu tập yêu thích về một chỗ, mở app là nghe lại
+• Không hiện quảng cáo toàn màn hình khi bạn đang nghe
 
-TSPodcast miễn phí và có quảng cáo. Nội dung podcast thuộc về các nhà sản xuất; dữ liệu thư mục do Podcast Index cung cấp.
+<b>Gọn, sạch, cho người nghe Việt</b>
+• Giao diện tiếng Việt
+• Tự lọc chương trình rác, cờ bạc bằng danh sách chặn cập nhật thường xuyên
 
-Góp ý hoặc báo cáo nội dung: vui lòng dùng email hỗ trợ trên trang Google Play của ứng dụng.
+TSPodcast miễn phí và có quảng cáo. TSPodcast là ứng dụng độc lập, không liên kết với các đài phát thanh hay nhà sản xuất podcast. Nội dung podcast và âm nhạc thuộc về nhà sản xuất; dữ liệu thư mục do Podcast Index cung cấp.
+
+Góp ý, báo lỗi hoặc yêu cầu gỡ nội dung: gửi email tới địa chỉ hỗ trợ trên trang này. Mỗi góp ý đều được đọc.

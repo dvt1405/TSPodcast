@@ -1,22 +1,31 @@
-TSPodcast lets you discover and listen to Vietnamese and international podcasts, live radio and open music feeds in one app.
+TSPodcast lets you listen to Vietnamese and international podcasts, live radio and open music feeds in one app. Pick the topics you like and the app opens on shows that match, ready to play, with no account needed.
 
-DISCOVER PODCASTS
-• Trending shows, updated continuously from the open Podcast Index directory
-• Browse by topic: news, business, technology, education, health, comedy, sports and more
-• Pick your favourite topics on first launch for better suggestions
-• Search shows by name or keyword
+<b>Discover podcasts every day</b>
+• Trending podcasts, Vietnamese shows first, updated continuously from the open Podcast Index directory
+• Pick your favourite topics from more than 100 (news, business, technology, education, history, health, comedy, sports, stories…) and "You may like" suggests shows to match
+• Search podcasts by show name or keyword
+• Live podcasts: listen to episodes streaming right now
 
-LIVE RADIO
-• Listen to VOV and VOH channels live
+<b>Live radio</b>
+• Listen live to VOV and VOH radio channels
+• Tap to play, radio right on your phone
 
-MUSIC LIBRARY
-• Find and play open music feeds (Podcasting 2.0)
-• A "Music" filter in search
+<b>Open music library</b>
+• Music feeds published by the artists themselves (Podcasting 2.0)
+• A "Music" filter right in search
 
-LISTEN YOUR WAY
+<b>Listen your way</b>
 • Background playback: keep listening with the screen off or in other apps
-• Controls in the notification and on the lock screen
-• Mini player while you browse
-• Save favourite shows and playlists
+• Controls in the notification, on the lock screen and on Bluetooth headphones
+• Mini player while you keep browsing
+• Episode list to switch episodes quickly
+• Save favourite episodes in one place
+• No full-screen ads while you are listening
 
-TSPodcast is free and ad-supported. Podcast content belongs to its creators; directory data is provided by Podcast Index.
+<b>Made for Vietnamese listeners</b>
+• Vietnamese interface
+• Spam and gambling shows filtered out by a regularly updated block list
+
+TSPodcast is free and ad-supported. TSPodcast is an independent app, not affiliated with any radio station or podcast producer. Podcast and music content belongs to its creators; directory data is provided by Podcast Index.
+
+Feedback, bug reports or content removal requests: email the support address on this page. Every message is read.
