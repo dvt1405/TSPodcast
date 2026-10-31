@@ -163,6 +163,9 @@ class SharedGraph(
     /** Run once per launch, off the main thread (features-spec §1). */
     val pruneApiCache = PruneApiCache(database, clock, crash)
 
+    /** Content language (15 markets, "vi,en" style): first launch from the system, then the app language. */
+    val contentLanguage = tss.t.shared.i18n.ContentLanguageRepository(store)
+
     /** Every call behind Home/Discover (M1 §4.2). */
     val homeFeed = HomeFeed(
         getTrendingPodcasts = getTrendingPodcasts,
@@ -172,6 +175,7 @@ class SharedGraph(
         preferences = appPreferences,
         hiddenShows = hiddenShows,
         clock = clock,
+        contentLanguage = contentLanguage,
     )
 
     /** Podcast detail: E10 ‖ E11, E10 decides, D6 (M2 §4.1). */
@@ -197,6 +201,7 @@ class SharedGraph(
         preferences = appPreferences,
         hiddenShows = hiddenShows,
         clock = clock,
+        contentLanguage = contentLanguage,
     )
 
     /** Listening position per episode, in the app's key-value store (M3 §4.3). */

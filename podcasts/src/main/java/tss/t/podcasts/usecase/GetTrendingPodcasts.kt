@@ -10,27 +10,35 @@ import javax.inject.Inject
 class GetTrendingPodcasts @Inject constructor(
     private val repository: IPodcastRepository,
     private val sharedPref: SharedPref,
-    private val blacklistRepositoryImpl: BlacklistRepositoryImpl
+    private val blacklistRepositoryImpl: BlacklistRepositoryImpl,
+    private val languagePrefs: tss.t.core.storage.LanguagePrefs,
 ) {
 
     suspend operator fun invoke(
         max: Int,
         since: Int,
-        lang: String = "vi",
+        lang: String? = null,
         cat: String? = null,
         notcat: String? = null,
         pretty: Boolean? = null
     ): TSDataState<TrendingPodcastRes> {
+        // The app / content language (Settings → Ngôn ngữ), e.g. "vi,en"; caches are per language.
+        val lang = lang ?: languagePrefs.contentLangParam()
+        if (cacheLang != lang) {
+            cachedData = null
+            cachedDataFav = null
+            cacheLang = lang
+        }
         if (cachedData == null) {
             runCatching {
-                cachedData = sharedPref.get("cachedTrending")
-                lastUpdate = sharedPref.get("lastUpdateTrending") ?: 0L
+                cachedData = sharedPref.get("cachedTrending_$lang")
+                lastUpdate = sharedPref.get("lastUpdateTrending_$lang") ?: 0L
             }
         }
         if (cachedDataFav == null) {
             runCatching {
-                cachedDataFav = sharedPref.get("cachedTrending_$cat")
-                lastUpdateFav = sharedPref.get("lastUpdateTrending_$cat") ?: 0L
+                cachedDataFav = sharedPref.get("cachedTrending_${lang}_$cat")
+                lastUpdateFav = sharedPref.get("lastUpdateTrending_${lang}_$cat") ?: 0L
             }
         }
         // Read the mutable companion fields once each; the previous null check
@@ -68,8 +76,8 @@ class GetTrendingPodcasts @Inject constructor(
                             count = result.size
                         )
                         lastUpdate = System.currentTimeMillis()
-                        sharedPref.save("lastUpdateTrending", lastUpdate)
-                        sharedPref.save("cachedTrending", cachedData)
+                        sharedPref.save("lastUpdateTrending_$lang", lastUpdate)
+                        sharedPref.save("cachedTrending_$lang", cachedData)
                     } else {
                         cachedDataFav = it.data.copy(
                             items = result,
@@ -80,8 +88,8 @@ class GetTrendingPodcasts @Inject constructor(
                         // the timestamp key and vice versa, so the per-category
                         // disk cache never restored (the read at the top of this
                         // function expects a TrendingPodcastRes, not a Long).
-                        sharedPref.save("lastUpdateTrending_$cat", lastUpdateFav)
-                        sharedPref.save("cachedTrending_$cat", cachedDataFav)
+                        sharedPref.save("lastUpdateTrending_${lang}_$cat", lastUpdateFav)
+                        sharedPref.save("cachedTrending_${lang}_$cat", cachedDataFav)
                     }
                 }
             }
@@ -101,6 +109,9 @@ class GetTrendingPodcasts @Inject constructor(
 
         @Volatile
         var cachedDataFav: TrendingPodcastRes? = null
+
+        @Volatile
+        var cacheLang: String? = null
         val lock = Any()
     }
 

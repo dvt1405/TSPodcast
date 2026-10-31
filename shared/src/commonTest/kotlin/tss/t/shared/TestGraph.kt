@@ -33,7 +33,11 @@ class TestGraph(
     config: ConfigAPI = FakeConfig(),
     credentials: CredentialsProvider = FakeCredentials(),
     val clock: FixedClock = FixedClock(START_MILLIS),
-    val store: KeyValueStore = InMemoryKeyValueStore(),
+    // Content language pinned to Vietnamese (the tests predate the 15 languages and expect lang=vi),
+    // with the UI language left unknown so the host JVM locale does not change it.
+    val store: KeyValueStore = InMemoryKeyValueStore(
+        mapOf(tss.t.shared.i18n.ContentLanguageRepository.KEY_LANGUAGE to "vi"),
+    ),
     val database: FakePodcastDaos = FakePodcastDaos(),
     val crash: FakeCrashReporter = FakeCrashReporter(),
     private val handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData = {

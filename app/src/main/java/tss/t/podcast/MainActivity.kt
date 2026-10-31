@@ -141,6 +141,13 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var uiPrefs: tss.t.core.storage.UiPrefs
 
+    @Inject
+    lateinit var languagePrefs: tss.t.core.storage.LanguagePrefs
+
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(AppLocale.wrap(newBase))
+    }
+
     private var navHostController: NavHostController? = null
     private var homeInnerNavHostController: NavHostController? = null
     private var onBackPressedCallback: OnBackPressedCallback? = null
@@ -185,6 +192,10 @@ class MainActivity : ComponentActivity() {
         onBackPressedCallback = backCallback
         onBackPressedDispatcher.addCallback(this, backCallback)
         AppShortcuts.publish(this)
+        // App language: detected from the system on first launch, then the Settings choice.
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            AppLocale.apply(languagePrefs.language.value.tag)
+        }
         handleIntent(intent)
         requestNotificationPermissionIfNeeded()
         // UMP consent (form if required) -> Mobile Ads SDK init -> preload.

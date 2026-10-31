@@ -35,6 +35,8 @@ class SearchFeed internal constructor(
     private val preferences: AppPreferences,
     private val hiddenShows: HiddenShowsRepository,
     private val clock: EpochClock,
+    /** Content language: category lists use it, results are ranked by it; null in tests. */
+    private val contentLanguage: tss.t.shared.i18n.ContentLanguageRepository? = null,
 ) {
     /**
      * [query] is trimmed; a blank query returns `Success(emptyList())` without a request
@@ -66,7 +68,15 @@ class SearchFeed internal constructor(
                 fulltext = true,
             )
         }
-        return result.toFeeds(allowExplicit, hiddenShows.hiddenIds())
+        val feeds = result.toFeeds(allowExplicit, hiddenShows.hiddenIds())
+        val preferred = contentLanguage?.preferredCodes() ?: return feeds
+        if (feeds !is TSDataState.Success) return feeds
+        // Shows in the app language first, then English, then the rest (stable within a group).
+        return TSDataState.Success(
+            feeds.data.sortedBy { feed ->
+                preferred.indexOf(feed.language.lowercase().substringBefore('-')).let { if (it < 0) preferred.size else it }
+            },
+        )
     }
 
     /**
@@ -82,7 +92,7 @@ class SearchFeed internal constructor(
         val result = getTrendingPodcasts(
             max = MAX_CATEGORY,
             since = nowSeconds - CATEGORY_WINDOW_SECONDS,
-            lang = LANG,
+            lang = contentLanguage?.langParam() ?: LANG,
             cat = categoryId.toString(),
             notcat = null,
         )

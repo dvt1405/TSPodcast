@@ -40,7 +40,10 @@ class GetTrendingPodcasts internal constructor(
         cat: String? = null,
         notcat: String? = null,
     ): TSDataState<TrendingPodcastRes> {
-        val key = cat?.trim().orEmpty()
+        // Cache per language too; Vietnamese ("vi" or "vi,en") keeps the original keys
+        // (`cachedTrending_<cat>`), so existing caches stay valid.
+        val catKey = cat?.trim().orEmpty()
+        val key = if (lang == "vi" || lang == "vi,en") catKey else "$lang:$catKey"
         cache.get(key)?.let { return TSDataState.Success(it) }
         fromDisk(key)?.let { return TSDataState.Success(it) }
 

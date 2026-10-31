@@ -9,20 +9,21 @@ import tss.t.coreapi.models.TrendingPodcastRes
 import javax.inject.Inject
 
 class GetRecentFeeds @Inject constructor(
-    private val repository: IPodcastRepository
+    private val repository: IPodcastRepository,
+    private val languagePrefs: tss.t.core.storage.LanguagePrefs,
 ) {
     suspend operator fun invoke(
         @IntRange(from = 1, to = 1000)
         max: Int = 100,
         since: Long? = null,
-        lang: String = "vi",
+        lang: String? = null,
         cat: String?,
         notcat: String? = null,
         pretty: Boolean? = null
     ) = repository.getRecentFeeds(
         max = max,
         since = since,
-        lang = lang,
+        lang = lang ?: languagePrefs.contentLangParam(),
         cat = cat,
         notcat = notcat,
         pretty = pretty

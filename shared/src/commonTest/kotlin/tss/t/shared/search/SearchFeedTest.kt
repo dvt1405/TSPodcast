@@ -166,7 +166,7 @@ class SearchFeedTest {
         assertEquals(TRENDING, request.path())
         assertEquals("100", request.param("max"))
         assertEquals("1699395200", request.param("since"))
-        assertEquals("vi", request.param("lang"))
+        assertEquals("vi,en", request.param("lang"))
         assertEquals("55", request.param("cat"))
         assertFalse("notcat" in request.url.parameters.names())
         assertEquals(listOf(21L, 23L), podcasts.map { it.id }, "blacklisted item dropped")
@@ -174,7 +174,7 @@ class SearchFeedTest {
 
     @Test
     fun categoryPodcastsAreCachedInMemoryAndOnDisk() = runTest {
-        val store = InMemoryKeyValueStore()
+        val store = InMemoryKeyValueStore(mapOf(tss.t.shared.i18n.ContentLanguageRepository.KEY_LANGUAGE to "vi"))
         val test = TestGraph(config = blacklist, store = store, handler = { respondJson(trendingBody) })
         val feed = test.graph.searchFeed
 

@@ -36,7 +36,8 @@ class PodcastsRepositoryImpl @Inject constructor(
     private val sharedPref: SharedPref,
     @ApplicationContext
     private val context: Context,
-    private val contentFilter: ContentFilter
+    private val contentFilter: ContentFilter,
+    private val languagePrefs: tss.t.core.storage.LanguagePrefs,
 ) : IPodcastRepository {
 
     /** Search results without blocked, hidden or (unless allowed) explicit feeds. */
@@ -45,7 +46,13 @@ class PodcastsRepositoryImpl @Inject constructor(
         // Gson leaves "non-null" Kotlin fields null when the JSON lacks them (bymedium has no
         // "query"), and data-class copy() then throws; build the result explicitly instead.
         @Suppress("USELESS_ELVIS")
+        // Shows in the app language first, then English, then the rest (stable within each group).
+        val preferred = languagePrefs.preferredContentCodes()
         val feeds = (data.feeds ?: emptyList()).filter(contentFilter::allows)
+            .sortedBy { feed ->
+                val code = (feed.language as String?).orEmpty().lowercase().substringBefore('-')
+                preferred.indexOf(code).let { if (it < 0) preferred.size else it }
+            }
         @Suppress("USELESS_ELVIS")
         return TSDataState.Success(SearchResponse(count = feeds.size, feeds = feeds, query = data.query ?: ""))
     }

@@ -46,13 +46,13 @@ class HomeFeedTest {
         assertEquals(2, calls.size)
         val trending = calls.single { it.param("cat") == null }
         assertEquals("100", trending.param("max"))
-        assertEquals("vi", trending.param("lang"))
+        assertEquals("vi,en", trending.param("lang"))
         assertEquals("1699395200", trending.param("since"))
         assertNull(trending.param("notcat"))
         val forYou = calls.single { it.param("cat") != null }
         assertEquals("1,2,3", forYou.param("cat"))
         assertEquals("100", forYou.param("max"))
-        assertEquals("vi", forYou.param("lang"))
+        assertEquals("vi,en", forYou.param("lang"))
         assertEquals("1699136000", forYou.param("since"))
     }
 
@@ -85,7 +85,7 @@ class HomeFeedTest {
 
         val recent = test.only("recent/feeds")
         assertEquals("100", recent.param("max"))
-        assertEquals("vi", recent.param("lang"))
+        assertEquals("vi,en", recent.param("lang"))
         assertEquals("1,2,3", recent.param("cat"))
         assertNull(recent.param("notcat"))
         val music = test.only("podcasts/bymedium")

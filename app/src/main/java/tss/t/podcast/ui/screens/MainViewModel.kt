@@ -1,5 +1,7 @@
 package tss.t.podcast.ui.screens
 
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -64,6 +66,7 @@ class MainViewModel @Inject constructor(
     private val sharedPref: SharedPref,
     private val contentPrefs: tss.t.core.storage.ContentPrefs,
     private val newsHub: tss.t.podcasts.NewsHubRepository,
+    private val languagePrefs: tss.t.core.storage.LanguagePrefs,
 ) : ViewModel() {
 
     private fun loadNews() {
@@ -120,10 +123,21 @@ class MainViewModel @Inject constructor(
         mutableMapOf<String, LazyListState>()
     }
 
+    /** Language the lists were first loaded in (declared before init, which reads it). */
+    private val initialLanguage = languagePrefs.language.value.tag
+
     init {
         getTrending()
         loadNews()
+        // Another app language means another content language: reload the lists.
+        viewModelScope.launch {
+            languagePrefs.language
+                .map { it.tag }
+                .distinctUntilChanged()
+                .collect { if (it != initialLanguage) reload() }
+        }
     }
+
 
     fun getLazyListState(key: String): LazyListState {
         var cached = synchronized(_mapLazyListState) {
