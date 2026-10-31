@@ -214,7 +214,7 @@ fun SearchScreen(
                                         searchText = category.name
                                         focusManager.clearFocus()
                                     },
-                                    label = { Text(category.name) }
+                                    label = { Text(tss.t.featureonboarding.CategoryNames.name(category.id, category.name)) }
                                 )
                             }
                         }
