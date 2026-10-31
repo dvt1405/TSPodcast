@@ -29,7 +29,8 @@ import javax.inject.Inject
 class OnboardingViewModel @Inject constructor(
     private val sharedPref: SharedPref,
     private val getCategories: GetCategories,
-    val analytic: TSAnalytics
+    val analytic: TSAnalytics,
+    private val privacyConsent: tss.t.sharedfirebase.PrivacyConsent,
 ) : ViewModel() {
     private val _uiState by lazy {
         MutableStateFlow(
@@ -88,7 +89,12 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 
-    fun onFinishOnboarding() {
+    /**
+     * End of the intro: the privacy step's explicit answer is saved first (analytics only start
+     * if the user agreed), then onboarding is marked done.
+     */
+    fun onFinishOnboarding(analytics: Boolean, crashReports: Boolean) {
+        privacyConsent.decide(analytics = analytics, crashReports = crashReports)
         sharedPref.saveOnboardingFinished(true)
         analytic.trackEvent(
             "OnboardingFinished",
@@ -118,8 +124,10 @@ class OnboardingViewModel @Inject constructor(
     }
 
     fun putFavouriteItem(category: CategoryRes.Category, index: Int) {
-        _listFavouriteCategory.update {
-            val newList = it
+        // A new list each time: mutating the same instance did not emit, so the picker's
+        // remember(listSelected) kept stale selection on the cards.
+        _listFavouriteCategory.update { current ->
+            val newList = current.toMutableList()
             val crrIndex = newList.indexOfFirst { it.id == category.id }
             if (crrIndex >= 0) {
                 newList[crrIndex] = category.copy(isFavourite = true)
@@ -148,13 +156,8 @@ class OnboardingViewModel @Inject constructor(
     }
 
     fun removeFavouriteItem(category: CategoryRes.Category, index: Int) {
-        _listFavouriteCategory.update {
-            val newList = it
-            val crrIndex = newList.indexOfFirst { it.id == category.id }
-            if (crrIndex > -1) {
-                newList.removeAt(crrIndex)
-            }
-            newList
+        _listFavouriteCategory.update { current ->
+            current.filterNot { it.id == category.id }.toMutableList()
         }
         updateSelectedState(index, category)
     }
