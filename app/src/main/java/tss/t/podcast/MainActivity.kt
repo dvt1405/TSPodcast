@@ -84,6 +84,12 @@ import tss.t.podcast.ui.model.HomeEvent
 import tss.t.podcast.ui.navigations.TSHomeRouter
 import tss.t.podcast.ui.navigations.TSNavGraph
 import tss.t.podcast.ui.screens.settings.PrivacyConsentSheet
+import tss.t.podcast.ui.screens.common.LocalShowActions
+import tss.t.podcast.ui.screens.common.ShowActions
+import tss.t.podcast.ui.screens.common.ShowRef
+import tss.t.podcast.ui.screens.common.WebLinks
+import tss.t.podcast.ui.screens.settings.appVersion
+import tss.t.podcast.ui.screens.settings.sendEmail
 import tss.t.sharedfirebase.PrivacyConsent
 import tss.t.podcast.ui.navigations.TSRouter
 import tss.t.podcast.ui.screens.MainViewModel
@@ -193,6 +199,12 @@ class MainActivity : ComponentActivity() {
             }
             val innerNavGraph = rememberNavController()
             homeInnerNavHostController = innerNavGraph
+            val showActions = remember {
+                ShowActions(
+                    hide = { mainViewModel.hideShow(it.feedId, it.title, it.image) },
+                    report = { reportShow(it) }
+                )
+            }
             PodcastTheme {
                 val windowInset = WindowInsets.systemBars.asPaddingValues()
                 val playerControlState by playerViewModel.playerControlState.collectAsState()
@@ -205,7 +217,8 @@ class MainActivity : ComponentActivity() {
                         LocalAdRenderer provides adRenderer,
                         LocalAdsController provides adsController,
                         LocalRemoteConfigScope provides tsRemoteConfig,
-                        LocalRemoteConfig provides tsRemoteConfig
+                        LocalRemoteConfig provides tsRemoteConfig,
+                        LocalShowActions provides showActions
                     ) {
                         TSNavGraph(
                             innerNavHost = innerNavGraph,
@@ -341,6 +354,19 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** "Báo cáo nội dung" (parity with iOS M6): an email with the show id and a web link, sent by the user. */
+    private fun reportShow(show: ShowRef) {
+        sendEmail(
+            subject = getString(R.string.report_subject, show.title),
+            body = getString(
+                R.string.report_body,
+                show.title,
+                show.feedId.toString(),
+                WebLinks.podcast(show.feedId, show.title),
+                appVersion()
+            )
+        )
+    }
 }
 
 val LocalNavAnimatedVisibilityScope = compositionLocalOf<AnimatedVisibilityScope?> { null }
@@ -441,4 +467,5 @@ private fun MiniPlayer(
             }
         }
     }
+
 }

@@ -75,24 +75,24 @@ data class AdsSettings(
             AdPlacement.DiscoverFavInline to false,
             AdPlacement.PlayerEpisodeList to false,
             AdPlacement.DiscoverCollapsible to false,
-            AdPlacement.InterstitialNav to false,
+            AdPlacement.InterstitialNav to true,
             AdPlacement.RewardedAdFree to false,
-            AdPlacement.AppOpenWarm to false,
+            AdPlacement.AppOpenWarm to true,
             AdPlacement.AppOpenCold to false,
         )
 
         /**
-         * In-app defaults. Release: everything behind the kill switch
-         * (`ads_enabled=false`) until Remote Config turns it on, per the
-         * rollout plan. Debug: ads on with Google test ids, App Open (warm)
-         * enabled and the grace period / first-sessions skip removed so the
-         * flow can be exercised on a dev device. Interstitial and rewarded are
-         * off in both.
+         * In-app defaults. Release (owner, 2026-11-01: real AdMob units from this release):
+         * ads on, banner/native placements, App Open on return to the app and an interstitial
+         * when leaving a show, all under AdPolicy (24 h grace, first sessions skipped, never
+         * over audio or on the Player, intervals and caps). Remote Config `ads_enabled=false`
+         * stays the kill switch. Debug: same with Google test ids, no grace / first-session
+         * skip, and no interstitial so development is not interrupted. Rewarded is off.
          */
         fun defaults(debug: Boolean) = AdsSettings(
-            adsEnabled = debug,
+            adsEnabled = true,
             placementsEnabled = if (debug) {
-                releasePlacements + (AdPlacement.AppOpenWarm to true)
+                releasePlacements + (AdPlacement.InterstitialNav to false)
             } else {
                 releasePlacements
             },

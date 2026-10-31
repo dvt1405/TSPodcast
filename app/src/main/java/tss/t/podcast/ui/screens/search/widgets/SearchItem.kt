@@ -2,6 +2,13 @@ package tss.t.podcast.ui.screens.search.widgets
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import tss.t.podcast.ui.screens.common.ShowActionsMenu
+import tss.t.podcast.ui.screens.common.ShowRef
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,12 +39,18 @@ fun SearchPodcastItem(
     feed: Feed,
     onClick: (Feed) -> Unit = {}
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick(feed) }
+            .combinedClickable(onLongClick = { menuOpen = true }, onClick = { onClick(feed) })
             .padding(12.dp)
     ) {
+        ShowActionsMenu(
+            show = ShowRef(feed.id, feed.title, feed.image),
+            expanded = menuOpen,
+            onDismiss = { menuOpen = false }
+        )
         ShimmerAsyncImage(
             feed.image,
             contentDescription = feed.title,

@@ -11,6 +11,11 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import tss.t.podcast.ui.screens.common.ShowActionsMenu
+import tss.t.podcast.ui.screens.common.ShowRef
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -64,6 +69,7 @@ fun TrendingWidget(
     onClick: Podcast.() -> Unit = {},
 ) {
     val interactiveSource = remember { MutableInteractionSource() }
+    var menuOpen by remember { mutableStateOf(false) }
     val pressed by interactiveSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
         if (pressed) 0.95f else 1f, label = "scale",
@@ -99,14 +105,19 @@ fun TrendingWidget(
                         RoundedCornerShape(roundedCorner)
                     )
                 )
-                .clickable(
+                .combinedClickable(
                     interactionSource = interactiveSource,
-                    indication = null
-                ) {
-                    onClick(podcast)
-                }
+                    indication = null,
+                    onLongClick = { menuOpen = true },
+                    onClick = { onClick(podcast) }
+                )
                 .padding(bottom = 16.dp),
         ) {
+            ShowActionsMenu(
+                show = ShowRef(podcast.id, podcast.title.orEmpty(), podcast.image),
+                expanded = menuOpen,
+                onDismiss = { menuOpen = false }
+            )
             ShimmerAsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(podcast.image)

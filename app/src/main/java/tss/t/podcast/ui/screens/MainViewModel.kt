@@ -62,7 +62,22 @@ class MainViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val interactors: MainInteractors,
     private val sharedPref: SharedPref,
+    private val contentPrefs: tss.t.core.storage.ContentPrefs,
 ) : ViewModel() {
+
+    /** Hides a show everywhere (kept on the device, unhide in Settings) and drops it from Home now. */
+    fun hideShow(feedId: Long, title: String, image: String?) {
+        contentPrefs.hide(tss.t.core.storage.HiddenShow(feedId, title, image))
+        _uiState.update { state ->
+            state.copy(
+                listTrending = state.listTrending.filterNot { it.id == feedId },
+                listFav = state.listFav.filterNot { it.id == feedId },
+                recentFeeds = state.recentFeeds.filterNot { it.id == feedId },
+                recentNewFeeds = state.recentNewFeeds.filterNot { it.id == feedId },
+                musicFeeds = state.musicFeeds.filterNot { it.id == feedId },
+            )
+        }
+    }
     private val gson = Gson()
     private var renderCount = 0
     private val _event by lazy {

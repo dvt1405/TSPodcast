@@ -83,14 +83,21 @@ class AdPolicyTest {
     }
 
     @Test
-    fun `release defaults keep app open and interstitial off`() {
-        val defaults = AdsSettings.defaults(debug = false).copy(adsEnabled = true)
-        assertEquals(Decision.Block("placement_disabled"), appOpen(settings = defaults))
+    fun `release defaults turn ads on with app open and interstitial, debug has no interstitial`() {
+        val release = AdsSettings.defaults(debug = false)
+        assertEquals(true, release.adsEnabled)
+        assertEquals(true, release.isEnabled(AdPlacement.AppOpenWarm))
+        assertEquals(true, release.isEnabled(AdPlacement.InterstitialNav))
+        assertEquals(false, release.isEnabled(AdPlacement.AppOpenCold))
+        assertEquals(false, release.isEnabled(AdPlacement.RewardedAdFree))
+        assertEquals(24L, release.gracePeriodHours)
+        val debug = AdsSettings.defaults(debug = true)
+        assertEquals(false, debug.isEnabled(AdPlacement.InterstitialNav))
+        // Audio still always wins over a full-screen ad.
         assertEquals(
-            Decision.Block("placement_disabled"),
-            policy.canShowFullScreen(AdPlacement.InterstitialNav, defaults, okContext)
+            Decision.Block("audio_playing"),
+            policy.canShowFullScreen(AdPlacement.InterstitialNav, this.release, okContext.copy(playbackActive = true))
         )
-        assertEquals(false, AdsSettings.defaults(debug = false).adsEnabled)
     }
 
     @Test

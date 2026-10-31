@@ -59,4 +59,27 @@
     <string name="consent_necessary_note">Bạn có thể đổi lựa chọn bất cứ lúc nào trong Cài đặt. Danh sách lọc nội dung rác vẫn được cập nhật để app hoạt động an toàn.</string>
     <string name="consent_accept_all">Đồng ý</string>
     <string name="consent_necessary_only">Chỉ những gì cần thiết</string>
+
+    <!-- Show actions (hide / report / share) -->
+    <string name="show_hide">Ẩn show này</string>
+    <string name="show_report">Báo cáo nội dung</string>
+    <string name="show_hidden_toast">Đã ẩn show. Bỏ ẩn trong Cài đặt.</string>
+    <string name="show_hide_confirm_title">Ẩn show này?</string>
+    <string name="show_hide_confirm_message">"%1$s" sẽ không còn hiện trong Khám phá và Tìm kiếm. Bạn có thể bỏ ẩn trong Cài đặt.</string>
+    <string name="action_cancel">Huỷ</string>
+    <string name="report_subject">Báo cáo nội dung: %1$s</string>
+    <string name="report_body">Chương trình: %1$s
+Mã feed: %2$s
+Link: %3$s
+Phiên bản app: %4$s
+
+Lý do báo cáo:
+</string>
+    <string name="share">Chia sẻ</string>
+    <string name="share_chooser_title">Chia sẻ qua</string>
+    <string name="share_podcast_text">Nghe "%1$s" trên TSPodcast: %2$s</string>
+    <string name="share_episode_text">Nghe tập "%1$s" trên TSPodcast: %2$s</string>
+    <string name="more_actions">Thêm</string>
+    <string name="podcast_favourite">Thêm vào Yêu thích</string>
+    <string name="podcast_unfavourite">Bỏ khỏi Yêu thích</string>
 </resources>

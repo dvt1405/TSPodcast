@@ -2,6 +2,7 @@
 
 package tss.t.podcast.ui.screens.podcastsdetail
 
+import tss.t.podcast.ui.screens.podcastsdetail.widgets.PodcastDetailActions
 import android.content.res.Resources
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -163,6 +164,8 @@ fun PodcastDetailScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val uiState by podcastViewModel.uiState.collectAsState()
+    val isPodcastFavourite by podcastViewModel.isPodcastFavourite.collectAsState()
+    LaunchedEffect(podcast.id) { podcastViewModel.checkPodcastFavourite(podcast) }
     val showErrorDialog = remember(uiState) {
         uiState is PodcastViewModel.PodcastUIState.Error
     }
@@ -170,6 +173,8 @@ fun PodcastDetailScreen(
         (uiState as? PodcastViewModel.PodcastUIState.Error)?.exception?.message
     }
     val playerUIState by playerViewmodel.playerControlState.collectAsState()
+    val adsController = tss.t.ads.LocalAdsController.current
+    val activity = androidx.activity.compose.LocalActivity.current
     if (showErrorDialog) {
         Dialog(onDismissRequest = {
             podcastViewModel.dismissDialog()
@@ -199,7 +204,14 @@ fun PodcastDetailScreen(
         sharedElementKey = sharedElementKey,
         listItems = listItems,
         renderItemList = renderItemList,
-        onBackPress = { navHost.popBackStack() },
+        onBackPress = {
+            navHost.popBackStack()
+            // Natural break when leaving a show. AdPolicy blocks it while audio plays, on the
+            // Player, during the grace period / first session, and enforces interval and caps.
+            activity?.let { adsController.maybeShowInterstitial(it, tss.t.ads.AdPlacement.InterstitialNav) }
+        },
+        isPodcastFavourite = isPodcastFavourite,
+        onPodcastFavouriteChange = { podcastViewModel.setPodcastFavourite(podcast, it) },
         onItemClick = {
             val episode = this
             coroutineScope.launch {
@@ -229,6 +241,8 @@ private fun PodcastDetailScreen(
     scrollState: LazyListState = rememberLazyListState(),
     currentMediaItem: MediaItem? = null,
     onBackPress: () -> Unit = {},
+    isPodcastFavourite: Boolean = false,
+    onPodcastFavouriteChange: (Boolean) -> Unit = {},
     onItemClick: Episode.() -> Unit = {}
 ) {
     val sharedTransitionScope = LocalSharedTransitionScope.current!!
@@ -294,6 +308,13 @@ private fun PodcastDetailScreen(
             PodcastDetailTopAppBar(podcast) {
                 onBackPress()
             }
+            PodcastDetailActions(
+                podcast = podcast,
+                isFavourite = isPodcastFavourite,
+                onFavouriteChange = onPodcastFavouriteChange,
+                onHidden = onBackPress,
+                modifier = Modifier.align(Alignment.TopEnd)
+            )
             Header(podcast = podcast)
             Row(
                 modifier = Modifier
