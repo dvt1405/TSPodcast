@@ -39,6 +39,10 @@ final class SettingsModel {
     let privacyURL: URL?
     /// "1.0.0 (1)": `CFBundleShortVersionString (CFBundleVersion)`.
     let version: String
+    /// Name of the app language on the "Ngôn ngữ" row. `Bundle.main.preferredLocalizations` is the
+    /// per-app language of iOS Settings → TSPodcast → Language (iOS relaunches the app when it
+    /// changes); shared `ContentLanguage` follows it for the podcast lists.
+    let languageName: String
 
     @ObservationIgnored private let explicit: any ExplicitContentPreference
 
@@ -47,6 +51,7 @@ final class SettingsModel {
         self.notifications = notifications
         privacyURL = Self.privacyURL(from: info)
         version = Self.version(from: info)
+        languageName = Self.languageName(of: Bundle.main.preferredLocalizations.first ?? "vi")
     }
 
     func load() async {
@@ -72,6 +77,15 @@ final class SettingsModel {
               url.host() != nil
         else { return nil }
         return url
+    }
+
+    /// "Tiếng Việt", "English", "Português (Brasil)": `localization` (a `.lproj` name) named in
+    /// `locale`, first letter capitalised ("français" → "Français").
+    static func languageName(of localization: String, in locale: Locale = .current) -> String {
+        let name = locale.localizedString(forIdentifier: localization)
+            ?? locale.localizedString(forLanguageCode: localization)
+            ?? localization
+        return name.prefix(1).uppercased(with: locale) + String(name.dropFirst())
     }
 
     static func version(from info: [String: Any]) -> String {

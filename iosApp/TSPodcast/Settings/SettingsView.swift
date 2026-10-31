@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Settings sheet, opened from the gear of the Discover tab (`settings.open`): notifications,
-/// explicit content, hidden shows (M6), privacy choices (M6), privacy policy and version.
+/// explicit content, hidden shows (M6), app language, privacy choices (M6), privacy policy and version.
 struct SettingsView: View {
     @State var model: SettingsModel
     @Environment(\.dismiss) private var dismiss
@@ -30,6 +30,23 @@ struct SettingsView: View {
                         Text("settings.hiddenShows")
                     }
                     .accessibilityIdentifier("settings.hiddenShows")
+                }
+
+                // The app language is the per-app language of iOS Settings (shown there because the
+                // app ships 15 localizations): the row opens the app's page in Settings.
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    Section {
+                        Link(destination: url) {
+                            LabeledContent {
+                                Text(verbatim: model.languageName)
+                            } label: {
+                                Text("settings.language")
+                            }
+                        }
+                        .accessibilityIdentifier("settings.language")
+                    } footer: {
+                        Text("settings.language.hint")
+                    }
                 }
 
                 PrivacySection(consent: environment.consent)

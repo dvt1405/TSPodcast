@@ -69,6 +69,15 @@ final class SettingsModelTests: XCTestCase {
         XCTAssertEqual(SettingsModel.version(from: info), "1.0.0 (1)")
     }
 
+    /// The "Ngôn ngữ" row names the app language, first letter capitalised.
+    func testLanguageName() {
+        XCTAssertEqual(SettingsModel.languageName(of: "vi", in: Locale(identifier: "vi")), "Tiếng Việt")
+        XCTAssertEqual(SettingsModel.languageName(of: "en", in: Locale(identifier: "en")), "English")
+        XCTAssertEqual(SettingsModel.languageName(of: "fr", in: Locale(identifier: "fr")), "Français")
+        XCTAssertEqual(SettingsModel.languageName(of: "pt-BR", in: Locale(identifier: "pt-BR")), "Português (Brasil)")
+        XCTAssertFalse(SettingsModel.languageName(of: Bundle.main.preferredLocalizations.first ?? "vi").isEmpty)
+    }
+
     func testVersionFormat() {
         XCTAssertEqual(SettingsModel.version(from: ["CFBundleShortVersionString": "2.3.4", "CFBundleVersion": "56"]), "2.3.4 (56)")
     }

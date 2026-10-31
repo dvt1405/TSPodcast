@@ -6,6 +6,9 @@ options:
   bundleIdPrefix: tss.t
   deploymentTarget:
     iOS: "17.0"
+  # knownRegions không khai báo ở đây: XcodeGen lấy developmentLanguage + mọi ngôn ngữ có trong các String
+  # Catalog (TSPodcast/Resources/*.xcstrings): vi, en, es, pt-BR, fr, de, it, nl, sv, pl, tr, ja, ko, id, hi.
+  # Info.plist khai báo cùng danh sách ở CFBundleLocalizations (iOS hiện chọn ngôn ngữ riêng cho app).
   developmentLanguage: vi
   createIntermediateGroups: true
   generateEmptyDirectories: false
