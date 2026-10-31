@@ -29,7 +29,13 @@ const webHref = (path = '/') => `${WEB}${path}?${DEFAULT_UTM}`;
 // install `referrer`, the web app as normal query parameters. Keep it < 1 KB. If you change it,
 // update the sha256 in the Content-Security-Policy of firebase.json (this script checks).
 const CAMPAIGN_JS = `(function(){try{var q=new URLSearchParams(location.search),p=new URLSearchParams();["utm_source","utm_medium","utm_campaign","utm_content","utm_term","gclid"].forEach(function(n){var v=q.get(n);v&&p.set(n,v)});p.has("utm_source")||p.set("utm_source","website");p.has("utm_medium")||p.set("utm_medium","landing");var r=p.toString();document.querySelectorAll("a[data-cta]").forEach(function(a){var u=new URL(a.href);if(u.hostname=="play.google.com")u.searchParams.set("referrer",r);else if(u.hostname=="tspodcast.vercel.app")u.search=r;else return;a.href=u.href})}catch(e){}})();`;
-const CAMPAIGN_HASH = `sha256-${createHash('sha256').update(CAMPAIGN_JS).digest('base64')}`;
+// Scroll reveal. Every [data-reveal] gets `--d` (stagger index among its siblings) and is revealed
+// by an IntersectionObserver; no layout is read synchronously. html.js is set last, so without
+// JavaScript (or if this script fails) nothing is ever hidden. The attribute is removed after the
+// reveal so later hover transitions on cards are not delayed by the stagger.
+const REVEAL_JS = `(function(){var l=document.querySelectorAll("[data-reveal]");if(!l.length||!("IntersectionObserver"in window))return;var o=new IntersectionObserver(function(t){t.forEach(function(x){if(!x.isIntersecting)return;var n=x.target;o.unobserve(n);n.classList.add("in");setTimeout(function(){n.removeAttribute("data-reveal")},1200)})},{rootMargin:"0px 0px -8% 0px"});[].forEach.call(l,function(n){n.style.setProperty("--d",[].indexOf.call(n.parentNode.children,n)%6);o.observe(n)});document.documentElement.classList.add("js")})();`;
+const sha = (s) => `sha256-${createHash('sha256').update(s).digest('base64')}`;
+const SCRIPT_HASHES = [sha(CAMPAIGN_JS), sha(REVEAL_JS)];
 
 const css = readFileSync(join(SRC, 'site.css'), 'utf8')
   .replace(/\/\*[\s\S]*?\*\//g, '')
@@ -60,33 +66,42 @@ const playIcon = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true
 
 // ---------------------------------------------------------------- content
 const FEATURES = {
+  // Four short items per card so every card in a row reads the same way.
   podcast: { icon: 'mic', title: 'Podcast Việt và thế giới', items: [
-    'Podcast thịnh hành, ưu tiên chương trình tiếng Việt, dữ liệu từ thư mục mở Podcast Index',
-    'Chọn trong hơn 100 chủ đề để mục "Có thể bạn yêu thích" gợi ý đúng gu',
+    'Podcast thịnh hành, ưu tiên chương trình tiếng Việt',
+    'Hơn 100 chủ đề cho mục "Có thể bạn yêu thích"',
     'Tìm theo tên chương trình hoặc từ khoá',
-    'Podcast live: nghe các tập đang phát trực tiếp',
+    'Podcast live: nghe tập đang phát trực tiếp',
   ] },
-  radio: { icon: 'radio', title: 'Radio online', text:
-    'Nghe các kênh phát thanh trực tiếp ngay trên điện thoại, trong đó có các kênh của VOV và VOH. Chạm vào kênh là phát.' },
-  music: { icon: 'music', title: 'Kho nhạc mở', text:
-    'Nhạc do nghệ sĩ tự phát hành qua feed chuẩn Podcasting 2.0. Bật bộ lọc "Nhạc" khi tìm kiếm để chỉ xem nhạc.' },
+  radio: { icon: 'radio', title: 'Radio online', items: [
+    'Kênh phát thanh trực tiếp ngay trên điện thoại',
+    'Có các kênh của VOV và VOH',
+    'Chạm vào kênh là phát',
+    'Tắt màn hình vẫn nghe tiếp',
+  ] },
+  music: { icon: 'music', title: 'Kho nhạc mở', items: [
+    'Nhạc do nghệ sĩ tự phát hành',
+    'Feed chuẩn Podcasting 2.0 từ Podcast Index',
+    'Bộ lọc "Nhạc" ngay trong tìm kiếm',
+    'Phát nền và điều khiển như với podcast',
+  ] },
   player: { icon: 'timer', title: 'Nghe theo cách của bạn', items: [
-    'Tốc độ phát từ 0,5× đến 3,0×, ghi nhớ riêng cho từng chương trình',
+    'Tốc độ 0,5× đến 3,0×, nhớ riêng từng chương trình',
     'Hẹn giờ tắt theo số phút hoặc khi hết tập',
     'Lùi 15 giây, tới 30 giây',
     'Mở lại là nghe tiếp từ chỗ đã dừng',
   ] },
   background: { icon: 'phone', title: 'Nghe nền, không gián đoạn', items: [
     'Tắt màn hình hay mở app khác vẫn nghe tiếp',
-    'Điều khiển trên thanh thông báo, màn hình khoá và tai nghe Bluetooth',
-    'Trình phát thu nhỏ khi bạn tiếp tục duyệt app',
+    'Điều khiển ở màn hình khoá và tai nghe Bluetooth',
+    'Trình phát thu nhỏ khi bạn duyệt app',
     'Bấm tim để gom tập yêu thích về một chỗ',
   ] },
   safety: { icon: 'shield', title: 'Nội dung an toàn hơn', items: [
-    'Ẩn nội dung dành cho người lớn trong Cài đặt',
+    'Ẩn nội dung dành cho người lớn',
     'Ẩn chương trình bạn không muốn thấy',
-    'Báo cáo nội dung không phù hợp ngay trong app',
-    'Danh sách chặn chương trình rác, cờ bạc được cập nhật thường xuyên',
+    'Báo cáo nội dung ngay trong app',
+    'Danh sách chặn chương trình rác, cờ bạc',
   ] },
 };
 
@@ -177,9 +192,9 @@ const DOCS = [
 // ---------------------------------------------------------------- layout
 const T = {
   vi: { skip: 'Bỏ qua, tới nội dung chính', home: 'TSPodcast, trang chủ', nav: 'Điều hướng chính', features: 'Tính năng',
-    shots: 'Hình ảnh', faq: 'Hỏi đáp', getApp: 'Tải app', crumbs: 'Đường dẫn', homeCrumb: 'Trang chủ' },
+    shots: 'Hình ảnh', faq: 'Hỏi đáp', getApp: 'Tải app', crumbs: 'Đường dẫn', homeCrumb: 'Trang chủ', toc: 'Mục lục' },
   en: { skip: 'Skip to main content', home: 'TSPodcast home', nav: 'Main navigation', features: 'Features',
-    shots: 'Screenshots', faq: 'FAQ', getApp: 'Get the app', crumbs: 'Breadcrumb', homeCrumb: 'Home' },
+    shots: 'Screenshots', faq: 'FAQ', getApp: 'Get the app', crumbs: 'Breadcrumb', homeCrumb: 'Home', toc: 'Contents' },
 };
 
 function head(p) {
@@ -251,7 +266,7 @@ function footer(lang) {
   return `<footer class="site-footer"${en ? ' lang="vi"' : ''}>
   <div class="wrap">
     <div class="cols">
-      <div>
+      <div class="brand-col">
         <a class="logo" href="/" aria-label="TSPodcast, trang chủ"><img src="/assets/img/tspodcast-lockup-horizontal-dark.svg" alt="TSPodcast" width="150" height="40" loading="lazy"></a>
         <p>Thế giới trong tai bạn. Nghe podcast, radio online và nhạc miễn phí.</p>
       </div>
@@ -286,8 +301,7 @@ function footer(lang) {
 // ---------------------------------------------------------------- landing
 function featureCard(key) {
   const f = FEATURES[key];
-  const body = f.items ? `<ul>${f.items.map((i) => `<li>${i}</li>`).join('')}</ul>` : `<p>${f.text}</p>`;
-  return `<li class="card"><div class="icon">${icon(f.icon)}</div><h3>${f.title}</h3>${body}</li>`;
+  return `<li class="card lift" data-reveal><div class="icon">${icon(f.icon)}</div><h3>${f.title}</h3><ul class="ticks">${f.items.map((i) => `<li>${i}</li>`).join('')}</ul></li>`;
 }
 
 const ORG = { '@type': 'Organization', '@id': `${ORIGIN}/#organization`, name: 'TSPodcast', url: `${ORIGIN}/`,
@@ -334,8 +348,8 @@ ${header('vi', true)}
 <main id="main">
   <section class="hero" aria-labelledby="hero-title">
     <div class="wrap">
-      <div>
-        <p class="hero-eyebrow">Thế giới trong tai bạn</p>
+      <div class="hero-copy">
+        <p class="hero-eyebrow"><span class="on-air" aria-hidden="true"></span>Thế giới trong tai bạn</p>
         <h1 id="hero-title">${v.h1}</h1>
         <p class="lead">${v.lead}</p>
         <div class="btn-row">
@@ -346,13 +360,14 @@ ${header('vi', true)}
       </div>
       <div class="hero-art">
         <img src="/assets/screens/${heroN}.webp" width="540" height="960" fetchpriority="high" alt="${esc(heroAlt)}">
+        <div class="now-playing" aria-hidden="true"><span class="eq"><i></i><i></i><i></i><i></i></span>Podcast · Radio · Nhạc</div>
       </div>
     </div>
   </section>
 
   <section class="section" id="tinh-nang" aria-labelledby="features-title">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <p class="kicker">Tính năng</p>
         <h2 id="features-title">Podcast, radio và nhạc gọn trong một app</h2>
         <p>Một trình phát quen thuộc cho mọi thứ bạn nghe. Giao diện tiếng Việt, chạm là nghe.</p>
@@ -365,26 +380,26 @@ ${header('vi', true)}
 
   <section class="section section-alt" id="hinh-anh" aria-labelledby="shots-title">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <p class="kicker">Hình ảnh</p>
         <h2 id="shots-title">Xem TSPodcast trên điện thoại</h2>
       </div>
-      <ul class="shots">
-        ${SHOTS.map(([n, alt]) => `<li><img src="/assets/screens/${n}.webp" srcset="/assets/screens/${n}-300.webp 300w, /assets/screens/${n}.webp 540w" sizes="(min-width: 980px) 170px, 200px" width="540" height="960" loading="lazy" decoding="async" alt="${esc(alt)}"></li>`).join('\n        ')}
+      <ul class="shots" data-reveal>
+        ${SHOTS.map(([n, alt]) => `<li><img src="/assets/screens/${n}.webp" srcset="/assets/screens/${n}-300.webp 300w, /assets/screens/${n}.webp 540w" sizes="(min-width: 1024px) 180px, 196px" width="540" height="960" loading="lazy" decoding="async" alt="${esc(alt)}"></li>`).join('\n        ')}
       </ul>
     </div>
   </section>
 
   <section class="section" id="mien-phi" aria-labelledby="free-title">
     <div class="wrap free">
-      <div class="free-panel">
+      <div class="free-panel" data-reveal>
         <h2 id="free-title">Miễn phí, không cần tài khoản</h2>
         <p>Tải về, mở app và nghe. Bạn không phải đăng ký, không phải nhập email hay số điện thoại.</p>
         <div class="btn-row">
           <a class="btn btn-coral" id="cta-free-play" data-cta="free-play" href="${esc(playHref)}">${playIcon}Tải trên Google Play</a>
         </div>
       </div>
-      <ul class="free-list">
+      <ul class="free-list card" data-reveal>
         <li><span><strong>Miễn phí.</strong> Tải và dùng mọi tính năng mà không phải trả tiền.</span></li>
         <li><span><strong>Không cần đăng ký.</strong> Danh sách yêu thích, lịch sử và vị trí đang nghe được lưu ngay trên máy của bạn.</span></li>
         <li><span><strong>Bạn quyết định.</strong> Chọn có chia sẻ thống kê sử dụng và báo lỗi hay không ngay lần mở app đầu tiên, đổi lại bất cứ lúc nào trong Cài đặt.</span></li>
@@ -395,31 +410,33 @@ ${header('vi', true)}
 
   <section class="section section-alt" id="nghe-tren-web" aria-labelledby="web-title">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <p class="kicker">Nghe trên web</p>
         <h2 id="web-title">Chưa cài app? Nghe ngay trên trình duyệt</h2>
         <p>Mở TSPodcast trên web từ máy tính hay điện thoại, không cần cài đặt.</p>
       </div>
       <ul class="quick">
-        ${quick.map(([path, ic, label, sub, cta]) => `<li><a id="cta-${cta}" data-cta="${cta}" href="${esc(webHref(path))}"><span class="icon">${icon(ic)}</span><span><strong>${label}</strong><span class="sub">${sub}</span></span><span class="arrow" aria-hidden="true">→</span></a></li>`).join('\n        ')}
+        ${quick.map(([path, ic, label, sub, cta]) => `<li data-reveal><a class="card lift" id="cta-${cta}" data-cta="${cta}" href="${esc(webHref(path))}"><span class="icon">${icon(ic)}</span><span class="label"><strong>${label}</strong><span class="sub">${sub}</span></span><span class="arrow" aria-hidden="true">→</span></a></li>`).join('\n        ')}
       </ul>
     </div>
   </section>
 
   <section class="section" id="hoi-dap" aria-labelledby="faq-title">
-    <div class="wrap">
-      <div class="section-head">
+    <div class="wrap faq-layout">
+      <div class="section-head" data-reveal>
         <p class="kicker">Hỏi đáp</p>
         <h2 id="faq-title">Câu hỏi thường gặp</h2>
+        <p>Chưa thấy câu trả lời? Gửi email tới <a href="mailto:${EMAIL}">${EMAIL}</a>.</p>
       </div>
       <div class="faq">
-        ${FAQ.map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join('\n        ')}
+        ${FAQ.map(([q, a]) => `<details class="card" data-reveal><summary>${q}</summary><p>${a}</p></details>`).join('\n        ')}
       </div>
     </div>
   </section>
 </main>
 ${footer('vi')}
 <script>${CAMPAIGN_JS}</script>
+<script>${REVEAL_JS}</script>
 </body>
 </html>
 `;
@@ -443,14 +460,27 @@ function doc(d, lang) {
       ],
     }],
   };
+  // Split the fragment into its header (h1, date, language link) and body, and build the table of
+  // contents from the body's h2[id] (the summary box is not a section).
+  const cut = content.search(/<div class="summary">|<h2[\s>]/);
+  const docHead = content.slice(0, cut).trim();
+  const docBody = content.slice(cut).trim();
+  const toc = [...docBody.replace(/<div class="summary">[\s\S]*?<\/div>/, '').matchAll(/<h2 id="([^"]+)">([\s\S]*?)<\/h2>/g)]
+    .map(([, id, label]) => `<li><a href="#${id}">${strip(label).replace(/^\d+\.\s*/, '')}</a></li>`).join('');
   return `${head(p)}
 <body>
 ${header(lang, false)}
 <main id="main" class="doc">
-  <div class="wrap">
-    <nav class="crumbs" aria-label="${t.crumbs}"><ol><li><a href="/">${t.homeCrumb}</a></li><li aria-current="page">${page.crumb}</li></ol></nav>
-    <article>
-${content}
+  <div class="wrap doc-grid">
+    <header class="doc-head">
+      <nav class="crumbs" aria-label="${t.crumbs}"><ol><li><a href="/">${t.homeCrumb}</a></li><li aria-current="page">${page.crumb}</li></ol></nav>
+${docHead}
+    </header>
+    <aside class="doc-toc">
+      <nav aria-labelledby="toc-title"><p class="toc-title" id="toc-title">${t.toc}</p><ol>${toc}</ol></nav>
+    </aside>
+    <article class="doc-body">
+${docBody}
     </article>
   </div>
 </main>
@@ -509,10 +539,14 @@ ${urls.map(([path, prio]) => {
 </urlset>
 `);
 
-if (CAMPAIGN_JS.length >= 1024) throw new Error(`campaign script is ${CAMPAIGN_JS.length} bytes (limit 1 KB)`);
+for (const [name, js] of [['campaign', CAMPAIGN_JS], ['reveal', REVEAL_JS]]) {
+  if (js.length >= 1024) throw new Error(`${name} script is ${js.length} bytes (limit 1 KB)`);
+}
 const fb = readFileSync(join(REPO, 'firebase.json'), 'utf8');
-console.log(`campaign script: ${CAMPAIGN_JS.length} bytes, CSP hash '${CAMPAIGN_HASH}'`);
-if (!fb.includes(CAMPAIGN_HASH)) {
-  console.error(`\nWARNING: firebase.json CSP does not contain '${CAMPAIGN_HASH}'. Update script-src or the script will be blocked.`);
+console.log(`scripts: campaign ${CAMPAIGN_JS.length} B, reveal ${REVEAL_JS.length} B`);
+console.log(`CSP script-src: ${SCRIPT_HASHES.map((h) => `'${h}'`).join(' ')}`);
+const missing = SCRIPT_HASHES.filter((h) => !fb.includes(h));
+if (missing.length) {
+  console.error(`\nWARNING: firebase.json CSP is missing ${missing.join(', ')}. Update script-src or the scripts will be blocked.`);
   process.exitCode = 1;
 }
