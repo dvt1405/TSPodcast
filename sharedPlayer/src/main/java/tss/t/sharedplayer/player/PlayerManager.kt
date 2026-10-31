@@ -74,6 +74,11 @@ class PlayerManager @Inject constructor(
     /** Speed, sleep timer and live flag of the current item, for the Player screen. */
     val extras: StateFlow<PlaybackExtrasState> = _extras.asStateFlow()
 
+    /** Elapsed-realtime millis when audio was last playing (0 = never), for the ad policy. */
+    @Volatile
+    var lastPlayingAt: Long = 0L
+        private set
+
     /** Set while the sleep timer itself pauses, so that pause does not count as the user's. */
     private var pausingForTimer = false
     private var lastPositionSaveAt = 0L
@@ -312,6 +317,7 @@ class PlayerManager @Inject constructor(
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
+            lastPlayingAt = android.os.SystemClock.elapsedRealtime()
             if (!isPlaying) saveCurrentPosition()
             scheduleTick()
         }

@@ -56,6 +56,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -175,6 +176,7 @@ fun PodcastDetailScreen(
     val playerUIState by playerViewmodel.playerControlState.collectAsState()
     val adsController = tss.t.ads.LocalAdsController.current
     val activity = androidx.activity.compose.LocalActivity.current
+    val enteredAt = remember(podcast.id) { android.os.SystemClock.elapsedRealtime() }
     if (showErrorDialog) {
         Dialog(onDismissRequest = {
             podcastViewModel.dismissDialog()
@@ -208,7 +210,13 @@ fun PodcastDetailScreen(
             navHost.popBackStack()
             // Natural break when leaving a show. AdPolicy blocks it while audio plays, on the
             // Player, during the grace period / first session, and enforces interval and caps.
-            activity?.let { adsController.maybeShowInterstitial(it, tss.t.ads.AdPlacement.InterstitialNav) }
+            activity?.let {
+                adsController.maybeShowInterstitial(
+                    it,
+                    tss.t.ads.AdPlacement.InterstitialNav,
+                    screenDwellMs = android.os.SystemClock.elapsedRealtime() - enteredAt
+                )
+            }
         },
         isPodcastFavourite = isPodcastFavourite,
         onPodcastFavouriteChange = { podcastViewModel.setPodcastFavourite(podcast, it) },
@@ -364,12 +372,20 @@ private fun PodcastDetailBody(
     val isLoading = remember(listItems) {
         listItems.isEmpty()
     }
+    // "Tìm trong show" (iOS M6 N5): accent-insensitive match on the episode title and summary;
+    // ad slots are left out while a query is typed.
+    var showQuery by rememberSaveable(podcast.id) { mutableStateOf("") }
+    val searching = showQuery.isNotBlank()
+    val visibleItems: List<Any> = remember(renderItemList, listItems, showQuery) {
+        if (!searching) renderItemList
+        else EpisodeSearch.filter(listItems, showQuery)
+    }
 
-    val itemCount = remember(renderItemList) {
-        if (renderItemList.isEmpty()) {
+    val itemCount = remember(visibleItems, searching) {
+        if (visibleItems.isEmpty() && !searching) {
             20
         } else {
-            renderItemList.size
+            visibleItems.size
         }
     }
 
@@ -498,18 +514,28 @@ private fun PodcastDetailBody(
                 }
             }
 
+            if (listItems.size >= EpisodeSearch.MIN_EPISODES) {
+                item(key = "ShowSearch") {
+                    ShowSearchField(
+                        query = showQuery,
+                        onQueryChange = { showQuery = it },
+                        resultCount = if (searching) visibleItems.size else null
+                    )
+                }
+            }
+
             items(count = itemCount, key = {
                 when {
-                    renderItemList.isEmpty() -> {
+                    visibleItems.isEmpty() -> {
                         it
                     }
 
-                    renderItemList[it] is Episode -> {
-                        (renderItemList[it] as Episode).id
+                    visibleItems[it] is Episode -> {
+                        (visibleItems[it] as Episode).id
                     }
 
-                    renderItemList[it] is AdSlotRow -> {
-                        (renderItemList[it] as AdSlotRow).lazyKey
+                    visibleItems[it] is AdSlotRow -> {
+                        (visibleItems[it] as AdSlotRow).lazyKey
                     }
 
                     else -> {
@@ -517,7 +543,7 @@ private fun PodcastDetailBody(
                     }
                 }
             }) {
-                val item = renderItemList.getOrNull(it)
+                val item = visibleItems.getOrNull(it)
                 if (item is AdSlotRow) {
                     // Native ad at a deterministic position (see PodcastViewModel).
                     // Zero height when no ad loaded.

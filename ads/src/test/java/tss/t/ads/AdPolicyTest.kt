@@ -162,21 +162,41 @@ class AdPolicyTest {
         assertEquals(if (sameDay) Decision.Block("daily_cap") else Decision.Allow, appOpen())
     }
 
+    /** Third natural break of the session, after a long enough visit, no recent audio. */
+    private val breakContext = okContext.copy(naturalBreakIndex = 3, screenDwellMs = 60_000L)
+
+    @Test
+    fun `interstitial only on every Nth natural break after a real visit and not right after audio`() {
+        val p = AdPlacement.InterstitialNav
+        assertEquals(Decision.Block("every_n"), policy.canShowFullScreen(p, release, okContext))
+        assertEquals(Decision.Block("every_n"), policy.canShowFullScreen(p, release, breakContext.copy(naturalBreakIndex = 1)))
+        assertEquals(Decision.Block("every_n"), policy.canShowFullScreen(p, release, breakContext.copy(naturalBreakIndex = 4)))
+        assertEquals(Decision.Allow, policy.canShowFullScreen(p, release, breakContext.copy(naturalBreakIndex = 6)))
+        assertEquals(Decision.Block("short_visit"), policy.canShowFullScreen(p, release, breakContext.copy(screenDwellMs = 5_000L)))
+        assertEquals(Decision.Block("recent_playback"), policy.canShowFullScreen(p, release, breakContext.copy(sincePlaybackMs = 30_000L)))
+        assertEquals(Decision.Allow, policy.canShowFullScreen(p, release, breakContext.copy(sincePlaybackMs = 90_000L)))
+        // Remote Config can loosen "every N" to every break.
+        assertEquals(
+            Decision.Allow,
+            policy.canShowFullScreen(p, release.copy(interstitialEveryN = 1), breakContext.copy(naturalBreakIndex = 1))
+        )
+    }
+
     @Test
     fun `interstitial caps`() {
         val p = AdPlacement.InterstitialNav
-        assertEquals(Decision.Allow, policy.canShowFullScreen(p, release, okContext))
+        assertEquals(Decision.Allow, policy.canShowFullScreen(p, release, breakContext))
         policy.recordShown(p)
         now += 120_000L
-        assertEquals(Decision.Block("interval"), policy.canShowFullScreen(p, release, okContext))
+        assertEquals(Decision.Block("interval"), policy.canShowFullScreen(p, release, breakContext))
         now += 120_000L
-        assertEquals(Decision.Allow, policy.canShowFullScreen(p, release, okContext))
+        assertEquals(Decision.Allow, policy.canShowFullScreen(p, release, breakContext))
         policy.recordShown(p)
         now += 10 * AdPolicy.MIN_MS
-        assertEquals(Decision.Block("session_cap"), policy.canShowFullScreen(p, release, okContext))
+        assertEquals(Decision.Block("session_cap"), policy.canShowFullScreen(p, release, breakContext))
 
         store.sessionCount = 1
-        assertEquals(Decision.Block("first_session"), policy.canShowFullScreen(p, release, okContext))
+        assertEquals(Decision.Block("first_session"), policy.canShowFullScreen(p, release, breakContext))
     }
 
     @Test

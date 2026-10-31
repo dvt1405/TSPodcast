@@ -17,6 +17,12 @@ data class TriggerContext(
     val onboardingCompleted: Boolean,
     /** How long the app was in the background before this foreground, or null. */
     val backgroundDurationMs: Long? = null,
+    /** Interstitial: 1-based count of natural breaks (e.g. leaving a show) this session. */
+    val naturalBreakIndex: Int = 0,
+    /** Interstitial: how long the user stayed on the screen being left, or null when unknown. */
+    val screenDwellMs: Long? = null,
+    /** Time since audio last played, or null when nothing played this session. */
+    val sincePlaybackMs: Long? = null,
 )
 
 /**
@@ -90,7 +96,21 @@ class AdPolicy(
             }
 
             AdFormat.Interstitial -> {
+                // Interstitials only at natural breaks the user chose (leaving a show), never
+                // at launch or exit, never over or right after audio, at most every Nth break.
                 if (store.sessionCount <= 1) return Decision.Block("first_session")
+                val everyN = settings.interstitialEveryN.coerceAtLeast(1)
+                if (ctx.naturalBreakIndex <= 0 || ctx.naturalBreakIndex % everyN != 0) {
+                    return Decision.Block("every_n")
+                }
+                val dwell = ctx.screenDwellMs
+                if (dwell != null && dwell < settings.interstitialMinDwellSec * SEC_MS) {
+                    return Decision.Block("short_visit")
+                }
+                val sincePlayback = ctx.sincePlaybackMs
+                if (sincePlayback != null && sincePlayback < settings.interstitialAfterPlaybackSec * SEC_MS) {
+                    return Decision.Block("recent_playback")
+                }
                 if (now - store.lastShownAt(placement) <
                     settings.interstitialMinIntervalSec * SEC_MS
                 ) {

@@ -82,4 +82,13 @@ Lý do báo cáo:
     <string name="more_actions">Thêm</string>
     <string name="podcast_favourite">Thêm vào Yêu thích</string>
     <string name="podcast_unfavourite">Bỏ khỏi Yêu thích</string>
+
+    <!-- In-show search, categories, player menu -->
+    <string name="show_search_hint">Tìm trong show (gõ không dấu cũng được)</string>
+    <string name="show_search_clear">Xoá</string>
+    <string name="show_search_empty">Không có tập nào khớp</string>
+    <string name="show_search_count">%1$d tập khớp</string>
+    <string name="search_categories_title">Chủ đề</string>
+    <string name="player_more_share">Chia sẻ tập này</string>
+    <string name="player_more_report">Báo cáo nội dung</string>
 </resources>

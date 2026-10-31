@@ -23,6 +23,8 @@ object AdsKeys {
     const val INTERSTITIAL_MIN_INTERVAL_SEC = "ads_interstitial_min_interval_sec"
     const val INTERSTITIAL_SESSION_CAP = "ads_interstitial_session_cap"
     const val INTERSTITIAL_DAILY_CAP = "ads_interstitial_daily_cap"
+    const val INTERSTITIAL_MIN_DWELL_SEC = "ads_interstitial_min_dwell_sec"
+    const val INTERSTITIAL_AFTER_PLAYBACK_SEC = "ads_interstitial_after_playback_sec"
     const val NATIVE_FIRST_INDEX = "ads_native_first_index"
     const val NATIVE_INTERVAL = "ads_native_interval"
     const val NATIVE_MAX_PER_LIST = "ads_native_max_per_list"
@@ -54,6 +56,10 @@ data class AdsSettings(
     val interstitialMinIntervalSec: Long,
     val interstitialSessionCap: Int,
     val interstitialDailyCap: Int,
+    /** The user must have stayed this long on the screen they leave (no ad after a quick peek). */
+    val interstitialMinDwellSec: Long = 20,
+    /** No interstitial this soon after audio stopped: the user may be about to resume. */
+    val interstitialAfterPlaybackSec: Long = 60,
     val nativeFirstIndex: Int,
     val nativeInterval: Int,
     val nativeMaxPerList: Int,
@@ -102,11 +108,13 @@ data class AdsSettings(
             appOpenMinIntervalMin = 60,
             appOpenDailyCap = 3,
             appOpenSkipFirstSessions = if (debug) 0 else 2,
-            minGapFullScreenSec = 60,
+            minGapFullScreenSec = 90,
             interstitialEveryN = 3,
-            interstitialMinIntervalSec = 180,
+            interstitialMinIntervalSec = 240,
             interstitialSessionCap = 2,
-            interstitialDailyCap = 6,
+            interstitialDailyCap = 4,
+            interstitialMinDwellSec = 20,
+            interstitialAfterPlaybackSec = 60,
             nativeFirstIndex = 3,
             nativeInterval = 8,
             nativeMaxPerList = 3,
@@ -192,6 +200,12 @@ data class AdsSettings(
                 ),
                 interstitialDailyCap = int(
                     AdsKeys.INTERSTITIAL_DAILY_CAP, defaults.interstitialDailyCap
+                ),
+                interstitialMinDwellSec = long(
+                    AdsKeys.INTERSTITIAL_MIN_DWELL_SEC, defaults.interstitialMinDwellSec
+                ),
+                interstitialAfterPlaybackSec = long(
+                    AdsKeys.INTERSTITIAL_AFTER_PLAYBACK_SEC, defaults.interstitialAfterPlaybackSec
                 ),
                 nativeFirstIndex = int(AdsKeys.NATIVE_FIRST_INDEX, defaults.nativeFirstIndex)
                     .coerceAtLeast(1),
