@@ -5,7 +5,7 @@
     <string name="search_screen_title">Tìm kiếm</string>
 
     <string name="search_hint_title">Tìm podcast, nghệ sĩ</string>
-    <string name="search_result_title">Kết qủa hàng đầu cho: %s</string>
+    <string name="search_result_title">Kết quả hàng đầu cho: %s</string>
     <string name="try_search_with_keyword_title">Thử tìm kiếm: %s</string>
     <string name="empty_search_title">Không có kết quả cho: </string>
     <string name="search_suggest_key_title">Radio hay</string>
