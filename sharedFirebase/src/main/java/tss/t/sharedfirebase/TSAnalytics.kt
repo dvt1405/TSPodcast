@@ -68,10 +68,9 @@ class TSAnalytics @Inject constructor(
             })
     }
 
+    // No device identifier in events (iOS D5 parity, privacy policy): ANDROID_ID used to be sent
+    // as "device_id". Analytics only runs after consent (PrivacyConsent).
     private fun initDefaultAttrs() {
-        sharedPref.androidId?.let {
-            _defaultAttrs["device_id"] = it
-        }
         _analyticScope.launch {
             try {
                 val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)

@@ -3,7 +3,6 @@ package tss.t.sharedfirebase
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
-import tss.t.sharedlibrary.utils.getAndroidDeviceId
 import javax.inject.Inject
 import javax.inject.Singleton
 import androidx.core.content.edit
@@ -19,31 +18,8 @@ class TSFirebaseSharedPref @Inject constructor(
         context.getSharedPreferences("firebase_shared_prefs", Context.MODE_PRIVATE)
     }
 
-    internal var androidId: String? = _firebaseSharedPref.getString("DeviceId", null)
-        get() {
-            return if (field != null) field
-            else _firebaseSharedPref.getString("DeviceId", null)
-        }
-        private set(value) {
-            // Was persisting `field` (the previous value, always null on first
-            // write), so the device id was stored as null forever.
-            field = value
-            _firebaseSharedPref.edit {
-                putString("DeviceId", value)
-            }
-        }
-
     init {
-        initDefaultAttrs()
-    }
-
-    private fun initDefaultAttrs() {
-        if (androidId == null) {
-            context.getAndroidDeviceId()
-                .takeIf { !it.isNullOrEmpty() }
-                ?.let {
-                    androidId = it
-                }
-        }
+        // ANDROID_ID is no longer read or sent; drop the copy older versions stored.
+        _firebaseSharedPref.edit { remove("DeviceId") }
     }
 }

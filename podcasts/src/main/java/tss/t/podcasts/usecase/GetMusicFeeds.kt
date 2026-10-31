@@ -3,7 +3,6 @@ package tss.t.podcasts.usecase
 import tss.t.core.repository.IPodcastRepository
 import tss.t.coreapi.models.Podcast
 import tss.t.coreapi.models.TSDataState
-import tss.t.podcasts.BlacklistRepositoryImpl
 import tss.t.sharedlibrary.crash.Crash
 import javax.inject.Inject
 
@@ -25,7 +24,6 @@ import javax.inject.Inject
  */
 class GetMusicFeeds @Inject constructor(
     private val repository: IPodcastRepository,
-    private val blacklist: BlacklistRepositoryImpl
 ) {
     suspend operator fun invoke(max: Int = MAX_RESULTS): TSDataState<List<Podcast>> {
         val state = repository.getPodcastsByMedium(
@@ -45,12 +43,8 @@ class GetMusicFeeds @Inject constructor(
                 emptyList()
             )
         }
-        val list = state.data.feeds
-            .filterNot { feed ->
-                blacklist.isInBlacklist(feed.id.toString())
-                        || blacklist.isContainKeywordsBlacklist(feed.title)
-            }
-            .map { Podcast.fromFeed(it) }
+        // Blocked, hidden and explicit feeds are already removed by the repository (ContentFilter).
+        val list = state.data.feeds.map { Podcast.fromFeed(it) }
         return TSDataState.Success(list)
     }
 

@@ -36,8 +36,16 @@ class PodcastsRepositoryImpl @Inject constructor(
     private val sharedPref: SharedPref,
     @ApplicationContext
     private val context: Context,
-    private val blacklistRepository: BlacklistRepositoryImpl
+    private val contentFilter: ContentFilter
 ) : IPodcastRepository {
+
+    /** Search results without blocked, hidden or (unless allowed) explicit feeds. */
+    private fun TSDataState<SearchResponse>.filtered(): TSDataState<SearchResponse> {
+        if (this !is TSDataState.Success) return this
+        val feeds = data.feeds.filter(contentFilter::allows)
+        return TSDataState.Success(data.copy(count = feeds.size, feeds = feeds))
+    }
+
     override suspend fun searchPodcasts(
         query: String,
         type: String?,
@@ -54,11 +62,11 @@ class PodcastsRepositoryImpl @Inject constructor(
                 max = max,
                 type = type,
                 aponly = aponly,
-                clean = clean,
+                clean = contentFilter.clean(clean),
                 similar = similar,
                 fulltext = fulltext,
                 pretty = pretty
-            )
+            ).filtered()
         }
     }
 
@@ -76,11 +84,11 @@ class PodcastsRepositoryImpl @Inject constructor(
                 query = query,
                 type = type,
                 max = max,
-                clean = clean,
+                clean = contentFilter.clean(clean),
                 similar = similar,
                 fulltext = fulltext,
                 pretty = pretty
-            )
+            ).filtered()
         }
     }
 
@@ -96,7 +104,7 @@ class PodcastsRepositoryImpl @Inject constructor(
                 max = max,
                 fulltext = fulltext,
                 pretty = pretty
-            )
+            ).filtered()
         }
     }
 
@@ -118,11 +126,11 @@ class PodcastsRepositoryImpl @Inject constructor(
                 type = type,
                 max = max,
                 aponly = aponly,
-                clean = clean,
+                clean = contentFilter.clean(clean),
                 similar = similar,
                 fulltext = fulltext,
                 pretty = pretty
-            )
+            ).filtered()
         }
     }
 
@@ -136,7 +144,7 @@ class PodcastsRepositoryImpl @Inject constructor(
                 medium = medium,
                 max = max,
                 pretty = pretty
-            )
+            ).filtered()
         }
     }
 
@@ -216,11 +224,7 @@ class PodcastsRepositoryImpl @Inject constructor(
         )
 
         if (result is TSDataState.Success) {
-            val filteredItems = result.data.items.filter {
-                !(blacklistRepository.isInBlacklist(it.id.toString())
-                        || blacklistRepository.isContainKeywordsBlacklist(it.title)
-                        || blacklistRepository.isContainKeywordsBlacklist(it.description, false))
-            }
+            val filteredItems = result.data.items.filter(contentFilter::allows)
             result = TSDataState.Success(
                 data = result.data.copy(
                     count = filteredItems.size,
@@ -248,7 +252,10 @@ class PodcastsRepositoryImpl @Inject constructor(
                 fulltext = fulltext,
                 pretty = pretty
             )
-            if (result.isSuccess()) {
+            if (result is TSDataState.Success) {
+                val items = result.data.items.filter(contentFilter::allows)
+                emit(TSDataState.Success(result.data.copy(count = items.size, items = items)))
+            } else if (result.isSuccess()) {
                 emit(result)
             } else {
                 throw result.exception()
@@ -284,14 +291,7 @@ class PodcastsRepositoryImpl @Inject constructor(
             )
         }.map {
             if (it is TSDataState.Success) {
-                val data = it.data.items.filter {
-                    !(blacklistRepository.isInBlacklist(it.feedId.toString())
-                            || blacklistRepository.isContainKeywordsBlacklist(it.title)
-                            || blacklistRepository.isContainKeywordsBlacklist(
-                        it.description,
-                        false
-                    ))
-                }
+                val data = it.data.items.filter(contentFilter::allows)
                 return@map TSDataState.Success(
                     it.data.copy(
                         items = data,
@@ -349,14 +349,7 @@ class PodcastsRepositoryImpl @Inject constructor(
                 )
             ).map {
                 if (it is TSDataState.Success) {
-                    val data = it.data.items.filter {
-                        !(blacklistRepository.isInBlacklist(it.id.toString())
-                                || blacklistRepository.isContainKeywordsBlacklist(it.title)
-                                || blacklistRepository.isContainKeywordsBlacklist(
-                            it.description,
-                            false
-                        ))
-                    }
+                    val data = it.data.items.filter(contentFilter::allows)
                     return@map TSDataState.Success(
                         it.data.copy(
                             items = data,
@@ -393,14 +386,7 @@ class PodcastsRepositoryImpl @Inject constructor(
                 )
             ).map {
                 if (it is TSDataState.Success) {
-                    val data = it.data.items.filter {
-                        !(blacklistRepository.isInBlacklist(it.id.toString())
-                                || blacklistRepository.isContainKeywordsBlacklist(it.title)
-                                || blacklistRepository.isContainKeywordsBlacklist(
-                            it.description,
-                            false
-                        ))
-                    }
+                    val data = it.data.items.filter(contentFilter::allows)
                     return@map TSDataState.Success(
                         it.data.copy(
                             items = data,

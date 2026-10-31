@@ -28,6 +28,8 @@ import tss.t.podcast.ui.screens.player.PlayerScreen
 import tss.t.podcast.ui.screens.player.PlayerViewModel
 import tss.t.podcast.ui.screens.podcastsdetail.PodcastDetailScreen
 import tss.t.podcast.ui.screens.podcastsdetail.PodcastViewModel
+import tss.t.podcast.ui.screens.settings.SettingsScreen
+import tss.t.podcast.ui.screens.settings.SettingsViewModel
 
 @Composable
 fun TSNavGraph(
@@ -121,6 +123,14 @@ fun TSNavGraph(
             }
         }
 
+        composable(TSRouter.Settings.route) {
+            val settingsViewModel: SettingsViewModel = viewModel(viewModelStoreOwner)
+            SettingsScreen(
+                viewModel = settingsViewModel,
+                onBack = { navHost.popBackStack() }
+            )
+        }
+
         composable(
             route = TSRouter.Player.route,
             enterTransition = { fadeIn() + slideInVertically { it / 4 } },
@@ -151,7 +161,8 @@ enum class TSRouter(val route: String) {
     SelectFavouriteCategory("SelectFavouriteCategory"),
     Main("Main"),
     PodcastDetail("PodcastDetail"),
-    Player("Player")
+    Player("Player"),
+    Settings("Settings")
 }
 
 enum class TSHomeRouter(val route: String) {

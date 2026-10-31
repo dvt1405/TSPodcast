@@ -67,6 +67,10 @@ import tss.t.podcast.LocalSharedTransitionScope
 import tss.t.podcast.R
 import tss.t.podcast.ui.navigations.TSHomeRouter
 import tss.t.podcast.ui.navigations.TSRouter
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import tss.t.podcast.ui.screens.MainViewModel
 import tss.t.podcast.ui.screens.discorver.DiscoverPodcastsScreen
 import tss.t.podcast.ui.screens.favourite.FavouriteScreen
@@ -152,7 +156,12 @@ fun HomeNavigationScreen(
                                 exit = fadeOut() + slideOutVertically { -it }
                             ),
                         hazeState = hazeState,
-                        title = stringResource(screenTitleRes)
+                        title = stringResource(screenTitleRes),
+                        onSettings = if (selectedTabIndex == HOME_TAB_INDEX) {
+                            { parentNavHost.navigate(TSRouter.Settings.route) }
+                        } else {
+                            null
+                        }
                     )
                 }
             }
@@ -442,9 +451,17 @@ private fun TSBottomNavigation(
 fun MainTSAppBar(
     modifier: Modifier = Modifier,
     hazeState: HazeState,
-    title: String = stringResource(R.string.discorver_screen_title)
+    title: String = stringResource(R.string.discorver_screen_title),
+    onSettings: (() -> Unit)? = null,
 ) {
     CenterAlignedTopAppBar(
+        actions = {
+            if (onSettings != null) {
+                IconButton(onClick = onSettings) {
+                    Icon(Icons.Rounded.Settings, contentDescription = stringResource(R.string.settings_open))
+                }
+            }
+        },
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = Color.Transparent
         ),

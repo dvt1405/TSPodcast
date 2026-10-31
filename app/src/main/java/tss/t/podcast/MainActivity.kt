@@ -83,6 +83,8 @@ import tss.t.featureonboarding.OnboardingViewModel
 import tss.t.podcast.ui.model.HomeEvent
 import tss.t.podcast.ui.navigations.TSHomeRouter
 import tss.t.podcast.ui.navigations.TSNavGraph
+import tss.t.podcast.ui.screens.settings.PrivacyConsentSheet
+import tss.t.sharedfirebase.PrivacyConsent
 import tss.t.podcast.ui.navigations.TSRouter
 import tss.t.podcast.ui.screens.MainViewModel
 import tss.t.podcast.ui.screens.main.BottomBarTab
@@ -119,6 +121,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var tsRemoteConfig: TSFirebaseRemoteConfig
+
+    @Inject
+    lateinit var privacyConsent: PrivacyConsent
 
     private var navHostController: NavHostController? = null
     private var homeInnerNavHostController: NavHostController? = null
@@ -213,6 +218,8 @@ class MainActivity : ComponentActivity() {
                             innerPadding = windowInset,
                             playerViewModel = playerViewModel
                         )
+
+                        PrivacyConsentSheet(privacyConsent)
                     }
                 }
             }
