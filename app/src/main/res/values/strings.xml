@@ -101,4 +101,6 @@ Lý do báo cáo:
     <string name="shortcut_sleep_long">Hẹn giờ tắt sau 30 phút</string>
     <string name="shortcut_nothing_to_continue">Chưa có tập nào đang nghe dở</string>
     <string name="shortcut_sleep_toast">Đã hẹn giờ tắt sau 30 phút</string>
+
+    <string name="news_hub_title">Thời sự &amp; Bản tin</string>
 </resources>

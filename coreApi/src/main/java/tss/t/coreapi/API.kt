@@ -601,6 +601,18 @@ interface API {
         @Query("pretty") pretty: Boolean?
     ): TSDataState<PodcastByFeedIdRes>
 
+    /** News hub (iOS M6 N2): a source configured by its iTunes id. */
+    @GET("podcasts/byitunesid")
+    fun getPodcastByItunesId(
+        @Query("id") id: Long,
+    ): TSDataState<PodcastByFeedIdRes>
+
+    /** News hub fallback: a source configured by its RSS URL. */
+    @GET("podcasts/byfeedurl")
+    fun getPodcastByFeedUrl(
+        @Query("url") url: String,
+    ): TSDataState<PodcastByFeedIdRes>
+
     /**
      * @param max Maximum number of results to return. Min 1┃Max 1000
      * @param since Return items since the specified epoch timestamp. Ex: 1612125785

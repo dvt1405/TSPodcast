@@ -289,6 +289,16 @@ private fun HomeNavHost(
                         mainViewModel.setCurrentPodcast(this)
                         parentNavHost.navigate(TSRouter.PodcastDetail.route)
                     },
+                    onNewsClick = { news ->
+                        coroutineScope.launch {
+                            playerViewModel.playerEpisode(
+                                episode = news.episode,
+                                podcast = news.podcast,
+                                listItem = listOf(news.episode)
+                            )
+                            parentNavHost.navigate(TSRouter.Player.route)
+                        }
+                    },
                     onLiveItemClick = {
                         coroutineScope.launch {
                             playerViewModel.playLive(

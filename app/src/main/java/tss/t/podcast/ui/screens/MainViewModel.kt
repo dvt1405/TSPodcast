@@ -63,7 +63,17 @@ class MainViewModel @Inject constructor(
     private val interactors: MainInteractors,
     private val sharedPref: SharedPref,
     private val contentPrefs: tss.t.core.storage.ContentPrefs,
+    private val newsHub: tss.t.podcasts.NewsHubRepository,
 ) : ViewModel() {
+
+    private fun loadNews() {
+        viewModelScope.launch {
+            // Debug shows sources without publisher confirmation, Release only confirmed ones.
+            val items = runCatching { newsHub.load(includeUnconfirmed = tss.t.podcast.BuildConfig.DEBUG) }
+                .getOrDefault(emptyList())
+            _uiState.update { it.copy(newsItems = items) }
+        }
+    }
 
     /** Hides a show everywhere (kept on the device, unhide in Settings) and drops it from Home now. */
     fun hideShow(feedId: Long, title: String, image: String?) {
@@ -112,6 +122,7 @@ class MainViewModel @Inject constructor(
 
     init {
         getTrending()
+        loadNews()
     }
 
     fun getLazyListState(key: String): LazyListState {
@@ -128,6 +139,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun reload() {
+        loadNews()
         val isLoading = _uiState.value.isDataPartLoading
         synchronized(isLoading) {
             HomepageDataPart.entries.forEach {

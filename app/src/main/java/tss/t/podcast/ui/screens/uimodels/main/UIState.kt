@@ -13,6 +13,8 @@ data class UIState(
     val recentNewFeeds: List<Podcast> = emptyList(),
     /** Feeds with podcast:medium = music. Unordered - the API offers no ranking. */
     val musicFeeds: List<Podcast> = emptyList(),
+    /** "Thời sự & Bản tin": empty (section hidden) until enough confirmed news sources resolve. */
+    val newsItems: List<tss.t.podcasts.NewsItem> = emptyList(),
     val isDataPartLoading: MutableMap<Int, Boolean> = mutableMapOf(),
     val showLoadingView: Boolean = true,
     val error: Throwable? = null,

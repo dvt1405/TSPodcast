@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "enabled": true,
+  "sections": [
+    {
+      "id": "news",
+      "sources": [
+        {
+          "key": "vov_thoisu",
+          "feedUrl": "https://anchor.fm/s/86ec8d4/podcast/rss",
+          "itunesId": 1448565355,
+          "confirmedAt": null,
+          "brief": {
+            "take": 1,
+            "maxAgeHours": 24,
+            "preferTitle": "Thời sự 6h",
+            "preferTitleBeforeHour": 11
+          }
+        },
+        {
+          "key": "vov_tinnhanh",
+          "feedUrl": "https://anchor.fm/s/86f0c04/podcast/rss",
+          "itunesId": 1448603366,
+          "confirmedAt": null,
+          "brief": {
+            "take": 1,
+            "maxAgeHours": 24
+          }
+        },
+        {
+          "key": "vov_sukien",
+          "feedUrl": "https://anchor.fm/s/8535a2c/podcast/rss",
+          "itunesId": 1447959801,
+          "confirmedAt": null,
+          "brief": {
+            "take": 1,
+            "maxAgeHours": 24
+          }
+        },
+        {
+          "key": "vov_kinhte",
+          "feedUrl": "https://anchor.fm/s/84e912c/podcast/rss",
+          "itunesId": 1447843388,
+          "confirmedAt": null,
+          "brief": {
+            "take": 1,
+            "maxAgeHours": 24
+          }
+        },
+        {
+          "key": "vnexpress_homnay",
+          "feedUrl": "https://vnexpress.net/rss/podcast/vnexpress-hom-nay.rss",
+          "itunesId": 1751444063,
+          "confirmedAt": null,
+          "brief": {
+            "take": 1,
+            "maxAgeHours": 48
+          }
+        },
+        {
+          "key": "tuoitre",
+          "feedUrl": "https://podcast.tuoitre.vn/podcast-feed.rss",
+          "itunesId": 1627456657,
+          "confirmedAt": null,
+          "brief": {
+            "take": 2,
+            "maxAgeHours": 24
+          }
+        },
+        {
+          "key": "baophapluat",
+          "feedUrl": "https://baophapluat.vn/rss/podcasts/ban-tin-phap-luat/feed.xml",
+          "itunesId": 1652462907,
+          "confirmedAt": null,
+          "brief": {
+            "take": 1,
+            "maxAgeHours": 24
+          }
+        }
+      ]
+    },
+    {
+      "id": "night",
+      "sleepTimerMinutes": 30,
+      "sources": [
+        {
+          "key": "hanoi_doctruyen",
+          "feedUrl": "https://anchor.fm/s/e75b3a50/podcast/rss",
+          "itunesId": null,
+          "confirmedAt": null
+        }
+      ]
+    }
+  ]
+}
