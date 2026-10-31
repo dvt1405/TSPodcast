@@ -8,6 +8,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /** A show the user hid (iOS M6 N1 lite): kept on the device only, listed in Settings to unhide. */
+@androidx.annotation.Keep // stored as JSON with Gson; R8 must not rename the fields
 data class HiddenShow(
     val feedId: Long,
     val title: String,
