@@ -57,6 +57,8 @@ fun PodcastDetailActions(
     onFavouriteChange: (Boolean) -> Unit,
     onHidden: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Shown on the white area beside the cover (tinted buttons) instead of over artwork. */
+    onLight: Boolean = false,
 ) {
     val context = LocalContext.current
     val actions = LocalShowActions.current
@@ -70,18 +72,20 @@ fun PodcastDetailActions(
     Row(
         modifier = modifier
             .zIndex(2f)
-            .statusBarsPadding()
+            .then(if (onLight) Modifier else Modifier.statusBarsPadding())
             .padding(end = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         RoundButton(
             icon = if (isFavourite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
             description = stringResource(if (isFavourite) R.string.podcast_unfavourite else R.string.podcast_favourite),
+            onLight = onLight,
             onClick = { onFavouriteChange(!isFavourite) }
         )
         RoundButton(
             icon = Icons.Rounded.Share,
             description = stringResource(R.string.share),
+            onLight = onLight,
             onClick = {
                 tss.t.podcast.analytics.ContentAnalytics.share(tss.t.sharedlibrary.analytics.AppEvents.ContentType.PODCAST, podcast.id)
                 context.shareText(shareText, shareTitle)
@@ -92,6 +96,7 @@ fun PodcastDetailActions(
                 RoundButton(
                     icon = Icons.Rounded.MoreVert,
                     description = stringResource(R.string.more_actions),
+                    onLight = onLight,
                     onClick = { menuOpen = true }
                 )
                 DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
@@ -137,18 +142,22 @@ fun PodcastDetailActions(
 }
 
 @Composable
-private fun RoundButton(icon: ImageVector, description: String, onClick: () -> Unit) {
+private fun RoundButton(icon: ImageVector, description: String, onLight: Boolean, onClick: () -> Unit) {
     val glass = LocalLiquidGlass.current
+    val primary = androidx.compose.material3.MaterialTheme.colorScheme.primary
     Box(
         modifier = Modifier
             .size(40.dp)
             .then(
-                if (glass) Modifier.glassSurface(CircleShape, fill = Color.White.copy(alpha = 0.22f), elevation = 6.dp)
-                else Modifier.clip(CircleShape).background(Color.Black.copy(0.3f))
+                when {
+                    onLight -> Modifier.clip(CircleShape).background(primary.copy(alpha = 0.10f))
+                    glass -> Modifier.glassSurface(CircleShape, fill = Color.White.copy(alpha = 0.22f), elevation = 6.dp)
+                    else -> Modifier.clip(CircleShape).background(Color.Black.copy(0.3f))
+                }
             )
             .clickable(role = Role.Button, onClickLabel = description, onClick = onClick)
             .padding(10.dp)
     ) {
-        Icon(icon, contentDescription = description, tint = Color.White)
+        Icon(icon, contentDescription = description, tint = if (onLight) primary else Color.White)
     }
 }

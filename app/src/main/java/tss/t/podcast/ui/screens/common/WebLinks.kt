@@ -9,7 +9,29 @@ import java.text.Normalizer
  * shared podcast or episode opens in a browser for people without the app.
  */
 object WebLinks {
-    const val WEB_BASE = "https://tspodcast.vercel.app"
+    const val WEB_HOST = "tspodcast.vercel.app"
+    const val WEB_BASE = "https://$WEB_HOST"
+
+    /** A shared web link this app opens: a show or an episode, by PodcastIndex id. */
+    sealed interface Target {
+        data class Podcast(val feedId: Long) : Target
+        data class Episode(val episodeId: Long) : Target
+    }
+
+    /** `https://tspodcast.vercel.app/podcast/123-slug` → [Target.Podcast] (123), else null. */
+    fun parse(uri: android.net.Uri?): Target? {
+        uri ?: return null
+        if (uri.scheme != "https" && uri.scheme != "http") return null
+        if (!uri.host.equals(WEB_HOST, ignoreCase = true)) return null
+        val segments = uri.pathSegments
+        if (segments.size < 2) return null
+        val id = segments[1].substringBefore('-').toLongOrNull()?.takeIf { it > 0 } ?: return null
+        return when (segments[0]) {
+            "podcast" -> Target.Podcast(id)
+            "episode" -> Target.Episode(id)
+            else -> null
+        }
+    }
 
     fun podcast(id: Long, title: String?) = "$WEB_BASE/podcast/$id-${slugify(title)}"
 

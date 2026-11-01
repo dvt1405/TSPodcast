@@ -149,4 +149,5 @@ Reden van melding:
     <string name="search_category_trending_in">Trending in %1$s</string>
     <string name="search_category_empty">Nog geen trending podcasts in dit onderwerp</string>
     <string name="search_filter_all">Alles</string>
+    <string name="web_link_not_found">Podcast uit deze link niet gevonden</string>
 </resources>

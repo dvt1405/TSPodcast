@@ -149,4 +149,5 @@ Motivo del reporte:
     <string name="search_category_trending_in">Tendencia en %1$s</string>
     <string name="search_category_empty">Aún no hay podcasts en tendencia en este tema</string>
     <string name="search_filter_all">Todo</string>
+    <string name="web_link_not_found">No se encontró el podcast de este enlace</string>
 </resources>

@@ -149,4 +149,5 @@ Grund der Meldung:
     <string name="search_category_trending_in">Im Trend: %1$s</string>
     <string name="search_category_empty">Noch keine Trend-Podcasts in diesem Thema</string>
     <string name="search_filter_all">Alle</string>
+    <string name="web_link_not_found">Podcast aus diesem Link nicht gefunden</string>
 </resources>

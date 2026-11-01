@@ -150,4 +150,5 @@ Lý do báo cáo:
     <string name="search_category_trending_in">Thịnh hành tại %1$s</string>
     <string name="search_category_empty">Chưa có podcast thịnh hành trong chủ đề này</string>
     <string name="search_filter_all">Tất cả</string>
+    <string name="web_link_not_found">Không tìm thấy podcast trong link này</string>
 </resources>

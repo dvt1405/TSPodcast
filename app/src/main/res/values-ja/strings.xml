@@ -149,4 +149,5 @@
     <string name="search_category_trending_in">%1$sで人気</string>
     <string name="search_category_empty">このトピックの人気ポッドキャストはまだありません</string>
     <string name="search_filter_all">すべて</string>
+    <string name="web_link_not_found">このリンクのポッドキャストが見つかりません</string>
 </resources>

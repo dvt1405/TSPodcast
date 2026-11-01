@@ -149,4 +149,5 @@ Alasan laporan:
     <string name="search_category_trending_in">Tren di %1$s</string>
     <string name="search_category_empty">Belum ada podcast tren di topik ini</string>
     <string name="search_filter_all">Semua</string>
+    <string name="web_link_not_found">Podcast dari tautan ini tidak ditemukan</string>
 </resources>

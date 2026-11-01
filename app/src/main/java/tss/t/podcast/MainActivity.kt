@@ -72,6 +72,11 @@ import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import tss.t.coreapi.models.Podcast
+import tss.t.coreapi.models.TSDataState
 import tss.t.ads.AdRenderer
 import tss.t.ads.AdsController
 import tss.t.ads.LocalAdRenderer
@@ -143,6 +148,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var languagePrefs: tss.t.core.storage.LanguagePrefs
+
+    @Inject
+    lateinit var api: tss.t.coreapi.API
 
     override fun attachBaseContext(newBase: android.content.Context) {
         super.attachBaseContext(AppLocale.wrap(newBase))
@@ -317,6 +325,10 @@ class MainActivity : ComponentActivity() {
             adsController.onExternalLaunch()
         }
         if (handleShortcut(intent.action)) return
+        if (intent.action == Intent.ACTION_VIEW) {
+            tss.t.podcast.ui.screens.common.WebLinks.parse(intent.data)?.let(::openWebLink)
+            return
+        }
         if (intent.action != Constants.ACTION_START_FROM_NOTIFICATION) return
         val data = intent.data ?: return
         // This activity is exported, so any app can send this action. Match on
@@ -331,6 +343,54 @@ class MainActivity : ComponentActivity() {
             ?.takeIf { it.isNotBlank() }
             ?: return
         playerViewModel.onRestoreFromNotification(mediaId)
+    }
+
+    /**
+     * A shared podcast / episode link: the show opens in its detail screen, an episode starts
+     * playing in the Player. Waits for the main screen (cold start, onboarding) for up to 20 s.
+     */
+    private fun openWebLink(target: tss.t.podcast.ui.screens.common.WebLinks.Target) {
+        lifecycleScope.launch {
+            val podcastAndEpisode = withContext(Dispatchers.IO) {
+                runCatching {
+                    when (target) {
+                        is tss.t.podcast.ui.screens.common.WebLinks.Target.Podcast -> {
+                            val feed = (api.getPodcastByFeedId(target.feedId.toString(), null) as? TSDataState.Success)
+                                ?.data?.feed?.takeIf { it.id > 0 }
+                            feed?.let { Podcast.fromFeed(it) to null }
+                        }
+                        is tss.t.podcast.ui.screens.common.WebLinks.Target.Episode -> {
+                            val episode = (api.getEpisodeById(target.episodeId) as? TSDataState.Success)?.data?.episode
+                            val feed = episode?.let {
+                                (api.getPodcastByFeedId(it.feedId.toString(), null) as? TSDataState.Success)?.data?.feed
+                            }
+                            if (episode != null && feed != null) Podcast.fromFeed(feed) to episode else null
+                        }
+                    }
+                }.getOrNull()
+            }
+            if (podcastAndEpisode == null) {
+                Toast.makeText(this@MainActivity, R.string.web_link_not_found, Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            val nav = withTimeoutOrNull(20_000) {
+                var controller = navHostController
+                while (controller?.currentBackStackEntry?.destination?.route != TSRouter.Main.route) {
+                    delay(100)
+                    controller = navHostController
+                }
+                controller
+            } ?: return@launch
+            val (podcast, episode) = podcastAndEpisode
+            mainViewModel.setCurrentPodcast(podcast, from = "web_link")
+            if (episode == null) {
+                podcastViewModel.getEpisodes(podcast)
+                nav.navigate(TSRouter.PodcastDetail.route)
+            } else {
+                playerViewModel.playerEpisode(episode = episode, podcast = podcast, listItem = listOf(episode))
+                nav.navigate(TSRouter.Player.route)
+            }
+        }
     }
 
     /** Launcher shortcuts (iOS App Shortcuts parity). True when [action] was one of them. */
