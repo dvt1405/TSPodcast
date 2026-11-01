@@ -445,7 +445,7 @@ private fun fold(text: String): String =
         .lowercase()
         .trim()
 
-private val _mapIcon by lazy {
+internal val _mapIcon by lazy {
     mapOf(
         1 to R.drawable.ic_art,
         2 to R.drawable.ic_book,

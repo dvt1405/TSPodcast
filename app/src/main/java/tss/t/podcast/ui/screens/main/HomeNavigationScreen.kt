@@ -355,6 +355,8 @@ private fun HomeNavHost(
             val listCategory by searchViewModel.listCategory.collectAsState()
             val listSearch by searchViewModel.listSearch.collectAsState()
             val searchMode by searchViewModel.searchMode.collectAsState()
+            val selectedCategory by searchViewModel.selectedCategory.collectAsState()
+            val categoryResults by searchViewModel.categoryResults.collectAsState()
             val searchText by rememberSaveable {
                 searchViewModel.currentSearchText
             }
@@ -367,6 +369,10 @@ private fun HomeNavHost(
                 searchResult = listSearch,
                 searchMode = searchMode,
                 onSearchModeSelected = searchViewModel::setSearchMode,
+                selectedCategory = selectedCategory,
+                categoryResults = categoryResults,
+                primaryLocation = searchViewModel.primaryLocation,
+                onCategorySelected = searchViewModel::selectCategory,
                 hazeState = hazeState,
                 innerPadding = PaddingValues(
                     start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
