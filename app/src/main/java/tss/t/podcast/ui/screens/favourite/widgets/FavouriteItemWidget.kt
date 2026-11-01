@@ -48,14 +48,13 @@ fun FavouriteItemWidget(
                 .data(episode.image)
                 .placeholder(R.drawable.image_loader_place_holder_12dp)
                 .error(R.drawable.onboarding_slide_7)
-                .crossfade(true)
-                .crossfade(200)
+                .crossfade(tss.t.podcast.ui.theme.Motion.IMAGE_CROSSFADE)
                 .build(),
             contentDescription = episode.image,
             modifier = Modifier
                 .size(60.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .placeholder(isLoading, Colors.Secondary.copy(alpha = 0.3f)),
+                .placeholderIf(isLoading, Colors.Secondary.copy(alpha = 0.3f)),
         )
         Column(
             modifier = Modifier
@@ -67,11 +66,7 @@ fun FavouriteItemWidget(
                 episode.title ?: "",
                 style = TextStyles.Title6,
                 modifier = Modifier
-                    .placeholder(
-                        visible = isLoading,
-                        color = Colors.Secondary.copy(alpha = 0.3f),
-                        shape = placeHolderShape
-                    )
+                    .placeholderIf(isLoading, Colors.Secondary.copy(alpha = 0.3f), placeHolderShape)
                     .then(
                         if (isLoading) Modifier
                             .height(15.dp)
@@ -81,35 +76,29 @@ fun FavouriteItemWidget(
             )
             Spacer(Modifier.height(if (isLoading) 4.dp else 2.dp))
             Text(
-                text = buildAnnotatedString {
-                    append(
-                        HtmlCompat.fromHtml(
-                            episode?.description ?: "",
-                            HtmlCompat.FROM_HTML_MODE_COMPACT,
-                            null,
-                            null
-                        )
-                    )
-                },
+                text = tss.t.podcast.ui.screens.common.rememberHtmlText(
+                    episode.description,
+                    HtmlCompat.FROM_HTML_MODE_COMPACT
+                ),
                 style = TextStyles.SubTitle4.copy(Colors.TextDescriptionColor),
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
-                    .placeholder(
-                        visible = isLoading,
-                        color = Colors.Secondary.copy(alpha = 0.3f),
-                        shape = placeHolderShape
-                    )
+                    .placeholderIf(isLoading, Colors.Secondary.copy(alpha = 0.3f), placeHolderShape)
                     .then(
                         if (isLoading) Modifier
                             .height(13.dp)
                             .fillMaxWidth(0.6f) else Modifier
                     ),
-                onTextLayout = {
-                    if (it.hasVisualOverflow) {
-                    }
-                }
             )
         }
     }
 }
+
+// Rows here are never in the loading state; the composed placeholder modifier (two
+// transitions each, three per row) only exists when one is.
+private fun Modifier.placeholderIf(
+    visible: Boolean,
+    color: androidx.compose.ui.graphics.Color,
+    shape: androidx.compose.ui.graphics.Shape = androidx.compose.ui.graphics.RectangleShape
+): Modifier = if (visible) placeholder(visible, color, shape) else this

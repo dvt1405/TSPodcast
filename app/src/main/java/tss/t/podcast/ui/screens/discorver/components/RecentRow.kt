@@ -8,13 +8,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import tss.t.coreapi.models.Podcast
 import tss.t.podcast.ui.screens.discorver.widgets.AsyncTrendingWidget
+import tss.t.podcast.ui.screens.discorver.widgets.PlaceholderColor
 import tss.t.podcast.ui.screens.discorver.widgets.TrendingWidget
 
 
@@ -22,7 +23,7 @@ import tss.t.podcast.ui.screens.discorver.widgets.TrendingWidget
 @Composable
 fun RecentRow(
     isRefreshing: Boolean,
-    placeHolderColor: Color,
+    placeHolderColor: PlaceholderColor,
     recentFeeds: List<Podcast>,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedVisibilityScope,
@@ -33,21 +34,19 @@ fun RecentRow(
         state = listState,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { Spacer(modifier = Modifier.size(4.dp)) }
+        item(key = "start", contentType = "spacer") { Spacer(modifier = Modifier.size(4.dp)) }
         if (isRefreshing) {
-            items(20, key = { it }) {
+            items(20, key = { "placeholder_$it" }, contentType = { "placeholder" }) {
                 AsyncTrendingWidget(placeHolderColor)
             }
         } else {
-            items(recentFeeds.size) {
-                val item = recentFeeds[it]
+            items(recentFeeds, contentType = { "podcast" }) { item ->
                 TrendingWidget(
                     podcast = item,
                     sharedTransitionScope = sharedTransitionScope,
-                    animatedContentScope = animatedContentScope
-                ) {
-                    onTrendingClick(item)
-                }
+                    animatedContentScope = animatedContentScope,
+                    onClick = onTrendingClick
+                )
             }
         }
     }

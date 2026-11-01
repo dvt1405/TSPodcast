@@ -4,6 +4,8 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -115,23 +117,30 @@ fun BottomBarTabs(
                 .padding(horizontal = 10.dp)
         ) {
             for (tab in tabs.indices) {
-                val alpha by animateFloatAsState(
+                val alpha = animateFloatAsState(
                     targetValue = if (selectedTab == tab) 1f else .35f,
+                    animationSpec = tween(200),
                     label = "alpha"
                 )
-                val scale by animateFloatAsState(
+                // Was a low-stiffness, medium-bouncy spring: the labels kept wobbling for
+                // ~0.6 s after the tab had already changed.
+                val scale = animateFloatAsState(
                     targetValue = if (selectedTab == tab) 1f else .95f,
-                    visibilityThreshold = .000001f,
+                    visibilityThreshold = .0001f,
                     animationSpec = spring(
-                        stiffness = Spring.StiffnessLow,
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMediumLow,
+                        dampingRatio = 0.8f,
                     ),
                     label = "scale"
                 )
                 Column(
                     modifier = Modifier
-                        .scale(scale)
-                        .alpha(alpha)
+                        // Draw-phase reads: no recomposition of the bar per animation frame.
+                        .graphicsLayer {
+                            scaleX = scale.value
+                            scaleY = scale.value
+                            this.alpha = alpha.value
+                        }
                         .fillMaxHeight()
                         .weight(1f)
                         .pointerInput(Unit) {

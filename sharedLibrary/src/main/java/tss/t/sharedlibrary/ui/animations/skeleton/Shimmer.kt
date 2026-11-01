@@ -77,7 +77,9 @@ fun ShimmerAsyncImage(
     AsyncImage(
         model = if (imageLoadedFailed.value) placeholder ?: model else model,
         contentDescription = contentDescription,
-        modifier = if (imageLoadedSuccess.value) modifier else modifier.shimmer(),
+        // Stops on error too: a broken artwork URL used to shimmer (a frame every vsync) for
+        // as long as the row stayed on screen.
+        modifier = if (imageLoadedSuccess.value || imageLoadedFailed.value) modifier else modifier.shimmer(),
         transform = transform,
         onState = { state ->
             if (state is State.Success) {

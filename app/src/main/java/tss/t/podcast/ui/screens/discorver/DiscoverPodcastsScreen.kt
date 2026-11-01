@@ -1,11 +1,6 @@
 package tss.t.podcast.ui.screens.discorver
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.animateColor
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -59,7 +54,7 @@ import tss.t.podcast.ui.screens.discorver.components.RecentRow
 import tss.t.podcast.ui.screens.discorver.components.TrendingRow
 import tss.t.podcast.ui.screens.discorver.widgets.FavouriteWidget
 import tss.t.podcast.ui.screens.discorver.widgets.Indicator
-import tss.t.podcast.ui.screens.player.PlayerViewModel
+import tss.t.podcast.ui.screens.discorver.widgets.rememberPlaceholderPulse
 import tss.t.podcast.ui.screens.uimodels.main.HomepageDataPart
 import tss.t.podcast.ui.screens.uimodels.main.UIState
 import tss.t.podcast.ui.theme.PodcastThemePreview
@@ -91,7 +86,7 @@ private const val ITEM_CONTINUE_LISTENING = "ContinueListening"
 @Composable
 fun DiscoverPodcastsScreen(
     uiState: UIState = UIState(),
-    playerControlState: PlayerViewModel.PlayerControlState,
+    hasMiniPlayer: Boolean,
     hazeState: HazeState,
     innerPadding: PaddingValues,
     showLoading: Boolean = true,
@@ -115,28 +110,31 @@ fun DiscoverPodcastsScreen(
     }
     val sharedTransitionScope = LocalSharedTransitionScope.current!!
     val animatedContentScope = LocalNavAnimatedVisibilityScope.current!!
-    val infiniteTransition = rememberInfiniteTransition(label = "InfiniteTransition")
     val parentListState = rememberLazyListState()
     val trendingRowState = rememberLazyListState()
     val musicRowState = rememberLazyListState()
     val recentFeedState = rememberLazyListState()
     val pagerState = rememberPagerState { uiState.liveEpisode.size }
-    val currentMediaItem = remember(playerControlState.currentMediaItem?.mediaId) {
-        playerControlState.currentMediaItem
-    }
 
-    val placeHolderColor by infiniteTransition.animateColor(
-        initialValue = Colors.Primary10.copy(alpha = 0.3f),
-        targetValue = Colors.Secondary.copy(alpha = 0.3f),
-        animationSpec = infiniteRepeatable(
-            tween(
-                1700,
-                delayMillis = 200
-            ),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "Color"
-    )
+    // The placeholder pulse used to be read here, in composition, by `by`: the whole Discover
+    // screen recomposed on every frame, forever (the transition never stopped, even with all
+    // data loaded). Now it only runs while a placeholder is on screen, and is read in draw.
+    val placeholderActive = uiState.listTrending.isEmpty() ||
+            uiState.musicFeeds.isEmpty() ||
+            uiState.isDataPartLoading[HomepageDataPart.RecentFeed.value] != false ||
+            uiState.locations.any { uiState.locationPodcasts[it.region] == null }
+    val placeHolderColor = rememberPlaceholderPulse(active = placeholderActive)
+
+    // Built once: a fresh wrapper per composition made every row below recompose with it.
+    val onTrendingTracked = remember(onTrendingClick) {
+        tss.t.podcast.analytics.ContentAnalytics.onPodcast(tss.t.sharedlibrary.analytics.AppEvents.Section.TRENDING, onTrendingClick)
+    }
+    val onMusicTracked = remember(onTrendingClick) {
+        tss.t.podcast.analytics.ContentAnalytics.onPodcast(tss.t.sharedlibrary.analytics.AppEvents.Section.MUSIC, onTrendingClick)
+    }
+    val onRecentTracked = remember(onTrendingClick) {
+        tss.t.podcast.analytics.ContentAnalytics.onPodcast(tss.t.sharedlibrary.analytics.AppEvents.Section.RECENT, onTrendingClick)
+    }
 
     val isFavRefreshing =
         remember(key1 = uiState.isDataPartLoading[HomepageDataPart.Favourite.value]) {
@@ -216,7 +214,7 @@ fun DiscoverPodcastsScreen(
                     listTrending = uiState.listTrending,
                     sharedTransitionScope = sharedTransitionScope,
                     animatedContentScope = animatedContentScope,
-                    onTrendingClick = tss.t.podcast.analytics.ContentAnalytics.onPodcast(tss.t.sharedlibrary.analytics.AppEvents.Section.TRENDING, onTrendingClick)
+                    onTrendingClick = onTrendingTracked
                 )
             }
             // "Thời sự" per podcast location: the newest bulletins of each location's trending
@@ -283,7 +281,7 @@ fun DiscoverPodcastsScreen(
                     listTrending = uiState.musicFeeds,
                     sharedTransitionScope = sharedTransitionScope,
                     animatedContentScope = animatedContentScope,
-                    onTrendingClick = tss.t.podcast.analytics.ContentAnalytics.onPodcast(tss.t.sharedlibrary.analytics.AppEvents.Section.MUSIC, onTrendingClick)
+                    onTrendingClick = onMusicTracked
                 )
             }
             item(key = ITEM_AD_BANNER_1) {
@@ -336,7 +334,7 @@ fun DiscoverPodcastsScreen(
                     sharedTransitionScope,
                     animatedContentScope,
                     recentFeedState,
-                    tss.t.podcast.analytics.ContentAnalytics.onPodcast(tss.t.sharedlibrary.analytics.AppEvents.Section.RECENT, onTrendingClick)
+                    onRecentTracked
                 )
             }
             item(key = ITEM_FAV_TITLE) {
@@ -360,7 +358,8 @@ fun DiscoverPodcastsScreen(
                     } else {
                         uiState.listFav[it].id
                     }
-                }) {
+                },
+                contentType = { if (isFavRefreshing) "FavLoading" else "Fav" }) {
                 FavouriteWidget(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
@@ -400,7 +399,7 @@ fun DiscoverPodcastsScreen(
 
             item(key = ITEM_SPACE_BOTTOM) {
                 Spacer(modifier = Modifier.size(innerPadding.calculateBottomPadding()))
-                if (currentMediaItem != null) {
+                if (hasMiniPlayer) {
                     Spacer(modifier = Modifier.size(86.dp))
                 }
             }
@@ -451,7 +450,7 @@ fun DiscoverPodcastsScreenPreview() {
 
                 },
                 uiState = UIState(),
-                playerControlState = PlayerViewModel.PlayerControlState()
+                hasMiniPlayer = false
             )
         }
     }

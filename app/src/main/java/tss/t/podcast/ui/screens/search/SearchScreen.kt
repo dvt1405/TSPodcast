@@ -193,8 +193,8 @@ fun SearchScreen(
                     state = hazeState,
                     style = HazeDefaults.tint
                 )
+                // No animateContentSize: it re-measured the whole list on every result change.
                 .fillMaxWidth()
-                .animateContentSize()
         ) {
             if (searchText.isNullOrEmpty() && selectedCategory != null) {
                 // A topic is open: its trending shows in the main podcast location.
@@ -222,7 +222,11 @@ fun SearchScreen(
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp, vertical = 48.dp)
                         )
                     }
-                    else -> items(categoryResults.size, key = { "cat_" + categoryResults[it].id }) { index ->
+                    else -> items(
+                        categoryResults.size,
+                        key = { "cat_" + categoryResults[it].id },
+                        contentType = { "result" }
+                    ) { index ->
                         SearchPodcastItem(categoryResults[index]) { onSearchSelected(it) }
                     }
                 }
@@ -280,7 +284,10 @@ fun SearchScreen(
                 val shown = resultCategory?.let { id ->
                     searchResult.filter { feed -> feed.inCategory(id) }
                 } ?: searchResult
-                items(shown.size) { index ->
+                items(
+                    shown.size,
+                    contentType = { if (it == 0) "resultHeader" else "result" }
+                ) { index ->
                     val item = shown[index]
                     if (index == 0) {
                         Text(

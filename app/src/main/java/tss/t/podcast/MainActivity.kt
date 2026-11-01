@@ -18,12 +18,20 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.offset
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.IntOffset
+import tss.t.podcast.ui.theme.Motion
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -230,7 +238,7 @@ class MainActivity : ComponentActivity() {
             val liquidGlass by uiPrefs.liquidGlass.collectAsState()
             PodcastTheme {
                 val windowInset = WindowInsets.systemBars.asPaddingValues()
-                val playerControlState by playerViewModel.playerControlState.collectAsState()
+                val miniPlayerState by playerViewModel.miniPlayerState.collectAsState()
                 SharedTransitionLayout {
                     CompositionLocalProvider(
                         LocalSharedTransitionScope provides this,
@@ -250,7 +258,7 @@ class MainActivity : ComponentActivity() {
                         )
 
                         MiniPlayer(
-                            playerControlState = playerControlState,
+                            miniPlayerState = miniPlayerState,
                             parentNavHost = navGraph,
                             innerPadding = windowInset,
                             playerViewModel = playerViewModel
@@ -481,50 +489,63 @@ private fun BrokenInstallScreen(onOpenStore: () -> Unit) {
 
 @Composable
 private fun MiniPlayer(
-    playerControlState: PlayerViewModel.PlayerControlState,
+    miniPlayerState: PlayerViewModel.MiniPlayerState,
     parentNavHost: NavHostController,
     innerPadding: PaddingValues,
     playerViewModel: PlayerViewModel,
 ) {
     val backStackEntry by parentNavHost.currentBackStackEntryAsState()
-    val paddingBottom = remember(backStackEntry?.destination?.route) {
-        when (backStackEntry?.destination?.route) {
-            TSRouter.Main.route -> innerPadding.calculateBottomPadding() + 70.dp
-            else -> innerPadding.calculateBottomPadding()
-        }
+    val route = backStackEntry?.destination?.route
+    val paddingBottom = when (route) {
+        TSRouter.Main.route -> innerPadding.calculateBottomPadding() + 70.dp
+        else -> innerPadding.calculateBottomPadding()
     }
-
-    val animatePadding by animateDpAsState(paddingBottom, label = "MiniPlayerPadding")
+    // Read in the layout phase (offset below): moving with the bottom bar no longer recomposes.
+    val animatePadding = animateDpAsState(
+        paddingBottom,
+        animationSpec = tween(Motion.LONG, easing = Motion.EmphasizedDecelerate),
+        label = "MiniPlayerPadding"
+    )
     // The glass capsule draws its own shadow outside its shape; a rectangular elevation shadow
     // here would show through the translucent capsule as a grey frame.
     val glass = tss.t.sharedlibrary.ui.glass.LocalLiquidGlass.current
+    val currentMediaItem = miniPlayerState.currentMediaItem
+    // Keeps the last item on screen while the bar slides away after playback is cleared.
+    var shownItem by remember { mutableStateOf(currentMediaItem) }
+    if (currentMediaItem != null) shownItem = currentMediaItem
 
-    AnimatedContent(
-        targetState = playerControlState.currentMediaItem,
-        label = "Player"
-    ) {
-        val currentMediaItem = it
-        if (currentMediaItem != null && backStackEntry?.destination?.route != TSRouter.Player.route) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .animateContentSize()
-            ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Slides down with the full Player rising over it, and back up when it closes.
+        AnimatedVisibility(
+            visible = currentMediaItem != null && route != TSRouter.Player.route,
+            modifier = Modifier
+                .zIndex(100f)
+                .align(Alignment.BottomCenter)
+                .offset { IntOffset(0, -animatePadding.value.roundToPx()) },
+            enter = slideInVertically(tween(Motion.LONG, easing = Motion.EmphasizedDecelerate)) { it } +
+                    fadeIn(tween(Motion.MEDIUM)),
+            exit = slideOutVertically(tween(Motion.MEDIUM, easing = Motion.EmphasizedAccelerate)) { it } +
+                    fadeOut(tween(Motion.SHORT)),
+        ) {
+            // Keyed by media id: the session hands back an equal-but-new MediaItem now and
+            // then (checkFavourite), which used to replay the whole cross-fade.
+            AnimatedContent(
+                targetState = shownItem,
+                contentKey = { it?.mediaId },
+                transitionSpec = {
+                    fadeIn(tween(Motion.MEDIUM, 60)) togetherWith fadeOut(tween(Motion.SHORT)) using
+                            SizeTransform(clip = false)
+                },
+                label = "MiniPlayerItem"
+            ) { item ->
+                if (item == null) return@AnimatedContent
                 PlayerWidgetMain(
-                    modifier = Modifier
-                        .zIndex(100f)
-                        .padding(bottom = animatePadding)
-                        .align(Alignment.BottomCenter)
-                        .animateEnterExit(
-                            enter = fadeIn() + slideInVertically { it },
-                            exit = fadeOut() + slideOutVertically { it }
-                        )
-                        .then(if (glass) Modifier else Modifier.shadow(1.dp)),
-                    title = currentMediaItem.mediaMetadata.title.toString(),
-                    image = currentMediaItem.mediaMetadata.artworkUri.toString(),
-                    description = currentMediaItem.mediaMetadata.description.toString(),
-                    id = currentMediaItem.mediaId,
-                    playing = playerControlState.isPlaying,
+                    modifier = Modifier.then(if (glass) Modifier else Modifier.shadow(1.dp)),
+                    title = item.mediaMetadata.title.toString(),
+                    image = item.mediaMetadata.artworkUri.toString(),
+                    description = item.mediaMetadata.description.toString(),
+                    id = item.mediaId,
+                    playing = miniPlayerState.isPlaying,
                     playPauseClick = {
                         playerViewModel.onPlayPause()
                     },
@@ -535,5 +556,4 @@ private fun MiniPlayer(
             }
         }
     }
-
 }

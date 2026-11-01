@@ -8,12 +8,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import tss.t.coreapi.models.Podcast
 import tss.t.podcast.ui.screens.discorver.widgets.AsyncTrendingWidget
+import tss.t.podcast.ui.screens.discorver.widgets.PlaceholderColor
 import tss.t.podcast.ui.screens.discorver.widgets.TrendingWidget
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -21,7 +22,7 @@ import tss.t.podcast.ui.screens.discorver.widgets.TrendingWidget
 fun TrendingRow(
     trendingRowState: LazyListState,
     isRefreshing: Boolean,
-    placeHolderColor: Color,
+    placeHolderColor: PlaceholderColor,
     listTrending: List<Podcast>,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedVisibilityScope,
@@ -31,21 +32,20 @@ fun TrendingRow(
         state = trendingRowState,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { Spacer(modifier = Modifier.size(4.dp)) }
+        item(key = "start", contentType = "spacer") { Spacer(modifier = Modifier.size(4.dp)) }
         if (listTrending.isEmpty()) {
-            items(20, key = { it }) {
+            items(20, key = { "placeholder_$it" }, contentType = { "placeholder" }) {
                 AsyncTrendingWidget(placeHolderColor)
             }
         } else {
-            items(listTrending.size) {
-                val item = listTrending[it]
+            // No id key: the API can return a show twice, and a duplicate key crashes LazyRow.
+            items(listTrending, contentType = { "podcast" }) { item ->
                 TrendingWidget(
                     podcast = item,
                     sharedTransitionScope = sharedTransitionScope,
-                    animatedContentScope = animatedContentScope
-                ) {
-                    onTrendingClick(item)
-                }
+                    animatedContentScope = animatedContentScope,
+                    onClick = onTrendingClick
+                )
             }
         }
     }

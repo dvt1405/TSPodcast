@@ -51,6 +51,9 @@ import coil.request.ImageRequest
 import tss.t.coreapi.models.Podcast
 import tss.t.podcast.SharedElementKey
 import tss.t.podcast.ui.screens.main.podcastDetailBoundsTransform
+import tss.t.podcast.ui.screens.common.rememberHtmlText
+import tss.t.podcast.ui.theme.Motion
+import androidx.compose.ui.graphics.graphicsLayer
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.ui.animations.skeleton.ShimmerAsyncImage
@@ -71,25 +74,24 @@ fun TrendingWidget(
     val interactiveSource = remember { MutableInteractionSource() }
     var menuOpen by remember { mutableStateOf(false) }
     val pressed by interactiveSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
+    val scale = animateFloatAsState(
         if (pressed) 0.95f else 1f, label = "scale",
-        animationSpec = spring(stiffness = 300f)
-    ) {
-    }
-
-    val roundedCorner by animatedContentScope.transition
-        .animateDp(label = "rounded corner") { enterExit: EnterExitState ->
-            when (enterExit) {
-                EnterExitState.PreEnter -> 10.dp
-                EnterExitState.Visible -> 10.dp
-                EnterExitState.PostExit -> 10.dp
-            }
-        }
+        animationSpec = spring(dampingRatio = 0.8f, stiffness = 500f)
+    )
+    // Was an animateDp on the nav transition with the same 10 dp in every state: one more
+    // animation per card for nothing.
+    val roundedCorner = CardCorner
+    // HTML parsing per composition was the most expensive thing in this card.
+    val description = rememberHtmlText(podcast.description)
 
     with(sharedTransitionScope) {
         Column(
             modifier = modifier
-                .scale(scale)
+                // Read in the draw phase: the press animation no longer recomposes the card.
+                .graphicsLayer {
+                    scaleX = scale.value
+                    scaleY = scale.value
+                }
                 .clip(RoundedCornerShape(roundedCorner))
                 .width(250.dp)
                 .sharedBounds(
@@ -127,8 +129,7 @@ fun TrendingWidget(
                         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
                     )
                     .error(R.drawable.image_loader_place_holder_top)
-                    .crossfade(true)
-                    .crossfade(250)
+                    .crossfade(Motion.IMAGE_CROSSFADE)
                     .memoryCacheKey(podcast.image)
                     .placeholderMemoryCacheKey(podcast.image)
                     .build(),
@@ -176,14 +177,7 @@ fun TrendingWidget(
             )
 
             Text(
-                buildAnnotatedString {
-                    append(
-                        HtmlCompat.fromHtml(
-                            podcast.description ?: "",
-                            HtmlCompat.FROM_HTML_MODE_LEGACY
-                        )
-                    )
-                }, style = TextStyles.Body4,
+                description, style = TextStyles.Body4,
                 modifier = Modifier
                     .fillMaxWidth()
                     .sharedBounds(
@@ -206,9 +200,12 @@ fun TrendingWidget(
     }
 }
 
+private val CardCorner = 10.dp
+private val PlaceholderShape = RoundedCornerShape(8.dp)
+
 @Composable
 fun AsyncTrendingWidget(
-    placeholderColor: Color
+    placeholderColor: PlaceholderColor
 ) {
     Column(
         modifier = Modifier.width(250.dp)
@@ -217,24 +214,21 @@ fun AsyncTrendingWidget(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
-                .clip(RoundedCornerShape(8.dp))
-                .background(placeholderColor)
+                .placeholderFill(PlaceholderShape, placeholderColor)
         )
         Spacer(modifier = Modifier.size(12.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(15.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(placeholderColor)
+                .placeholderFill(PlaceholderShape, placeholderColor)
         )
         Spacer(modifier = Modifier.size(2.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(35.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(placeholderColor)
+                .placeholderFill(PlaceholderShape, placeholderColor)
         )
 
     }
@@ -243,7 +237,7 @@ fun AsyncTrendingWidget(
 @Composable
 @Preview
 fun AsyncTrendingWidgetPreview() {
-    AsyncTrendingWidget(Colors.Secondary50)
+    AsyncTrendingWidget { Colors.Secondary50 }
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class)

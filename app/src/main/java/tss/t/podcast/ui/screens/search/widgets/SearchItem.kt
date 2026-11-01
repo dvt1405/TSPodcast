@@ -89,14 +89,8 @@ fun SearchPodcastItem(
             )
             Spacer(Modifier.size(4.dp))
             Text(
-                buildAnnotatedString {
-                    append(
-                        HtmlCompat.fromHtml(
-                            feed.description,
-                            HtmlCompat.FROM_HTML_MODE_LEGACY
-                        )
-                    )
-                },
+                // Gson can leave the "non-null" description null.
+                tss.t.podcast.ui.screens.common.rememberHtmlText(feed.description as String?),
                 style = TextStyles.Body5,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis
