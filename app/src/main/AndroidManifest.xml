@@ -50,6 +50,22 @@
                 <data android:path="/playing" />
                 <data android:path="/playing/" />
             </intent-filter>
+            <!--
+                Shared links (WebLinks): a podcast or an episode on the web app opens here when the
+                app is installed. Verified once the web serves assetlinks.json with the signing
+                certificate (ANDROID_CERT_SHA256 on Vercel); until then users can still pick the app.
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" />
+                <data android:host="tspodcast.vercel.app" />
+                <data android:pathPrefix="/podcast/" />
+                <data android:pathPrefix="/episode/" />
+            </intent-filter>
         </activity>
         <service
             android:name="tss.t.sharedplayer.service.PlayerSessionService"

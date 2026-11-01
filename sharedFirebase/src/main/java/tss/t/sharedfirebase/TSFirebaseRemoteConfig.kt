@@ -80,27 +80,32 @@ class TSFirebaseRemoteConfig @Inject constructor(
     }
 
 
+    // A key missing from the template (and from in-app defaults) comes back as Firebase's static
+    // value ("", false, 0), not as the caller's default; treat it as missing.
+    private fun isSet(key: String) =
+        _remoteConfig.getValue(key).source != com.google.firebase.remoteconfig.FirebaseRemoteConfig.VALUE_SOURCE_STATIC
+
     override fun getString(key: String, defValue: String?): String? {
         return safeGet(defValue) {
-            _remoteConfig.getString(key)
+            if (isSet(key)) _remoteConfig.getString(key) else defValue
         }
     }
 
     override fun getBoolean(key: String, defValue: Boolean): Boolean {
         return safeGet(defValue) {
-            _remoteConfig.getBoolean(key)
+            if (isSet(key)) _remoteConfig.getBoolean(key) else defValue
         } ?: defValue
     }
 
     override fun getLong(key: String, defValue: Long?): Long? {
         return safeGet(defValue) {
-            _remoteConfig.getLong(key)
+            if (isSet(key)) _remoteConfig.getLong(key) else defValue
         }
     }
 
     override fun getDouble(key: String, defValue: Double?): Double? {
         return safeGet(defValue) {
-            _remoteConfig.getDouble(key)
+            if (isSet(key)) _remoteConfig.getDouble(key) else defValue
         }
     }
 

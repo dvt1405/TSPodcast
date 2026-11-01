@@ -317,13 +317,6 @@ private fun PodcastDetailScreen(
             PodcastDetailTopAppBar(podcast) {
                 onBackPress()
             }
-            PodcastDetailActions(
-                podcast = podcast,
-                isFavourite = isPodcastFavourite,
-                onFavouriteChange = onPodcastFavouriteChange,
-                onHidden = onBackPress,
-                modifier = Modifier.align(Alignment.TopEnd)
-            )
             Header(podcast = podcast)
             Row(
                 modifier = Modifier
@@ -352,7 +345,19 @@ private fun PodcastDetailScreen(
                 listItems = listItems,
                 renderItemList = renderItemList,
                 currentMediaItem = currentMediaItem,
-                onItemClick = onItemClick
+                onItemClick = onItemClick,
+                actions = {
+                    // Next to the cover rather than pinned in the top bar, where the collapsed
+                    // title ran into them (owner, 2026-11-02).
+                    PodcastDetailActions(
+                        podcast = podcast,
+                        isFavourite = isPodcastFavourite,
+                        onFavouriteChange = onPodcastFavouriteChange,
+                        onHidden = onBackPress,
+                        onLight = true,
+                        modifier = it
+                    )
+                }
             )
         }
     }
@@ -367,7 +372,8 @@ private fun PodcastDetailBody(
     listItems: List<Episode>,
     renderItemList: List<Any>,
     currentMediaItem: MediaItem? = null,
-    onItemClick: Episode.() -> Unit
+    onItemClick: Episode.() -> Unit,
+    actions: @Composable (Modifier) -> Unit = {},
 ) {
     val sharedTransition = LocalSharedTransitionScope.current!!
     val isLoading = remember(listItems) {
@@ -448,6 +454,13 @@ private fun PodcastDetailBody(
                             .height(ExpandedImageSize / 2)
                             .background(Color.White)
                             .align(Alignment.BottomStart)
+                    )
+                    // Favourite / share / more, in the white half beside the cover.
+                    actions(
+                        Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(bottom = (ExpandedImageSize / 2 - 40.dp) / 2)
+                            .zIndex(3f)
                     )
                 }
 

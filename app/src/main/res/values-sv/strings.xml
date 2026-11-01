@@ -149,4 +149,7 @@ Anledning till rapporten:
     <string name="search_category_trending_in">Trendar i %1$s</string>
     <string name="search_category_empty">Inga trendande poddar i det här ämnet än</string>
     <string name="search_filter_all">Alla</string>
+    <string name="web_link_not_found">Hittade inte podden i länken</string>
+    <string name="settings_language_follow_region">Efter region</string>
+    <string name="settings_language_follow_region_value">Region · %1$s</string>
 </resources>

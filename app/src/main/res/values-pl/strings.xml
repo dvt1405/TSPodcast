@@ -149,4 +149,7 @@ Powód zgłoszenia:
     <string name="search_category_trending_in">Popularne: %1$s</string>
     <string name="search_category_empty">Brak jeszcze popularnych podcastów w tym temacie</string>
     <string name="search_filter_all">Wszystko</string>
+    <string name="web_link_not_found">Nie znaleziono podcastu z tego linku</string>
+    <string name="settings_language_follow_region">Według regionu</string>
+    <string name="settings_language_follow_region_value">Region · %1$s</string>
 </resources>

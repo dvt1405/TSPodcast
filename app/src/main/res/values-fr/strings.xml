@@ -149,4 +149,7 @@ Motif du signalement :
     <string name="search_category_trending_in">Tendance : %1$s</string>
     <string name="search_category_empty">Pas encore de podcasts tendance dans ce thème</string>
     <string name="search_filter_all">Tout</string>
+    <string name="web_link_not_found">Podcast introuvable pour ce lien</string>
+    <string name="settings_language_follow_region">Selon la région</string>
+    <string name="settings_language_follow_region_value">Région · %1$s</string>
 </resources>

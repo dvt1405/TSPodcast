@@ -73,6 +73,7 @@ fun SettingsScreen(
     val privacy by viewModel.privacy.collectAsState()
     val liquidGlass by viewModel.liquidGlass.collectAsState()
     val language by viewModel.language.collectAsState()
+    val followRegion by viewModel.followRegion.collectAsState()
     var showLanguages by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     val activity = androidx.activity.compose.LocalActivity.current
     val locations by viewModel.locations.collectAsState()
@@ -85,20 +86,21 @@ fun SettingsScreen(
         )
     }
     if (showLanguages) {
+        val regionLocation = locations.firstOrNull()
         LanguageDialog(
             languages = viewModel.languages,
-            selectedTag = language.tag,
+            selectedTag = if (followRegion) null else language.tag,
+            regionLabel = viewModel.regionLanguage().nativeName +
+                (regionLocation?.let { " · ${it.flag} ${it.displayName(androidx.compose.ui.platform.LocalConfiguration.current.locales[0])}" } ?: ""),
             onDismiss = { showLanguages = false },
+            onFollowRegion = {
+                showLanguages = false
+                if (!followRegion) viewModel.followRegion()
+            },
             onSelect = { tag ->
                 showLanguages = false
-                if (tag != language.tag) {
-                    viewModel.setLanguage(tag)
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                        tss.t.podcast.AppLocale.apply(tag)
-                    } else {
-                        activity?.recreate()
-                    }
-                }
+                // MainActivity applies the new language (and recreates on Android < 13).
+                if (followRegion || tag != language.tag) viewModel.setLanguage(tag)
             }
         )
     }
@@ -239,7 +241,11 @@ fun SettingsScreen(
                         Text(stringResource(R.string.settings_language), style = TextStyles.SubTitle2)
                         Text(stringResource(R.string.settings_language_hint), style = TextStyles.SubTitle4, color = Colors.Gray60)
                     }
-                    Text(language.nativeName, style = TextStyles.SubTitle2, color = MaterialTheme.colorScheme.primary)
+                    Text(
+                        if (followRegion) stringResource(R.string.settings_language_follow_region_value, language.nativeName) else language.nativeName,
+                        style = TextStyles.SubTitle2,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
             item {
@@ -376,8 +382,11 @@ internal fun Context.appVersion(): String = runCatching {
 @Composable
 private fun LanguageDialog(
     languages: List<tss.t.core.storage.AppLanguage>,
-    selectedTag: String,
+    /** null = "Theo khu vực" is selected. */
+    selectedTag: String?,
+    regionLabel: String,
     onDismiss: () -> Unit,
+    onFollowRegion: () -> Unit,
     onSelect: (String) -> Unit,
 ) {
     androidx.compose.material3.AlertDialog(
@@ -385,6 +394,21 @@ private fun LanguageDialog(
         title = { Text(stringResource(R.string.settings_language)) },
         text = {
             LazyColumn {
+                item(key = "followRegion") {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(role = Role.RadioButton) { onFollowRegion() }
+                            .padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        androidx.compose.material3.RadioButton(selected = selectedTag == null, onClick = onFollowRegion)
+                        Column {
+                            Text(stringResource(R.string.settings_language_follow_region), style = TextStyles.SubTitle2)
+                            Text(regionLabel, style = TextStyles.SubTitle4, color = Colors.Gray60)
+                        }
+                    }
+                }
                 items(languages, key = { it.tag }) { lang ->
                     Row(
                         modifier = Modifier

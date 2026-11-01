@@ -14,11 +14,26 @@ import java.util.Locale
  * system settings. Older versions: the activity context is wrapped in [wrap].
  */
 object AppLocale {
-    fun apply(tag: String) {
-        val current = AppCompatDelegate.getApplicationLocales().toLanguageTags()
-        if (!current.equals(tag, ignoreCase = true)) {
+    fun apply(context: Context, tag: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // The framework LocaleManager directly: AppCompatDelegate.setApplicationLocales is a
+            // no-op here because MainActivity is a ComponentActivity (no AppCompat delegate to
+            // find the LocaleManager through), so the language never changed on Android 13+.
+            val manager = context.getSystemService(android.app.LocaleManager::class.java) ?: return
+            if (!manager.applicationLocales.toLanguageTags().equals(tag, ignoreCase = true)) {
+                manager.applicationLocales = android.os.LocaleList.forLanguageTags(tag)
+            }
+        } else {
             AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
         }
+    }
+
+    /** Whether [config] already shows [tag] (language, and region when the tag has one). */
+    fun matches(config: Configuration, tag: String): Boolean {
+        val current = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) config.locales[0] else @Suppress("DEPRECATION") config.locale
+        val wanted = Locale.forLanguageTag(tag)
+        fun lang(l: Locale) = l.language.let { if (it == "in") "id" else it }
+        return lang(current) == lang(wanted) && (wanted.country.isEmpty() || wanted.country == current.country)
     }
 
     /** API < 33: a context in the saved language (read straight from the prefs file, before Hilt). */

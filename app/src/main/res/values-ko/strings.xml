@@ -149,4 +149,7 @@
     <string name="search_category_trending_in">%1$s 인기</string>
     <string name="search_category_empty">이 주제의 인기 팟캐스트가 아직 없습니다</string>
     <string name="search_filter_all">전체</string>
+    <string name="web_link_not_found">이 링크의 팟캐스트를 찾을 수 없습니다</string>
+    <string name="settings_language_follow_region">지역에 맞춤</string>
+    <string name="settings_language_follow_region_value">지역 · %1$s</string>
 </resources>

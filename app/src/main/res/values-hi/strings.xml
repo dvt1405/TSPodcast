@@ -149,4 +149,7 @@
     <string name="search_category_trending_in">%1$s में ट्रेंडिंग</string>
     <string name="search_category_empty">इस विषय में अभी कोई ट्रेंडिंग पॉडकास्ट नहीं</string>
     <string name="search_filter_all">सभी</string>
+    <string name="web_link_not_found">इस लिंक का पॉडकास्ट नहीं मिला</string>
+    <string name="settings_language_follow_region">क्षेत्र के अनुसार</string>
+    <string name="settings_language_follow_region_value">क्षेत्र · %1$s</string>
 </resources>

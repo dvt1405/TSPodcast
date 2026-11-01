@@ -595,6 +595,13 @@ interface API {
     @GET("stats/current")
     fun getCurrent(@Query("pretty") pretty: Boolean?): TSDataState<StatCurrent>
 
+    /** One episode by its PodcastIndex id (shared episode links). */
+    @GET("episodes/byid")
+    fun getEpisodeById(
+        @Query("id") id: Long,
+        @Query("fulltext") fulltext: Boolean? = null,
+    ): TSDataState<tss.t.coreapi.models.EpisodeByIdRes>
+
     @GET("podcasts/byfeedid")
     fun getPodcastByFeedId(
         @Query("id") id: String,
