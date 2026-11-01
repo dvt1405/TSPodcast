@@ -32,6 +32,10 @@ object ContentAnalytics {
     fun radio(channel: RadioChannel, section: String = AppEvents.Section.RADIO) =
         Analytics.log(AppEvents.selectContent(ContentType.RADIO, channel.channelId, section))
 
+    /** An episode replayed from the local history ("Nghe tiếp" row or the History screen). */
+    fun historyEpisode(mediaId: String, section: String) =
+        Analytics.log(AppEvents.selectContent(ContentType.EPISODE, mediaId, section))
+
     fun share(contentType: String, itemId: Any?) = Analytics.log(AppEvents.share(contentType, itemId))
 
     /** Wraps a `Podcast.() -> Unit` click so it logs first. */

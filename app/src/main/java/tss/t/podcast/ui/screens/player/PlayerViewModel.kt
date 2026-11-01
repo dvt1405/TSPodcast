@@ -41,9 +41,13 @@ import tss.t.coreradio.usecase.GetPlayableLink
 import tss.t.podcasts.usecase.favourite.DeleteFavouriteUseCase
 import tss.t.podcasts.usecase.favourite.IsFavouriteUseCase
 import tss.t.podcasts.usecase.favourite.SaveFavouriteUseCase
+import tss.t.core.history.ListeningHistoryRules
+import tss.t.core.models.ListeningHistory
 import tss.t.podcasts.usecase.history.GetEpisodeLocalUseCase
+import tss.t.podcasts.usecase.history.ListeningHistoryUseCase
 import tss.t.podcasts.usecase.history.SaveCurrentPlayingUseCase
 import tss.t.sharedplayer.controller.TSMediaController
+import tss.t.sharedplayer.library.toPlayableMediaItem as historyToPlayableMediaItem
 import tss.t.sharedplayer.library.toPlayableMediaItem
 import tss.t.sharedplayer.utils.progressOf
 import tss.t.sharedplayer.player.PlaybackExtrasState
@@ -62,7 +66,8 @@ class PlayerViewModel @Inject constructor(
     private val isFavouriteUseCase: IsFavouriteUseCase,
     private val saveCurrentPlayingUseCase: SaveCurrentPlayingUseCase,
     private val getEpisodeLocalUseCase: GetEpisodeLocalUseCase,
-    private val getPlayableLink: GetPlayableLink
+    private val getPlayableLink: GetPlayableLink,
+    private val listeningHistoryUseCase: ListeningHistoryUseCase,
 ) : ViewModel(), Player.Listener {
 
     private val currentPlayer: Player
@@ -74,6 +79,130 @@ class PlayerViewModel @Inject constructor(
 
     val playerControlState: StateFlow<PlayerControlState>
         get() = _playerControlState.asStateFlow()
+
+    init {
+        restoreSession()
+    }
+
+    /**
+     * On launch: show what the player holds, or else put back the episode left part-way ("Nghe
+     * tiếp") so the mini player shows it paused at the saved position and play continues there.
+     *
+     * - the player still has an item (audio kept playing after the task was swiped away, or the
+     *   activity was recreated): show it as it is;
+     * - the process was killed or crashed, the app was force-stopped, or playback stopped after
+     *   losing audio focus and the app was closed: the last unfinished history entry, restored
+     *   paused and not prepared (no data used, no notification until play).
+     */
+    private fun restoreSession() {
+        val loaded = currentPlayer.currentMediaItem
+        if (loaded != null) {
+            syncWithPlayer(loaded)
+            return
+        }
+        viewModelScope.launch {
+            val entry = runCatching { listeningHistoryUseCase.latestResumable() }.getOrNull()
+                ?: return@launch
+            // Something was started meanwhile (notification, shortcut, a tap): leave it.
+            if (_playerControlState.value.currentMediaItem != null) return@launch
+            restoreFromHistory(entry)
+        }
+    }
+
+    private suspend fun restoreFromHistory(entry: ListeningHistory) {
+        val episode = entry.mediaId.toLongOrNull()?.let { getEpisodeLocalUseCase(it) }
+        val related = episode?.let { getEpisodeLocalUseCase.getRelated(it.feedId) }
+        val podcast = related?.podcast
+        val album = podcast?.title ?: entry.podcastTitle
+        val item = episode?.toMediaItem(album)
+            ?: entry.takeIf { !it.mediaUrl.isNullOrBlank() }?.historyToPlayableMediaItem()
+            ?: return
+        // Room keeps no order: newest first, like the show page.
+        val playList = related?.episode.orEmpty()
+            .sortedByDescending { it.datePublished }
+            .map { it.toMediaItem(album) }
+        val index = playList.indexOfFirst { it.mediaId == item.mediaId }
+        val queue = if (index < 0) listOf(item) else playList.mapIndexed { i, it -> if (i == index) item else it }
+        val position = playerManager.resumePositionMs(item.mediaId)
+            .takeIf { it > 0L } ?: ListeningHistoryRules.startPositionMs(entry)
+        if (_playerControlState.value.currentMediaItem != null) return
+        if (!playerManager.restore(queue, index.coerceAtLeast(0), position)) return
+        setupPlayerListener()
+        val isFav = runCatching { isFavouriteUseCase(item) }.getOrDefault(false)
+        _playerControlState.update {
+            it.copy(
+                currentMediaItem = item,
+                isPlaying = false,
+                isLoading = false,
+                isFavourite = isFav,
+                podcast = podcast,
+                playList = queue,
+                currentDuration = position,
+                totalDuration = entry.durationMs,
+                currentProgress = progressOf(position, entry.durationMs),
+                exception = null
+            )
+        }
+    }
+
+    /** The player already holds [item] (e.g. still playing in the background): show it. */
+    private fun syncWithPlayer(item: MediaItem) {
+        _playerControlState.update {
+            it.copy(
+                currentMediaItem = item,
+                isPlaying = currentPlayer.isPlaying,
+                isLoading = false,
+                currentDuration = currentPlayer.contentPosition,
+                totalDuration = currentPlayer.contentDuration,
+                currentProgress = progressOf(
+                    currentPlayer.contentPosition,
+                    currentPlayer.contentDuration
+                ),
+            )
+        }
+        setupPlayerListener()
+        viewModelScope.launch {
+            val episodeId = item.mediaId.toLongOrNull() ?: return@launch
+            val episode = getEpisodeLocalUseCase(episodeId) ?: return@launch
+            val podcastAndEpisode = getEpisodeLocalUseCase.getRelated(episode.feedId)
+            val isFav = runCatching { isFavouriteUseCase(item) }.getOrDefault(false)
+            _playerControlState.update { state ->
+                state.copy(
+                    isFavourite = isFav,
+                    podcast = podcastAndEpisode?.podcast ?: state.podcast,
+                    playList = podcastAndEpisode?.episode
+                        ?.sortedByDescending { it.datePublished }
+                        ?.map { it.toMediaItem(podcastAndEpisode.podcast.title) }
+                        ?.takeIf { list -> list.any { it.mediaId == item.mediaId } }
+                        ?: state.playList.ifEmpty { listOf(item) }
+                )
+            }
+        }
+    }
+
+    /**
+     * Plays a history entry ("Lịch sử", "Nghe tiếp") from where it was left (from the start once
+     * heard), in its show's episode list when that is cached, else on its own.
+     */
+    suspend fun playFromHistory(entry: ListeningHistory) {
+        val episode = entry.mediaId.toLongOrNull()?.let { getEpisodeLocalUseCase(it) }
+        if (episode != null) {
+            val related = getEpisodeLocalUseCase.getRelated(episode.feedId)
+            playerEpisode(
+                episode = episode,
+                podcast = related?.podcast,
+                listItem = related?.episode
+                    ?.takeIf { list -> list.any { it.id == episode.id } }
+                    ?.sortedByDescending { it.datePublished }
+                    ?: listOf(episode)
+            )
+            return
+        }
+        if (entry.mediaUrl.isNullOrBlank()) return
+        val item = entry.historyToPlayableMediaItem()
+        _playerControlState.update { it.copy(podcast = null, playList = listOf(item)) }
+        playerMediaItem(item)
+    }
 
     /** Speed, sleep timer and live flag of the current item (kept by [PlayerManager], so they survive the screen). */
     val playbackExtras: StateFlow<PlaybackExtrasState>
@@ -295,7 +424,9 @@ class PlayerViewModel @Inject constructor(
                 )
             }
         } else {
-            currentPlayer.play()
+            // A restored "Nghe tiếp" item is not prepared yet: PlayerManager prepares it first.
+            setupPlayerListener()
+            playerManager.play()
             _playerControlState.update {
                 it.copy(
                     isPlaying = true,
@@ -517,8 +648,11 @@ class PlayerViewModel @Inject constructor(
         _playerControlState.update {
             it.copy(
                 isPlaying = currentPlayer.isPlaying,
+                // Idle with play requested = about to load. A restored "Nghe tiếp" item is
+                // idle too, but paused: no spinner for it.
                 isLoading = (currentPlayer.playbackState == Player.STATE_IDLE)
                         && !currentPlayer.isPlaying
+                        && currentPlayer.playWhenReady
             )
         }
     }

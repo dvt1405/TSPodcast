@@ -82,6 +82,7 @@ private const val ITEM_TRENDING_TITLE = "TrendingTitle"
 private const val ITEM_SPACE_TOP = "SpaceTop"
 private const val ITEM_FAV_CATEGORIES = "FavouritesCategories"
 private const val ITEM_LOCATION_SECTION = "LocationSection"
+private const val ITEM_CONTINUE_LISTENING = "ContinueListening"
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -100,6 +101,9 @@ fun DiscoverPodcastsScreen(
     onLiveItemClick: LiveEpisode.() -> Unit = {},
     onNewsClick: (tss.t.podcasts.NewsItem) -> Unit = {},
     onLocationsChange: (List<String>) -> Unit = {},
+    continueListening: List<tss.t.core.models.ListeningHistory> = emptyList(),
+    onContinueClick: (tss.t.core.models.ListeningHistory) -> Unit = {},
+    onSeeHistory: () -> Unit = {},
 ) {
     var showLocations by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     if (showLocations) {
@@ -181,6 +185,15 @@ fun DiscoverPodcastsScreen(
         ) {
             item(key = ITEM_SPACE_TOP) {
                 Spacer(modifier = Modifier.size(innerPadding.calculateTopPadding()))
+            }
+            if (continueListening.isNotEmpty()) {
+                item(key = ITEM_CONTINUE_LISTENING) {
+                    tss.t.podcast.ui.screens.discorver.components.ContinueListeningSection(
+                        entries = continueListening,
+                        onPlay = onContinueClick,
+                        onSeeAll = onSeeHistory
+                    )
+                }
             }
             item(key = ITEM_TRENDING_TITLE) {
                 Text(

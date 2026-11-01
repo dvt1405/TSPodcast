@@ -129,16 +129,21 @@ class PlayerSessionService() : MediaLibraryService() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        // App swiped away from Recents: when nothing plays the service stops and the process
+        // may be killed right after, so save where the user is ("Nghe tiếp" on the next launch).
+        playerManager.saveNow()
         super.onTaskRemoved(rootIntent)
     }
 
     override fun onDestroy() {
         serviceScope.cancel()
         mediaSession?.run {
-            player.release()
             release()
             mediaSession = null
         }
+        // Saves the position and history, then releases the player. Through PlayerManager so
+        // the next service start builds a new player instead of reusing the released one.
+        playerManager.release()
         super.onDestroy()
     }
 

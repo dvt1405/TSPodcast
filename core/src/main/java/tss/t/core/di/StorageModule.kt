@@ -8,6 +8,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import tss.t.core.storage.PodcastDatabase
 import tss.t.core.storage.dao.FavouriteDao
+import tss.t.core.storage.dao.ListeningHistoryDao
 import tss.t.coreapi.dao.EpisodeDao
 import tss.t.coreapi.dao.FeedDao
 import tss.t.coreapi.dao.PodcastDao
@@ -51,4 +52,9 @@ class StorageModule {
     fun radioDao(
         podcastDatabase: PodcastDatabase
     ): RadioChannelDao = podcastDatabase.radioDao()
+
+    @Provides
+    fun listeningHistoryDao(
+        podcastDatabase: PodcastDatabase
+    ): ListeningHistoryDao = podcastDatabase.listeningHistoryDao()
 }

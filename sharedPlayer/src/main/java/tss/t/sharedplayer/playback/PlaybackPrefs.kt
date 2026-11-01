@@ -7,6 +7,9 @@ interface PlaybackKeyValue {
     fun getBoolean(key: String): Boolean?
     fun putBoolean(key: String, value: Boolean)
     fun remove(key: String)
+
+    /** Removes every key starting with [prefix]. */
+    fun removeAll(prefix: String)
 }
 
 /**
@@ -31,6 +34,12 @@ class PlaybackPositions(private val store: PlaybackKeyValue) {
             store.putLong(key(mediaId), positionMs)
         }
     }
+
+    /** Forgets where [mediaId] was left (removed from the listening history). */
+    fun forget(mediaId: String) = store.remove(key(mediaId))
+
+    /** Forgets every saved position (history cleared). */
+    fun forgetAll() = store.removeAll(KEY_PREFIX)
 
     companion object {
         const val KEY_PREFIX = "playback_position_"

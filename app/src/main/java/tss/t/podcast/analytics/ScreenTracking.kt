@@ -56,5 +56,6 @@ internal fun screenName(outerRoute: String?, innerRoute: String?): String? = whe
     TSRouter.PodcastDetail.route -> Screen.PODCAST_DETAIL
     TSRouter.Player.route -> Screen.PLAYER
     TSRouter.Settings.route -> Screen.SETTINGS
+    TSRouter.History.route -> Screen.HISTORY
     else -> outerRoute.lowercase()
 }

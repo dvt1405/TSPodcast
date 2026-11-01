@@ -85,6 +85,10 @@ object AppEvents {
         const val FAVOURITES = "favourites"
         const val RADIO = "radio"
         const val PODCAST_DETAIL = "podcast_detail"
+        /** "Nghe tiếp" row at the top of Discover. */
+        const val CONTINUE_LISTENING = "continue_listening"
+        /** Local listening history screen. */
+        const val HISTORY = "history"
     }
 
     /** `screen_name` values of [screenView]. */
@@ -96,6 +100,7 @@ object AppEvents {
         const val PLAYER = "player"
         const val PODCAST_DETAIL = "podcast_detail"
         const val SETTINGS = "settings"
+        const val HISTORY = "history"
         const val ONBOARDING_CATEGORIES = "onboarding_categories"
         const val LOCATION_SHEET = "podcast_location_sheet"
         const val PRIVACY_SHEET = "privacy_consent_sheet"

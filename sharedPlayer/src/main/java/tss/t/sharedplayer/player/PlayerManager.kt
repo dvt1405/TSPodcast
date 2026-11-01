@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -50,7 +51,8 @@ data class PlaybackExtrasState(
 @Singleton
 class PlayerManager @Inject constructor(
     @ApplicationContext
-    private val context: Context
+    private val context: Context,
+    private val recorder: ListeningRecorder,
 ) {
     @OptIn(InternalCoroutinesApi::class)
     private val syncLock by lazy {
@@ -85,6 +87,21 @@ class PlayerManager @Inject constructor(
     /** Set while the sleep timer itself pauses, so that pause does not count as the user's. */
     private var pausingForTimer = false
     private var lastPositionSaveAt = 0L
+
+    /**
+     * Last position seen while playing, refreshed every tick: a queue skip (previous/next from
+     * the notification, the car or the lock screen) has already moved to the new item when
+     * onMediaItemTransition arrives, so the item left behind is saved from here.
+     */
+    private var lastSeen: Snapshot? = null
+
+    /**
+     * The paused item whose history the user just removed: not saved again (e.g. when the
+     * service is destroyed) until it plays again, or it would come back in "Lịch sử".
+     */
+    private var forgottenMediaId: String? = null
+
+    private class Snapshot(val item: MediaItem, val positionMs: Long, val durationMs: Long, val live: Boolean)
 
     // No eager construction in init {}: ExoPlayer must be built on a thread with
     // a Looper, and that made the player's thread depend on whichever thread
@@ -123,6 +140,20 @@ class PlayerManager @Inject constructor(
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()
         val mediaSourceFactory = DefaultMediaSourceFactory(httpDataSourceFactory)
         return ExoPlayer.Builder(context)
+            // Audio focus: a call, a navigation prompt or another media app pauses playback.
+            // A transient loss resumes on its own when focus returns, a permanent one stays
+            // paused. Every pause saves the position (see onIsPlayingChanged).
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_SPEECH)
+                    .build(),
+                /* handleAudioFocus = */ true
+            )
+            // Headphones unplugged / Bluetooth disconnected: pause instead of playing out loud.
+            .setHandleAudioBecomingNoisy(true)
+            // Keep the CPU and Wi-Fi awake while streaming with the screen off.
+            .setWakeMode(C.WAKE_MODE_NETWORK)
             .setPauseAtEndOfMediaItems(true)
             .setSeekBackIncrementMs(SEEK_BACK_MS)
             .setSeekForwardIncrementMs(SEEK_FORWARD_MS)
@@ -183,7 +214,7 @@ class PlayerManager @Inject constructor(
         }
         if (currentItem.mediaId == _player?.currentMediaItem?.mediaId) {
             if (true != _player?.isPlaying) {
-                _player?.play()
+                play()
             }
         } else {
             saveCurrentPosition()
@@ -210,6 +241,77 @@ class PlayerManager @Inject constructor(
      * builds itself (Android Auto browse, playback resumption) instead of [playMedia].
      */
     fun resumePositionMs(mediaId: String): Long = positions.resumePositionMs(mediaId, false)
+
+    /**
+     * Puts a queue back in the player without starting it ("Nghe tiếp" on the next launch): the
+     * mini player shows it paused at [positionMs] and [play] continues from there. Nothing is
+     * prepared yet, so no data is used and no notification appears until the user presses play.
+     * Does nothing when the player already has an item (e.g. still playing in the background).
+     */
+    fun restore(items: List<MediaItem>, startIndex: Int, positionMs: Long): Boolean {
+        if (items.isEmpty()) return false
+        ensurePlayerCreate()
+        val current = _player ?: return false
+        if (current.currentMediaItem != null) return false
+        current.playWhenReady = false
+        current.setMediaItems(items, startIndex.coerceIn(0, items.lastIndex), positionMs.coerceAtLeast(0L))
+        return true
+    }
+
+    /** Play, preparing first when the item was only restored or stopped after an error. */
+    fun play() {
+        ensurePlayerCreate()
+        val current = _player ?: return
+        if (current.playbackState == Player.STATE_IDLE) current.prepare()
+        if (current.playbackState == Player.STATE_ENDED) current.seekToDefaultPosition()
+        current.play()
+    }
+
+    /**
+     * Saves the position now and waits for the history row: the session service calls it when
+     * the task is swiped away and when it is destroyed, before the process may be killed.
+     */
+    fun saveNow() {
+        val current = _player ?: return
+        val item = current.currentMediaItem ?: return
+        if (isUntouchedRestore(current, item) || isForgotten(current, item)) return
+        val duration = current.duration.takeIf { it != C.TIME_UNSET } ?: 0L
+        val live = isLive(item)
+        positions.record(item.mediaId, live, current.currentPosition, duration)
+        lastPositionSaveAt = System.currentTimeMillis()
+        if (!live) recorder.recordNow(item, current.currentPosition, duration)
+    }
+
+    /** Releases the player (session service destroyed); the next access builds a new one. */
+    @OptIn(InternalCoroutinesApi::class)
+    fun release() {
+        saveNow()
+        mainHandler.removeCallbacks(tick)
+        synchronized(syncLock) {
+            _player?.removeListener(extrasListener)
+            _player?.release()
+            _player = null
+        }
+        lastSeen = null
+    }
+
+    /** "Xoá khỏi lịch sử": forget where [mediaId] was left. */
+    fun forgetPosition(mediaId: String) {
+        positions.forget(mediaId)
+        if (_player?.currentMediaItem?.mediaId == mediaId && _player?.isPlaying != true) {
+            forgottenMediaId = mediaId
+        }
+        if (lastSeen?.item?.mediaId == mediaId) lastSeen = null
+    }
+
+    /** "Xoá lịch sử": forget every saved position (speeds are kept). */
+    fun forgetAllPositions() {
+        positions.forgetAll()
+        if (_player?.isPlaying != true) {
+            forgottenMediaId = _player?.currentMediaItem?.mediaId
+            lastSeen = null
+        }
+    }
 
     // ---------------------------------------------------------------------------------------
     // Skip, speed, sleep timer (parity with iOS M6 "player cơ bản")
@@ -275,9 +377,36 @@ class PlayerManager @Inject constructor(
     private fun saveCurrentPosition() {
         val current = _player ?: return
         val item = current.currentMediaItem ?: return
+        if (isUntouchedRestore(current, item) || isForgotten(current, item)) return
         val duration = current.duration.takeIf { it != C.TIME_UNSET } ?: 0L
-        positions.record(item.mediaId, isLive(item), current.currentPosition, duration)
+        val live = isLive(item)
+        positions.record(item.mediaId, live, current.currentPosition, duration)
         lastPositionSaveAt = System.currentTimeMillis()
+        if (!live) recorder.record(item, current.currentPosition, duration)
+        lastSeen = Snapshot(item, current.currentPosition, duration, live)
+    }
+
+    /**
+     * An item put back by [restore] and never prepared: its saved position and history row are
+     * already right, and its duration is still unknown, so saving it would only lose data.
+     */
+    private fun isUntouchedRestore(player: Player, item: MediaItem): Boolean =
+        player.playbackState == Player.STATE_IDLE && lastSeen?.item?.mediaId != item.mediaId
+
+    private fun isForgotten(player: Player, item: MediaItem): Boolean {
+        if (forgottenMediaId == null) return false
+        if (player.isPlaying || item.mediaId != forgottenMediaId) {
+            forgottenMediaId = null
+            return false
+        }
+        return true
+    }
+
+    private fun rememberLastSeen() {
+        val current = _player ?: return
+        val item = current.currentMediaItem ?: return
+        val duration = current.duration.takeIf { it != C.TIME_UNSET } ?: 0L
+        lastSeen = Snapshot(item, current.currentPosition, duration, isLive(item))
     }
 
     private val tick = object : Runnable {
@@ -294,10 +423,12 @@ class PlayerManager @Inject constructor(
                 }
             }
             publishTimer()
-            if (current.isPlaying &&
-                System.currentTimeMillis() - lastPositionSaveAt >= PlaybackPositions.SAVE_INTERVAL_MS
-            ) {
-                saveCurrentPosition()
+            if (current.isPlaying) {
+                if (System.currentTimeMillis() - lastPositionSaveAt >= PlaybackPositions.SAVE_INTERVAL_MS) {
+                    saveCurrentPosition()
+                } else {
+                    rememberLastSeen()
+                }
             }
             scheduleTick()
         }
@@ -331,11 +462,23 @@ class PlayerManager @Inject constructor(
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             lastPlayingAt = android.os.SystemClock.elapsedRealtime()
-            if (!isPlaying) saveCurrentPosition()
+            // Stopped for any reason (user, transient or permanent audio focus loss, headphones
+            // unplugged, end of episode, error) or started: either way the position and history
+            // are saved, so an episode shows in "Lịch sử" from its first second.
+            saveCurrentPosition()
             scheduleTick()
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            // The item left behind by a skip inside the queue: save where it was left.
+            val left = lastSeen
+            if (left != null && left.item.mediaId != mediaItem?.mediaId &&
+                reason != Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED
+            ) {
+                positions.record(left.item.mediaId, left.live, left.positionMs, left.durationMs)
+                if (!left.live) recorder.record(left.item, left.positionMs, left.durationMs)
+            }
+            lastSeen = null
             applySpeedForCurrentItem()
             // Prev/next inside the queue: start where the user left that episode. A new queue
             // from playMedia() already starts at the saved position (PLAYLIST_CHANGED).
@@ -374,4 +517,9 @@ private class SharedPreferencesKeyValue(context: Context) : PlaybackKeyValue {
     override fun getBoolean(key: String): Boolean? = if (prefs.contains(key)) prefs.getBoolean(key, false) else null
     override fun putBoolean(key: String, value: Boolean) = prefs.edit().putBoolean(key, value).apply()
     override fun remove(key: String) = prefs.edit().remove(key).apply()
+    override fun removeAll(prefix: String) {
+        val editor = prefs.edit()
+        prefs.all.keys.filter { it.startsWith(prefix) }.forEach(editor::remove)
+        editor.apply()
+    }
 }
