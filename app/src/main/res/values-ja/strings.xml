@@ -150,4 +150,6 @@
     <string name="search_category_empty">このトピックの人気ポッドキャストはまだありません</string>
     <string name="search_filter_all">すべて</string>
     <string name="web_link_not_found">このリンクのポッドキャストが見つかりません</string>
+    <string name="settings_language_follow_region">地域に合わせる</string>
+    <string name="settings_language_follow_region_value">地域 · %1$s</string>
 </resources>
