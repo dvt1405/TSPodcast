@@ -22,14 +22,14 @@ on:
       distributionGroups:
         description: 'Firebase App Distribution groups (comma-separated)'
         required: true
-        default: 'podcasttester'
+        default: 'tspodcastrelease'
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: set up JDK 17
+      - name: set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
@@ -55,7 +55,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: set up JDK 17
+      - name: set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
@@ -68,6 +68,13 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          # Real AdMob ids so testers get the same ads setup as the store build.
+          ORG_GRADLE_PROJECT_ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
+          ORG_GRADLE_PROJECT_ADMOB_UNIT_APP_OPEN: ${{ secrets.ADMOB_UNIT_APP_OPEN }}
+          ORG_GRADLE_PROJECT_ADMOB_UNIT_BANNER: ${{ secrets.ADMOB_UNIT_BANNER }}
+          ORG_GRADLE_PROJECT_ADMOB_UNIT_NATIVE: ${{ secrets.ADMOB_UNIT_NATIVE }}
+          ORG_GRADLE_PROJECT_ADMOB_UNIT_INTERSTITIAL: ${{ secrets.ADMOB_UNIT_INTERSTITIAL }}
+          ORG_GRADLE_PROJECT_ADMOB_UNIT_REWARDED: ${{ secrets.ADMOB_UNIT_REWARDED }}
         run: ./gradlew assembleRelease
 
       - name: Upload APK as artifact
@@ -103,5 +110,5 @@ jobs:
           appId: ${{ github.event.inputs.buildType == 'debug' && secrets.FIREBASE_DEBUG_APP_ID || secrets.FIREBASE_RELEASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
           groups: ${{ github.event.inputs.distributionGroups }}
-          releaseNotes: ${{ github.event.inputs.releaseNotes }}
+          releaseNotes: ${{ github.event.inputs.releaseNotes || github.event.head_commit.message }}
           file: ${{ steps.find-apk.outputs.apk_path }}
