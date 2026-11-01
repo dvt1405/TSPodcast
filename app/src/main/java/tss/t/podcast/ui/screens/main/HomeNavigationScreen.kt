@@ -13,7 +13,12 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.BoundsTransform
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.togetherWith
+import tss.t.podcast.ui.theme.Motion
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -148,7 +153,9 @@ fun HomeNavigationScreen(
     }
 
     val dashboardUIState by mainViewModel.uiState.collectAsState()
-    val playerControlState by playerViewModel.playerControlState.collectAsState()
+    // Not playerControlState: that one ticks every 200 ms during playback (position) and
+    // recomposed the whole Home, bars and current tab included, five times a second.
+    val miniPlayerState by playerViewModel.miniPlayerState.collectAsState()
     Scaffold(
         topBar = {
             with(animatedContentScope) {
@@ -159,8 +166,8 @@ fun HomeNavigationScreen(
                                 zIndexInOverlay = 4f
                             )
                             .animateEnterExit(
-                                enter = fadeIn() + slideInVertically { -it },
-                                exit = fadeOut() + slideOutVertically { -it }
+                                enter = fadeIn(Motion.enter()) + slideInVertically(Motion.enter(Motion.LONG)) { -it },
+                                exit = fadeOut(Motion.exit(Motion.MEDIUM)) + slideOutVertically(Motion.exit(Motion.MEDIUM)) { -it }
                             ),
                         hazeState = hazeState,
                         title = stringResource(screenTitleRes),
@@ -187,8 +194,8 @@ fun HomeNavigationScreen(
                                 zIndexInOverlay = 1f
                             )
                             .animateEnterExit(
-                                enter = fadeIn() + slideInVertically { it },
-                                exit = fadeOut() + slideOutVertically { it }
+                                enter = fadeIn(Motion.enter()) + slideInVertically(Motion.enter(Motion.LONG)) { it },
+                                exit = fadeOut(Motion.exit(Motion.MEDIUM)) + slideOutVertically(Motion.exit(Motion.MEDIUM)) { it }
                             ),
                         hazeState = hazeState,
                         selectedTab = selectedTabIndex,
@@ -207,7 +214,7 @@ fun HomeNavigationScreen(
             animationScope = animatedContentScope,
             hazeState = hazeState,
             dashboardUIState = dashboardUIState,
-            playerControlState = playerControlState,
+            miniPlayerState = miniPlayerState,
             innerPadding = innerPadding
         )
     }
@@ -265,7 +272,7 @@ private fun HomeNavHost(
     animationScope: AnimatedVisibilityScope = LocalNavAnimatedVisibilityScope.current!!,
     hazeState: HazeState,
     dashboardUIState: UIState,
-    playerControlState: PlayerViewModel.PlayerControlState,
+    miniPlayerState: PlayerViewModel.MiniPlayerState,
     innerPadding: PaddingValues
 ) {
     val sharedTransScope = LocalSharedTransitionScope.current!!
@@ -276,9 +283,27 @@ private fun HomeNavHost(
     val playerViewModel: PlayerViewModel = viewModel(viewmodelStore)
     val historyViewModel: tss.t.podcast.ui.screens.history.HistoryViewModel = viewModel(viewmodelStore)
     val coroutineScope = rememberCoroutineScope()
+    val hasMiniPlayer = miniPlayerState.hasMedia
+    // Tab content padding: above the mini player when one is showing.
+    val tabPadding = remember(innerPadding, hasMiniPlayer) {
+        PaddingValues(
+            start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+            end = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+            top = innerPadding.calculateTopPadding(),
+            bottom = if (hasMiniPlayer) {
+                innerPadding.calculateBottomPadding() + 86.dp
+            } else {
+                innerPadding.calculateBottomPadding()
+            }
+        )
+    }
     NavHost(
         navController = innerNavHost,
         startDestination = TSHomeRouter.Discover.route,
+        enterTransition = Motion.tabEnter,
+        exitTransition = Motion.tabExit,
+        popEnterTransition = Motion.tabEnter,
+        popExitTransition = Motion.tabExit,
     ) {
         composable(TSHomeRouter.Discover.route) {
             CompositionLocalProvider(
@@ -287,7 +312,7 @@ private fun HomeNavHost(
             ) {
                 DiscoverPodcastsScreen(
                     uiState = dashboardUIState,
-                    playerControlState = playerControlState,
+                    hasMiniPlayer = hasMiniPlayer,
                     hazeState = hazeState,
                     innerPadding = innerPadding,
                     showLoading = dashboardUIState.showLoadingView,
@@ -339,24 +364,14 @@ private fun HomeNavHost(
         }
 
         composable(TSHomeRouter.Favourite.route) {
-            // Reload on every visit: favourites added from Detail or the Player since the
-            // first load must show (features-spec §3.8 [Sửa]).
-            androidx.compose.runtime.LaunchedEffect(Unit) { favViewModel.selectAll() }
+            // FavouriteScreen reloads on every visit (its own LaunchedEffect): favourites added
+            // from Detail or the Player since the first load must show (features-spec §3.8 [Sửa]).
             FavouriteScreen(
                 rootNavHost = parentNavHost,
                 listState = rememberLazyListState(),
                 mainViewModel = mainViewModel,
                 playerViewModel = playerViewModel,
-                innerPadding = PaddingValues(
-                    start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
-                    end = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
-                    top = innerPadding.calculateTopPadding(),
-                    bottom = if (playerControlState.currentMediaItem == null) {
-                        innerPadding.calculateBottomPadding()
-                    } else {
-                        innerPadding.calculateBottomPadding() + 86.dp
-                    }
-                ),
+                innerPadding = tabPadding,
                 pullToRefreshState = rememberPullToRefreshState(),
                 viewModel = favViewModel,
                 hazeState = hazeState,
@@ -393,16 +408,7 @@ private fun HomeNavHost(
                 primaryLocation = searchViewModel.primaryLocation,
                 onCategorySelected = searchViewModel::selectCategory,
                 hazeState = hazeState,
-                innerPadding = PaddingValues(
-                    start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
-                    end = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
-                    top = innerPadding.calculateTopPadding(),
-                    bottom = if (playerControlState.currentMediaItem == null) {
-                        innerPadding.calculateBottomPadding()
-                    } else {
-                        innerPadding.calculateBottomPadding() + 86.dp
-                    }
-                ),
+                innerPadding = tabPadding,
                 onSearchSelected = { feed ->
                     val podcast = Podcast.fromFeed(feed)
                     val inTopic = categoryResults?.contains(feed) == true
@@ -427,9 +433,9 @@ private fun HomeNavHost(
                 contentPadding = innerPadding,
                 hazeState = hazeState,
                 radioUISate = uiState,
-                currentMediaItem = playerControlState.currentMediaItem,
-                isMediaPlaying = playerControlState.isPlaying,
-                isMediaLoading = playerControlState.isLoading,
+                currentMediaItem = miniPlayerState.currentMediaItem,
+                isMediaPlaying = miniPlayerState.isPlaying,
+                isMediaLoading = miniPlayerState.isLoading,
                 listState = listState,
                 onPlay = {
                     tss.t.podcast.analytics.ContentAnalytics.radio(it)
@@ -515,9 +521,11 @@ private fun TSBottomNavigation(
                 val tabWidth = maxWidth / tabs.size
                 val offset by androidx.compose.animation.core.animateDpAsState(
                     tabWidth * selectedTab,
+                    // Settles without the visible wobble of the old 0.7 damping, and a bit
+                    // stiffer so it keeps pace with the tab content's fade-through.
                     animationSpec = androidx.compose.animation.core.spring(
-                        dampingRatio = 0.7f,
-                        stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow
+                        dampingRatio = 0.86f,
+                        stiffness = 500f
                     ),
                     label = "glassLens"
                 )
@@ -575,6 +583,11 @@ fun MainTSAppBar(
         title = {
             AnimatedContent(
                 targetState = title,
+                // Same fade-through as the tab content, no scale (text scaling looks soft).
+                transitionSpec = {
+                    fadeIn(tween(210, 60, LinearOutSlowInEasing)) togetherWith
+                            fadeOut(tween(90)) using SizeTransform(clip = false)
+                },
                 label = "TitleAppBar"
             ) {
                 Text(

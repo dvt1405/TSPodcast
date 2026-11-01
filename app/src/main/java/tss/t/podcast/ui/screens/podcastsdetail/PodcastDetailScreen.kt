@@ -173,7 +173,7 @@ fun PodcastDetailScreen(
     val errorException = remember(uiState) {
         (uiState as? PodcastViewModel.PodcastUIState.Error)?.exception?.message
     }
-    val playerUIState by playerViewmodel.playerControlState.collectAsState()
+    val playerUIState by playerViewmodel.miniPlayerState.collectAsState()
     val adsController = tss.t.ads.LocalAdsController.current
     val activity = androidx.activity.compose.LocalActivity.current
     val enteredAt = remember(podcast.id) { android.os.SystemClock.elapsedRealtime() }

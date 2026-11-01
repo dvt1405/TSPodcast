@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -50,6 +51,7 @@ import coil.compose.AsyncImage
 import tss.t.core.storage.PodcastLocation
 import tss.t.coreapi.models.Podcast
 import tss.t.podcast.R
+import tss.t.podcast.ui.screens.discorver.widgets.placeholderFill
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 
@@ -62,7 +64,7 @@ import tss.t.sharedlibrary.theme.TextStyles
 fun LocationSection(
     locations: List<PodcastLocation>,
     podcastsByRegion: Map<String, List<Podcast>>,
-    placeHolderColor: Color,
+    placeHolderColor: tss.t.podcast.ui.screens.discorver.widgets.PlaceholderPulse,
     onManage: () -> Unit,
     onClick: (Podcast) -> Unit,
 ) {
@@ -94,7 +96,7 @@ fun LocationSection(
         }
         AnimatedContent(
             targetState = selected.region,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            transitionSpec = { fadeIn(tween(210, 60)) togetherWith fadeOut(tween(90)) },
             label = "LocationContent"
         ) { region ->
             val items = podcastsByRegion[region]
@@ -151,7 +153,7 @@ private fun FeaturedCard(podcast: Podcast, onClick: (Podcast) -> Unit) {
             Text(podcast.title.orEmpty(), style = TextStyles.SubTitle1, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(4.dp))
             Text(
-                podcast.description.orEmpty().replace(Regex("<[^>]*>"), "").trim(),
+                tss.t.podcast.ui.screens.common.rememberStrippedTags(podcast.description),
                 style = TextStyles.Body5,
                 color = Colors.Gray60,
                 maxLines = 3,
@@ -198,7 +200,7 @@ private fun RankedGrid(items: List<Podcast>, onClick: (Podcast) -> Unit) {
                 Column(Modifier.weight(1f)) {
                     Text(podcast.title.orEmpty(), style = TextStyles.SubTitle2, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(
-                        podcast.description.orEmpty().replace(Regex("<[^>]*>"), "").trim(),
+                        tss.t.podcast.ui.screens.common.rememberStrippedTags(podcast.description),
                         style = TextStyles.SubTitle4,
                         color = Colors.Gray60,
                         maxLines = 1,
@@ -211,15 +213,16 @@ private fun RankedGrid(items: List<Podcast>, onClick: (Podcast) -> Unit) {
 }
 
 @Composable
-private fun LocationPlaceholder(color: Color) {
+private fun LocationPlaceholder(color: tss.t.podcast.ui.screens.discorver.widgets.PlaceholderPulse) {
+    tss.t.podcast.ui.screens.discorver.widgets.PlaceholderPulseTicker(color)
     Column(Modifier.padding(horizontal = 16.dp)) {
-        Box(Modifier.fillMaxWidth().height(136.dp).clip(RoundedCornerShape(20.dp)).background(color))
+        Box(Modifier.fillMaxWidth().height(136.dp).placeholderFill(RoundedCornerShape(20.dp), color))
         Spacer(Modifier.height(12.dp))
         repeat(3) {
             Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(ROW_HEIGHT).clip(RoundedCornerShape(12.dp)).background(color))
+                Box(Modifier.size(ROW_HEIGHT).placeholderFill(RoundedCornerShape(12.dp), color))
                 Spacer(Modifier.width(12.dp))
-                Box(Modifier.height(16.dp).width(180.dp).clip(RoundedCornerShape(6.dp)).background(color))
+                Box(Modifier.height(16.dp).width(180.dp).placeholderFill(RoundedCornerShape(6.dp), color))
             }
         }
         Spacer(Modifier.height(12.dp))
@@ -290,7 +293,7 @@ fun LocationNewsSection(
         }
         AnimatedContent(
             targetState = selected.region,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            transitionSpec = { fadeIn(tween(210, 60)) togetherWith fadeOut(tween(90)) },
             label = "LocationNews"
         ) { region ->
             NewsRow(items = newsByRegion[region].orEmpty()) { item ->

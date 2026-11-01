@@ -20,5 +20,6 @@ fun imageRequestBuilder(
         )
         .placeholder(placeHolder)
         .error(error)
-        .crossfade(250)
+        // Short: a 250 ms fade on every cover read as lag while scrolling.
+        .crossfade(180)
 }

@@ -25,7 +25,10 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
@@ -79,6 +82,25 @@ class PlayerViewModel @Inject constructor(
 
     val playerControlState: StateFlow<PlayerControlState>
         get() = _playerControlState.asStateFlow()
+
+    /**
+     * The slice of [playerControlState] that screens other than the Player need (mini player,
+     * bottom padding, Radio's play button). [playerControlState] emits every 200 ms while audio
+     * plays (position/progress); collecting it on Home or a show page recomposed the whole
+     * screen five times a second. This one only emits when the item or play state changes.
+     */
+    val miniPlayerState: StateFlow<MiniPlayerState> by lazy {
+        _playerControlState
+            .map { MiniPlayerState(it.currentMediaItem, it.isPlaying, it.isLoading) }
+            .distinctUntilChanged()
+            .stateIn(
+                viewModelScope,
+                SharingStarted.Eagerly,
+                _playerControlState.value.let {
+                    MiniPlayerState(it.currentMediaItem, it.isPlaying, it.isLoading)
+                }
+            )
+    }
 
     init {
         restoreSession()
@@ -772,6 +794,15 @@ class PlayerViewModel @Inject constructor(
             listItem = playList,
             podcast = podcast
         )
+    }
+
+    @Immutable
+    data class MiniPlayerState(
+        val currentMediaItem: MediaItem? = null,
+        val isPlaying: Boolean = false,
+        val isLoading: Boolean = false,
+    ) {
+        val hasMedia: Boolean get() = currentMediaItem != null
     }
 
     @Immutable

@@ -26,7 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -59,10 +59,18 @@ fun FavouriteWidget(
     }
     val isPressed by interactiveSource.collectIsPressedAsState()
     var menuOpen by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (isPressed) 1.05f else 1f, label = "")
+    val scale = animateFloatAsState(if (isPressed) 1.05f else 1f, label = "")
+    val description = tss.t.podcast.ui.screens.common.rememberHtmlText(
+        podcast.description,
+        HtmlCompat.FROM_HTML_MODE_COMPACT
+    )
     Row(
         modifier = modifier
-            .scale(scale = scale)
+            // Draw-phase read: pressing no longer recomposes the row.
+            .graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+            }
             .combinedClickable(
                 interactionSource = interactiveSource,
                 indication = null,
@@ -83,7 +91,7 @@ fun FavouriteWidget(
                 modifier = Modifier
                     .size(98.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .placeholder(
+                    .placeholderIf(
                         isLoading, placeHolderColor,
                         RoundedCornerShape(12.dp)
                     ),
@@ -101,8 +109,7 @@ fun FavouriteWidget(
                         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
                     )
                     .placeholder(R.drawable.image_loader_place_holder_12dp)
-                    .crossfade(true)
-                    .crossfade(250)
+                    .crossfade(tss.t.podcast.ui.theme.Motion.IMAGE_CROSSFADE)
                     .build(),
                 contentDescription = podcast.image,
                 modifier = Modifier
@@ -118,7 +125,7 @@ fun FavouriteWidget(
             Text(
                 podcast.title ?: "", style = TextStyles.Title6,
                 modifier = Modifier
-                    .placeholder(
+                    .placeholderIf(
                         isLoading, placeHolderColor,
                         RoundedCornerShape(4.dp)
                     )
@@ -137,19 +144,12 @@ fun FavouriteWidget(
                 )
             )
             Text(
-                buildAnnotatedString {
-                    append(
-                        HtmlCompat.fromHtml(
-                            podcast.description ?: "",
-                            HtmlCompat.FROM_HTML_MODE_COMPACT
-                        )
-                    )
-                },
+                description,
                 style = TextStyles.SubTitle4.copy(Colors.TextDescriptionColor),
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
-                    .placeholder(
+                    .placeholderIf(
                         isLoading, placeHolderColor,
                         RoundedCornerShape(4.dp)
                     )
@@ -167,3 +167,12 @@ fun FavouriteWidget(
         }
     }
 }
+
+// Loading rows and loaded rows have different LazyColumn keys on Discover, so the placeholder's
+// fade-out never plays on a loaded row: skip its composed modifier (two transitions per use)
+// on the loaded rows.
+private fun Modifier.placeholderIf(
+    visible: Boolean,
+    color: Color,
+    shape: androidx.compose.ui.graphics.Shape
+): Modifier = if (visible) placeholder(visible, color, shape) else this

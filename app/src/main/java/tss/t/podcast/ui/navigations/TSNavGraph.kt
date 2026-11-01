@@ -1,9 +1,5 @@
 package tss.t.podcast.ui.navigations
 
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -15,7 +11,9 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
+import tss.t.podcast.ui.theme.Motion
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -55,9 +53,19 @@ fun TSNavGraph(
     tss.t.podcast.analytics.TrackScreens(outer = navHost, inner = innerNavHost)
     NavHost(
         navController = navHost,
-        startDestination = startDestination
+        startDestination = startDestination,
+        // NavHost's default is a 700 ms cross-fade both ways: long enough to feel sluggish,
+        // and both screens (with the glass blur) were drawn for all of it.
+        enterTransition = Motion.fadeEnter,
+        exitTransition = Motion.fadeExit,
+        popEnterTransition = Motion.fadeEnter,
+        popExitTransition = Motion.fadeExit,
     ) {
-        composable(TSRouter.Main.route) {
+        composable(
+            TSRouter.Main.route,
+            exitTransition = { if (targetState.isPlayer()) Motion.underSheetExit(this) else Motion.fadeExit(this) },
+            popEnterTransition = { if (initialState.isPlayer()) Motion.underSheetPopEnter(this) else Motion.fadeEnter(this) },
+        ) {
             podcastViewModel.clearTempListState()
             CompositionLocalProvider(
                 LocalNavAnimatedVisibilityScope provides this,
@@ -91,10 +99,16 @@ fun TSNavGraph(
             }
         }
 
-        composable(route = TSRouter.PodcastDetail.route) {
+        composable(
+            route = TSRouter.PodcastDetail.route,
+            exitTransition = { if (targetState.isPlayer()) Motion.underSheetExit(this) else Motion.fadeExit(this) },
+            popEnterTransition = { if (initialState.isPlayer()) Motion.underSheetPopEnter(this) else Motion.fadeEnter(this) },
+        ) {
             val navPodcast = mainViewModel.getCurrentPodcast()
-            navPodcast?.let {
-                podcastViewModel.getEpisodes(it)
+            // Was called in composition, i.e. again on every recomposition of this route
+            // (each uiState emission), relaunching the request while it was still loading.
+            LaunchedEffect(navPodcast) {
+                navPodcast?.let { podcastViewModel.getEpisodes(it) }
             }
             val dashboardUIState by mainViewModel.uiState.collectAsState()
             val podcastDetailUIState by podcastViewModel.uiState.collectAsState()
@@ -128,7 +142,13 @@ fun TSNavGraph(
             }
         }
 
-        composable(TSRouter.Settings.route) {
+        composable(
+            TSRouter.Settings.route,
+            enterTransition = Motion.pushEnter,
+            exitTransition = Motion.pushExit,
+            popEnterTransition = Motion.popEnter,
+            popExitTransition = Motion.popExit,
+        ) {
             val settingsViewModel: SettingsViewModel = viewModel(viewModelStoreOwner)
             SettingsScreen(
                 viewModel = settingsViewModel,
@@ -137,9 +157,15 @@ fun TSNavGraph(
             )
         }
 
-        composable(TSRouter.History.route) {
+        composable(
+            TSRouter.History.route,
+            enterTransition = Motion.pushEnter,
+            exitTransition = { if (targetState.isPlayer()) Motion.underSheetExit(this) else Motion.pushExit(this) },
+            popEnterTransition = { if (initialState.isPlayer()) Motion.underSheetPopEnter(this) else Motion.popEnter(this) },
+            popExitTransition = Motion.popExit,
+        ) {
             val historyViewModel: HistoryViewModel = viewModel(viewModelStoreOwner)
-            val playerUIState by playerViewModel.playerControlState.collectAsState()
+            val playerUIState by playerViewModel.miniPlayerState.collectAsState()
             val scope = rememberCoroutineScope()
             HistoryScreen(
                 viewModel = historyViewModel,
@@ -160,12 +186,16 @@ fun TSNavGraph(
 
         composable(
             route = TSRouter.Player.route,
-            enterTransition = { fadeIn() + slideInVertically { it / 4 } },
-            exitTransition = { fadeOut(targetAlpha = 0.1f) + slideOutVertically { it } },
-            popExitTransition = { fadeOut(targetAlpha = 0.1f) + slideOutVertically { it } }
+            enterTransition = Motion.sheetEnter,
+            exitTransition = Motion.fadeExit,
+            popEnterTransition = Motion.fadeEnter,
+            popExitTransition = Motion.sheetExit,
         ) {
-            val playerUIState by playerViewModel.playerControlState.collectAsState()
-            playerViewModel.checkFavourite(playerUIState.currentMediaItem?.mediaId)
+            val playerUIState by playerViewModel.miniPlayerState.collectAsState()
+            // Was called in composition: with playerControlState ticking every 200 ms that
+            // ran a favourite lookup on the IO pool (and another state update) 5x a second.
+            val mediaId = playerUIState.currentMediaItem?.mediaId
+            LaunchedEffect(mediaId) { playerViewModel.checkFavourite(mediaId) }
             CompositionLocalProvider(
                 LocalNavAnimatedVisibilityScope provides this,
                 LocalViewModelStoreOwner provides viewModelStoreOwner
@@ -182,6 +212,8 @@ fun TSNavGraph(
     }
 
 }
+
+private fun NavBackStackEntry.isPlayer() = destination.route == TSRouter.Player.route
 
 enum class TSRouter(val route: String) {
     Onboarding("Onboarding"),

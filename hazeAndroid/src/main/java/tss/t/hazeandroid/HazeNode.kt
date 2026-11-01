@@ -124,8 +124,9 @@ class HazeNode(
     // Now we draw `content` into the window canvas
     drawLayer(contentLayer)
 
-    val tick = Snapshot.withoutReadObservation { state.invalidateTick }
-    state.invalidateTick = tick + 1
+    // No state write here any more (it bumped `invalidateTick` on every content frame, which
+    // nothing reads): a snapshot write per draw pass during every scroll. The children draw
+    // the same RenderNode, so they pick up new content without being invalidated.
 
     log(TAG) { "end draw()" }
   }

@@ -75,8 +75,7 @@ fun LiveEpisodeWidgets(
                         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
                     )
                     .placeholder(R.drawable.image_loader_place_holder_12dp)
-                    .crossfade(true)
-                    .crossfade(250)
+                    .crossfade(tss.t.podcast.ui.theme.Motion.IMAGE_CROSSFADE)
                     .build(),
                 contentDescription = episode?.title,
                 modifier = Modifier
@@ -113,14 +112,10 @@ fun LiveEpisodeWidgets(
                 )
             )
             Text(
-                buildAnnotatedString {
-                    append(
-                        HtmlCompat.fromHtml(
-                            episode?.datePublishedPretty ?: "",
-                            HtmlCompat.FROM_HTML_MODE_COMPACT
-                        )
-                    )
-                },
+                tss.t.podcast.ui.screens.common.rememberHtmlText(
+                    episode?.datePublishedPretty,
+                    HtmlCompat.FROM_HTML_MODE_COMPACT
+                ),
                 style = TextStyles.SubTitle4.copy(Colors.TextDescriptionColor),
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,

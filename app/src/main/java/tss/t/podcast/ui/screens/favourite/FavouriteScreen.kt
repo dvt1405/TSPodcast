@@ -65,31 +65,41 @@ fun FavouriteScreen(
             .haze(
                 state = hazeState,
                 style = HazeDefaults.tint
-            )
-            .animateContentSize(),
+            ),
+        // No animateContentSize on the list: it re-measured the whole LazyColumn on every
+        // size change. Rows animate their own placement (animateItem) instead.
         state = listState
     ) {
-        item {
+        item(key = "top", contentType = "spacer") {
             Spacer(Modifier.size(innerPadding.calculateTopPadding()))
         }
         if (uiState.listFav.isEmpty() && !uiState.isLoading) {
-            item {
+            item(key = "empty") {
                 EmptyFavouriteWidget(
-                    Modifier.padding(top = 48.dp),
+                    Modifier
+                        .animateItem()
+                        .padding(top = 48.dp),
                     onClick = onEmptyClick
                 )
             }
         } else {
-            item {
+            item(key = "ad", contentType = "ad") {
                 AdBannerSlot(placement = AdPlacement.FavouriteTop)
             }
-            items(uiState.listFav) { favouriteDTO ->
+            items(
+                uiState.listFav,
+                // Episodes and radio channels share the table: type + id is the identity.
+                key = { "${it.type}_${it.id}" },
+                contentType = { "favourite" }
+            ) { favouriteDTO ->
                 FavouriteItemWidget(
                     favouriteDTO,
-                    modifier = Modifier.padding(
-                        vertical = 12.dp,
-                        horizontal = 16.dp
-                    )
+                    modifier = Modifier
+                        .animateItem()
+                        .padding(
+                            vertical = 12.dp,
+                            horizontal = 16.dp
+                        )
                 ) {
                     coroutineScope.launch {
                         val podcastEpisode = viewModel.onFavSelected(it) ?: return@launch
@@ -104,7 +114,7 @@ fun FavouriteScreen(
                 }
             }
         }
-        item {
+        item(key = "bottom", contentType = "spacer") {
             Spacer(Modifier.size(innerPadding.calculateBottomPadding()))
         }
     }
