@@ -403,8 +403,8 @@ private fun PodcastDetailBody(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 100.dp)
-                .animateContentSize(),
+                // No animateContentSize: it re-measured the whole episode list on every change.
+                .padding(top = 100.dp),
             state = scrollState,
         ) {
             item(key = "PaddingTop") {
@@ -497,16 +497,22 @@ private fun PodcastDetailBody(
                     )
                     if (!podcast.description.isNullOrEmpty()) {
                         Spacer(Modifier.size(4.dp))
-                        Text(
-                            text = HtmlCompat.fromHtml(
+                        // Parsed and linkified once per description, not on every recomposition.
+                        val linkContext = LocalContext.current
+                        val description = remember(podcast.description) {
+                            HtmlCompat.fromHtml(
                                 /* source = */ podcast.description ?: "",
                                 /* flags = */ HtmlCompat.FROM_HTML_MODE_COMPACT
                             ).linkify(
+                                linkContext,
                                 TextStyles.Body4.copy(
                                     color = Colors.ButtonColor,
                                     textDecoration = TextDecoration.Underline
                                 ).toSpanStyle()
-                            ),
+                            )
+                        }
+                        Text(
+                            text = description,
                             style = TextStyles.Body4,
                             color = Colors.TextDescriptionColor,
                             modifier = HzPadding
@@ -691,19 +697,10 @@ fun PodcastDetailTopAppBar(
 private fun Header(podcast: Podcast) {
     val brushColors = listOf(Color(0xDCF9FFFF), Color(0xFFDCF9FF))
 
-    val infiniteTransition = rememberInfiniteTransition(label = "background")
-    val targetOffset = with(LocalDensity.current) {
-        1000.dp.toPx()
-    }
-    val offset by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = targetOffset,
-        animationSpec = infiniteRepeatable(
-            tween(50000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "offset"
-    )
+    // Static gradient: it used to drift for 50 s in an endless loop under a 50 dp blur, so the
+    // detail screen re-drew (and re-blurred) every frame and never went idle. The artwork is
+    // drawn on top of it anyway.
+    val offset = 0f
     val context = LocalContext.current
     val imageLoader = remember {
         ImageLoader(context)
