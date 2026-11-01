@@ -50,4 +50,11 @@
     <!-- System notification channel (Android Settings > Notifications) -->
     <string name="notification_channel_name">通知</string>
     <string name="notification_channel_description">TSPodcast からの通知</string>
+
+    <!-- Android Auto / car browse tree (sharedPlayer MediaLibraryCatalog) -->
+    <string name="car_tab_continue">続きを聴く</string>
+    <string name="car_tab_favourites">お気に入り</string>
+    <string name="car_tab_trending">人気</string>
+    <string name="car_error_network">リストを読み込めませんでした。接続を確認してください。</string>
+    <string name="car_error_not_found">このコンテンツは利用できません</string>
 </resources>

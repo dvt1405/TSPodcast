@@ -50,4 +50,11 @@
     <!-- System notification channel (Android Settings > Notifications) -->
     <string name="notification_channel_name">Notifikasi</string>
     <string name="notification_channel_description">Notifikasi dari TSPodcast</string>
+
+    <!-- Android Auto / car browse tree (sharedPlayer MediaLibraryCatalog) -->
+    <string name="car_tab_continue">Lanjutkan mendengarkan</string>
+    <string name="car_tab_favourites">Favorit</string>
+    <string name="car_tab_trending">Trending</string>
+    <string name="car_error_network">Daftar gagal dimuat. Periksa koneksi Anda.</string>
+    <string name="car_error_not_found">Konten ini tidak tersedia</string>
 </resources>

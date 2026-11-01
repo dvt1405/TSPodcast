@@ -201,6 +201,12 @@ class PlayerManager @Inject constructor(
         }
     }
 
+    /**
+     * Saved position of an on-demand episode (0 = start over), for queues that the media session
+     * builds itself (Android Auto browse, playback resumption) instead of [playMedia].
+     */
+    fun resumePositionMs(mediaId: String): Long = positions.resumePositionMs(mediaId, false)
+
     // ---------------------------------------------------------------------------------------
     // Skip, speed, sleep timer (parity with iOS M6 "player cơ bản")
     // ---------------------------------------------------------------------------------------

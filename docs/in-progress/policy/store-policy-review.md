@@ -1,7 +1,7 @@
 # Rà soát chính sách Google Play và Apple App Store: TSPodcast
 
 > **Trạng thái: Đang làm** (2026-11-01) — checklist §11 đã xử lý: #4 link chính sách + Settings, #6 bỏ ANDROID_ID, #7 gỡ Facebook SDK, #8–#11 UMP và quy tắc quảng cáo, #13 lọc explicit (PR #24, #38, #39).
-> Còn lại: #18 `network_security_config`, #19 `PlayerSessionService`, #17 thư VOV/VOH, #25 tư vấn luật BVDLCN, khai báo Play Console (#3, #5, #14).
+> Còn lại: #18 `network_security_config`, #17 thư VOV/VOH, #25 tư vấn luật BVDLCN, khai báo Play Console (#3, #5, #14).
 
 > Ngày lập: 29/10/2026 · App: `tss.t.podcast` (Android, targetSdk 36). iOS và web đang lên kế
 > hoạch. · Đọc kèm: `docs/done/research/competitor-analysis.md`,
@@ -394,7 +394,7 @@ Ký hiệu trạng thái: **Pass** = đạt · **Risk** = có rủi ro, cần th
 | 16 | Quy trình gỡ nội dung vi phạm (podcast/nhạc) | **Risk** | Blacklist qua Remote Config có sẵn, chưa có kênh tiếp nhận công khai | Thêm "Báo cáo nội dung" + email; SLA 24–48 giờ |
 | 17 | Radio VOV/VOH: quyền phát lại | **Action** | Scrape web đài (`RadioRepository`, `VOHRepository`) | Xin phép hoặc hợp tác; ghi nguồn; công tắc tắt theo store/quốc gia; không dùng logo đài trên store |
 | 18 | Cleartext traffic | **Risk** | `usesCleartextTraffic="true"` | `network_security_config` chỉ cho phép domain stream cần thiết |
-| 19 | Service `PlayerSessionService` exported | **Risk** | `exported=true` + `android:permission="FOREGROUND_SERVICE"` ở app manifest | Kiểm tra lại: Media3 khuyến nghị exported không kèm permission để controller hệ thống (Auto, Wear, Assistant) kết nối; xác thực controller bằng `onConnect` |
+| 19 | Service `PlayerSessionService` exported | **Risk** | `exported=true` + `android:permission="FOREGROUND_SERVICE"` ở app manifest | Kiểm tra lại: Media3 khuyến nghị exported không kèm permission để controller hệ thống (Auto, Wear, Assistant) kết nối; xác thực controller bằng `onConnect`. **Đã xử lý (PR #56):** bỏ `android:permission`, lọc caller trong `onGetSession` (app, system UI, Android Auto, AAOS, Assistant, controller trusted) |
 | 20 | Xoá tài khoản | **Pass (N/A)** | Không có tài khoản | Bắt buộc ra cùng lúc khi có đăng nhập (Play + Apple 5.1.1(v)) |
 | 21 | Không cho tải hay xuất audio của bên thứ ba ra ngoài | **Pass** | Chưa có tính năng tải | Khi làm offline: lưu trong bộ nhớ riêng, không tải nhạc/radio (Apple 5.2.3) |
 | 22 | UGC (bình luận) | **Pass (N/A)** | Chưa có | Nếu làm: ToS, lọc, báo cáo, chặn, xác thực SĐT (Nghị định 147) |
