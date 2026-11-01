@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import tss.t.coreapi.models.Podcast
 import tss.t.podcast.ui.screens.discorver.widgets.AsyncTrendingWidget
-import tss.t.podcast.ui.screens.discorver.widgets.PlaceholderColor
+import tss.t.podcast.ui.screens.discorver.widgets.PlaceholderPulse
 import tss.t.podcast.ui.screens.discorver.widgets.TrendingWidget
 
 
@@ -23,7 +23,7 @@ import tss.t.podcast.ui.screens.discorver.widgets.TrendingWidget
 @Composable
 fun RecentRow(
     isRefreshing: Boolean,
-    placeHolderColor: PlaceholderColor,
+    placeHolderColor: PlaceholderPulse,
     recentFeeds: List<Podcast>,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedVisibilityScope,

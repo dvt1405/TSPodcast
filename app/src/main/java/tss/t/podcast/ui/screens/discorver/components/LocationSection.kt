@@ -64,7 +64,7 @@ import tss.t.sharedlibrary.theme.TextStyles
 fun LocationSection(
     locations: List<PodcastLocation>,
     podcastsByRegion: Map<String, List<Podcast>>,
-    placeHolderColor: tss.t.podcast.ui.screens.discorver.widgets.PlaceholderColor,
+    placeHolderColor: tss.t.podcast.ui.screens.discorver.widgets.PlaceholderPulse,
     onManage: () -> Unit,
     onClick: (Podcast) -> Unit,
 ) {
@@ -213,7 +213,8 @@ private fun RankedGrid(items: List<Podcast>, onClick: (Podcast) -> Unit) {
 }
 
 @Composable
-private fun LocationPlaceholder(color: tss.t.podcast.ui.screens.discorver.widgets.PlaceholderColor) {
+private fun LocationPlaceholder(color: tss.t.podcast.ui.screens.discorver.widgets.PlaceholderPulse) {
+    tss.t.podcast.ui.screens.discorver.widgets.PlaceholderPulseTicker(color)
     Column(Modifier.padding(horizontal = 16.dp)) {
         Box(Modifier.fillMaxWidth().height(136.dp).placeholderFill(RoundedCornerShape(20.dp), color))
         Spacer(Modifier.height(12.dp))

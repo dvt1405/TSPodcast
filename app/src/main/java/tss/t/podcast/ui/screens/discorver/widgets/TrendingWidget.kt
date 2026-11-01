@@ -205,8 +205,9 @@ private val PlaceholderShape = RoundedCornerShape(8.dp)
 
 @Composable
 fun AsyncTrendingWidget(
-    placeholderColor: PlaceholderColor
+    placeholderColor: PlaceholderPulse
 ) {
+    PlaceholderPulseTicker(placeholderColor)
     Column(
         modifier = Modifier.width(250.dp)
     ) {
@@ -237,7 +238,7 @@ fun AsyncTrendingWidget(
 @Composable
 @Preview
 fun AsyncTrendingWidgetPreview() {
-    AsyncTrendingWidget { Colors.Secondary50 }
+    AsyncTrendingWidget(rememberPlaceholderPulse())
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class)

@@ -118,12 +118,8 @@ fun DiscoverPodcastsScreen(
 
     // The placeholder pulse used to be read here, in composition, by `by`: the whole Discover
     // screen recomposed on every frame, forever (the transition never stopped, even with all
-    // data loaded). Now it only runs while a placeholder is on screen, and is read in draw.
-    val placeholderActive = uiState.listTrending.isEmpty() ||
-            uiState.musicFeeds.isEmpty() ||
-            uiState.isDataPartLoading[HomepageDataPart.RecentFeed.value] != false ||
-            uiState.locations.any { uiState.locationPodcasts[it.region] == null }
-    val placeHolderColor = rememberPlaceholderPulse(active = placeholderActive)
+    // data loaded). Now it is read in draw and only ticks while a placeholder is on screen.
+    val placeHolderColor = rememberPlaceholderPulse()
 
     // Built once: a fresh wrapper per composition made every row below recompose with it.
     val onTrendingTracked = remember(onTrendingClick) {

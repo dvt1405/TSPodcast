@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import tss.t.coreapi.models.Podcast
 import tss.t.podcast.ui.screens.discorver.widgets.AsyncTrendingWidget
-import tss.t.podcast.ui.screens.discorver.widgets.PlaceholderColor
+import tss.t.podcast.ui.screens.discorver.widgets.PlaceholderPulse
 import tss.t.podcast.ui.screens.discorver.widgets.TrendingWidget
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -22,7 +22,7 @@ import tss.t.podcast.ui.screens.discorver.widgets.TrendingWidget
 fun TrendingRow(
     trendingRowState: LazyListState,
     isRefreshing: Boolean,
-    placeHolderColor: PlaceholderColor,
+    placeHolderColor: PlaceholderPulse,
     listTrending: List<Podcast>,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedVisibilityScope,
