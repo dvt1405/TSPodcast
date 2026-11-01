@@ -1,6 +1,6 @@
 import { ANDROID_PACKAGE } from "@/lib/site";
 
-// Android App Links verification (seo-web-dashboard.md §A.10). Set
+// Android App Links verification (docs/in-progress/plans/seo-web-dashboard.md §A.10). Set
 // ANDROID_CERT_SHA256 to the Play App Signing key fingerprint, plus the upload
 // key for internal builds, comma-separated ("AA:BB:..."). The app still needs
 // an autoVerify VIEW intent-filter for these URLs before links open in it.

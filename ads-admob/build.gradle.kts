@@ -51,7 +51,7 @@ if (releaseAppId == AdMobTestIds.APP_ID) {
 }
 
 /*
- * Store builds must carry the real AdMob ids (Sprint 0, admob-migration.md): bundleRelease (the
+ * Store builds must carry the real AdMob ids (Sprint 0, docs/in-progress/plans/admob-migration.md): bundleRelease (the
  * AAB uploaded to Google Play) fails while any release id is still Google's test id. Debug and
  * the release APKs used for internal testing are not affected. Override for a deliberate test
  * bundle with -PALLOW_TEST_ADS_IN_RELEASE=true.

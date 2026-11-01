@@ -34,7 +34,7 @@ trong `scripts/lib.js`). Nhờ vậy:
 - tách biệt hẳn với logo podcast quen thuộc (Apple Podcasts dùng micro và sóng tròn,
   Pocket Casts và Spotify dùng vòng cung đồng tâm, Castbox dùng khối cam). TSPodcast không dùng vòng cung đồng tâm.
 
-Các phương án đã cân nhắc và lý do chọn nằm ở [`docs/brand/concepts/`](../docs/brand/concepts/README.md).
+Các phương án đã cân nhắc và lý do chọn nằm ở [`docs/done/brand/concepts/`](../docs/done/brand/concepts/README.md).
 
 ### Các phiên bản
 

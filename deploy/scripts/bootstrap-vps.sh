@@ -313,7 +313,7 @@ info "enable backups once the backend runs: systemctl enable --now tspodcast-bac
 # ---------------------------------------------------------------- summary
 log "Done"
 cat <<EOF
-    Next steps (docs/deploy/README.md §3-§5):
+    Next steps (docs/done/deploy/README.md §3-§5):
       1. sudoedit $ETC_DIR/compose.env   (DOMAIN, ACME_EMAIL, WEB_IMAGE)
       2. sudoedit $ETC_DIR/web.env       (PODCASTINDEX_*, optional ANTHROPIC_API_KEY, ...)
       3. as $DEPLOY_USER: docker login ghcr.io   (or let CI do it)

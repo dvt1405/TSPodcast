@@ -20,7 +20,7 @@ export const ANDROID_PACKAGE = "tss.t.podcast";
 export const PLAY_STORE_URL = `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}`;
 
 /**
- * Play Store link carrying an install referrer (docs/plans/seo-web-dashboard.md
+ * Play Store link carrying an install referrer (docs/in-progress/plans/seo-web-dashboard.md
  * §A.10): utm_* for attribution plus `deeplink=/podcast/<id>` so the app can
  * route there after install via the Play Install Referrer API.
  */

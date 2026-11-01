@@ -1,4 +1,4 @@
-/// The seam between the browsing screens and the player (audio-playback-ios.md). Detail only
+/// The seam between the browsing screens and the player (docs/done/ios/audio-playback-ios.md). Detail only
 /// starts playback and reads the state to mark the playing row; the Player and the MiniPlayer
 /// drive `AudioEngine` directly. `AppEnvironment` owns the one instance.
 @MainActor

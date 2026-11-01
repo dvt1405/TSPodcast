@@ -2,7 +2,7 @@ name: Deploy web (VPS)
 
 # Builds the web image (web/Dockerfile), checks it, pushes it to GHCR and
 # deploys it to the VPS with deploy/scripts/deploy.sh over SSH.
-# Setup and the list of secrets/variables: docs/deploy/README.md.
+# Setup and the list of secrets/variables: docs/done/deploy/README.md.
 #
 # The image never receives PODCASTINDEX_* or ANTHROPIC_API_KEY. Those values
 # are only used in the deploy job to scan the built image for leaked keys.
@@ -47,7 +47,7 @@ jobs:
           SITE_URL: ${{ vars.SITE_URL }}
         run: |
           if [[ ! "$SITE_URL" =~ ^https://[a-z0-9.-]+$ ]]; then
-            echo "::error::Repository variable SITE_URL must be https://<domain> without a trailing slash (docs/deploy/README.md §4)."
+            echo "::error::Repository variable SITE_URL must be https://<domain> without a trailing slash (docs/done/deploy/README.md §4)."
             exit 1
           fi
 
@@ -168,7 +168,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || inputs.deploy)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # Required reviewers are set on this environment (docs/deploy/README.md §4).
+    # Required reviewers are set on this environment (docs/done/deploy/README.md §4).
     environment:
       name: production
       url: ${{ vars.SITE_URL }}

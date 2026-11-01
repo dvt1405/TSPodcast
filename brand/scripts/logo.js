@@ -1,11 +1,11 @@
-// Generates: docs/brand/concepts/*.svg (+ sheet PNG), brand/logo/*.svg, brand/logo/png/*.png
+// Generates: docs/done/brand/concepts/*.svg (+ sheet PNG), brand/logo/*.svg, brand/logo/png/*.png
 'use strict';
 const path = require('path');
 const L = require('./lib');
 const { PALETTE: P, MARK } = L;
 
 const LOGO = path.join(L.BRAND, 'logo');
-const CONCEPTS = path.join(L.ROOT, 'docs', 'brand', 'concepts');
+const CONCEPTS = path.join(L.ROOT, 'docs', 'done', 'brand', 'concepts');
 
 // --------------------------------------------------------------------- tiles
 /** App-icon tile: gradient rounded square + white mark + coral dot. rounded=false -> full bleed. */

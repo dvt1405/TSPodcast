@@ -10,7 +10,7 @@ import { getMusicFeeds, isPodcastIndexConfigured, load, searchMusic, searchPodca
 import { NOINDEX } from "@/lib/seo";
 
 // Search result pages are thin and unbounded: keep them out of the index but
-// let crawlers follow the links (seo-web-dashboard.md §A.3/A.5).
+// let crawlers follow the links (docs/in-progress/plans/seo-web-dashboard.md §A.3/A.5).
 export const metadata: Metadata = {
   title: t.search.title,
   robots: NOINDEX,

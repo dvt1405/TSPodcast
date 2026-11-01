@@ -8,7 +8,7 @@ import tss.t.sharedlibrary.utils.ConfigAPI
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** Remote Config keys. See docs/plans/admob-migration.md §6. */
+/** Remote Config keys. See docs/in-progress/plans/admob-migration.md §6. */
 object AdsKeys {
     const val ENABLED = "ads_enabled"
     const val UNIT_IDS = "ads_unit_ids"

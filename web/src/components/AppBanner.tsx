@@ -5,7 +5,7 @@ import { CloseIcon, PhoneIcon } from "@/components/icons";
 import { t } from "@/lib/i18n";
 import { androidIntentUrl, playStoreUrl } from "@/lib/site";
 
-// docs/plans/seo-web-dashboard.md §A.10: a slim, dismissible banner that
+// docs/in-progress/plans/seo-web-dashboard.md §A.10: a slim, dismissible banner that
 // remembers dismissal for 14 days and never pushes layout (it overlays the top
 // of the page, so it cannot cause CLS when it appears after hydration).
 const DISMISS_KEY = "tsp.appBanner.dismissedAt";

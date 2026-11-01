@@ -46,7 +46,7 @@ interface AdCounterStore {
 /**
  * Pure frequency / UX policy for full-screen formats. No Android, no SDK: every
  * rule here is unit tested (AdPolicyTest). The hard rules come from
- * docs/plans/admob-migration.md §2.1: never over audio, never on the Player,
+ * docs/in-progress/plans/admob-migration.md §2.1: never over audio, never on the Player,
  * never on a notification/deep-link launch, never twice in a row.
  */
 class AdPolicy(
