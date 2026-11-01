@@ -1,6 +1,6 @@
 # Kế hoạch: TSPodcast chạy trên ô tô (Android Auto, sau đó Android Automotive OS)
 
-> **Trạng thái: Chưa làm phần chính** (2026-11-01) — đã có nền móng M0 trên nhánh `tuandv/android-auto`: `PlayerSessionService` thành `MediaLibraryService`, cây duyệt cơ bản (Tiếp tục nghe, Yêu thích, Thịnh hành, show → tập), tìm kiếm, phát bằng giọng nói, playback resumption, khai báo `automotive_app_desc.xml` và meta-data Android Auto.
+> **Trạng thái: Chưa làm phần chính** (2026-11-01) — đã có nền móng M0 (PR #56): `PlayerSessionService` thành `MediaLibraryService`, cây duyệt cơ bản (Tiếp tục nghe, Yêu thích, Thịnh hành, show → tập), tìm kiếm, phát bằng giọng nói, playback resumption, khai báo `automotive_app_desc.xml` và meta-data Android Auto.
 > Còn lại: thử trên DHU và xe thật (M1), ảnh bìa trong danh sách + đồng bộ UI điện thoại (M2), radio (M3), opt-in Android Auto trên Play Console và qua review (M4), Android Automotive OS (M5).
 
 > Ngày lập: 2026-11-01 · Mốc code: `main` @ `ff429e9` (sau PR #55) · Liên quan: roadmap G5 (`docs/in-progress/research/feature-roadmap-ai-growth.md`), backlog "Android Auto `MediaLibraryService` + `onPlayFromSearch`" và policy #19 (`docs/in-progress/policy/store-policy-review.md`).
@@ -185,7 +185,7 @@ PowerShell: `& "$env:LOCALAPPDATA\Android\Sdk\extras\google\auto\desktop-head-un
 
 | Mốc | Nội dung | Trạng thái |
 |---|---|---|
-| **M0** Nền móng | `MediaLibraryService`, cây duyệt 3 tab, phát từ xe, tìm kiếm, giọng nói, resumption, khai báo manifest + `automotive_app_desc`, chuỗi 15 ngôn ngữ, unit test id/phân trang | Xong (nhánh `tuandv/android-auto`) |
+| **M0** Nền móng | `MediaLibraryService`, cây duyệt 3 tab, phát từ xe, tìm kiếm, giọng nói, resumption, khai báo manifest + `automotive_app_desc`, chuỗi 15 ngôn ngữ, unit test id/phân trang | Xong (PR #56) |
 | **M1** Thử trên DHU + xe thật | Chạy checklist §11 trên DHU và một xe/đầu Android Auto thật; sửa lỗi; thêm test cho `MediaLibraryCatalog` (fake repository) | Chưa làm |
 | **M2** Hoàn thiện trải nghiệm | Content provider ảnh bìa; icon tab; đồng bộ `PlayerViewModel` với tập phát từ xe; sửa đơn vị `duration`; nút tuỳ chỉnh tốc độ phát trên xe (tuỳ chọn); lịch sử nhiều tập | Chưa làm |
 | **M3** Radio trên xe | Tab Radio (VOV, VOH), resolve link phát, yêu thích radio, câu lệnh "phát VOV1" | Chưa làm |
