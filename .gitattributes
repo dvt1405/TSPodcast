@@ -3,4 +3,11 @@ site/app-ads.txt text eol=lf
 site/robots.txt text eol=lf
 # Inline scripts are pinned by sha256 in the CSP (firebase.json); CRLF would change the hash and
 # the browser would block them (no reveal animation). Keep the whole product site LF.
-site/** text eol=lf
+site/**/*.html text eol=lf
+site/**/*.css text eol=lf
+site/**/*.js text eol=lf
+site/**/*.mjs text eol=lf
+site/**/*.xml text eol=lf
+site/**/*.svg text eol=lf
+site/**/*.webmanifest text eol=lf
+site/**/*.json text eol=lf
