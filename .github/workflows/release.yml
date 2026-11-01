@@ -18,11 +18,7 @@ on:
       distributionGroups:
         description: 'Firebase App Distribution groups (comma-separated)'
         required: true
-        default: 'podcasttester'
-  workflow_run:
-    workflows: ["Android Test"]
-    types:
-      - completed
+        default: 'tspodcastrelease'
 
 jobs:
   release:
