@@ -33,7 +33,7 @@ export function Header() {
               <label htmlFor="header-search" className="sr-only">
                 {t.search.label}
               </label>
-              <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 focus-within:border-primary">
+              <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 transition-[border-color,box-shadow] focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/25">
                 <SearchIcon size={16} className="text-subtle" />
                 <input
                   id="header-search"
