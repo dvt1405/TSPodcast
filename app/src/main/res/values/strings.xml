@@ -109,5 +109,21 @@ Lý do báo cáo:
     <string name="settings_liquid_glass_hint">Thanh điều hướng, trình phát thu nhỏ và nút điều khiển dạng kính trong suốt</string>
 
     <string name="settings_language">Ngôn ngữ</string>
-    <string name="settings_language_hint">Ngôn ngữ của app và của danh sách podcast (luôn kèm podcast tiếng Anh)</string>
+    <string name="settings_language_hint">Ngôn ngữ giao diện của app</string>
+    <string name="location_section_title">Podcast theo vị trí</string>
+    <string name="location_section_subtitle">Thịnh hành ở các vị trí bạn chọn</string>
+    <string name="location_manage">Sắp xếp</string>
+    <string name="location_sheet_title">Vị trí podcast</string>
+    <string name="location_sheet_hint">Tối đa 3 vị trí, theo thứ tự ưu tiên. Vị trí đầu tiên quyết định nội dung trang chủ; tìm kiếm chỉ hiện podcast thuộc các vị trí đã chọn.</string>
+    <string name="location_add_title">Thêm vị trí</string>
+    <string name="location_limit_reached">Đã đủ 3 vị trí, hãy bỏ bớt để thêm</string>
+    <string name="location_move_up">Lên trên</string>
+    <string name="location_move_down">Xuống dưới</string>
+    <string name="location_remove">Bỏ vị trí</string>
+    <string name="location_primary">Chính</string>
+    <string name="location_done">Xong</string>
+    <string name="location_empty">Chưa có podcast thịnh hành ở vị trí này</string>
+    <string name="settings_podcast_location">Vị trí podcast</string>
+    <string name="settings_podcast_location_hint">Trang chủ và tìm kiếm theo vị trí bạn chọn</string>
+    <string name="location_top_pick">Nổi bật nhất</string>
 </resources>

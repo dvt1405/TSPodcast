@@ -10,7 +10,7 @@ import javax.inject.Inject
 
 class GetRecentFeeds @Inject constructor(
     private val repository: IPodcastRepository,
-    private val languagePrefs: tss.t.core.storage.LanguagePrefs,
+    private val locationPrefs: tss.t.core.storage.PodcastLocationPrefs,
 ) {
     suspend operator fun invoke(
         @IntRange(from = 1, to = 1000)
@@ -23,7 +23,7 @@ class GetRecentFeeds @Inject constructor(
     ) = repository.getRecentFeeds(
         max = max,
         since = since,
-        lang = lang ?: languagePrefs.contentLangParam(),
+        lang = lang ?: locationPrefs.contentLangParam(),
         cat = cat,
         notcat = notcat,
         pretty = pretty

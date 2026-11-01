@@ -160,6 +160,8 @@ private class HazeChildNode(
     }
 
     if (USE_GRAPHICS_LAYERS) {
+      // Read so this node redraws when another haze source takes over (screen change).
+      state.layerVersion
       val contentLayer = state.contentLayer
       if (contentLayer != null) {
         drawEffectsWithGraphicsLayer(contentLayer)

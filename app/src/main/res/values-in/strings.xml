@@ -108,5 +108,21 @@ Alasan laporan:
     <string name="settings_liquid_glass_hint">Bilah navigasi, pemutar mini, dan kontrol pemutar bergaya kaca</string>
 
     <string name="settings_language">Bahasa</string>
-    <string name="settings_language_hint">Bahasa aplikasi dan daftar podcast (podcast berbahasa Inggris selalu disertakan)</string>
+    <string name="settings_language_hint">Bahasa aplikasi</string>
+    <string name="location_section_title">Podcast menurut lokasi</string>
+    <string name="location_section_subtitle">Sedang tren di lokasi pilihanmu</string>
+    <string name="location_manage">Atur</string>
+    <string name="location_sheet_title">Lokasi podcast</string>
+    <string name="location_sheet_hint">Maksimal 3 lokasi, sesuai prioritas. Lokasi pertama menentukan Beranda; pencarian hanya menampilkan podcast dari lokasimu.</string>
+    <string name="location_add_title">Tambah lokasi</string>
+    <string name="location_limit_reached">Sudah 3 lokasi, hapus satu untuk menambah yang lain</string>
+    <string name="location_move_up">Naikkan</string>
+    <string name="location_move_down">Turunkan</string>
+    <string name="location_remove">Hapus lokasi</string>
+    <string name="location_primary">Utama</string>
+    <string name="location_done">Selesai</string>
+    <string name="location_empty">Belum ada podcast tren di sini</string>
+    <string name="settings_podcast_location">Lokasi podcast</string>
+    <string name="settings_podcast_location_hint">Beranda dan pencarian mengikuti lokasimu</string>
+    <string name="location_top_pick">Pilihan teratas</string>
 </resources>

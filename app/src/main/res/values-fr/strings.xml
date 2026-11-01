@@ -108,5 +108,21 @@ Motif du signalement :
     <string name="settings_liquid_glass_hint">Barre de navigation, mini-lecteur et commandes de lecture effet verre</string>
 
     <string name="settings_language">Langue</string>
-    <string name="settings_language_hint">Langue de l\'application et des listes de podcasts (les podcasts en anglais sont toujours inclus)</string>
+    <string name="settings_language_hint">Langue de l\'app</string>
+    <string name="location_section_title">Podcasts par pays</string>
+    <string name="location_section_subtitle">Tendances dans les pays choisis</string>
+    <string name="location_manage">Organiser</string>
+    <string name="location_sheet_title">Pays des podcasts</string>
+    <string name="location_sheet_hint">Jusqu\'à 3 pays, par priorité. Le premier définit l\'accueil ; la recherche n\'affiche que les podcasts de vos pays.</string>
+    <string name="location_add_title">Ajouter un pays</string>
+    <string name="location_limit_reached">Déjà 3 pays, retirez-en un pour en ajouter</string>
+    <string name="location_move_up">Monter</string>
+    <string name="location_move_down">Descendre</string>
+    <string name="location_remove">Retirer le pays</string>
+    <string name="location_primary">Principal</string>
+    <string name="location_done">OK</string>
+    <string name="location_empty">Pas encore de podcasts tendance ici</string>
+    <string name="settings_podcast_location">Pays des podcasts</string>
+    <string name="settings_podcast_location_hint">Accueil et recherche selon vos pays</string>
+    <string name="location_top_pick">À la une</string>
 </resources>

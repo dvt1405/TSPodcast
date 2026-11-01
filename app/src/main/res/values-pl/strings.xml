@@ -108,5 +108,21 @@ Powód zgłoszenia:
     <string name="settings_liquid_glass_hint">Szklany pasek nawigacji, miniodtwarzacz i przyciski odtwarzacza</string>
 
     <string name="settings_language">Język</string>
-    <string name="settings_language_hint">Język aplikacji i list podcastów (podcasty anglojęzyczne są zawsze uwzględniane)</string>
+    <string name="settings_language_hint">Język aplikacji</string>
+    <string name="location_section_title">Podcasty według kraju</string>
+    <string name="location_section_subtitle">Popularne w wybranych krajach</string>
+    <string name="location_manage">Uporządkuj</string>
+    <string name="location_sheet_title">Kraje podcastów</string>
+    <string name="location_sheet_hint">Do 3 krajów, według priorytetu. Pierwszy decyduje o ekranie głównym; wyszukiwanie pokazuje tylko podcasty z Twoich krajów.</string>
+    <string name="location_add_title">Dodaj kraj</string>
+    <string name="location_limit_reached">Masz już 3 kraje, usuń jeden, aby dodać inny</string>
+    <string name="location_move_up">W górę</string>
+    <string name="location_move_down">W dół</string>
+    <string name="location_remove">Usuń kraj</string>
+    <string name="location_primary">Główny</string>
+    <string name="location_done">Gotowe</string>
+    <string name="location_empty">Brak jeszcze popularnych podcastów</string>
+    <string name="settings_podcast_location">Kraje podcastów</string>
+    <string name="settings_podcast_location_hint">Ekran główny i wyszukiwanie według Twoich krajów</string>
+    <string name="location_top_pick">Najlepszy wybór</string>
 </resources>

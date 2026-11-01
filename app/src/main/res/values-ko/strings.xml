@@ -108,5 +108,21 @@
     <string name="settings_liquid_glass_hint">유리 스타일의 탐색 바, 미니 플레이어, 재생 컨트롤</string>
 
     <string name="settings_language">언어</string>
-    <string name="settings_language_hint">앱과 팟캐스트 목록의 언어 (영어 팟캐스트는 항상 포함돼요)</string>
+    <string name="settings_language_hint">앱 언어</string>
+    <string name="location_section_title">지역별 팟캐스트</string>
+    <string name="location_section_subtitle">선택한 지역의 인기 팟캐스트</string>
+    <string name="location_manage">정렬</string>
+    <string name="location_sheet_title">팟캐스트 지역</string>
+    <string name="location_sheet_hint">우선순위대로 최대 3개 지역. 첫 번째 지역이 홈 내용을 정하고, 검색은 선택한 지역의 팟캐스트만 보여 줍니다.</string>
+    <string name="location_add_title">지역 추가</string>
+    <string name="location_limit_reached">이미 3개 지역입니다. 추가하려면 하나를 빼세요</string>
+    <string name="location_move_up">위로</string>
+    <string name="location_move_down">아래로</string>
+    <string name="location_remove">지역 빼기</string>
+    <string name="location_primary">기본</string>
+    <string name="location_done">완료</string>
+    <string name="location_empty">이 지역에는 아직 인기 팟캐스트가 없습니다</string>
+    <string name="settings_podcast_location">팟캐스트 지역</string>
+    <string name="settings_podcast_location_hint">홈과 검색이 선택한 지역을 따릅니다</string>
+    <string name="location_top_pick">추천</string>
 </resources>

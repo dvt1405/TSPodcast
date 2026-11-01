@@ -108,5 +108,21 @@ Motivo da denúncia:
     <string name="settings_liquid_glass_hint">Barra de navegação, miniplayer e controles do player com efeito de vidro</string>
 
     <string name="settings_language">Idioma</string>
-    <string name="settings_language_hint">Idioma do app e das listas de podcasts (podcasts em inglês sempre são incluídos)</string>
+    <string name="settings_language_hint">Idioma do app</string>
+    <string name="location_section_title">Podcasts por local</string>
+    <string name="location_section_subtitle">Em alta nos lugares que você escolheu</string>
+    <string name="location_manage">Organizar</string>
+    <string name="location_sheet_title">Locais de podcasts</string>
+    <string name="location_sheet_hint">Até 3 locais, por prioridade. O primeiro define o que o Início mostra; a busca só mostra podcasts dos seus locais.</string>
+    <string name="location_add_title">Adicionar local</string>
+    <string name="location_limit_reached">Já são 3 locais, remova um para adicionar outro</string>
+    <string name="location_move_up">Mover para cima</string>
+    <string name="location_move_down">Mover para baixo</string>
+    <string name="location_remove">Remover local</string>
+    <string name="location_primary">Principal</string>
+    <string name="location_done">Concluído</string>
+    <string name="location_empty">Ainda não há podcasts em alta aqui</string>
+    <string name="settings_podcast_location">Locais de podcasts</string>
+    <string name="settings_podcast_location_hint">Início e busca seguem seus locais</string>
+    <string name="location_top_pick">Destaque</string>
 </resources>

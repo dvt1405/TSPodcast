@@ -57,6 +57,8 @@ data class MainInteractors @Inject constructor(
     val getRecentNewFeeds: GetRecentNewFeeds,
     val getRecentFeeds: GetRecentFeeds,
     val getMusicFeeds: GetMusicFeeds,
+    val getPodcastsByLocation: tss.t.podcasts.usecase.GetPodcastsByLocation,
+    val getLocationNews: tss.t.podcasts.usecase.GetLocationNews,
 )
 
 @HiltViewModel
@@ -66,7 +68,7 @@ class MainViewModel @Inject constructor(
     private val sharedPref: SharedPref,
     private val contentPrefs: tss.t.core.storage.ContentPrefs,
     private val newsHub: tss.t.podcasts.NewsHubRepository,
-    private val languagePrefs: tss.t.core.storage.LanguagePrefs,
+    private val locationPrefs: tss.t.core.storage.PodcastLocationPrefs,
 ) : ViewModel() {
 
     private fun loadNews() {
@@ -76,6 +78,32 @@ class MainViewModel @Inject constructor(
                 .getOrDefault(emptyList())
             _uiState.update { it.copy(newsItems = items) }
         }
+        viewModelScope.launch {
+            // "Thời sự" of the primary location from the catalog, so the section is never missing.
+            val items = runCatching { interactors.getLocationNews(locationPrefs.primary) }
+                .getOrDefault(emptyList())
+            _uiState.update { it.copy(catalogNews = items) }
+        }
+    }
+
+    /** Saves the podcast locations (regions in priority order); Home reloads through [init]. */
+    fun setLocations(regions: List<String>) = locationPrefs.setLocations(regions)
+
+    private fun loadLocationPodcasts(force: Boolean = false) {
+        val locations = locationPrefs.locations.value
+        _uiState.update { state ->
+            state.copy(
+                locations = locations,
+                locationPodcasts = state.locationPodcasts.filterKeys { region -> locations.any { it.region == region } },
+            )
+        }
+        locations.forEach { location ->
+            viewModelScope.launch {
+                val result = interactors.getPodcastsByLocation(location, force = force)
+                val items = (result as? TSDataState.Success)?.data.orEmpty()
+                _uiState.update { it.copy(locationPodcasts = it.locationPodcasts + (location.region to items)) }
+            }
+        }
     }
 
     /** Hides a show everywhere (kept on the device, unhide in Settings) and drops it from Home now. */
@@ -84,6 +112,7 @@ class MainViewModel @Inject constructor(
         _uiState.update { state ->
             state.copy(
                 listTrending = state.listTrending.filterNot { it.id == feedId },
+                locationPodcasts = state.locationPodcasts.mapValues { (_, list) -> list.filterNot { it.id == feedId } },
                 listFav = state.listFav.filterNot { it.id == feedId },
                 recentFeeds = state.recentFeeds.filterNot { it.id == feedId },
                 recentNewFeeds = state.recentNewFeeds.filterNot { it.id == feedId },
@@ -123,18 +152,23 @@ class MainViewModel @Inject constructor(
         mutableMapOf<String, LazyListState>()
     }
 
-    /** Language the lists were first loaded in (declared before init, which reads it). */
-    private val initialLanguage = languagePrefs.language.value.tag
+    /** Locations the lists were first loaded for (declared before init, which reads it). */
+    private val initialLocations = locationPrefs.locations.value
 
     init {
         getTrending()
         loadNews()
-        // Another app language means another content language: reload the lists.
+        loadLocationPodcasts()
+        // Other podcast locations: another primary language reloads every list, a reorder or
+        // a secondary change only the "by location" lists.
         viewModelScope.launch {
-            languagePrefs.language
-                .map { it.tag }
-                .distinctUntilChanged()
-                .collect { if (it != initialLanguage) reload() }
+            var previous = initialLocations
+            locationPrefs.locations.collect { locations ->
+                if (locations == previous) return@collect
+                val primaryChanged = locations.first() != previous.first()
+                previous = locations
+                if (primaryChanged) reload() else loadLocationPodcasts()
+            }
         }
     }
 
@@ -154,6 +188,7 @@ class MainViewModel @Inject constructor(
 
     fun reload() {
         loadNews()
+        loadLocationPodcasts(force = true)
         val isLoading = _uiState.value.isDataPartLoading
         synchronized(isLoading) {
             HomepageDataPart.entries.forEach {
@@ -229,7 +264,9 @@ class MainViewModel @Inject constructor(
                 ),
             ) { trending, favourite ->
                 if (trending is TSDataState.Success) {
-                    if (favourite is TSDataState.Success) {
+                    // A single-language location can have no trending show in the chosen
+                    // categories; fall back to the general trending list instead of nothing.
+                    if (favourite is TSDataState.Success && favourite.data.items.isNotEmpty()) {
                         _uiState.value.copy(
                             renderCount = ++renderCount,
                             listFav = favourite.data.items,

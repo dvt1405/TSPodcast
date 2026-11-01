@@ -11,7 +11,7 @@ class GetTrendingPodcasts @Inject constructor(
     private val repository: IPodcastRepository,
     private val sharedPref: SharedPref,
     private val blacklistRepositoryImpl: BlacklistRepositoryImpl,
-    private val languagePrefs: tss.t.core.storage.LanguagePrefs,
+    private val locationPrefs: tss.t.core.storage.PodcastLocationPrefs,
 ) {
 
     suspend operator fun invoke(
@@ -22,8 +22,8 @@ class GetTrendingPodcasts @Inject constructor(
         notcat: String? = null,
         pretty: Boolean? = null
     ): TSDataState<TrendingPodcastRes> {
-        // The app / content language (Settings → Ngôn ngữ), e.g. "vi,en"; caches are per language.
-        val lang = lang ?: languagePrefs.contentLangParam()
+        // The primary podcast location's language only ("vi"); caches are per language.
+        val lang = lang ?: locationPrefs.contentLangParam()
         if (cacheLang != lang) {
             cachedData = null
             cachedDataFav = null
@@ -65,10 +65,12 @@ class GetTrendingPodcasts @Inject constructor(
         ).also { it ->
             synchronized(lock) {
                 if (it is TSDataState.Success) {
+                    val code = tss.t.podcasts.LanguageMatch.code(lang.substringBefore(','))
                     val result = it.data.items.filter {
                         !(blacklistRepositoryImpl.isInBlacklist(it.id.toString())
                                 || blacklistRepositoryImpl.isInBlacklist(it.feedId.toString())
                                 || blacklistRepositoryImpl.isContainKeywordsBlacklist(it.title))
+                                && tss.t.podcasts.LanguageMatch.titleFits(it.title, code)
                     }
                     if (cat.isNullOrEmpty()) {
                         cachedData = it.data.copy(

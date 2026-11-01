@@ -34,7 +34,19 @@ class HazeState {
      * This is explicitly NOT snapshot or state backed, as doing so would cause draw loops.
      */
     var contentLayer: GraphicsLayer? = null
-        internal set
+        internal set(value) {
+            if (field !== value) {
+                field = value
+                // Tells hazeChild nodes to draw the new layer (only when the layer itself changes;
+                // a re-recorded layer updates on its own).
+                layerVersion++
+            }
+        }
+
+    internal var layerVersion by mutableIntStateOf(0)
+
+    /** Attached [haze] sources, oldest first; screens of a NavHost share one state. */
+    internal val sources = mutableListOf<HazeNode>()
 
     var invalidateTick by mutableIntStateOf(Int.MIN_VALUE)
 }

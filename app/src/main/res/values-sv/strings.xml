@@ -108,5 +108,21 @@ Anledning till rapporten:
     <string name="settings_liquid_glass_hint">Navigeringsfält, minispelare och spelarkontroller i glasstil</string>
 
     <string name="settings_language">Språk</string>
-    <string name="settings_language_hint">Språk för appen och poddlistorna (engelska poddar ingår alltid)</string>
+    <string name="settings_language_hint">Appens språk</string>
+    <string name="location_section_title">Poddar per land</string>
+    <string name="location_section_subtitle">Trendar i länderna du valt</string>
+    <string name="location_manage">Ordna</string>
+    <string name="location_sheet_title">Poddländer</string>
+    <string name="location_sheet_hint">Upp till 3 länder, i prioritetsordning. Det första styr Hem; sökningen visar bara poddar från dina länder.</string>
+    <string name="location_add_title">Lägg till land</string>
+    <string name="location_limit_reached">Redan 3 länder, ta bort ett för att lägga till ett annat</string>
+    <string name="location_move_up">Flytta upp</string>
+    <string name="location_move_down">Flytta ner</string>
+    <string name="location_remove">Ta bort land</string>
+    <string name="location_primary">Huvud</string>
+    <string name="location_done">Klar</string>
+    <string name="location_empty">Inga trendande poddar här än</string>
+    <string name="settings_podcast_location">Poddländer</string>
+    <string name="settings_podcast_location_hint">Hem och sök följer dina länder</string>
+    <string name="location_top_pick">Toppval</string>
 </resources>

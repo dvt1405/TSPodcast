@@ -9,6 +9,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.collection.lruCache
 import androidx.compose.runtime.snapshots.Snapshot
+import androidx.compose.ui.node.invalidateDraw
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
@@ -66,8 +67,20 @@ class HazeNode(
     state.contentArea.style = { defaultStyle }
   }
 
+  /**
+   * This node's own content layer. Screens of a NavHost share one [HazeState], and during a
+   * transition two HazeNodes are attached at once: with a single layer kept in the state they
+   * recorded over each other, and the leaving screen released the layer the new one was drawing,
+   * which froze the new screen on the old one's pixels (Search → Favourites, 2026-11-01).
+   */
+  internal var ownLayer: androidx.compose.ui.graphics.layer.GraphicsLayer? = null
+    private set
+
   override fun onAttach() {
+    state.sources.remove(this)
+    state.sources.add(this)
     update()
+    invalidateDraw()
   }
 
   override fun onGloballyPositioned(coordinates: LayoutCoordinates) = onPlaced(coordinates)
@@ -97,9 +110,11 @@ class HazeNode(
 
     val graphicsContext = currentValueOf(LocalGraphicsContext)
 
-    val contentLayer = state.contentLayer
+    val contentLayer = ownLayer
       ?.takeUnless { it.isReleased }
-      ?: graphicsContext.createGraphicsLayer().also { state.contentLayer = it }
+      ?: graphicsContext.createGraphicsLayer().also { ownLayer = it }
+    // The most recently drawn source is the one hazeChild blurs.
+    state.contentLayer = contentLayer
 
     // First we draw the composable content into a graphics layer
     contentLayer.record {
@@ -118,10 +133,16 @@ class HazeNode(
   override fun onDetach() {
     super.onDetach()
 
-    state.contentLayer?.let { layer ->
-      currentValueOf(LocalGraphicsContext).releaseGraphicsLayer(layer)
+    state.sources.remove(this)
+    val layer = ownLayer
+    ownLayer = null
+    if (layer != null && state.contentLayer === layer) {
+      // Hand over to the screen still attached, and have it record again.
+      val next = state.sources.lastOrNull()
+      state.contentLayer = next?.ownLayer?.takeUnless { it.isReleased }
+      next?.invalidateDraw()
     }
-    state.contentLayer = null
+    layer?.let { currentValueOf(LocalGraphicsContext).releaseGraphicsLayer(it) }
   }
 
   private companion object {

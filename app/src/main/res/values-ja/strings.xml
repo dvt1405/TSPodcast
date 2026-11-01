@@ -108,5 +108,21 @@
     <string name="settings_liquid_glass_hint">ナビゲーションバー、ミニプレーヤー、再生コントロールをガラス風のデザインに</string>
 
     <string name="settings_language">言語</string>
-    <string name="settings_language_hint">アプリとポッドキャスト一覧の言語（英語のポッドキャストは常に含まれます）</string>
+    <string name="settings_language_hint">アプリの言語</string>
+    <string name="location_section_title">地域別ポッドキャスト</string>
+    <string name="location_section_subtitle">選んだ地域で人気</string>
+    <string name="location_manage">並べ替え</string>
+    <string name="location_sheet_title">ポッドキャストの地域</string>
+    <string name="location_sheet_hint">最大3地域を優先順に。1番目の地域がホームの内容を決め、検索は選んだ地域のポッドキャストだけを表示します。</string>
+    <string name="location_add_title">地域を追加</string>
+    <string name="location_limit_reached">すでに3地域です。追加するには1つ外してください</string>
+    <string name="location_move_up">上へ</string>
+    <string name="location_move_down">下へ</string>
+    <string name="location_remove">地域を外す</string>
+    <string name="location_primary">メイン</string>
+    <string name="location_done">完了</string>
+    <string name="location_empty">この地域の人気ポッドキャストはまだありません</string>
+    <string name="settings_podcast_location">ポッドキャストの地域</string>
+    <string name="settings_podcast_location_hint">ホームと検索は選んだ地域に合わせます</string>
+    <string name="location_top_pick">イチオシ</string>
 </resources>
