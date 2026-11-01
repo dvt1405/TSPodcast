@@ -61,7 +61,7 @@ Tham số: `screen_name`, `screen_class` (bằng nhau).
 |---|---|
 | `content_type` | `podcast`, `episode`, `live`, `news`, `radio` |
 | `item_id` | feed id / episode id / live id / id kênh radio |
-| `section` | `trending`, `news`, `location`, `music`, `live`, `recent`, `favourite_categories`, `search_results`, `favourites`, `radio`, `podcast_detail` |
+| `section` | `trending`, `news`, `location`, `music`, `live`, `recent`, `favourite_categories`, `search_results`, `category_results` (show của chủ đề mở ở Search), `favourites`, `radio`, `podcast_detail` |
 | `region` | Mã vùng (VN, US…) cho `location` và `news` |
 | `position` | Thứ tự trong danh sách (location, favourite_categories, search_results) |
 
@@ -105,7 +105,7 @@ Download: app chưa có tải về nên chưa có event.
 |---|---|---|
 | `search` (GA4) | `term_length`, `word_count`, `search_mode` (`all` \| `music`), `result_count` | Một lần cho mỗi truy vấn đã dừng gõ 1,5 s; không gửi chữ |
 | `search_no_results` | `term_length`, `search_mode` | Kèm `search` khi 0 kết quả |
-| `category_select` | `category_id`, `category_name`, `origin` (`search` \| `onboarding`) | Chip chủ đề ở Search, chọn chủ đề ở onboarding |
+| `category_select` | `category_id`, `category_name`, `origin` (`search` \| `onboarding`) | Mở chủ đề ở Search (dải chủ đề, sheet tất cả chủ đề), chọn chủ đề ở onboarding |
 | `onboarding_categories_saved` | `count` | Lưu chủ đề yêu thích |
 | `podcast_locations_change` | `count`, `primary_location`, `locations` (`VN,US`), `primary_changed`, `change` (`add` \| `remove` \| `reorder`) | Đổi vị trí podcast (Cài đặt hoặc sheet ở Home) |
 | `app_language_change` | `language`, `previous_language` | Đổi ngôn ngữ app |

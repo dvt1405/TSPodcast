@@ -80,6 +80,8 @@ object AppEvents {
         const val RECENT = "recent"
         const val FAVOURITE_CATEGORIES = "favourite_categories"
         const val SEARCH_RESULTS = "search_results"
+        /** Trending shows of a topic opened in Search (in the primary location). */
+        const val CATEGORY_RESULTS = "category_results"
         const val FAVOURITES = "favourites"
         const val RADIO = "radio"
         const val PODCAST_DETAIL = "podcast_detail"

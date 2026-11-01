@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
@@ -60,6 +61,7 @@ import tss.t.podcast.ui.theme.PodcastTheme
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.ui.widget.TSOutlinedTextField
+import tss.t.podcast.ui.screens.search.widgets.inCategory
 
 @OptIn(FlowPreview::class)
 @Composable
@@ -73,13 +75,27 @@ fun SearchScreen(
     searchMode: SearchMode = SearchMode.All,
     onSearchModeSelected: (SearchMode) -> Unit = {},
     onSearchSelected: (Feed) -> Unit = {},
-    innerPadding: PaddingValues = PaddingValues()
+    innerPadding: PaddingValues = PaddingValues(),
+    selectedCategory: CategoryRes.Category? = null,
+    categoryResults: List<Feed>? = null,
+    primaryLocation: tss.t.core.storage.PodcastLocation? = null,
+    onCategorySelected: (CategoryRes.Category?) -> Unit = {},
 ) {
+    var showAllCategories by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    if (showAllCategories) {
+        tss.t.podcast.ui.screens.search.widgets.AllCategoriesSheet(
+            categories = categories,
+            onSelect = {
+                showAllCategories = false
+                onCategorySelected(it)
+            },
+            onDismiss = { showAllCategories = false }
+        )
+    }
+    // Topic filter over text results; reset when the results change.
+    var resultCategory by remember(searchResult) { mutableStateOf<Int?>(null) }
     var searchText by remember {
         mutableStateOf(initSearchText)
-    }
-    var selectedCategory by remember {
-        mutableStateOf<CategoryRes.Category?>(null)
     }
     val focusManager = LocalFocusManager.current
     val focusRequester = remember {
@@ -180,7 +196,52 @@ fun SearchScreen(
                 .fillMaxWidth()
                 .animateContentSize()
         ) {
-            if (searchText.isNullOrEmpty()) {
+            if (searchText.isNullOrEmpty() && selectedCategory != null) {
+                // A topic is open: its trending shows in the main podcast location.
+                item(key = "categoryHeader") {
+                    if (primaryLocation != null) {
+                        tss.t.podcast.ui.screens.search.widgets.SelectedCategoryHeader(
+                            category = selectedCategory,
+                            location = primaryLocation,
+                            onClear = { onCategorySelected(null) }
+                        )
+                    }
+                }
+                when {
+                    categoryResults == null -> item(key = "categoryLoading") {
+                        Box(Modifier.fillMaxWidth().padding(top = 48.dp), contentAlignment = Alignment.Center) {
+                            androidx.compose.material3.CircularProgressIndicator()
+                        }
+                    }
+                    categoryResults.isEmpty() -> item(key = "categoryEmpty") {
+                        Text(
+                            stringResource(R.string.search_category_empty),
+                            style = TextStyles.Body4,
+                            color = Colors.Gray60,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp, vertical = 48.dp)
+                        )
+                    }
+                    else -> items(categoryResults.size, key = { "cat_" + categoryResults[it].id }) { index ->
+                        SearchPodcastItem(categoryResults[index]) { onSearchSelected(it) }
+                    }
+                }
+            } else if (searchText.isNullOrEmpty()) {
+                if (categories.isNotEmpty() && searchMode == SearchMode.All) {
+                    item(key = "categoryStrip") {
+                        tss.t.podcast.ui.screens.search.widgets.CategoryStrip(
+                            categories = categories,
+                            onSelect = {
+                                focusManager.clearFocus()
+                                onCategorySelected(it)
+                            },
+                            onSeeAll = {
+                                focusManager.clearFocus()
+                                showAllCategories = true
+                            }
+                        )
+                    }
+                }
                 item {
                     Text(
                         stringResource(R.string.try_search_with_keyword_title, trendingKeyword),
@@ -190,36 +251,6 @@ fun SearchScreen(
                             .padding(top = 24.dp)
                             .clickable { searchText = trendingKeyword }
                     )
-                }
-                if (categories.isNotEmpty()) {
-                    item {
-                        // Topic chips (iOS M2 parity): a tap searches that topic.
-                        Text(
-                            stringResource(R.string.search_categories_title),
-                            style = TextStyles.Title5,
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .padding(top = 24.dp, bottom = 8.dp)
-                        )
-                        @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
-                        androidx.compose.foundation.layout.FlowRow(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
-                            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
-                        ) {
-                            categories.forEach { category ->
-                                androidx.compose.material3.SuggestionChip(
-                                    onClick = {
-                                        tss.t.sharedlibrary.analytics.Analytics.log(tss.t.sharedlibrary.analytics.AppEvents.categorySelect(category.id, category.name, "search"))
-                                        selectedCategory = category
-                                        searchText = category.name
-                                        focusManager.clearFocus()
-                                    },
-                                    label = { Text(tss.t.featureonboarding.CategoryNames.name(category.id, category.name)) }
-                                )
-                            }
-                        }
-                    }
                 }
             } else if (searchResult.isEmpty() && !searchText.isNullOrEmpty()) {
                 item {
@@ -246,8 +277,11 @@ fun SearchScreen(
                     }
                 }
             } else {
-                items(searchResult.size) { index ->
-                    val item = searchResult[index]
+                val shown = resultCategory?.let { id ->
+                    searchResult.filter { feed -> feed.inCategory(id) }
+                } ?: searchResult
+                items(shown.size) { index ->
+                    val item = shown[index]
                     if (index == 0) {
                         Text(
                             stringResource(
@@ -263,7 +297,12 @@ fun SearchScreen(
                                 .padding(horizontal = 16.dp)
                                 .padding(top = 24.dp)
                         )
-                        Spacer(Modifier.size(16.dp))
+                        tss.t.podcast.ui.screens.search.widgets.ResultCategoryFilter(
+                            results = searchResult,
+                            selectedId = resultCategory,
+                            onSelect = { resultCategory = it }
+                        )
+                        Spacer(Modifier.size(8.dp))
                     }
                     SearchPodcastItem(item) {
                         onSearchSelected(it)

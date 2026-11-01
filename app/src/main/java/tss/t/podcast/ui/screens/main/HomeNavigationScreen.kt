@@ -355,6 +355,8 @@ private fun HomeNavHost(
             val listCategory by searchViewModel.listCategory.collectAsState()
             val listSearch by searchViewModel.listSearch.collectAsState()
             val searchMode by searchViewModel.searchMode.collectAsState()
+            val selectedCategory by searchViewModel.selectedCategory.collectAsState()
+            val categoryResults by searchViewModel.categoryResults.collectAsState()
             val searchText by rememberSaveable {
                 searchViewModel.currentSearchText
             }
@@ -367,6 +369,10 @@ private fun HomeNavHost(
                 searchResult = listSearch,
                 searchMode = searchMode,
                 onSearchModeSelected = searchViewModel::setSearchMode,
+                selectedCategory = selectedCategory,
+                categoryResults = categoryResults,
+                primaryLocation = searchViewModel.primaryLocation,
+                onCategorySelected = searchViewModel::selectCategory,
                 hazeState = hazeState,
                 innerPadding = PaddingValues(
                     start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
@@ -380,7 +386,12 @@ private fun HomeNavHost(
                 ),
                 onSearchSelected = { feed ->
                     val podcast = Podcast.fromFeed(feed)
-                    tss.t.podcast.analytics.ContentAnalytics.podcast(podcast, tss.t.sharedlibrary.analytics.AppEvents.Section.SEARCH_RESULTS, position = listSearch.indexOf(feed).takeIf { it >= 0 })
+                    val inTopic = categoryResults?.contains(feed) == true
+                    tss.t.podcast.analytics.ContentAnalytics.podcast(
+                        podcast,
+                        if (inTopic) tss.t.sharedlibrary.analytics.AppEvents.Section.CATEGORY_RESULTS else tss.t.sharedlibrary.analytics.AppEvents.Section.SEARCH_RESULTS,
+                        position = (if (inTopic) categoryResults.orEmpty() else listSearch).indexOf(feed).takeIf { it >= 0 },
+                    )
                     mainViewModel.setCurrentPodcast(podcast)
                     podcastViewModel.getEpisodes(podcast)
                     parentNavHost.navigate(TSRouter.PodcastDetail.route)
