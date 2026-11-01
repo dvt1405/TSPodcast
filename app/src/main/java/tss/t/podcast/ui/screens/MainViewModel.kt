@@ -78,11 +78,20 @@ class MainViewModel @Inject constructor(
                 .getOrDefault(emptyList())
             _uiState.update { it.copy(newsItems = items) }
         }
-        viewModelScope.launch {
-            // "Thời sự" of the primary location from the catalog, so the section is never missing.
-            val items = runCatching { interactors.getLocationNews(locationPrefs.primary) }
-                .getOrDefault(emptyList())
-            _uiState.update { it.copy(catalogNews = items) }
+        loadLocationNews()
+    }
+
+    /** "Thời sự" of every podcast location from the catalog, so the section is never missing. */
+    private fun loadLocationNews() {
+        val locations = locationPrefs.locations.value
+        _uiState.update { state ->
+            state.copy(newsByRegion = state.newsByRegion.filterKeys { region -> locations.any { it.region == region } })
+        }
+        locations.forEach { location ->
+            viewModelScope.launch {
+                val items = runCatching { interactors.getLocationNews(location) }.getOrDefault(emptyList())
+                _uiState.update { it.copy(newsByRegion = it.newsByRegion + (location.region to items)) }
+            }
         }
     }
 
@@ -167,7 +176,12 @@ class MainViewModel @Inject constructor(
                 if (locations == previous) return@collect
                 val primaryChanged = locations.first() != previous.first()
                 previous = locations
-                if (primaryChanged) reload() else loadLocationPodcasts()
+                if (primaryChanged) {
+                    reload()
+                } else {
+                    loadLocationPodcasts()
+                    loadLocationNews()
+                }
             }
         }
     }

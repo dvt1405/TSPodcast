@@ -67,7 +67,6 @@ fun LocationSection(
     onClick: (Podcast) -> Unit,
 ) {
     if (locations.isEmpty()) return
-    val displayLocale = LocalConfiguration.current.locales[0]
     // Back to the main location whenever the list is edited or reordered.
     var selectedRegion by rememberSaveable(locations.joinToString(",") { it.region }) {
         androidx.compose.runtime.mutableStateOf(locations.first().region)
@@ -89,30 +88,7 @@ fun LocationSection(
                 Text(stringResource(R.string.location_manage))
             }
         }
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(locations, key = { it.region }) { location ->
-                val isSelected = location.region == selected.region
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(50))
-                        .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
-                        .clickable { selectedRegion = location.region }
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(location.flag, fontSize = 16.sp)
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        location.displayName(displayLocale),
-                        style = TextStyles.SubTitle3,
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-        }
+        LocationChips(locations, selected.region) { selectedRegion = it }
         AnimatedContent(
             targetState = selected.region,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
@@ -240,5 +216,74 @@ private fun LocationPlaceholder(color: Color) {
             }
         }
         Spacer(Modifier.height(12.dp))
+    }
+}
+
+/** One pill per location (flag + country), the selected one filled. */
+@Composable
+fun LocationChips(
+    locations: List<PodcastLocation>,
+    selectedRegion: String,
+    onSelect: (String) -> Unit,
+) {
+    val displayLocale = LocalConfiguration.current.locales[0]
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(locations, key = { it.region }) { location ->
+            val isSelected = location.region == selectedRegion
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
+                    .clickable { onSelect(location.region) }
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(location.flag, fontSize = 16.sp)
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    location.displayName(displayLocale),
+                    style = TextStyles.SubTitle3,
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+
+/**
+ * "Thời sự" by location: chips for the locations that have bulletins (none when only one has),
+ * then that location's newest bulletins. Starts on the main location.
+ */
+@Composable
+fun LocationNewsSection(
+    locations: List<PodcastLocation>,
+    newsByRegion: Map<String, List<tss.t.podcasts.NewsItem>>,
+    onClick: (tss.t.podcasts.NewsItem) -> Unit,
+) {
+    val withNews = locations.filter { !newsByRegion[it.region].isNullOrEmpty() }
+    if (withNews.isEmpty()) return
+    var selectedRegion by rememberSaveable(withNews.joinToString(",") { it.region }) {
+        androidx.compose.runtime.mutableStateOf(withNews.first().region)
+    }
+    val selected = withNews.firstOrNull { it.region == selectedRegion } ?: withNews.first()
+    Column(Modifier.fillMaxWidth()) {
+        Text(
+            stringResource(R.string.news_hub_title),
+            style = TextStyles.Title4,
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = if (withNews.size > 1) 0.dp else 12.dp)
+        )
+        if (withNews.size > 1) {
+            LocationChips(withNews, selected.region) { selectedRegion = it }
+        }
+        AnimatedContent(
+            targetState = selected.region,
+            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            label = "LocationNews"
+        ) { region ->
+            NewsRow(items = newsByRegion[region].orEmpty(), onClick = onClick)
+        }
     }
 }

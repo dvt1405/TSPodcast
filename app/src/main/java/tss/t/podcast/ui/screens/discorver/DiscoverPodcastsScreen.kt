@@ -206,22 +206,19 @@ fun DiscoverPodcastsScreen(
                     onTrendingClick = onTrendingClick
                 )
             }
-            // "Thời sự": the curated hub when it has enough confirmed sources, else the newest
-            // bulletins of the primary location's trending News shows.
-            val news = uiState.newsItems.ifEmpty { uiState.catalogNews }
-            if (news.isNotEmpty()) {
-                item(key = "NewsTitle") {
-                    Text(
-                        stringResource(R.string.news_hub_title),
-                        style = TextStyles.Title4,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp)
-                    )
-                }
-                item(key = "NewsRow") {
-                    tss.t.podcast.ui.screens.discorver.components.NewsRow(
-                        items = news,
+            // "Thời sự" per podcast location: the newest bulletins of each location's trending
+            // News shows; the curated hub (confirmed sources) replaces the main location's list.
+            val primaryRegion = uiState.locations.firstOrNull()?.region
+            val newsByRegion = if (uiState.newsItems.isNotEmpty() && primaryRegion != null) {
+                uiState.newsByRegion + (primaryRegion to uiState.newsItems)
+            } else {
+                uiState.newsByRegion
+            }
+            if (newsByRegion.values.any { it.isNotEmpty() }) {
+                item(key = "NewsSection") {
+                    tss.t.podcast.ui.screens.discorver.components.LocationNewsSection(
+                        locations = uiState.locations,
+                        newsByRegion = newsByRegion,
                         onClick = onNewsClick
                     )
                 }
