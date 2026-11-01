@@ -489,6 +489,9 @@ private fun MiniPlayer(
     }
 
     val animatePadding by animateDpAsState(paddingBottom, label = "MiniPlayerPadding")
+    // The glass capsule draws its own shadow outside its shape; a rectangular elevation shadow
+    // here would show through the translucent capsule as a grey frame.
+    val glass = tss.t.sharedlibrary.ui.glass.LocalLiquidGlass.current
 
     AnimatedContent(
         targetState = playerControlState.currentMediaItem,
@@ -510,7 +513,7 @@ private fun MiniPlayer(
                             enter = fadeIn() + slideInVertically { it },
                             exit = fadeOut() + slideOutVertically { it }
                         )
-                        .shadow(1.dp),
+                        .then(if (glass) Modifier else Modifier.shadow(1.dp)),
                     title = currentMediaItem.mediaMetadata.title.toString(),
                     image = currentMediaItem.mediaMetadata.artworkUri.toString(),
                     description = currentMediaItem.mediaMetadata.description.toString(),
