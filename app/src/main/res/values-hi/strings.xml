@@ -144,4 +144,9 @@
     <string name="continue_listening_play">फिर से चलाएँ</string>
     <string name="settings_history">सुनने का इतिहास</string>
     <string name="settings_history_hint">सुने गए और अधूरे एपिसोड, सिर्फ़ इसी डिवाइस पर सहेजे गए</string>
+    <string name="search_categories_see_all">सभी देखें</string>
+    <string name="search_categories_sheet_title">सभी विषय</string>
+    <string name="search_category_trending_in">%1$s में ट्रेंडिंग</string>
+    <string name="search_category_empty">इस विषय में अभी कोई ट्रेंडिंग पॉडकास्ट नहीं</string>
+    <string name="search_filter_all">सभी</string>
 </resources>

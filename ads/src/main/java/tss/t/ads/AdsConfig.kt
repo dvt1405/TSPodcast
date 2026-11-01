@@ -32,6 +32,13 @@ object AdsKeys {
     const val REWARDED_AD_FREE_MINUTES = "ads_rewarded_ad_free_minutes"
     const val REWARDED_DAILY_CAP = "ads_rewarded_daily_cap"
     const val MIN_APP_VERSION = "ads_min_app_version"
+
+    /**
+     * Log GA4 `ad_impression` (with revenue) from the paid event. Turn off if the AdMob ↔
+     * Firebase link starts logging its own `ad_impression` for these ads, which would count
+     * revenue twice (docs/done/analytics/analytics-events.md §Quảng cáo).
+     */
+    const val GA4_AD_IMPRESSION = "ads_ga4_ad_impression"
 }
 
 enum class NativeTemplate { Small, Medium }
@@ -67,6 +74,8 @@ data class AdsSettings(
     val rewardedAdFreeMinutes: Long,
     val rewardedDailyCap: Int,
     val minAppVersion: Long,
+    /** [AdsKeys.GA4_AD_IMPRESSION]. */
+    val ga4AdImpression: Boolean = true,
 ) {
     fun isEnabled(placement: AdPlacement): Boolean =
         adsEnabled && placementsEnabled[placement] == true
@@ -222,6 +231,7 @@ data class AdsSettings(
                 ),
                 rewardedDailyCap = int(AdsKeys.REWARDED_DAILY_CAP, defaults.rewardedDailyCap),
                 minAppVersion = long(AdsKeys.MIN_APP_VERSION, defaults.minAppVersion),
+                ga4AdImpression = bool(AdsKeys.GA4_AD_IMPRESSION, defaults.ga4AdImpression),
             )
         }
 

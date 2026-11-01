@@ -305,6 +305,10 @@ private fun HomeNavHost(
                     onLocationsChange = mainViewModel::setLocations,
                     continueListening = historyViewModel.continueListening.collectAsState().value,
                     onContinueClick = { entry ->
+                        tss.t.podcast.analytics.ContentAnalytics.historyEpisode(
+                            entry.mediaId,
+                            tss.t.sharedlibrary.analytics.AppEvents.Section.CONTINUE_LISTENING
+                        )
                         coroutineScope.launch {
                             playerViewModel.playFromHistory(entry)
                             parentNavHost.navigate(TSRouter.Player.route)
@@ -370,6 +374,8 @@ private fun HomeNavHost(
             val listCategory by searchViewModel.listCategory.collectAsState()
             val listSearch by searchViewModel.listSearch.collectAsState()
             val searchMode by searchViewModel.searchMode.collectAsState()
+            val selectedCategory by searchViewModel.selectedCategory.collectAsState()
+            val categoryResults by searchViewModel.categoryResults.collectAsState()
             val searchText by rememberSaveable {
                 searchViewModel.currentSearchText
             }
@@ -382,6 +388,10 @@ private fun HomeNavHost(
                 searchResult = listSearch,
                 searchMode = searchMode,
                 onSearchModeSelected = searchViewModel::setSearchMode,
+                selectedCategory = selectedCategory,
+                categoryResults = categoryResults,
+                primaryLocation = searchViewModel.primaryLocation,
+                onCategorySelected = searchViewModel::selectCategory,
                 hazeState = hazeState,
                 innerPadding = PaddingValues(
                     start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
@@ -395,6 +405,12 @@ private fun HomeNavHost(
                 ),
                 onSearchSelected = { feed ->
                     val podcast = Podcast.fromFeed(feed)
+                    val inTopic = categoryResults?.contains(feed) == true
+                    tss.t.podcast.analytics.ContentAnalytics.podcast(
+                        podcast,
+                        if (inTopic) tss.t.sharedlibrary.analytics.AppEvents.Section.CATEGORY_RESULTS else tss.t.sharedlibrary.analytics.AppEvents.Section.SEARCH_RESULTS,
+                        position = (if (inTopic) categoryResults.orEmpty() else listSearch).indexOf(feed).takeIf { it >= 0 },
+                    )
                     mainViewModel.setCurrentPodcast(podcast)
                     podcastViewModel.getEpisodes(podcast)
                     parentNavHost.navigate(TSRouter.PodcastDetail.route)
@@ -416,6 +432,7 @@ private fun HomeNavHost(
                 isMediaLoading = playerControlState.isLoading,
                 listState = listState,
                 onPlay = {
+                    tss.t.podcast.analytics.ContentAnalytics.radio(it)
                     coroutineScope.launch {
                         playerViewModel.playRadio(it, uiState.data?.listRadio ?: emptyList())
                     }
@@ -424,6 +441,7 @@ private fun HomeNavHost(
                     playerViewModel.onPlayPause()
                 },
                 onClick = {
+                    tss.t.podcast.analytics.ContentAnalytics.radio(it)
                     coroutineScope.launch {
                         playerViewModel.playRadio(it, uiState.data?.listRadio ?: emptyList())
                         parentNavHost.navigate(TSRouter.Player.route)

@@ -222,6 +222,7 @@ fun PodcastDetailScreen(
         onPodcastFavouriteChange = { podcastViewModel.setPodcastFavourite(podcast, it) },
         onItemClick = {
             val episode = this
+            tss.t.podcast.analytics.ContentAnalytics.episode(episode, tss.t.sharedlibrary.analytics.AppEvents.Section.PODCAST_DETAIL)
             coroutineScope.launch {
                 playerViewmodel.playerEpisode(
                     episode = episode,

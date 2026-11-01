@@ -31,7 +31,82 @@ class SearchViewModel @Inject constructor(
     private val _searchPodcasts: SearchPodcasts,
     private val _searchMusicFeeds: SearchMusicFeeds,
     private val contentPrefs: tss.t.core.storage.ContentPrefs,
+    private val getPodcastsByLocation: tss.t.podcasts.usecase.GetPodcastsByLocation,
+    private val locationPrefs: tss.t.core.storage.PodcastLocationPrefs,
 ) : ViewModel() {
+
+    /** Topic opened from the category grid; its trending shows replace the suggestions. */
+    private val _selectedCategory = MutableStateFlow<CategoryRes.Category?>(null)
+    val selectedCategory: StateFlow<CategoryRes.Category?> = _selectedCategory.asStateFlow()
+
+    /** Trending shows of [selectedCategory] in the main podcast location; null while loading. */
+    private val _categoryResults = MutableStateFlow<List<Feed>?>(null)
+    val categoryResults: StateFlow<List<Feed>?> = _categoryResults.asStateFlow()
+
+    /** Main podcast location, shown next to category results. */
+    val primaryLocation: tss.t.core.storage.PodcastLocation get() = locationPrefs.primary
+
+    private var categoryJob: Job? = null
+
+    fun selectCategory(category: CategoryRes.Category?) {
+        categoryJob?.cancel()
+        _selectedCategory.value = category
+        _categoryResults.value = null
+        category ?: return
+        tss.t.sharedlibrary.analytics.Analytics.log(
+            tss.t.sharedlibrary.analytics.AppEvents.categorySelect(category.id, category.name, "search")
+        )
+        categoryJob = viewModelScope.launch {
+            val result = getPodcastsByLocation(
+                locationPrefs.primary,
+                cat = category.name,
+                max = 60,
+                sinceDays = 30,
+            )
+            val hidden = contentPrefs.hiddenShows.value.mapTo(HashSet()) { it.feedId }
+            _categoryResults.value = (result as? TSDataState.Success)?.data.orEmpty()
+                .filterNot { it.id in hidden }
+                .map { it.toFeed() }
+        }
+    }
+
+    /** A trending entry as a search row (only the fields the row and the detail screen use). */
+    private fun tss.t.coreapi.models.Podcast.toFeed(): Feed = Feed(
+        artwork = image.ifEmpty { feedImage.orEmpty() },
+        author = "",
+        categories = categories,
+        contentType = "",
+        crawlErrors = 0,
+        dead = 0,
+        description = description.orEmpty(),
+        newestItemPubdate = datePublished,
+        lastHttpStatus = 200,
+        lastUpdateTime = dateCrawled,
+        generator = "",
+        ownerName = "",
+        link = link.orEmpty(),
+        type = 0,
+        episodeCount = 0,
+        imageUrlHash = 0L,
+        lastCrawlTime = dateCrawled,
+        lastParseTime = dateCrawled,
+        itunesType = null,
+        originalUrl = "",
+        parseErrors = 0,
+        podcastGuid = guid.orEmpty(),
+        id = id,
+        url = "",
+        image = image.ifEmpty { feedImage.orEmpty() },
+        title = title.orEmpty(),
+        value = null,
+        locked = 0,
+        medium = "podcast",
+        explicit = explicit == 1,
+        itunesId = feedItunesId,
+        language = feedLanguage.orEmpty(),
+        lastGoodHttpStatusTime = 0,
+        funding = null,
+    )
 
     private val _searchMode by lazy { MutableStateFlow(SearchMode.All) }
     val searchMode: StateFlow<SearchMode>
@@ -78,6 +153,7 @@ class SearchViewModel @Inject constructor(
         }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Eagerly, emptyList())
     }
     private var searchJob: Deferred<TSDataState<SearchResponse>>? = null
+    private val searchLogger = tss.t.podcast.analytics.SettledSearchLogger(viewModelScope)
     fun performSearch(searchText: String?) {
         searchJob?.cancel()
         searchText ?: return
@@ -98,6 +174,7 @@ class SearchViewModel @Inject constructor(
             if (rs.isSuccess()) {
                 val data = (rs as TSDataState.Success).data
                 _listSearch.value = data.feeds
+                searchLogger.onResult(searchText, mode.name.lowercase(), data.feeds.size)
             } else {
                 _listSearch.value = emptyList()
             }

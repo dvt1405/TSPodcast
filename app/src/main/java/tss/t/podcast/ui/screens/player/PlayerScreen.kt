@@ -240,6 +240,7 @@ internal fun PlayerScreen(
                         leadingIcon = { Icon(Icons.Rounded.Share, null) },
                         onClick = {
                             menuOpen = false
+                            tss.t.podcast.analytics.ContentAnalytics.share(tss.t.sharedlibrary.analytics.AppEvents.ContentType.EPISODE, episode.mediaId)
                             context.shareText(shareText, shareTitle)
                         }
                     )

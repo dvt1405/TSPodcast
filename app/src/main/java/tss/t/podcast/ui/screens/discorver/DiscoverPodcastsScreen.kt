@@ -216,7 +216,7 @@ fun DiscoverPodcastsScreen(
                     listTrending = uiState.listTrending,
                     sharedTransitionScope = sharedTransitionScope,
                     animatedContentScope = animatedContentScope,
-                    onTrendingClick = onTrendingClick
+                    onTrendingClick = tss.t.podcast.analytics.ContentAnalytics.onPodcast(tss.t.sharedlibrary.analytics.AppEvents.Section.TRENDING, onTrendingClick)
                 )
             }
             // "Thời sự" per podcast location: the newest bulletins of each location's trending
@@ -283,7 +283,7 @@ fun DiscoverPodcastsScreen(
                     listTrending = uiState.musicFeeds,
                     sharedTransitionScope = sharedTransitionScope,
                     animatedContentScope = animatedContentScope,
-                    onTrendingClick = onTrendingClick
+                    onTrendingClick = tss.t.podcast.analytics.ContentAnalytics.onPodcast(tss.t.sharedlibrary.analytics.AppEvents.Section.MUSIC, onTrendingClick)
                 )
             }
             item(key = ITEM_AD_BANNER_1) {
@@ -309,7 +309,10 @@ fun DiscoverPodcastsScreen(
                         ?: true,
                     liveEpisode = uiState.liveEpisode,
                     pagerState = pagerState,
-                    onClick = onLiveItemClick
+                    onClick = {
+                        tss.t.podcast.analytics.ContentAnalytics.live(this, tss.t.sharedlibrary.analytics.AppEvents.Section.LIVE)
+                        onLiveItemClick(this)
+                    }
                 )
             }
             item(key = ITEM_RECENT_TITLE) {
@@ -333,7 +336,7 @@ fun DiscoverPodcastsScreen(
                     sharedTransitionScope,
                     animatedContentScope,
                     recentFeedState,
-                    onTrendingClick
+                    tss.t.podcast.analytics.ContentAnalytics.onPodcast(tss.t.sharedlibrary.analytics.AppEvents.Section.RECENT, onTrendingClick)
                 )
             }
             item(key = ITEM_FAV_TITLE) {
@@ -365,6 +368,7 @@ fun DiscoverPodcastsScreen(
                     podcast = if (!isFavRefreshing) uiState.listFav[it] else Podcast.default,
                     isLoading = isFavRefreshing
                 ) {
+                    tss.t.podcast.analytics.ContentAnalytics.podcast(this, tss.t.sharedlibrary.analytics.AppEvents.Section.FAVOURITE_CATEGORIES, position = it)
                     onFavClick(this)
                 }
                 if (it == 1 && !isFavRefreshing) {

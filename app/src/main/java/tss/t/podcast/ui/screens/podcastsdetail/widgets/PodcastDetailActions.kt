@@ -82,7 +82,10 @@ fun PodcastDetailActions(
         RoundButton(
             icon = Icons.Rounded.Share,
             description = stringResource(R.string.share),
-            onClick = { context.shareText(shareText, shareTitle) }
+            onClick = {
+                tss.t.podcast.analytics.ContentAnalytics.share(tss.t.sharedlibrary.analytics.AppEvents.ContentType.PODCAST, podcast.id)
+                context.shareText(shareText, shareTitle)
+            }
         )
         if (actions != null) {
             Box {

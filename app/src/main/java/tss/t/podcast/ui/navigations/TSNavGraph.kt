@@ -52,6 +52,7 @@ fun TSNavGraph(
         else -> TSRouter.Main.route
     }
     val viewModelStoreOwner = LocalViewModelStoreOwner.current!!
+    tss.t.podcast.analytics.TrackScreens(outer = navHost, inner = innerNavHost)
     NavHost(
         navController = navHost,
         startDestination = startDestination
@@ -145,6 +146,10 @@ fun TSNavGraph(
                 hasMiniPlayer = playerUIState.currentMediaItem != null,
                 onBack = { navHost.popBackStack() },
                 onPlay = { entry ->
+                    tss.t.podcast.analytics.ContentAnalytics.historyEpisode(
+                        entry.mediaId,
+                        tss.t.sharedlibrary.analytics.AppEvents.Section.HISTORY
+                    )
                     scope.launch {
                         playerViewModel.playFromHistory(entry)
                         navHost.navigate(TSRouter.Player.route)
