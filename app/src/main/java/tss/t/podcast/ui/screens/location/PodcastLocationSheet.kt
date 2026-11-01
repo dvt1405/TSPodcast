@@ -70,6 +70,7 @@ fun PodcastLocationSheet(
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        tss.t.podcast.analytics.TrackScreen(tss.t.sharedlibrary.analytics.AppEvents.Screen.LOCATION_SHEET)
         LazyColumn(Modifier.fillMaxWidth().navigationBarsPadding()) {
             item {
                 Row(

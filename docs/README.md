@@ -14,6 +14,7 @@ Không nằm ở đây: `README.md` gốc, [`brand/BRAND.md`](../brand/BRAND.md)
 
 | Tài liệu | Nội dung | Bằng chứng |
 |---|---|---|
+| [analytics/analytics-events.md](done/analytics/analytics-events.md) | Mọi event Analytics Android (màn hình, phát, khám phá, cài đặt, quảng cáo + doanh thu `ad_impression`, lỗi), user property, consent, cách kiểm tra DebugView | PR analytics; còn đăng ký custom dimension trên GA4 |
 | [brand/concepts/README.md](done/brand/concepts/README.md) | Ba phương án logo, chọn "Lên sóng" | PR #21 |
 | [crashlytics/2026-10-crash-triage.md](done/crashlytics/2026-10-crash-triage.md) | Phân loại crash Crashlytics 08–10/2026 | PR #19; còn đóng issue trên Crashlytics sau bản mới |
 | [deploy/README.md](done/deploy/README.md) | Hướng dẫn deploy web lên VPS (Docker, Caddy, GHCR, SSH) | PR #32; VPS thật chưa thuê |

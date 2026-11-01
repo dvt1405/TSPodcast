@@ -59,7 +59,6 @@ dependencies {
 
     // ConfigAPI (Remote Config abstraction) and TSAnalytics.
     implementation(project(":sharedLibrary"))
-    implementation(project(":sharedFirebase"))
 
     testImplementation(libs.junit)
     testImplementation(libs.org.json)

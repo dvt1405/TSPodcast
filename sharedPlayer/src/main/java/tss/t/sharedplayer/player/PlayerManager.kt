@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.internal.SynchronizedObject
 import tss.t.core.repository.MediaType
+import tss.t.sharedlibrary.analytics.Analytics
+import tss.t.sharedlibrary.analytics.AppEvents
 import tss.t.sharedplayer.playback.PlaybackKeyValue
 import tss.t.sharedplayer.playback.PlaybackPositions
 import tss.t.sharedplayer.playback.PlaybackProfiles
@@ -28,6 +30,7 @@ import tss.t.sharedplayer.playback.SleepTimer
 import tss.t.sharedplayer.playback.SleepTimerAction
 import tss.t.sharedplayer.playback.SleepTimerOption
 import tss.t.sharedplayer.playback.SleepTimerState
+import tss.t.sharedplayer.playback.analyticsValue
 import tss.t.sharedplayer.utils.ext.mediaType
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -128,6 +131,7 @@ class PlayerManager @Inject constructor(
             .apply {
                 this.playWhenReady = true
                 addListener(extrasListener)
+                PlaybackAnalytics().attach(this)
             }
     }
 
@@ -229,6 +233,7 @@ class PlayerManager @Inject constructor(
         profiles.setSpeed(item?.feedId, value)
         _player?.setPlaybackSpeed(PlaybackSpeed.rate(value))
         _extras.update { it.copy(speedTenths = value) }
+        Analytics.log(AppEvents.speedChange(value, profiles.isApplyToAll()))
     }
 
     fun setApplyToAll(on: Boolean) {
@@ -236,7 +241,9 @@ class PlayerManager @Inject constructor(
         applySpeedForCurrentItem()
     }
 
-    fun setSleepTimer(option: SleepTimerOption) {
+    /** [origin] = `player` | `shortcut` (analytics `sleep_timer_set`, iOS parity). */
+    fun setSleepTimer(option: SleepTimerOption, origin: String = "player") {
+        Analytics.log(AppEvents.sleepTimerSet(option.analyticsValue(), origin))
         val wasFading = _player?.volume?.let { it < 1f } == true
         sleepTimer.set(option)
         if (wasFading) _player?.volume = 1f

@@ -123,6 +123,7 @@ private suspend fun onFavouriteSelected(
         val episode = related.episode.firstOrNull {
             favouriteDTO.id == it.id.toString()
         } ?: related.episode.firstOrNull() ?: return
+        tss.t.podcast.analytics.ContentAnalytics.episode(episode, tss.t.sharedlibrary.analytics.AppEvents.Section.FAVOURITES)
         mainViewModel.setCurrentPodcast(related.podcast)
         playerViewModel.playerEpisode(
             episode = episode,
@@ -136,6 +137,7 @@ private suspend fun onFavouriteSelected(
             ?: return
         val playItem = listRadio.firstOrNull { it.channelId == favouriteDTO.id }
             ?: listRadio.first()
+        tss.t.podcast.analytics.ContentAnalytics.radio(playItem, tss.t.sharedlibrary.analytics.AppEvents.Section.FAVOURITES)
         playerViewModel.playRadio(
             playItem,
             listRadio

@@ -37,6 +37,10 @@ class App : CoreApp() {
     lateinit var pruneApiCache: PruneApiCache
     @Inject
     lateinit var privacyConsent: PrivacyConsent
+    @Inject
+    lateinit var analyticsTracker: tss.t.sharedlibrary.analytics.AnalyticsTracker
+    @Inject
+    lateinit var settingsAnalytics: tss.t.podcast.analytics.SettingsAnalytics
 
     override fun onCreate() {
         super.onCreate()
@@ -44,6 +48,9 @@ class App : CoreApp() {
         FirebaseApp.initializeApp(this)
         // Analytics and Crashlytics are off in the manifest; turn them on only if the user agreed.
         privacyConsent.applySaved()
+        // Every analytics call goes through this tracker, which drops events without consent.
+        tss.t.sharedlibrary.analytics.Analytics.install(analyticsTracker)
+        settingsAnalytics.start()
         // Installed before anything else so that failures during the rest of
         // startup are reported rather than lost to the logcat-only fallback.
         Crash.install(crashReporter)

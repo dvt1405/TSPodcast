@@ -64,12 +64,14 @@ class AdSlotCache @Inject constructor(
         if (slot.state.value != null || !canRetry(slot)) return
         if (!slot.loading.compareAndSet(false, true)) return
         analytics.request(placement)
+        val startedAt = System.currentTimeMillis()
         BannerAd.load(request(), object : AdLoadCallback<BannerAd> {
             override fun onAdLoaded(ad: BannerAd) {
+                analytics.loaded(placement, System.currentTimeMillis() - startedAt, ad.adSourceName())
                 ad.adEventCallback = object : BannerAdEventCallback {
                     override fun onAdImpression() = analytics.impression(placement)
                     override fun onAdClicked() = analytics.click(placement)
-                    override fun onAdPaid(value: AdValue) = paid(placement, value)
+                    override fun onAdPaid(value: AdValue) = paid(placement, value, ad)
                 }
                 slot.loadedAt = System.currentTimeMillis()
                 slot.state.value = ad
@@ -79,7 +81,10 @@ class AdSlotCache @Inject constructor(
             override fun onAdFailedToLoad(adError: LoadAdError) {
                 slot.failedAt = System.currentTimeMillis()
                 slot.loading.set(false)
-                analytics.loadFailed(placement, adError.code.name)
+                analytics.loadFailed(
+                    placement, adError.code.name, adError.code.value,
+                    System.currentTimeMillis() - startedAt,
+                )
             }
         })
     }
@@ -95,12 +100,14 @@ class AdSlotCache @Inject constructor(
         if ((current != null && !stale) || !canRetry(slot)) return
         if (!slot.loading.compareAndSet(false, true)) return
         analytics.request(placement)
+        val startedAt = System.currentTimeMillis()
         NativeAdLoader.load(request(), object : NativeAdLoaderCallback {
             override fun onNativeAdLoaded(nativeAd: NativeAd) {
+                analytics.loaded(placement, System.currentTimeMillis() - startedAt, nativeAd.adSourceName())
                 nativeAd.adEventCallback = object : NativeAdEventCallback {
                     override fun onAdImpression() = analytics.impression(placement)
                     override fun onAdClicked() = analytics.click(placement)
-                    override fun onAdPaid(value: AdValue) = paid(placement, value)
+                    override fun onAdPaid(value: AdValue) = paid(placement, value, nativeAd)
                 }
                 slot.loadedAt = System.currentTimeMillis()
                 val previous = slot.state.value
@@ -115,7 +122,10 @@ class AdSlotCache @Inject constructor(
             override fun onAdFailedToLoad(adError: LoadAdError) {
                 slot.failedAt = System.currentTimeMillis()
                 slot.loading.set(false)
-                analytics.loadFailed(placement, adError.code.name)
+                analytics.loadFailed(
+                    placement, adError.code.name, adError.code.value,
+                    System.currentTimeMillis() - startedAt,
+                )
             }
         })
     }
@@ -134,8 +144,8 @@ class AdSlotCache @Inject constructor(
     private fun canRetry(slot: Slot<*>): Boolean =
         System.currentTimeMillis() - slot.failedAt > RETRY_AFTER_FAILURE_MS
 
-    private fun paid(placement: AdPlacement, value: AdValue) = analytics.paid(
-        placement, value.valueMicros, value.currencyCode, value.precisionType.name
+    private fun paid(placement: AdPlacement, value: AdValue, ad: Ad) = analytics.paid(
+        placement, value.valueMicros, value.currencyCode, value.precisionType.name, ad.adSourceName()
     )
 
     private companion object {
@@ -144,3 +154,7 @@ class AdSlotCache @Inject constructor(
         const val NATIVE_MAX_AGE_MS = 55 * 60_000L
     }
 }
+
+/** Name of the network that filled [this] ad (GA4 `ad_source`), e.g. "AdMob Network". */
+internal fun Ad.adSourceName(): String? =
+    runCatching { getResponseInfo().loadedAdSourceResponseInfo?.name }.getOrNull()?.takeIf { it.isNotBlank() }

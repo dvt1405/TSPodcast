@@ -11,6 +11,7 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.android.libraries.ads.mobile.sdk.MobileAds
 import com.google.android.libraries.ads.mobile.sdk.appopen.AppOpenAdEventCallback
 import com.google.android.libraries.ads.mobile.sdk.appopen.AppOpenAdPreloader
+import com.google.android.libraries.ads.mobile.sdk.common.Ad
 import com.google.android.libraries.ads.mobile.sdk.common.AdEventCallback
 import com.google.android.libraries.ads.mobile.sdk.common.AdRequest
 import com.google.android.libraries.ads.mobile.sdk.common.AdValue
@@ -200,11 +201,13 @@ class AdMobAdsController @Inject constructor(
 
     private fun preloadCallback(placement: AdPlacement) = object : PreloadCallback {
         override fun onAdPreloaded(preloadId: String, responseInfo: ResponseInfo) {
+            // The preloader refills by itself, so latency is not meaningful here.
+            analytics.loaded(placement, null, responseInfo.loadedAdSourceResponseInfo?.name)
             log("preloaded ${placement.key}")
         }
 
         override fun onAdFailedToPreload(preloadId: String, adError: LoadAdError) {
-            analytics.loadFailed(placement, adError.code.name)
+            analytics.loadFailed(placement, adError.code.name, adError.code.value)
             log("preload failed ${placement.key}: ${adError.code} ${adError.message}")
         }
     }
@@ -275,7 +278,7 @@ class AdMobAdsController @Inject constructor(
             log("app open skipped: nothing preloaded")
             return
         }
-        ad.adEventCallback = object : FullScreenEvents(placement), AppOpenAdEventCallback {}
+        ad.adEventCallback = object : FullScreenEvents(placement, ad), AppOpenAdEventCallback {}
         fullScreenShowing.set(true)
         log("showing app open")
         ad.show(activity)
@@ -306,7 +309,7 @@ class AdMobAdsController @Inject constructor(
             analytics.blocked(placement, "not_preloaded")
             return false
         }
-        ad.adEventCallback = object : FullScreenEvents(placement), InterstitialAdEventCallback {}
+        ad.adEventCallback = object : FullScreenEvents(placement, ad), InterstitialAdEventCallback {}
         fullScreenShowing.set(true)
         ad.show(activity)
         return true
@@ -325,7 +328,7 @@ class AdMobAdsController @Inject constructor(
         val ad = RewardedAdPreloader.pollAd(placement.key) ?: return RewardResult.NotAvailable
         return suspendCancellableCoroutine { cont ->
             val earned = AtomicReference<RewardResult>(RewardResult.Dismissed)
-            ad.adEventCallback = object : FullScreenEvents(placement), RewardedAdEventCallback {
+            ad.adEventCallback = object : FullScreenEvents(placement, ad), RewardedAdEventCallback {
                 override fun onAdDismissedFullScreenContent() {
                     super<FullScreenEvents>.onAdDismissedFullScreenContent()
                     if (cont.isActive) cont.resume(earned.get())
@@ -363,7 +366,10 @@ class AdMobAdsController @Inject constructor(
     }
 
     /** Shared full-screen callbacks. Called on a background thread. */
-    private open inner class FullScreenEvents(private val placement: AdPlacement) : AdEventCallback {
+    private open inner class FullScreenEvents(
+        private val placement: AdPlacement,
+        private val ad: Ad,
+    ) : AdEventCallback {
         override fun onAdShowedFullScreenContent() {
             policy.recordShown(placement)
             analytics.show(placement)
@@ -371,17 +377,18 @@ class AdMobAdsController @Inject constructor(
 
         override fun onAdDismissedFullScreenContent() {
             fullScreenShowing.set(false)
+            analytics.dismiss(placement)
         }
 
         override fun onAdFailedToShowFullScreenContent(fullScreenContentError: FullScreenContentError) {
             fullScreenShowing.set(false)
-            analytics.loadFailed(placement, "show_${fullScreenContentError.code.name}")
+            analytics.showFailed(placement, fullScreenContentError.code.name)
         }
 
         override fun onAdImpression() = analytics.impression(placement)
         override fun onAdClicked() = analytics.click(placement)
         override fun onAdPaid(value: AdValue) = analytics.paid(
-            placement, value.valueMicros, value.currencyCode, value.precisionType.name
+            placement, value.valueMicros, value.currencyCode, value.precisionType.name, ad.adSourceName()
         )
     }
 

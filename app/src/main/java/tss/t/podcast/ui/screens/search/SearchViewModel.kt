@@ -78,6 +78,7 @@ class SearchViewModel @Inject constructor(
         }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Eagerly, emptyList())
     }
     private var searchJob: Deferred<TSDataState<SearchResponse>>? = null
+    private val searchLogger = tss.t.podcast.analytics.SettledSearchLogger(viewModelScope)
     fun performSearch(searchText: String?) {
         searchJob?.cancel()
         searchText ?: return
@@ -98,6 +99,7 @@ class SearchViewModel @Inject constructor(
             if (rs.isSuccess()) {
                 val data = (rs as TSDataState.Success).data
                 _listSearch.value = data.feeds
+                searchLogger.onResult(searchText, mode.name.lowercase(), data.feeds.size)
             } else {
                 _listSearch.value = emptyList()
             }

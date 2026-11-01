@@ -210,6 +210,7 @@ fun SearchScreen(
                             categories.forEach { category ->
                                 androidx.compose.material3.SuggestionChip(
                                     onClick = {
+                                        tss.t.sharedlibrary.analytics.Analytics.log(tss.t.sharedlibrary.analytics.AppEvents.categorySelect(category.id, category.name, "search"))
                                         selectedCategory = category
                                         searchText = category.name
                                         focusManager.clearFocus()
