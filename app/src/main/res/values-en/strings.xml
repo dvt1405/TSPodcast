@@ -149,4 +149,6 @@ Reason for report:
     <string name="search_category_trending_in">Trending in %1$s</string>
     <string name="search_category_empty">No trending podcasts in this topic yet</string>
     <string name="search_filter_all">All</string>
+    <string name="settings_language_follow_region">Match region</string>
+    <string name="settings_language_follow_region_value">Region · %1$s</string>
 </resources>

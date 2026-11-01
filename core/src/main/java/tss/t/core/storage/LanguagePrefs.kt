@@ -6,6 +6,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,33 +25,88 @@ data class AppLanguage(
 )
 
 /**
- * App and content language (owner, 2026-11-01): the 15 largest podcast markets.
+ * App (UI) language, 15 languages (owner, 2026-11-01).
  *
- * - First launch: taken from the system language and region (a device set to region VN counts
- *   as Vietnamese), falling back to English, and saved.
- * - Afterwards: what the user picks in Settings → Ngôn ngữ (the UI language only).
- * - Which podcasts are listed is decided by [PodcastLocationPrefs] (2026-11-01): mixing English
- *   into every market ("vi,en") let English shows crowd Vietnamese ones out of trending.
+ * - "Theo khu vực" ([followRegion], owner 2026-11-02): the UI language follows the main podcast
+ *   location ([PodcastLocationPrefs.primary]), e.g. Vietnam → Tiếng Việt, Brazil → Português.
+ *   Locations without a UI translation (China, Thailand, Russia) use the system language. This is
+ *   the default for new installs and for users who never picked a language themselves.
+ * - Picking a language in Settings → Ngôn ngữ pins it ([setLanguage]) until "Theo khu vực" is
+ *   chosen again.
+ * - [KEY_APP_LANGUAGE] always holds the language in effect, so [tss.t.podcast.AppLocale] can read
+ *   it before Hilt on Android < 13.
+ * - Which podcasts are listed is decided by [PodcastLocationPrefs] alone.
  */
 @Singleton
 class LanguagePrefs @Inject constructor(
     @ApplicationContext private val context: Context,
     private val sharedPref: SharedPref,
+    private val locationPrefs: PodcastLocationPrefs,
 ) {
-    private val _language = MutableStateFlow(loadOrDetect())
+    private val _followRegion = MutableStateFlow(loadFollowRegion())
+    val followRegion: StateFlow<Boolean> = _followRegion.asStateFlow()
+
+    private val _language = MutableStateFlow(resolve())
     val language: StateFlow<AppLanguage> = _language.asStateFlow()
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    init {
+        persist(_language.value)
+        // A new main location changes the UI language while following the region.
+        scope.launch {
+            locationPrefs.locations.collect { if (_followRegion.value) update(resolve()) }
+        }
+    }
+
+    /** Pins [tag] as the UI language (stops following the region). */
     fun setLanguage(tag: String) {
         val language = byTag(tag) ?: return
-        sharedPref.save(KEY_APP_LANGUAGE, language.tag)
+        setFollow(false)
+        update(language)
+    }
+
+    /** UI language follows the main podcast location again. */
+    fun followRegion() {
+        setFollow(true)
+        update(resolve())
+    }
+
+    /** The language "Theo khu vực" gives right now (for the picker's label). */
+    fun regionLanguage(): AppLanguage =
+        byTag(locationPrefs.primary.contentCode) ?: detect(systemLocale())
+
+    private fun resolve(): AppLanguage =
+        if (_followRegion.value) {
+            regionLanguage()
+        } else {
+            sharedPref.get<String>(KEY_APP_LANGUAGE)?.let(::byTag) ?: detect(systemLocale())
+        }
+
+    private fun update(language: AppLanguage) {
+        persist(language)
         _language.value = language
     }
 
-    private fun loadOrDetect(): AppLanguage {
-        sharedPref.get<String>(KEY_APP_LANGUAGE)?.let(::byTag)?.let { return it }
-        val detected = detect(systemLocale())
-        sharedPref.save(KEY_APP_LANGUAGE, detected.tag)
-        return detected
+    private fun persist(language: AppLanguage) {
+        if (sharedPref.get<String>(KEY_APP_LANGUAGE) != language.tag) sharedPref.save(KEY_APP_LANGUAGE, language.tag)
+    }
+
+    private fun setFollow(follow: Boolean) {
+        sharedPref.save(KEY_FOLLOW_REGION, follow)
+        _followRegion.value = follow
+    }
+
+    /**
+     * Saved choice, else: a new install follows the region; an older install follows it only if
+     * its saved language is still the one detected from the system (never picked by hand).
+     */
+    private fun loadFollowRegion(): Boolean {
+        sharedPref.get<Boolean>(KEY_FOLLOW_REGION)?.let { return it }
+        val saved = sharedPref.get<String>(KEY_APP_LANGUAGE)?.let(::byTag)
+        val follow = saved == null || saved.tag == detect(systemLocale()).tag
+        sharedPref.save(KEY_FOLLOW_REGION, follow)
+        return follow
     }
 
     private fun systemLocale(): Locale {
@@ -57,6 +116,7 @@ class LanguagePrefs @Inject constructor(
 
     companion object {
         const val KEY_APP_LANGUAGE = "AppLanguage"
+        const val KEY_FOLLOW_REGION = "AppLanguageFollowsRegion"
 
         val SUPPORTED: List<AppLanguage> = listOf(
             AppLanguage("vi", "vi", "Tiếng Việt"),

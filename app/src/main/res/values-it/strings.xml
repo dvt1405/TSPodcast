@@ -149,4 +149,6 @@ Motivo della segnalazione:
     <string name="search_category_trending_in">Di tendenza: %1$s</string>
     <string name="search_category_empty">Ancora nessun podcast di tendenza in questo tema</string>
     <string name="search_filter_all">Tutti</string>
+    <string name="settings_language_follow_region">In base alla regione</string>
+    <string name="settings_language_follow_region_value">Regione · %1$s</string>
 </resources>
