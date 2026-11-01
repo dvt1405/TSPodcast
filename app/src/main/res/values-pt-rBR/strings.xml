@@ -149,6 +149,7 @@ Motivo da denúncia:
     <string name="search_category_trending_in">Em alta em %1$s</string>
     <string name="search_category_empty">Ainda não há podcasts em alta neste tema</string>
     <string name="search_filter_all">Tudo</string>
+    <string name="web_link_not_found">Não encontramos o podcast deste link</string>
     <string name="settings_language_follow_region">Conforme a região</string>
     <string name="settings_language_follow_region_value">Região · %1$s</string>
 </resources>
