@@ -52,6 +52,9 @@ object CategoryNames {
     @StringRes
     fun nameRes(id: Int): Int? = names.getOrNull(id - 1)
 
+    /** The topic illustration of category [id] (onboarding icons), if it has one. */
+    fun iconRes(id: Int): Int? = _mapIcon[id]
+
     /** The localized name of category [id], or [fallback] (the English API name). */
     fun name(context: Context, id: Int, fallback: String): String =
         nameRes(id)?.let(context::getString) ?: fallback

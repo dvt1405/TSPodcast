@@ -125,4 +125,9 @@ Motivo del reporte:
     <string name="settings_podcast_location">Ubicaciones de podcasts</string>
     <string name="settings_podcast_location_hint">Inicio y búsqueda según tus ubicaciones</string>
     <string name="location_top_pick">Destacado</string>
+    <string name="search_categories_see_all">Ver todo</string>
+    <string name="search_categories_sheet_title">Todos los temas</string>
+    <string name="search_category_trending_in">Tendencia en %1$s</string>
+    <string name="search_category_empty">Aún no hay podcasts en tendencia en este tema</string>
+    <string name="search_filter_all">Todo</string>
 </resources>

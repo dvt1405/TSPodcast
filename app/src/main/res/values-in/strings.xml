@@ -125,4 +125,9 @@ Alasan laporan:
     <string name="settings_podcast_location">Lokasi podcast</string>
     <string name="settings_podcast_location_hint">Beranda dan pencarian mengikuti lokasimu</string>
     <string name="location_top_pick">Pilihan teratas</string>
+    <string name="search_categories_see_all">Lihat semua</string>
+    <string name="search_categories_sheet_title">Semua topik</string>
+    <string name="search_category_trending_in">Tren di %1$s</string>
+    <string name="search_category_empty">Belum ada podcast tren di topik ini</string>
+    <string name="search_filter_all">Semua</string>
 </resources>
