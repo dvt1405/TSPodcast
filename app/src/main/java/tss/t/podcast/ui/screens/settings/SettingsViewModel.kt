@@ -26,8 +26,16 @@ class SettingsViewModel @Inject constructor(
     val language: StateFlow<tss.t.core.storage.AppLanguage> = languagePrefs.language
     val languages: List<tss.t.core.storage.AppLanguage> = tss.t.core.storage.LanguagePrefs.SUPPORTED
 
-    /** App (UI) language; the caller then applies the UI locale. Content follows [locations]. */
+    /** Pins the app (UI) language; MainActivity applies it. Content follows [locations]. */
     fun setLanguage(tag: String) = languagePrefs.setLanguage(tag)
+
+    /** "Theo khu vực": the UI language follows the main podcast location. */
+    val followRegion: StateFlow<Boolean> = languagePrefs.followRegion
+
+    fun followRegion() = languagePrefs.followRegion()
+
+    /** The language "Theo khu vực" gives now, with its location (picker label). */
+    fun regionLanguage(): tss.t.core.storage.AppLanguage = languagePrefs.regionLanguage()
 
     val liquidGlass: StateFlow<Boolean> = uiPrefs.liquidGlass
 

@@ -192,9 +192,16 @@ class MainActivity : ComponentActivity() {
         onBackPressedCallback = backCallback
         onBackPressedDispatcher.addCallback(this, backCallback)
         AppShortcuts.publish(this)
-        // App language: detected from the system on first launch, then the Settings choice.
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            AppLocale.apply(languagePrefs.language.value.tag)
+        // App language: follows the main podcast location ("Theo khu vực") or the Settings choice,
+        // and is applied again whenever it changes (a new main location while following it).
+        lifecycleScope.launch {
+            languagePrefs.language.collect { language ->
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    AppLocale.apply(this@MainActivity, language.tag)
+                } else if (!AppLocale.matches(resources.configuration, language.tag)) {
+                    recreate()
+                }
+            }
         }
         handleIntent(intent)
         requestNotificationPermissionIfNeeded()

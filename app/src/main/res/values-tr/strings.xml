@@ -149,4 +149,6 @@ Bildirme nedeni:
     <string name="search_category_trending_in">Trend: %1$s</string>
     <string name="search_category_empty">Bu konuda henüz trend podcast yok</string>
     <string name="search_filter_all">Tümü</string>
+    <string name="settings_language_follow_region">Bölgeye göre</string>
+    <string name="settings_language_follow_region_value">Bölge · %1$s</string>
 </resources>
