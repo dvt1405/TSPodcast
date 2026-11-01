@@ -4,7 +4,7 @@ import { SITE_NAME, absoluteUrl } from "./site";
 import { htmlToText } from "./text";
 import type { Episode, PodcastDetail, PodcastSummary } from "./types";
 
-// Index-quality rules from docs/plans/seo-web-dashboard.md §A.5. Pages that
+// Index-quality rules from docs/in-progress/plans/seo-web-dashboard.md §A.5. Pages that
 // miss them still render for people but get `noindex, follow` and stay out of
 // the sitemap, so millions of thin PodcastIndex feeds don't dilute the site.
 

@@ -7,7 +7,7 @@ import kotlin.random.Random
 
 /**
  * Ad analytics without SDK types. Event names follow
- * docs/plans/admob-migration.md §3.6. Revenue (`ad_impression` with value) is
+ * docs/in-progress/plans/admob-migration.md §3.6. Revenue (`ad_impression` with value) is
  * logged by GA4 itself once the AdMob app is linked to Firebase; `ads_paid`
  * here is for reconciling against the AdMob API.
  *

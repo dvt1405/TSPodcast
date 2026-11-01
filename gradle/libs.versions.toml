@@ -33,7 +33,7 @@ jsoupVer = "1.21.1"
 dagger = "2.56.2"
 collection = "1.6.0"
 desugarJdkLibs = "2.1.5"
-# GMA Next-Gen SDK (AdMob) and Google UMP consent SDK. See docs/plans/admob-migration.md.
+# GMA Next-Gen SDK (AdMob) and Google UMP consent SDK. See docs/in-progress/plans/admob-migration.md.
 gmaNextGen = "1.6.0"
 ump = "4.0.0"
 #kotlin

@@ -111,7 +111,7 @@ Lời gọi Podcast Index đi qua `unstable_cache` thay vì cache của `fetch`,
 
 ### SEO
 
-Làm theo `docs/plans/seo-web-dashboard.md` §A:
+Làm theo `docs/in-progress/plans/seo-web-dashboard.md` §A:
 
 - `generateMetadata` có canonical, Open Graph, Twitter. Tiêu đề dạng "<Tên> | Nghe podcast trên TSPodcast", cắt cho vừa khoảng 60 ký tự.
 - JSON-LD render phía server: `Organization` + `WebSite` (layout), `PodcastSeries` (có `@id`, `ListenAction`), `PodcastEpisode` (`AudioObject`, liên kết `partOfSeries` qua `@id`), `BreadcrumbList`, `ItemList` (xu hướng). Không dùng `SearchAction`.
@@ -135,11 +135,11 @@ cd .. && firebase deploy --only hosting:tspodcast
 - Search và `/api/ai/*` cần server nên bị bỏ khỏi bản này. Chúng được đặt tên `page.dynamic.tsx` / `route.dynamic.ts` và chỉ build server mới nhận (`pageExtensions` trong `next.config.ts`). Các link tới search bị ẩn khi `STATIC_EXPORT` bật (`src/lib/site.ts`).
 - Chỉ trang chủ, thịnh hành, radio, 16 danh mục nổi bật, podcast xuất hiện ở các trang đó và 12 tập mới nhất của mỗi podcast được dựng sẵn (`src/lib/static-export.ts`).
 - Key PodcastIndex chỉ dùng lúc build. `scripts/build-static.mjs` quét toàn bộ `out/` tìm giá trị key/secret và dừng nếu thấy. Script cũng dừng nếu hơn 2% số trang dính lỗi tải dữ liệu (thường do PodcastIndex trả 429). Lúc build tĩnh, mỗi worker giãn cách lời gọi và thử lại khi gặp 429.
-- Dữ liệu cũ dần cho tới lần build sau. Theo điều khoản PodcastIndex, phải build lại ít nhất mỗi 7 ngày. Kế hoạch chuyển lên VPS: `docs/plans/web-vps-deploy.md`.
+- Dữ liệu cũ dần cho tới lần build sau. Theo điều khoản PodcastIndex, phải build lại ít nhất mỗi 7 ngày. Kế hoạch chuyển lên VPS: `docs/in-progress/plans/web-vps-deploy.md`.
 
 ### VPS (Docker, bản production đích)
 
-Image `web/Dockerfile` (Next standalone, `NEXT_OUTPUT_STANDALONE=1`), Caddy, GitHub Actions → GHCR → SSH deploy. Hướng dẫn đầy đủ: `docs/deploy/README.md`. Thử build image ở máy có Docker:
+Image `web/Dockerfile` (Next standalone, `NEXT_OUTPUT_STANDALONE=1`), Caddy, GitHub Actions → GHCR → SSH deploy. Hướng dẫn đầy đủ: `docs/done/deploy/README.md`. Thử build image ở máy có Docker:
 
 ```bash
 docker build --build-arg NEXT_PUBLIC_SITE_URL=http://localhost:3000 -t tspodcast-web web

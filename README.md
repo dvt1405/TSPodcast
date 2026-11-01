@@ -59,15 +59,17 @@ This project uses GitHub Actions for automated deployment to both Firebase App D
 
 ## Documentation
 
+All docs, grouped by status (done, in progress, planned): [docs/README.md](docs/README.md).
+
 For more detailed information, please refer to the following documentation:
 
-- [GitHub Actions Release Process](GITHUB_ACTIONS_RELEASE.md) - How to use GitHub Actions to deploy to Firebase App Distribution
-- [Google Play Deployment Guide](GOOGLE_PLAY_DEPLOYMENT.md) - How to deploy to Google Play Console
-- [Firebase Token Setup Guide](FIREBASE_TOKEN_SETUP.md) - How to set up Firebase tokens for deployment
-- [GitHub Environments Guide](GITHUB_ENVIRONMENTS_GUIDE.md) - How to use GitHub Environments for deployment
-- [Keystore Password Injection](KEYSTORE_PASSWORD_INJECTION.md) - How to securely manage keystore passwords
-- [Release Process](RELEASE_PROCESS.md) - Detailed release process documentation
-- [KMP Migration Plan](KMP_MIGRATION_PLAN.md) - Plan for migrating to Kotlin Multiplatform
+- [GitHub Actions Release Process](docs/done/ci/GITHUB_ACTIONS_RELEASE.md) - How to use GitHub Actions to deploy to Firebase App Distribution
+- [Google Play Deployment Guide](docs/done/ci/GOOGLE_PLAY_DEPLOYMENT.md) - How to deploy to Google Play Console
+- [Firebase Token Setup Guide](docs/done/ci/FIREBASE_TOKEN_SETUP.md) - How to set up Firebase tokens for deployment
+- [GitHub Environments Guide](docs/done/ci/GITHUB_ENVIRONMENTS_GUIDE.md) - How to use GitHub Environments for deployment
+- [Keystore Password Injection](docs/done/ci/KEYSTORE_PASSWORD_INJECTION.md) - How to securely manage keystore passwords
+- [Release Process](docs/done/ci/RELEASE_PROCESS.md) - Detailed release process documentation
+- [KMP Migration Plan](docs/done/plans/KMP_MIGRATION_PLAN.md) - Plan for migrating to Kotlin Multiplatform
 
 ## Contributing
 

@@ -2,7 +2,7 @@
 #
 # Production image of the TSPodcast web (Next.js standalone server).
 # Built by .github/workflows/deploy-web.yml, or on the VPS with
-# `docker compose build web` (docs/deploy/README.md).
+# `docker compose build web` (docs/done/deploy/README.md).
 #
 # No secret goes into this image: PODCASTINDEX_* and ANTHROPIC_API_KEY are read
 # at runtime from /etc/tspodcast/web.env (deploy/docker-compose.yml). Only the

@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 /**
  * Advertising seam. Nothing in this file (or this module) may reference an ad
  * SDK type: `:app` talks only to these interfaces, and `:ads-admob` implements
- * them. See docs/plans/admob-migration.md §3.
+ * them. See docs/in-progress/plans/admob-migration.md §3.
  */
 enum class AdFormat { AppOpen, Banner, CollapsibleBanner, Native, Interstitial, Rewarded }
 

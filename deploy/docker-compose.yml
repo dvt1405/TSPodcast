@@ -1,4 +1,4 @@
-# TSPodcast production stack on one VPS (docs/deploy/README.md).
+# TSPodcast production stack on one VPS (docs/done/deploy/README.md).
 #
 # Run it through deploy/scripts/compose.sh (or deploy.sh), which adds
 #   --env-file /etc/tspodcast/compose.env  (DOMAIN, ACME_EMAIL, WEB_IMAGE, ...)
@@ -9,7 +9,7 @@
 #   caddy   TLS (Let's Encrypt), compression, security headers, :80/:443
 #   web     Next.js standalone (web/Dockerfile), also on 127.0.0.1:3000
 #   postgres, api, worker   profile "backend": the coming backend
-#                           (docs/plans/ke-hoach-backend-quickwin-cuoc-lon.md §1-§2).
+#                           (docs/planned/plans/ke-hoach-backend-quickwin-cuoc-lon.md §1-§2).
 #                           Not started unless COMPOSE_PROFILES=backend.
 #
 # Secrets never appear in this file: they come from /etc/tspodcast/*.env
@@ -76,7 +76,7 @@ services:
     <<: *hardening
     image: ${WEB_IMAGE:?set WEB_IMAGE in /etc/tspodcast/compose.env}:${WEB_TAG:-latest}
     # Fallback when CI is unavailable: deploy.sh --build <path to web/> builds
-    # this on the server (needs ~2 GB RAM free; see docs/deploy/README.md §6).
+    # this on the server (needs ~2 GB RAM free; see docs/done/deploy/README.md §6).
     build:
       context: ${WEB_BUILD_CONTEXT:-../web}
       args:

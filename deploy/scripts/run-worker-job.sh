@@ -4,7 +4,7 @@
 # Usage:
 #   run-worker-job.sh <job> [args...]      e.g. run-worker-job.sh daily-crawl
 #
-# The plan (ke-hoach-backend-quickwin-cuoc-lon.md §2.6) schedules jobs with
+# The plan (docs/planned/plans/ke-hoach-backend-quickwin-cuoc-lon.md §2.6) schedules jobs with
 # pg-boss cron INSIDE the long-running worker, so this is not needed for normal
 # operation. It is the host-side alternative, used by tspodcast-crawl.timer, if
 # the worker ends up without its own scheduler, and for running a job by hand.

@@ -1,5 +1,5 @@
 // Generated from SelectFavouriteCategoryScreen._mapIcon (featureOnboarding). Do not edit by hand:
-// the icons and this table are copied together (see docs/ios/progress.md, M1 T2).
+// the icons and this table are copied together (see docs/in-progress/ios/progress.md, M1 T2).
 
 extension CategoryIcon {
     /// Category id → asset name, 103 entries.
