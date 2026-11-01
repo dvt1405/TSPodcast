@@ -125,4 +125,23 @@ Anledning till rapporten:
     <string name="settings_podcast_location">Poddländer</string>
     <string name="settings_podcast_location_hint">Hem och sök följer dina länder</string>
     <string name="location_top_pick">Toppval</string>
+    <string name="history_title">Lyssningshistorik</string>
+    <string name="history_open">Öppna lyssningshistorik</string>
+    <string name="history_today">I dag</string>
+    <string name="history_yesterday">I går</string>
+    <string name="history_finished">Lyssnat</string>
+    <string name="history_minutes_left">%1$d min kvar</string>
+    <string name="history_remove">Ta bort från historiken</string>
+    <string name="history_more">Fler alternativ</string>
+    <string name="history_clear">Rensa historik</string>
+    <string name="history_clear_title">Rensa hela lyssningshistoriken?</string>
+    <string name="history_clear_message">Lyssnade avsnitt och sparade positioner på den här enheten raderas. Det går inte att ångra.</string>
+    <string name="history_clear_confirm">Rensa</string>
+    <string name="history_empty_title">Ingen lyssningshistorik än</string>
+    <string name="history_empty_message">Avsnitt du lyssnar på visas här. Historiken sparas bara på den här enheten.</string>
+    <string name="continue_listening_title">Fortsätt lyssna</string>
+    <string name="continue_listening_see_all">Visa alla</string>
+    <string name="continue_listening_play">Fortsätt</string>
+    <string name="settings_history">Lyssningshistorik</string>
+    <string name="settings_history_hint">Avsnitt du lyssnat på eller påbörjat, sparas bara på den här enheten</string>
 </resources>

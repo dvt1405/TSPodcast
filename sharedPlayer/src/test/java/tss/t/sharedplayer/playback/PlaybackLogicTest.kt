@@ -14,6 +14,10 @@ private class MapStore : PlaybackKeyValue {
     override fun getBoolean(key: String) = booleans[key]
     override fun putBoolean(key: String, value: Boolean) { booleans[key] = value }
     override fun remove(key: String) { longs.remove(key); booleans.remove(key) }
+    override fun removeAll(prefix: String) {
+        longs.keys.removeAll { it.startsWith(prefix) }
+        booleans.keys.removeAll { it.startsWith(prefix) }
+    }
 }
 
 class SleepTimerTest {
@@ -117,6 +121,26 @@ class PlaybackPositionsTest {
     fun unknownDurationStillSaves() {
         positions.record("9", isLive = false, positionMs = 60_000L, durationMs = 0L)
         assertEquals(60_000L, positions.resumePositionMs("9", isLive = false))
+    }
+
+    @Test
+    fun forgettingOneEpisodeKeepsTheOthers() {
+        positions.record("1", isLive = false, positionMs = 60_000L, durationMs = 0L)
+        positions.record("2", isLive = false, positionMs = 90_000L, durationMs = 0L)
+        positions.forget("1")
+        assertEquals(0L, positions.resumePositionMs("1", isLive = false))
+        assertEquals(90_000L, positions.resumePositionMs("2", isLive = false))
+    }
+
+    @Test
+    fun clearingTheHistoryForgetsEveryPositionButKeepsSpeeds() {
+        positions.record("1", isLive = false, positionMs = 60_000L, durationMs = 0L)
+        positions.record("2", isLive = false, positionMs = 90_000L, durationMs = 0L)
+        PlaybackProfiles(store).setSpeed(feedId = 5L, tenths = 15)
+        positions.forgetAll()
+        assertEquals(0L, positions.resumePositionMs("1", isLive = false))
+        assertEquals(0L, positions.resumePositionMs("2", isLive = false))
+        assertEquals(15, PlaybackProfiles(store).speedFor(5L))
     }
 }
 

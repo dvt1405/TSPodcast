@@ -125,4 +125,23 @@
     <string name="settings_podcast_location">ポッドキャストの地域</string>
     <string name="settings_podcast_location_hint">ホームと検索は選んだ地域に合わせます</string>
     <string name="location_top_pick">イチオシ</string>
+    <string name="history_title">再生履歴</string>
+    <string name="history_open">再生履歴を開く</string>
+    <string name="history_today">今日</string>
+    <string name="history_yesterday">昨日</string>
+    <string name="history_finished">再生済み</string>
+    <string name="history_minutes_left">残り%1$d分</string>
+    <string name="history_remove">履歴から削除</string>
+    <string name="history_more">その他のオプション</string>
+    <string name="history_clear">履歴を消去</string>
+    <string name="history_clear_title">再生履歴をすべて消去しますか？</string>
+    <string name="history_clear_message">この端末に保存された再生済みのエピソードと再生位置が削除されます。元に戻すことはできません。</string>
+    <string name="history_clear_confirm">消去</string>
+    <string name="history_empty_title">再生履歴はまだありません</string>
+    <string name="history_empty_message">再生したエピソードがここに表示されます。履歴はこの端末にのみ保存されます。</string>
+    <string name="continue_listening_title">続きを聴く</string>
+    <string name="continue_listening_see_all">すべて表示</string>
+    <string name="continue_listening_play">再開</string>
+    <string name="settings_history">再生履歴</string>
+    <string name="settings_history_hint">再生済み・途中のエピソード（この端末にのみ保存）</string>
 </resources>

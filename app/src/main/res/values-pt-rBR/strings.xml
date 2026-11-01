@@ -125,4 +125,23 @@ Motivo da denúncia:
     <string name="settings_podcast_location">Locais de podcasts</string>
     <string name="settings_podcast_location_hint">Início e busca seguem seus locais</string>
     <string name="location_top_pick">Destaque</string>
+    <string name="history_title">Histórico de audição</string>
+    <string name="history_open">Abrir histórico de audição</string>
+    <string name="history_today">Hoje</string>
+    <string name="history_yesterday">Ontem</string>
+    <string name="history_finished">Ouvido</string>
+    <string name="history_minutes_left">Faltam %1$d min</string>
+    <string name="history_remove">Remover do histórico</string>
+    <string name="history_more">Mais opções</string>
+    <string name="history_clear">Limpar histórico</string>
+    <string name="history_clear_title">Limpar todo o histórico de audição?</string>
+    <string name="history_clear_message">Os episódios ouvidos e as posições salvas neste dispositivo serão excluídos. Não é possível desfazer.</string>
+    <string name="history_clear_confirm">Limpar</string>
+    <string name="history_empty_title">Ainda não há histórico de audição</string>
+    <string name="history_empty_message">Os episódios que você ouvir aparecerão aqui. Seu histórico fica salvo só neste dispositivo.</string>
+    <string name="continue_listening_title">Continuar ouvindo</string>
+    <string name="continue_listening_see_all">Ver tudo</string>
+    <string name="continue_listening_play">Retomar</string>
+    <string name="settings_history">Histórico de audição</string>
+    <string name="settings_history_hint">Episódios ouvidos ou pela metade, salvos só neste dispositivo</string>
 </resources>

@@ -74,6 +74,7 @@ import tss.t.podcast.R
 import tss.t.podcast.ui.navigations.TSHomeRouter
 import tss.t.podcast.ui.navigations.TSRouter
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -165,6 +166,11 @@ fun HomeNavigationScreen(
                         title = stringResource(screenTitleRes),
                         onSettings = if (selectedTabIndex == HOME_TAB_INDEX) {
                             { parentNavHost.navigate(TSRouter.Settings.route) }
+                        } else {
+                            null
+                        },
+                        onHistory = if (selectedTabIndex == FAVOURITE_TAB_INDEX) {
+                            { parentNavHost.navigate(TSRouter.History.route) }
                         } else {
                             null
                         }
@@ -268,6 +274,7 @@ private fun HomeNavHost(
     val mainViewModel: MainViewModel = viewModel(viewmodelStore)
     val podcastViewModel: PodcastViewModel = viewModel(viewmodelStore)
     val playerViewModel: PlayerViewModel = viewModel(viewmodelStore)
+    val historyViewModel: tss.t.podcast.ui.screens.history.HistoryViewModel = viewModel(viewmodelStore)
     val coroutineScope = rememberCoroutineScope()
     NavHost(
         navController = innerNavHost,
@@ -296,6 +303,14 @@ private fun HomeNavHost(
                         parentNavHost.navigate(TSRouter.PodcastDetail.route)
                     },
                     onLocationsChange = mainViewModel::setLocations,
+                    continueListening = historyViewModel.continueListening.collectAsState().value,
+                    onContinueClick = { entry ->
+                        coroutineScope.launch {
+                            playerViewModel.playFromHistory(entry)
+                            parentNavHost.navigate(TSRouter.Player.route)
+                        }
+                    },
+                    onSeeHistory = { parentNavHost.navigate(TSRouter.History.route) },
                     onNewsClick = { news ->
                         coroutineScope.launch {
                             playerViewModel.playerEpisode(
@@ -518,9 +533,18 @@ fun MainTSAppBar(
     hazeState: HazeState,
     title: String = stringResource(R.string.discorver_screen_title),
     onSettings: (() -> Unit)? = null,
+    onHistory: (() -> Unit)? = null,
 ) {
     CenterAlignedTopAppBar(
         actions = {
+            if (onHistory != null) {
+                IconButton(onClick = onHistory) {
+                    Icon(
+                        androidx.compose.material.icons.Icons.Rounded.History,
+                        contentDescription = stringResource(R.string.history_open)
+                    )
+                }
+            }
             if (onSettings != null) {
                 IconButton(onClick = onSettings) {
                     Icon(Icons.Rounded.Settings, contentDescription = stringResource(R.string.settings_open))

@@ -125,4 +125,23 @@ Motif du signalement :
     <string name="settings_podcast_location">Pays des podcasts</string>
     <string name="settings_podcast_location_hint">Accueil et recherche selon vos pays</string>
     <string name="location_top_pick">À la une</string>
+    <string name="history_title">Historique d\'écoute</string>
+    <string name="history_open">Ouvrir l\'historique d\'écoute</string>
+    <string name="history_today">Aujourd\'hui</string>
+    <string name="history_yesterday">Hier</string>
+    <string name="history_finished">Écouté</string>
+    <string name="history_minutes_left">Encore %1$d min</string>
+    <string name="history_remove">Retirer de l\'historique</string>
+    <string name="history_more">Plus d\'options</string>
+    <string name="history_clear">Effacer l\'historique</string>
+    <string name="history_clear_title">Effacer tout l\'historique d\'écoute ?</string>
+    <string name="history_clear_message">Les épisodes écoutés et les positions enregistrées sur cet appareil seront supprimés. Action irréversible.</string>
+    <string name="history_clear_confirm">Effacer</string>
+    <string name="history_empty_title">Aucun historique d\'écoute</string>
+    <string name="history_empty_message">Les épisodes que vous écoutez apparaîtront ici. L\'historique est enregistré uniquement sur cet appareil.</string>
+    <string name="continue_listening_title">Reprendre l\'écoute</string>
+    <string name="continue_listening_see_all">Tout voir</string>
+    <string name="continue_listening_play">Reprendre</string>
+    <string name="settings_history">Historique d\'écoute</string>
+    <string name="settings_history_hint">Épisodes écoutés ou commencés, enregistrés uniquement sur cet appareil</string>
 </resources>

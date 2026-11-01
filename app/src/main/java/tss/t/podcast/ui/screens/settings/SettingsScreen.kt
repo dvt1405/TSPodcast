@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -64,6 +65,7 @@ object SitePages {
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     onBack: () -> Unit,
+    onOpenHistory: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val allowExplicit by viewModel.allowExplicit.collectAsState()
@@ -171,6 +173,27 @@ fun SettingsScreen(
                             Text(stringResource(R.string.settings_unhide))
                         }
                     }
+                }
+            }
+
+            item {
+                // Local listening history: kept on this device only, cleared from its screen.
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(role = Role.Button, onClick = onOpenHistory)
+                        .padding(horizontal = 20.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.settings_history), style = TextStyles.SubTitle2)
+                        Text(stringResource(R.string.settings_history_hint), style = TextStyles.SubTitle4, color = Colors.Gray60)
+                    }
+                    Icon(
+                        Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = Colors.Gray60
+                    )
                 }
             }
 

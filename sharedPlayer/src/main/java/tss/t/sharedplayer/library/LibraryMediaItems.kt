@@ -6,6 +6,8 @@ import androidx.core.text.HtmlCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaConstants
+import tss.t.core.history.ListeningHistoryRules
+import tss.t.core.models.ListeningHistory
 import tss.t.coreapi.Constants
 import tss.t.coreapi.models.Episode
 import tss.t.coreapi.models.Podcast
@@ -90,6 +92,63 @@ internal fun Episode.toBrowseItem(showTitle: CharSequence?, resumePositionMs: Lo
                 .setExtras(extras)
                 .build()
         )
+        .build()
+}
+
+/**
+ * The playable item for a history row, when the cached episode row is gone (cache expiry): same
+ * id, show id and media type as [toPlayableMediaItem], with what the history kept.
+ */
+fun ListeningHistory.toPlayableMediaItem(): MediaItem =
+    MediaItem.Builder()
+        .setMediaId(mediaId)
+        .setUri(mediaUrl)
+        .setMediaMetadata(historyMetadata(isBrowseItem = false))
+        .build()
+
+/** A "Tiếp tục nghe" row in the car, with its listening progress. */
+internal fun ListeningHistory.toBrowseItem(): MediaItem =
+    MediaItem.Builder()
+        .setMediaId(mediaId)
+        .setMediaMetadata(historyMetadata(isBrowseItem = true))
+        .build()
+
+private fun ListeningHistory.historyMetadata(isBrowseItem: Boolean): MediaMetadata {
+    val extras = Bundle().apply {
+        putString(Constants.EXTRA_MEDIA_TYPE_KEY, Constants.MEDIA_TYPE_EPISODE)
+        feedId?.let { putLong(PlayerManager.EXTRA_FEED_ID, it) }
+        if (isBrowseItem) {
+            if (ListeningHistoryRules.isResumable(this@historyMetadata)) {
+                putInt(
+                    MediaConstants.EXTRAS_KEY_COMPLETION_STATUS,
+                    MediaConstants.EXTRAS_VALUE_COMPLETION_STATUS_PARTIALLY_PLAYED
+                )
+                if (durationMs > 0L) {
+                    putDouble(
+                        MediaConstants.EXTRAS_KEY_COMPLETION_PERCENTAGE,
+                        ListeningHistoryRules.progress(this@historyMetadata).toDouble()
+                    )
+                }
+            } else if (finished) {
+                putInt(
+                    MediaConstants.EXTRAS_KEY_COMPLETION_STATUS,
+                    MediaConstants.EXTRAS_VALUE_COMPLETION_STATUS_FULLY_PLAYED
+                )
+            }
+        }
+    }
+    return MediaMetadata.Builder()
+        .setTitle(title)
+        .setDisplayTitle(title)
+        .setArtist(podcastTitle)
+        .setAlbumTitle(podcastTitle)
+        .setSubtitle(podcastTitle)
+        .setDescription(podcastTitle)
+        .setArtworkUri(image?.takeIf { it.isNotBlank() }?.let(Uri::parse))
+        .setMediaType(MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE)
+        .setIsPlayable(true)
+        .setIsBrowsable(false)
+        .setExtras(extras)
         .build()
 }
 

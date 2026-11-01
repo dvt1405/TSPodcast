@@ -10,6 +10,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -23,6 +25,8 @@ import tss.t.featureonboarding.SelectFavouriteCategoryScreen
 import tss.t.podcast.LocalNavAnimatedVisibilityScope
 import tss.t.podcast.ui.screens.MainViewModel
 import tss.t.podcast.ui.screens.favourite.FavouriteViewModel
+import tss.t.podcast.ui.screens.history.HistoryScreen
+import tss.t.podcast.ui.screens.history.HistoryViewModel
 import tss.t.podcast.ui.screens.main.HomeNavigationScreen
 import tss.t.podcast.ui.screens.player.PlayerScreen
 import tss.t.podcast.ui.screens.player.PlayerViewModel
@@ -127,7 +131,25 @@ fun TSNavGraph(
             val settingsViewModel: SettingsViewModel = viewModel(viewModelStoreOwner)
             SettingsScreen(
                 viewModel = settingsViewModel,
-                onBack = { navHost.popBackStack() }
+                onBack = { navHost.popBackStack() },
+                onOpenHistory = { navHost.navigate(TSRouter.History.route) }
+            )
+        }
+
+        composable(TSRouter.History.route) {
+            val historyViewModel: HistoryViewModel = viewModel(viewModelStoreOwner)
+            val playerUIState by playerViewModel.playerControlState.collectAsState()
+            val scope = rememberCoroutineScope()
+            HistoryScreen(
+                viewModel = historyViewModel,
+                hasMiniPlayer = playerUIState.currentMediaItem != null,
+                onBack = { navHost.popBackStack() },
+                onPlay = { entry ->
+                    scope.launch {
+                        playerViewModel.playFromHistory(entry)
+                        navHost.navigate(TSRouter.Player.route)
+                    }
+                }
             )
         }
 
@@ -162,7 +184,8 @@ enum class TSRouter(val route: String) {
     Main("Main"),
     PodcastDetail("PodcastDetail"),
     Player("Player"),
-    Settings("Settings")
+    Settings("Settings"),
+    History("History")
 }
 
 enum class TSHomeRouter(val route: String) {

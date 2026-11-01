@@ -11,6 +11,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import tss.t.core.history.ListeningHistoryRules
+import tss.t.core.models.ListeningHistory
 import tss.t.core.repository.IFavouriteRepository
 import tss.t.core.repository.IHistoryRepository
 import tss.t.core.repository.MediaType
@@ -125,7 +127,8 @@ class MediaLibraryCatalog @Inject constructor(
                         ?: throw LibraryItemNotFoundException(mediaId)
                 }
                 val episode = LibraryIds.episodeIdOf(mediaId)?.let { findEpisode(it) }
-                    ?: throw LibraryItemNotFoundException(mediaId)
+                    ?: return@withContext historyEntry(mediaId)?.toBrowseItem()
+                        ?: throw LibraryItemNotFoundException(mediaId)
                 browseItem(episode)
             }
         }
@@ -136,7 +139,18 @@ class MediaLibraryCatalog @Inject constructor(
         searchShows(query).map { it.toNode() }
     }
 
+    /**
+     * Episodes left part-way (local listening history, same list as the phone's "Nghe tiếp"),
+     * then the show of the last one. Before any history: the last played episode, as before.
+     */
     private suspend fun continueListening(): List<MediaItem> {
+        val unfinished = runCatching {
+            historyRepository.observeContinueListening(ListeningHistoryRules.CONTINUE_LIMIT).first()
+        }.getOrDefault(emptyList())
+        if (unfinished.isNotEmpty()) {
+            val show = unfinished.first().feedId?.let { podcastFor(it) }?.toNode()
+            return unfinished.map { it.toBrowseItem() } + listOfNotNull(show)
+        }
         val last = lastEpisode() ?: return emptyList()
         val podcast = podcastFor(last.feedId)
         return listOfNotNull(browseItem(last), podcast?.toNode())
@@ -193,7 +207,8 @@ class MediaLibraryCatalog @Inject constructor(
                 return@withContext queueFor(newest)
             }
             val episode = LibraryIds.episodeIdOf(mediaId)?.let { findEpisode(it) }
-                ?: throw LibraryItemNotFoundException(mediaId)
+                ?: return@withContext historyEntry(mediaId)?.let(::historyQueue)
+                    ?: throw LibraryItemNotFoundException(mediaId)
             return@withContext queueFor(episode)
         }
         // Several items (e.g. a queue handed over by a controller): resolve one by one.
@@ -208,20 +223,29 @@ class MediaLibraryCatalog @Inject constructor(
         items.map { item ->
             if (item.localConfiguration != null) return@map item
             val episode = LibraryIds.episodeIdOf(item.mediaId)?.let { findEpisode(it) }
-                ?: throw LibraryItemNotFoundException(item.mediaId)
+                ?: return@map historyEntry(item.mediaId)?.toPlayableMediaItem()
+                    ?: throw LibraryItemNotFoundException(item.mediaId)
             episode.toPlayableMediaItem(showTitle(episode.feedId))
         }
     }
 
     /**
-     * Playback resumption ("play" pressed in the car with nothing loaded): the last episode the
-     * user played, in its show's queue, from the saved position. Null when nothing was played yet.
+     * Playback resumption ("play" pressed in the car, or the system media controls after a
+     * reboot, with nothing loaded): the last episode the user played (local listening history,
+     * so also one played in the car or skipped to), in its show's queue, from the saved position.
+     * When its cached episode row expired, that episode alone from the history. Null when
+     * nothing was played yet.
      *
      * @param forPlayback false when only metadata is wanted (one item, no network).
      */
     suspend fun resumption(forPlayback: Boolean): MediaItemsWithStartPosition? =
         withContext(Dispatchers.IO) {
-            val last = lastEpisode() ?: return@withContext null
+            val entry = runCatching { historyRepository.latestPlayed() }.getOrNull()
+            val last = entry?.mediaId?.toLongOrNull()?.let { findEpisode(it) }
+                ?: if (entry == null) lastEpisode() else null
+            if (last == null) {
+                return@withContext entry?.let(::historyQueue)
+            }
             if (!forPlayback) {
                 val item = last.toPlayableMediaItem(showTitle(last.feedId))
                 return@withContext MediaItemsWithStartPosition(listOf(item), 0, resumeOf(last))
@@ -263,6 +287,20 @@ class MediaLibraryCatalog @Inject constructor(
     // ---------------------------------------------------------------------------------------
     // Data
     // ---------------------------------------------------------------------------------------
+
+    /** One history episode as a queue of its own, from where it was left. */
+    private fun historyQueue(entry: ListeningHistory): MediaItemsWithStartPosition? {
+        if (entry.mediaUrl.isNullOrBlank()) return null
+        val start = ListeningHistoryRules.startPositionMs(entry)
+        return MediaItemsWithStartPosition(
+            listOf(entry.toPlayableMediaItem()),
+            0,
+            start.takeIf { it > 0L } ?: C.TIME_UNSET,
+        )
+    }
+
+    private suspend fun historyEntry(mediaId: String): ListeningHistory? =
+        runCatching { historyRepository.historyEntry(mediaId) }.getOrNull()
 
     private suspend fun lastEpisode(): Episode? {
         val id = runCatching { sharedPref.get<String>(HistoryRepository.EXTRA_CURRENT_ITEM_ID) }

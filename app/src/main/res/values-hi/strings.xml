@@ -125,4 +125,23 @@
     <string name="settings_podcast_location">पॉडकास्ट स्थान</string>
     <string name="settings_podcast_location_hint">होम और खोज आपके स्थानों के अनुसार</string>
     <string name="location_top_pick">टॉप पिक</string>
+    <string name="history_title">सुनने का इतिहास</string>
+    <string name="history_open">सुनने का इतिहास खोलें</string>
+    <string name="history_today">आज</string>
+    <string name="history_yesterday">कल</string>
+    <string name="history_finished">सुन लिया</string>
+    <string name="history_minutes_left">%1$d मिनट बाकी</string>
+    <string name="history_remove">इतिहास से हटाएँ</string>
+    <string name="history_more">और विकल्प</string>
+    <string name="history_clear">इतिहास मिटाएँ</string>
+    <string name="history_clear_title">सुनने का पूरा इतिहास मिटाएँ?</string>
+    <string name="history_clear_message">इस डिवाइस पर सुने गए एपिसोड और सहेजी गई जगहें मिट जाएँगी। इसे पूर्ववत नहीं किया जा सकता।</string>
+    <string name="history_clear_confirm">मिटाएँ</string>
+    <string name="history_empty_title">अभी सुनने का कोई इतिहास नहीं</string>
+    <string name="history_empty_message">आप जो एपिसोड सुनेंगे वे यहाँ दिखेंगे। इतिहास सिर्फ़ इसी डिवाइस पर सहेजा जाता है।</string>
+    <string name="continue_listening_title">सुनना जारी रखें</string>
+    <string name="continue_listening_see_all">सभी देखें</string>
+    <string name="continue_listening_play">फिर से चलाएँ</string>
+    <string name="settings_history">सुनने का इतिहास</string>
+    <string name="settings_history_hint">सुने गए और अधूरे एपिसोड, सिर्फ़ इसी डिवाइस पर सहेजे गए</string>
 </resources>
