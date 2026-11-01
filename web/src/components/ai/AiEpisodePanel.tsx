@@ -143,7 +143,7 @@ function Chat({ episodeId }: { episodeId: number }) {
           onChange={(e) => setInput(e.target.value)}
           maxLength={2000}
           placeholder={t.ai.chatPlaceholder}
-          className="h-11 min-w-0 flex-1 rounded-full border border-border bg-surface px-4 text-sm outline-none focus:border-primary"
+          className="h-11 min-w-0 flex-1 rounded-full border border-border bg-surface px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/25 transition-[border-color,box-shadow]"
         />
         <button
           type="submit"

@@ -21,7 +21,7 @@ export function SearchForm({
         {t.search.label}
       </label>
       <div className="flex flex-col gap-2 sm:flex-row">
-        <div className="flex flex-1 items-center gap-2 rounded-full border border-border bg-surface px-4 shadow-sm focus-within:border-primary">
+        <div className="flex flex-1 items-center gap-2 rounded-full border border-border bg-surface px-4 shadow-sm transition-[border-color,box-shadow] focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/25">
           <SearchIcon size={18} className="text-subtle" />
           <input
             id={id}

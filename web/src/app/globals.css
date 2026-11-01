@@ -76,10 +76,14 @@ body {
   font-family: var(--font-sans);
 }
 
-:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
-  border-radius: 6px;
+/* Keyboard focus ring. In the base layer so a Tailwind utility on the element (outline-none on
+   text inputs, whose rounded container shows focus instead) wins; unlayered, it beat them and
+   drew a square box inside the pill-shaped search fields. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
 }
 
 /* Horizontal shelves: scroll-snap rows on small screens. */
