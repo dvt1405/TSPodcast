@@ -5,6 +5,7 @@ package tss.t.podcast.ui.screens.main
 import tss.t.sharedlibrary.ui.glass.glassHighlight
 import tss.t.sharedlibrary.ui.glass.glassRim
 import androidx.compose.ui.draw.shadow
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import android.annotation.SuppressLint
@@ -294,6 +295,7 @@ private fun HomeNavHost(
                         mainViewModel.setCurrentPodcast(this)
                         parentNavHost.navigate(TSRouter.PodcastDetail.route)
                     },
+                    onLocationsChange = mainViewModel::setLocations,
                     onNewsClick = { news ->
                         coroutineScope.launch {
                             playerViewModel.playerEpisode(
@@ -431,7 +433,8 @@ private fun TSBottomNavigation(
     Box(
         modifier = modifier
             .navigationBarsPadding()
-            .padding(horizontal = 64.dp)
+            // 64dp a side left ~58dp per tab on a 360dp phone, too narrow for the labels.
+            .padding(horizontal = 32.dp)
             .fillMaxWidth()
             .height(64.dp)
             .then(
@@ -475,7 +478,7 @@ private fun TSBottomNavigation(
     ) {
         if (glass) {
             // Glass lens that slides under the selected tab.
-            androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
+            androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize().padding(horizontal = 10.dp)) {
                 val tabWidth = maxWidth / tabs.size
                 val offset by androidx.compose.animation.core.animateDpAsState(
                     tabWidth * selectedTab,
@@ -487,7 +490,10 @@ private fun TSBottomNavigation(
                 )
                 Box(
                     Modifier
-                        .padding(start = offset, top = 6.dp, bottom = 2.dp)
+                        // The spring overshoots below 0 when sliding back to the first tab, and
+                        // padding rejects negative values (Crashlytics d08c1213). Offset accepts them.
+                        .offset { androidx.compose.ui.unit.IntOffset(offset.roundToPx(), 0) }
+                        .padding(top = 6.dp, bottom = 2.dp)
                         .size(width = tabWidth, height = maxHeight)
                         .padding(horizontal = 6.dp)
                         .clip(pill)

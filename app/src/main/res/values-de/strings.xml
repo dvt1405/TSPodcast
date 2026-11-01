@@ -108,5 +108,21 @@ Grund der Meldung:
     <string name="settings_liquid_glass_hint">Navigationsleiste, Mini-Player und Wiedergabesteuerung im Glas-Look</string>
 
     <string name="settings_language">Sprache</string>
-    <string name="settings_language_hint">Sprache der App und der Podcast-Listen (englische Podcasts sind immer dabei)</string>
+    <string name="settings_language_hint">Sprache der App</string>
+    <string name="location_section_title">Podcasts nach Land</string>
+    <string name="location_section_subtitle">Trends in den gewählten Ländern</string>
+    <string name="location_manage">Ordnen</string>
+    <string name="location_sheet_title">Podcast-Länder</string>
+    <string name="location_sheet_hint">Bis zu 3 Länder, nach Priorität. Das erste bestimmt die Startseite; die Suche zeigt nur Podcasts aus deinen Ländern.</string>
+    <string name="location_add_title">Land hinzufügen</string>
+    <string name="location_limit_reached">Schon 3 Länder, entferne eines, um ein anderes hinzuzufügen</string>
+    <string name="location_move_up">Nach oben</string>
+    <string name="location_move_down">Nach unten</string>
+    <string name="location_remove">Land entfernen</string>
+    <string name="location_primary">Haupt</string>
+    <string name="location_done">Fertig</string>
+    <string name="location_empty">Hier gibt es noch keine Trend-Podcasts</string>
+    <string name="settings_podcast_location">Podcast-Länder</string>
+    <string name="settings_podcast_location_hint">Startseite und Suche nach deinen Ländern</string>
+    <string name="location_top_pick">Top-Tipp</string>
 </resources>

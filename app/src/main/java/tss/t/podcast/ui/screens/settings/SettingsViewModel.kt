@@ -15,12 +15,18 @@ class SettingsViewModel @Inject constructor(
     private val privacyConsent: PrivacyConsent,
     private val uiPrefs: tss.t.core.storage.UiPrefs,
     private val languagePrefs: tss.t.core.storage.LanguagePrefs,
+    private val locationPrefs: tss.t.core.storage.PodcastLocationPrefs,
 ) : ViewModel() {
+
+    /** Podcast locations (priority order); Home reloads by itself when they change. */
+    val locations: StateFlow<List<tss.t.core.storage.PodcastLocation>> = locationPrefs.locations
+
+    fun setLocations(regions: List<String>) = locationPrefs.setLocations(regions)
 
     val language: StateFlow<tss.t.core.storage.AppLanguage> = languagePrefs.language
     val languages: List<tss.t.core.storage.AppLanguage> = tss.t.core.storage.LanguagePrefs.SUPPORTED
 
-    /** App and content language; the caller then applies the UI locale. */
+    /** App (UI) language; the caller then applies the UI locale. Content follows [locations]. */
     fun setLanguage(tag: String) = languagePrefs.setLanguage(tag)
 
     val liquidGlass: StateFlow<Boolean> = uiPrefs.liquidGlass

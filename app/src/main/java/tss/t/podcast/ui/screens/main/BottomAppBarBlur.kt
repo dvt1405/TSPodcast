@@ -108,9 +108,11 @@ fun BottomBarTabs(
         LocalTextStyle provides TextStyles.Title6.copy(color = textColor),
         LocalContentColor provides contentColor,
     ) {
+        // Inset from the pill's rounded ends so the first and last labels stay inside the curve.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(horizontal = 10.dp)
         ) {
             for (tab in tabs.indices) {
                 val alpha by animateFloatAsState(
@@ -144,13 +146,23 @@ fun BottomBarTabs(
                         imageVector = tabs[tab].icon,
                         contentDescription = stringResource(tabs[tab].title)
                     )
+                    // One line that shrinks to fit the tab (long labels such as "Favourites",
+                    // "Favoritos", "お気に入り"), never wrapping or spilling past the pill.
                     BasicText(
                         text = stringResource(tabs[tab].title),
                         maxLines = 1,
-                        style = TextStyles.Title6.copy(color = textColor),
+                        softWrap = false,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        style = TextStyles.Title6.copy(
+                            color = textColor,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 2.dp),
                         autoSize = TextAutoSize.StepBased(
                             minFontSize = 8.sp,
-                            maxFontSize = 14.sp,
+                            maxFontSize = 13.sp,
                             stepSize = 0.5.sp,
                         )
                     )

@@ -108,5 +108,21 @@ Reden van melding:
     <string name="settings_liquid_glass_hint">Navigatiebalk, minispeler en bedieningsknoppen in glaslook</string>
 
     <string name="settings_language">Taal</string>
-    <string name="settings_language_hint">Taal van de app en van de podcastlijsten (Engelstalige podcasts zijn altijd inbegrepen)</string>
+    <string name="settings_language_hint">Taal van de app</string>
+    <string name="location_section_title">Podcasts per land</string>
+    <string name="location_section_subtitle">Trending in de gekozen landen</string>
+    <string name="location_manage">Ordenen</string>
+    <string name="location_sheet_title">Podcastlanden</string>
+    <string name="location_sheet_hint">Maximaal 3 landen, op volgorde van voorkeur. Het eerste bepaalt Home; zoeken toont alleen podcasts uit je landen.</string>
+    <string name="location_add_title">Land toevoegen</string>
+    <string name="location_limit_reached">Al 3 landen, verwijder er een om een ander toe te voegen</string>
+    <string name="location_move_up">Omhoog</string>
+    <string name="location_move_down">Omlaag</string>
+    <string name="location_remove">Land verwijderen</string>
+    <string name="location_primary">Hoofd</string>
+    <string name="location_done">Klaar</string>
+    <string name="location_empty">Hier nog geen trending podcasts</string>
+    <string name="settings_podcast_location">Podcastlanden</string>
+    <string name="settings_podcast_location_hint">Home en zoeken volgen je landen</string>
+    <string name="location_top_pick">Topkeuze</string>
 </resources>

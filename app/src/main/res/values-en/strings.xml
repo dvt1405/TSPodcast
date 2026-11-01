@@ -108,5 +108,21 @@ Reason for report:
     <string name="settings_liquid_glass_hint">Glass-style navigation bar, mini player and player controls</string>
 
     <string name="settings_language">Language</string>
-    <string name="settings_language_hint">Language of the app and of the podcast lists (English podcasts are always included)</string>
+    <string name="settings_language_hint">Language of the app</string>
+    <string name="location_section_title">Podcasts by location</string>
+    <string name="location_section_subtitle">Trending in the places you picked</string>
+    <string name="location_manage">Arrange</string>
+    <string name="location_sheet_title">Podcast locations</string>
+    <string name="location_sheet_hint">Up to 3 locations, in priority order. The first one sets what Home shows; search only shows podcasts from your locations.</string>
+    <string name="location_add_title">Add a location</string>
+    <string name="location_limit_reached">3 locations already, remove one to add another</string>
+    <string name="location_move_up">Move up</string>
+    <string name="location_move_down">Move down</string>
+    <string name="location_remove">Remove location</string>
+    <string name="location_primary">Main</string>
+    <string name="location_done">Done</string>
+    <string name="location_empty">No trending podcasts here yet</string>
+    <string name="settings_podcast_location">Podcast locations</string>
+    <string name="settings_podcast_location_hint">Home and search follow your locations</string>
+    <string name="location_top_pick">Top pick</string>
 </resources>

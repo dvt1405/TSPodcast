@@ -108,5 +108,21 @@ Motivo della segnalazione:
     <string name="settings_liquid_glass_hint">Barra di navigazione, mini player e controlli del player in stile vetro</string>
 
     <string name="settings_language">Lingua</string>
-    <string name="settings_language_hint">Lingua dell\'app e degli elenchi di podcast (i podcast in inglese sono sempre inclusi)</string>
+    <string name="settings_language_hint">Lingua dell\'app</string>
+    <string name="location_section_title">Podcast per paese</string>
+    <string name="location_section_subtitle">Di tendenza nei paesi scelti</string>
+    <string name="location_manage">Ordina</string>
+    <string name="location_sheet_title">Paesi dei podcast</string>
+    <string name="location_sheet_hint">Fino a 3 paesi, in ordine di priorità. Il primo decide la Home; la ricerca mostra solo podcast dei tuoi paesi.</string>
+    <string name="location_add_title">Aggiungi paese</string>
+    <string name="location_limit_reached">Hai già 3 paesi, rimuovine uno per aggiungerne un altro</string>
+    <string name="location_move_up">Sposta su</string>
+    <string name="location_move_down">Sposta giù</string>
+    <string name="location_remove">Rimuovi paese</string>
+    <string name="location_primary">Principale</string>
+    <string name="location_done">Fine</string>
+    <string name="location_empty">Ancora nessun podcast di tendenza qui</string>
+    <string name="settings_podcast_location">Paesi dei podcast</string>
+    <string name="settings_podcast_location_hint">Home e ricerca secondo i tuoi paesi</string>
+    <string name="location_top_pick">In evidenza</string>
 </resources>

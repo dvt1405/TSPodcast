@@ -25,10 +25,9 @@ data class AppLanguage(
  *
  * - First launch: taken from the system language and region (a device set to region VN counts
  *   as Vietnamese), falling back to English, and saved.
- * - Afterwards: what the user picks in Settings → Ngôn ngữ, which sets both the UI language and
- *   the language podcasts are loaded in.
- * - [contentLangParam]: the `lang` sent to PodcastIndex lists. English is always added for other
- *   languages ("vi,en"), so Vietnam and every non-English market also get English shows.
+ * - Afterwards: what the user picks in Settings → Ngôn ngữ (the UI language only).
+ * - Which podcasts are listed is decided by [PodcastLocationPrefs] (2026-11-01): mixing English
+ *   into every market ("vi,en") let English shows crowd Vietnamese ones out of trending.
  */
 @Singleton
 class LanguagePrefs @Inject constructor(
@@ -37,13 +36,6 @@ class LanguagePrefs @Inject constructor(
 ) {
     private val _language = MutableStateFlow(loadOrDetect())
     val language: StateFlow<AppLanguage> = _language.asStateFlow()
-
-    /** `lang` for trending / recent lists: the chosen language plus English. */
-    fun contentLangParam(): String = contentLangParam(_language.value)
-
-    /** Languages search results are ranked by: the chosen one first, then English. */
-    fun preferredContentCodes(): List<String> =
-        listOf(_language.value.contentCode, "en").distinct()
 
     fun setLanguage(tag: String) {
         val language = byTag(tag) ?: return
@@ -94,8 +86,5 @@ class LanguagePrefs @Inject constructor(
             val language = locale.language.lowercase().let { if (it == "in") "id" else it }
             return SUPPORTED.firstOrNull { it.contentCode == language } ?: SUPPORTED.first { it.tag == "en" }
         }
-
-        fun contentLangParam(language: AppLanguage): String =
-            if (language.contentCode == "en") "en" else "${language.contentCode},en"
     }
 }

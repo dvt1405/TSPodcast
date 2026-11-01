@@ -108,5 +108,21 @@ Bildirme nedeni:
     <string name="settings_liquid_glass_hint">Cam görünümlü gezinme çubuğu, mini oynatıcı ve oynatıcı kontrolleri</string>
 
     <string name="settings_language">Dil</string>
-    <string name="settings_language_hint">Uygulamanın ve podcast listelerinin dili (İngilizce podcastler her zaman dahildir)</string>
+    <string name="settings_language_hint">Uygulama dili</string>
+    <string name="location_section_title">Ülkeye göre podcastler</string>
+    <string name="location_section_subtitle">Seçtiğin ülkelerde trend olanlar</string>
+    <string name="location_manage">Düzenle</string>
+    <string name="location_sheet_title">Podcast ülkeleri</string>
+    <string name="location_sheet_hint">Öncelik sırasına göre en fazla 3 ülke. İlki Ana sayfayı belirler; arama yalnızca ülkelerindeki podcastleri gösterir.</string>
+    <string name="location_add_title">Ülke ekle</string>
+    <string name="location_limit_reached">Zaten 3 ülke var, başka eklemek için birini kaldır</string>
+    <string name="location_move_up">Yukarı taşı</string>
+    <string name="location_move_down">Aşağı taşı</string>
+    <string name="location_remove">Ülkeyi kaldır</string>
+    <string name="location_primary">Ana</string>
+    <string name="location_done">Bitti</string>
+    <string name="location_empty">Burada henüz trend podcast yok</string>
+    <string name="settings_podcast_location">Podcast ülkeleri</string>
+    <string name="settings_podcast_location_hint">Ana sayfa ve arama ülkelerine göre</string>
+    <string name="location_top_pick">Öne çıkan</string>
 </resources>

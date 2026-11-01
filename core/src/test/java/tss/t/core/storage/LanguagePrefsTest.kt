@@ -22,13 +22,6 @@ class LanguagePrefsTest {
     }
 
     @Test
-    fun contentLanguageAlwaysAddsEnglishExceptForEnglish() {
-        assertEquals("vi,en", LanguagePrefs.contentLangParam(LanguagePrefs.byTag("vi")!!))
-        assertEquals("pt,en", LanguagePrefs.contentLangParam(LanguagePrefs.byTag("pt-BR")!!))
-        assertEquals("en", LanguagePrefs.contentLangParam(LanguagePrefs.byTag("en")!!))
-    }
-
-    @Test
     fun fifteenLanguagesWithUniqueTags() {
         assertEquals(15, LanguagePrefs.SUPPORTED.size)
         assertEquals(15, LanguagePrefs.SUPPORTED.map { it.tag }.toSet().size)

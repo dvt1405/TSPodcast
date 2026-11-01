@@ -81,6 +81,7 @@ private const val ITEM_TRENDING_ROW = "TrendingRow"
 private const val ITEM_TRENDING_TITLE = "TrendingTitle"
 private const val ITEM_SPACE_TOP = "SpaceTop"
 private const val ITEM_FAV_CATEGORIES = "FavouritesCategories"
+private const val ITEM_LOCATION_SECTION = "LocationSection"
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -98,7 +99,16 @@ fun DiscoverPodcastsScreen(
     onFavClick: Podcast.() -> Unit = {},
     onLiveItemClick: LiveEpisode.() -> Unit = {},
     onNewsClick: (tss.t.podcasts.NewsItem) -> Unit = {},
+    onLocationsChange: (List<String>) -> Unit = {},
 ) {
+    var showLocations by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    if (showLocations) {
+        tss.t.podcast.ui.screens.location.PodcastLocationSheet(
+            locations = uiState.locations,
+            onChange = onLocationsChange,
+            onDismiss = { showLocations = false }
+        )
+    }
     val sharedTransitionScope = LocalSharedTransitionScope.current!!
     val animatedContentScope = LocalNavAnimatedVisibilityScope.current!!
     val infiniteTransition = rememberInfiniteTransition(label = "InfiniteTransition")
@@ -196,6 +206,40 @@ fun DiscoverPodcastsScreen(
                     onTrendingClick = onTrendingClick
                 )
             }
+            // "Thời sự" per podcast location: the newest bulletins of each location's trending
+            // News shows; the curated hub (confirmed sources) replaces the main location's list.
+            val primaryRegion = uiState.locations.firstOrNull()?.region
+            val newsByRegion = if (uiState.newsItems.isNotEmpty() && primaryRegion != null) {
+                uiState.newsByRegion + (primaryRegion to uiState.newsItems)
+            } else {
+                uiState.newsByRegion
+            }
+            if (newsByRegion.values.any { it.isNotEmpty() }) {
+                item(key = "NewsSection") {
+                    tss.t.podcast.ui.screens.discorver.components.LocationNewsSection(
+                        locations = uiState.locations,
+                        newsByRegion = newsByRegion,
+                        onClick = onNewsClick
+                    )
+                }
+            }
+            item(key = ITEM_LOCATION_SECTION) {
+                tss.t.podcast.ui.screens.discorver.components.LocationSection(
+                    locations = uiState.locations,
+                    // The primary location's top shows are already the Trending row above;
+                    // skip them so this section brings new shows instead of repeating them.
+                    podcastsByRegion = remember(uiState.locationPodcasts, uiState.listTrending, uiState.locations) {
+                        val primary = uiState.locations.firstOrNull()?.region
+                        val shown = uiState.listTrending.take(10).map { it.id }.toSet()
+                        uiState.locationPodcasts.mapValues { (region, list) ->
+                            if (region == primary && list.size > shown.size + 4) list.filterNot { it.id in shown } else list
+                        }
+                    },
+                    placeHolderColor = placeHolderColor,
+                    onManage = { showLocations = true },
+                    onClick = { onTrendingClick(it) }
+                )
+            }
             item(key = ITEM_MUSIC_TITLE) {
                 Column(
                     modifier = Modifier
@@ -254,23 +298,6 @@ fun DiscoverPodcastsScreen(
                     pagerState = pagerState,
                     onClick = onLiveItemClick
                 )
-            }
-            if (uiState.newsItems.isNotEmpty()) {
-                item(key = "NewsTitle") {
-                    Text(
-                        stringResource(R.string.news_hub_title),
-                        style = TextStyles.Title4,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp)
-                    )
-                }
-                item(key = "NewsRow") {
-                    tss.t.podcast.ui.screens.discorver.components.NewsRow(
-                        items = uiState.newsItems,
-                        onClick = onNewsClick
-                    )
-                }
             }
             item(key = ITEM_RECENT_TITLE) {
                 Text(

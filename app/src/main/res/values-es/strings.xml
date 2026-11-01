@@ -108,5 +108,21 @@ Motivo del reporte:
     <string name="settings_liquid_glass_hint">Barra de navegación, minirreproductor y controles del reproductor con efecto de vidrio</string>
 
     <string name="settings_language">Idioma</string>
-    <string name="settings_language_hint">Idioma de la app y de las listas de podcasts (siempre se incluyen podcasts en inglés)</string>
+    <string name="settings_language_hint">Idioma de la app</string>
+    <string name="location_section_title">Podcasts por ubicación</string>
+    <string name="location_section_subtitle">Tendencias en los lugares que elegiste</string>
+    <string name="location_manage">Ordenar</string>
+    <string name="location_sheet_title">Ubicaciones de podcasts</string>
+    <string name="location_sheet_hint">Hasta 3 ubicaciones, por prioridad. La primera define lo que muestra Inicio; la búsqueda solo muestra podcasts de tus ubicaciones.</string>
+    <string name="location_add_title">Añadir ubicación</string>
+    <string name="location_limit_reached">Ya tienes 3 ubicaciones, quita una para añadir otra</string>
+    <string name="location_move_up">Subir</string>
+    <string name="location_move_down">Bajar</string>
+    <string name="location_remove">Quitar ubicación</string>
+    <string name="location_primary">Principal</string>
+    <string name="location_done">Listo</string>
+    <string name="location_empty">Aún no hay podcasts en tendencia aquí</string>
+    <string name="settings_podcast_location">Ubicaciones de podcasts</string>
+    <string name="settings_podcast_location_hint">Inicio y búsqueda según tus ubicaciones</string>
+    <string name="location_top_pick">Destacado</string>
 </resources>

@@ -37,22 +37,30 @@ class PodcastsRepositoryImpl @Inject constructor(
     @ApplicationContext
     private val context: Context,
     private val contentFilter: ContentFilter,
-    private val languagePrefs: tss.t.core.storage.LanguagePrefs,
+    private val locationPrefs: tss.t.core.storage.PodcastLocationPrefs,
 ) : IPodcastRepository {
 
-    /** Search results without blocked, hidden or (unless allowed) explicit feeds. */
-    private fun TSDataState<SearchResponse>.filtered(): TSDataState<SearchResponse> {
+    /**
+     * Search results without blocked, hidden or (unless allowed) explicit feeds. With [byLocation]
+     * (podcast search), only shows in the chosen locations' languages; music is left mixed.
+     */
+    private fun TSDataState<SearchResponse>.filtered(byLocation: Boolean = true): TSDataState<SearchResponse> {
         if (this !is TSDataState.Success) return this
         // Gson leaves "non-null" Kotlin fields null when the JSON lacks them (bymedium has no
         // "query"), and data-class copy() then throws; build the result explicitly instead.
         @Suppress("USELESS_ELVIS")
-        // Shows in the app language first, then English, then the rest (stable within each group).
-        val preferred = languagePrefs.preferredContentCodes()
-        val feeds = (data.feeds ?: emptyList()).filter(contentFilter::allows)
-            .sortedBy { feed ->
-                val code = (feed.language as String?).orEmpty().lowercase().substringBefore('-')
-                preferred.indexOf(code).let { if (it < 0) preferred.size else it }
+        // Only shows in the languages of the chosen podcast locations, by location priority
+        // (location Vietnam → Vietnamese shows only), without spam titled in another script.
+        val preferred = locationPrefs.contentCodes()
+        val allowed = (data.feeds ?: emptyList()).filter(contentFilter::allows)
+        val feeds = if (!byLocation) allowed else allowed
+            .mapNotNull { feed ->
+                val code = LanguageMatch.code(feed.language as String?)
+                val rank = preferred.indexOf(code)
+                if (rank < 0 || !LanguageMatch.titleFits(feed.title, code)) null else rank to feed
             }
+            .sortedBy { it.first }
+            .map { it.second }
         @Suppress("USELESS_ELVIS")
         return TSDataState.Success(SearchResponse(count = feeds.size, feeds = feeds, query = data.query ?: ""))
     }
@@ -141,7 +149,7 @@ class PodcastsRepositoryImpl @Inject constructor(
                 similar = similar,
                 fulltext = fulltext,
                 pretty = pretty
-            ).filtered()
+            ).filtered(byLocation = false)
         }
     }
 
@@ -155,7 +163,7 @@ class PodcastsRepositoryImpl @Inject constructor(
                 medium = medium,
                 max = max,
                 pretty = pretty
-            ).filtered()
+            ).filtered(byLocation = false)
         }
     }
 
@@ -397,7 +405,10 @@ class PodcastsRepositoryImpl @Inject constructor(
                 )
             ).map {
                 if (it is TSDataState.Success) {
-                    val data = it.data.items.filter(contentFilter::allows)
+                    val code = LanguageMatch.code(lang.substringBefore(','))
+                    val data = it.data.items.filter { podcast ->
+                        contentFilter.allows(podcast) && LanguageMatch.titleFits(podcast.title, code)
+                    }
                     return@map TSDataState.Success(
                         it.data.copy(
                             items = data,

@@ -73,6 +73,15 @@ fun SettingsScreen(
     val language by viewModel.language.collectAsState()
     var showLanguages by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     val activity = androidx.activity.compose.LocalActivity.current
+    val locations by viewModel.locations.collectAsState()
+    var showLocations by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+    if (showLocations) {
+        tss.t.podcast.ui.screens.location.PodcastLocationSheet(
+            locations = locations,
+            onChange = viewModel::setLocations,
+            onDismiss = { showLocations = false }
+        )
+    }
     if (showLanguages) {
         LanguageDialog(
             languages = viewModel.languages,
@@ -208,6 +217,24 @@ fun SettingsScreen(
                         Text(stringResource(R.string.settings_language_hint), style = TextStyles.SubTitle4, color = Colors.Gray60)
                     }
                     Text(language.nativeName, style = TextStyles.SubTitle2, color = MaterialTheme.colorScheme.primary)
+                }
+            }
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(role = Role.Button) { showLocations = true }
+                        .padding(horizontal = 20.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.settings_podcast_location), style = TextStyles.SubTitle2)
+                        Text(stringResource(R.string.settings_podcast_location_hint), style = TextStyles.SubTitle4, color = Colors.Gray60)
+                    }
+                    Text(
+                        locations.joinToString(" ") { it.flag },
+                        style = TextStyles.SubTitle2
+                    )
                 }
             }
             item {
