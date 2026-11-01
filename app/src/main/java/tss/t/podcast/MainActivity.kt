@@ -336,6 +336,10 @@ class MainActivity : ComponentActivity() {
     /** Launcher shortcuts (iOS App Shortcuts parity). True when [action] was one of them. */
     private fun handleShortcut(action: String?): Boolean {
         when (action) {
+            AppShortcuts.ACTION_CONTINUE, AppShortcuts.ACTION_PAUSE, AppShortcuts.ACTION_SLEEP_30 ->
+                tss.t.sharedlibrary.analytics.Analytics.log(tss.t.sharedlibrary.analytics.AppEvents.shortcutInvoked(action.orEmpty().substringAfterLast('.').lowercase()))
+        }
+        when (action) {
             AppShortcuts.ACTION_CONTINUE -> {
                 adsController.onExternalLaunch()
                 val lastId = sharedPref.get<String>(tss.t.podcasts.HistoryRepository.EXTRA_CURRENT_ITEM_ID)
@@ -353,7 +357,7 @@ class MainActivity : ComponentActivity() {
 
             AppShortcuts.ACTION_SLEEP_30 -> {
                 adsController.onExternalLaunch()
-                playerManager.setSleepTimer(tss.t.sharedplayer.playback.SleepTimerOption.Minutes(30))
+                playerManager.setSleepTimer(tss.t.sharedplayer.playback.SleepTimerOption.Minutes(30), origin = "shortcut")
                 Toast.makeText(this, R.string.shortcut_sleep_toast, Toast.LENGTH_SHORT).show()
             }
 
@@ -415,6 +419,8 @@ class MainActivity : ComponentActivity() {
 
     /** "Báo cáo nội dung" (parity with iOS M6): an email with the show id and a web link, sent by the user. */
     private fun reportShow(show: ShowRef) {
+        val fromPlayer = tss.t.sharedlibrary.analytics.Analytics.currentScreen == tss.t.sharedlibrary.analytics.AppEvents.Screen.PLAYER
+        tss.t.sharedlibrary.analytics.Analytics.log(tss.t.sharedlibrary.analytics.AppEvents.contentReport(if (fromPlayer) "episode" else "feed", show.feedId))
         sendEmail(
             subject = getString(R.string.report_subject, show.title),
             body = getString(

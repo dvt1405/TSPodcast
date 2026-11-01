@@ -53,6 +53,9 @@ class SearchViewModel @Inject constructor(
         _selectedCategory.value = category
         _categoryResults.value = null
         category ?: return
+        tss.t.sharedlibrary.analytics.Analytics.log(
+            tss.t.sharedlibrary.analytics.AppEvents.categorySelect(category.id, category.name, "search")
+        )
         categoryJob = viewModelScope.launch {
             val result = getPodcastsByLocation(
                 locationPrefs.primary,
@@ -150,6 +153,7 @@ class SearchViewModel @Inject constructor(
         }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Eagerly, emptyList())
     }
     private var searchJob: Deferred<TSDataState<SearchResponse>>? = null
+    private val searchLogger = tss.t.podcast.analytics.SettledSearchLogger(viewModelScope)
     fun performSearch(searchText: String?) {
         searchJob?.cancel()
         searchText ?: return
@@ -170,6 +174,7 @@ class SearchViewModel @Inject constructor(
             if (rs.isSuccess()) {
                 val data = (rs as TSDataState.Success).data
                 _listSearch.value = data.feeds
+                searchLogger.onResult(searchText, mode.name.lowercase(), data.feeds.size)
             } else {
                 _listSearch.value = emptyList()
             }

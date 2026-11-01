@@ -88,7 +88,10 @@ fun LocationSection(
                 Text(stringResource(R.string.location_manage))
             }
         }
-        LocationChips(locations, selected.region) { selectedRegion = it }
+        LocationChips(locations, selected.region) {
+            tss.t.sharedlibrary.analytics.Analytics.log(tss.t.sharedlibrary.analytics.AppEvents.locationChipSelect(it, tss.t.sharedlibrary.analytics.AppEvents.Section.LOCATION))
+            selectedRegion = it
+        }
         AnimatedContent(
             targetState = selected.region,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
@@ -104,8 +107,12 @@ fun LocationSection(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
                 )
                 else -> Column {
-                    FeaturedCard(items.first(), onClick)
-                    RankedGrid(items.drop(1).take(15), onClick)
+                    val click: (Podcast) -> Unit = { podcast ->
+                        tss.t.podcast.analytics.ContentAnalytics.podcast(podcast, tss.t.sharedlibrary.analytics.AppEvents.Section.LOCATION, region, items.indexOf(podcast))
+                        onClick(podcast)
+                    }
+                    FeaturedCard(items.first(), click)
+                    RankedGrid(items.drop(1).take(15), click)
                 }
             }
         }
@@ -276,14 +283,20 @@ fun LocationNewsSection(
             modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = if (withNews.size > 1) 0.dp else 12.dp)
         )
         if (withNews.size > 1) {
-            LocationChips(withNews, selected.region) { selectedRegion = it }
+            LocationChips(withNews, selected.region) {
+                tss.t.sharedlibrary.analytics.Analytics.log(tss.t.sharedlibrary.analytics.AppEvents.locationChipSelect(it, tss.t.sharedlibrary.analytics.AppEvents.Section.NEWS))
+                selectedRegion = it
+            }
         }
         AnimatedContent(
             targetState = selected.region,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
             label = "LocationNews"
         ) { region ->
-            NewsRow(items = newsByRegion[region].orEmpty(), onClick = onClick)
+            NewsRow(items = newsByRegion[region].orEmpty()) { item ->
+                tss.t.podcast.analytics.ContentAnalytics.news(item, region)
+                onClick(item)
+            }
         }
     }
 }

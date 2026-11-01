@@ -17,6 +17,18 @@ class FavouriteRepository @Inject constructor(
         } else {
             favouriteDao.delete(favouriteDTO.id)
         }
+        // Every heart in the app goes through here (Detail, Player, Favourites, radio).
+        tss.t.sharedlibrary.analytics.Analytics.log(
+            tss.t.sharedlibrary.analytics.AppEvents.favourite(
+                added = isFav,
+                contentType = when (favouriteDTO.type) {
+                    MediaType.Podcast -> tss.t.sharedlibrary.analytics.AppEvents.ContentType.PODCAST
+                    MediaType.Radio, MediaType.TVChannel -> tss.t.sharedlibrary.analytics.AppEvents.ContentType.RADIO
+                    MediaType.PodcastEpisode -> tss.t.sharedlibrary.analytics.AppEvents.ContentType.EPISODE
+                },
+                itemId = favouriteDTO.id,
+            )
+        )
     }
 
     override suspend fun isFavourite(

@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import tss.t.sharedlibrary.analytics.AnalyticsTracker
 import tss.t.sharedlibrary.crash.CrashReporter
 import tss.t.sharedlibrary.utils.ConfigAPI
 import javax.inject.Qualifier
@@ -35,6 +36,11 @@ abstract class AbsFirebaseModule {
     abstract fun bindCrashReporter(
         firebaseCrashReporter: FirebaseCrashReporter
     ): CrashReporter
+
+    @Binds
+    abstract fun bindAnalyticsTracker(
+        firebaseAnalyticsTracker: FirebaseAnalyticsTracker
+    ): AnalyticsTracker
 }
 
 @Qualifier

@@ -47,6 +47,7 @@ class NetworkModule {
                 request.header("User-Agent", NativeLib.getUserAgent())
                 return@Interceptor it.proceed(request.build())
             })
+            .addInterceptor(tss.t.core.network.ApiErrorAnalyticsInterceptor())
             .apply {
                 if (BuildConfig.DEBUG) {
                     addInterceptor(HttpLoggingInterceptor().apply {

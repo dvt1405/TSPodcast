@@ -48,6 +48,7 @@ fun TSNavGraph(
         else -> TSRouter.Main.route
     }
     val viewModelStoreOwner = LocalViewModelStoreOwner.current!!
+    tss.t.podcast.analytics.TrackScreens(outer = navHost, inner = innerNavHost)
     NavHost(
         navController = navHost,
         startDestination = startDestination

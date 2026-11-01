@@ -21,7 +21,8 @@ import tss.t.core.storage.saveOnboardingFinished
 import tss.t.coreapi.models.CategoryRes
 import tss.t.coreapi.models.TSDataState
 import tss.t.podcasts.usecase.GetCategories
-import tss.t.sharedfirebase.TSAnalytics
+import tss.t.sharedlibrary.analytics.AnalyticsTracker
+import tss.t.sharedlibrary.analytics.AppEvents
 import tss.t.sharedresources.R
 import javax.inject.Inject
 
@@ -29,7 +30,7 @@ import javax.inject.Inject
 class OnboardingViewModel @Inject constructor(
     private val sharedPref: SharedPref,
     private val getCategories: GetCategories,
-    val analytic: TSAnalytics,
+    private val tracker: AnalyticsTracker,
     private val privacyConsent: tss.t.sharedfirebase.PrivacyConsent,
 ) : ViewModel() {
     private val _uiState by lazy {
@@ -96,10 +97,8 @@ class OnboardingViewModel @Inject constructor(
     fun onFinishOnboarding(analytics: Boolean, crashReports: Boolean) {
         privacyConsent.decide(analytics = analytics, crashReports = crashReports)
         sharedPref.saveOnboardingFinished(true)
-        analytic.trackEvent(
-            "OnboardingFinished",
-            "Onboarding"
-        )
+        // Logged after decide(): with consent, this is the first event the user sends.
+        tracker.log(AppEvents.tutorialComplete(analytics, crashReports))
         _onboardingStep.update {
             it.copy(isOnboardingDone = sharedPref.isOnboardingFinished())
         }
@@ -110,10 +109,8 @@ class OnboardingViewModel @Inject constructor(
     }
 
     fun onPageChanged(page: Int) {
-        analytic.trackScreen(
-            "Onboarding",
-            "CurrentPage" to (page + 1)
-        )
+        // Dropped until the privacy step is answered (no consent yet), like every event.
+        tracker.screen(AppEvents.Screen.onboardingStep(page + 1))
     }
 
     fun onShowed() {
@@ -124,6 +121,7 @@ class OnboardingViewModel @Inject constructor(
     }
 
     fun putFavouriteItem(category: CategoryRes.Category, index: Int) {
+        tracker.log(AppEvents.categorySelect(category.id, category.name, "onboarding"))
         // A new list each time: mutating the same instance did not emit, so the picker's
         // remember(listSelected) kept stale selection on the cards.
         _listFavouriteCategory.update { current ->
@@ -164,6 +162,7 @@ class OnboardingViewModel @Inject constructor(
 
     fun saveFavouriteItem() {
         sharedPref.saveFavouriteCategory(_listFavouriteCategory.value.toSet())
+        tracker.log(AppEvents.onboardingCategoriesSaved(_listFavouriteCategory.value.size))
         _onboardingStep.update {
             it.copy(isSelectedFavourite = true)
         }
