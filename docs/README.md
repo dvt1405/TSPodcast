@@ -62,4 +62,5 @@ Không nằm ở đây: `README.md` gốc, [`brand/BRAND.md`](../brand/BRAND.md)
 | Tài liệu | Nội dung | Còn lại |
 |---|---|---|
 | [Kế hoạch thông báo kéo người dùng quay lại](https://claude.ai/artifact/5HDLbL9DPfgoQ4uCUi4VvA) (Claude Docs) | 9 loại thông báo (nghe tiếp, tập mới, trending, bản tin), xin quyền đúng lúc, lịch theo vòng đời, Android + iOS | Toàn bộ 4 giai đoạn; chờ owner chốt nơi chạy server push |
+| [plans/android-auto.md](planned/plans/android-auto.md) | TSPodcast trên ô tô: Android Auto trước, Android Automotive OS sau. Cây duyệt, khai báo, Play Console, thử bằng DHU, các mốc | Đã có nền móng M0 (`MediaLibraryService`, cây duyệt, giọng nói, khai báo; PR #__PR__). Còn thử DHU/xe thật, ảnh bìa, radio, opt-in Play Console, AAOS |
 | [plans/ke-hoach-backend-quickwin-cuoc-lon.md](planned/plans/ke-hoach-backend-quickwin-cuoc-lon.md) | Backend podcast riêng, quick wins, cược lớn | Backend (Postgres + crawler), chỉ mục Việt, N23, tầng AI, "Nhà của podcast Việt". Riêng quick win §3 đã làm trong iOS M6 và Android |

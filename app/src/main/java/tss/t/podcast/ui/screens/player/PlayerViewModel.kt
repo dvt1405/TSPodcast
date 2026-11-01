@@ -44,6 +44,7 @@ import tss.t.podcasts.usecase.favourite.SaveFavouriteUseCase
 import tss.t.podcasts.usecase.history.GetEpisodeLocalUseCase
 import tss.t.podcasts.usecase.history.SaveCurrentPlayingUseCase
 import tss.t.sharedplayer.controller.TSMediaController
+import tss.t.sharedplayer.library.toPlayableMediaItem
 import tss.t.sharedplayer.utils.progressOf
 import tss.t.sharedplayer.player.PlaybackExtrasState
 import tss.t.sharedplayer.player.PlayerManager
@@ -655,43 +656,8 @@ class PlayerViewModel @Inject constructor(
     )
 }
 
-@OptIn(UnstableApi::class)
-fun Episode.toMediaItem(album: CharSequence? = null): MediaItem {
-    return MediaItem.Builder()
-        .setMediaId("$id")
-        .setUri(enclosureUrl)
-        .setMediaMetadata(
-            MediaMetadata.Builder()
-                .setTitle(title)
-                .setArtist(persons?.firstOrNull()?.name ?: album)
-                .setDescription(
-                    HtmlCompat.fromHtml(
-                        description ?: "",
-                        HtmlCompat.FROM_HTML_MODE_COMPACT
-                    )
-                )
-                .setSubtitle(
-                    HtmlCompat.fromHtml(
-                        description ?: "",
-                        HtmlCompat.FROM_HTML_MODE_COMPACT
-                    )
-                )
-                .setMediaType(MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE)
-                .setDisplayTitle(title)
-                .setIsPlayable(true)
-                .setArtworkUri(Uri.parse(getImageUrl()))
-                .setDurationMs(duration)
-                .setAlbumTitle(album)
-                .setExtras(
-                    bundleOf(
-                        Constants.EXTRA_MEDIA_TYPE_KEY to Constants.MEDIA_TYPE_EPISODE,
-                        PlayerManager.EXTRA_FEED_ID to feedId
-                    )
-                )
-                .build()
-        )
-        .build()
-}
+/** Same item the car browse tree plays (Android Auto), see [toPlayableMediaItem]. */
+fun Episode.toMediaItem(album: CharSequence? = null): MediaItem = toPlayableMediaItem(album)
 
 fun RadioChannel.toMediaItem(album: CharSequence? = "VOV"): MediaItem {
     val link = links.firstOrNull()?.link

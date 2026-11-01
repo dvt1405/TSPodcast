@@ -50,4 +50,11 @@
     <!-- System notification channel (Android Settings > Notifications) -->
     <string name="notification_channel_name">Bildirimler</string>
     <string name="notification_channel_description">TSPodcast bildirimleri</string>
+
+    <!-- Android Auto / car browse tree (sharedPlayer MediaLibraryCatalog) -->
+    <string name="car_tab_continue">Dinlemeye devam et</string>
+    <string name="car_tab_favourites">Favoriler</string>
+    <string name="car_tab_trending">Trend</string>
+    <string name="car_error_network">Liste yüklenemedi. Bağlantını kontrol et.</string>
+    <string name="car_error_not_found">Bu içerik kullanılamıyor</string>
 </resources>

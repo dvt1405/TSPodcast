@@ -50,4 +50,11 @@
     <!-- System notification channel (Android Settings > Notifications) -->
     <string name="notification_channel_name">Benachrichtigungen</string>
     <string name="notification_channel_description">Benachrichtigungen von TSPodcast</string>
+
+    <!-- Android Auto / car browse tree (sharedPlayer MediaLibraryCatalog) -->
+    <string name="car_tab_continue">Weiterhören</string>
+    <string name="car_tab_favourites">Favoriten</string>
+    <string name="car_tab_trending">Angesagt</string>
+    <string name="car_error_network">Liste konnte nicht geladen werden. Prüfe deine Verbindung.</string>
+    <string name="car_error_not_found">Dieser Inhalt ist nicht verfügbar</string>
 </resources>

@@ -7,8 +7,14 @@
             android:name=".service.PlayerSessionService"
             android:exported="true"
             android:foregroundServiceType="mediaPlayback">
+            <!--
+                MediaLibraryService: the session plus a browse tree (car phase). The legacy
+                MediaBrowserService action is what Android Auto and Android Automotive OS look
+                for; media3 answers both. See docs/planned/plans/android-auto.md.
+            -->
             <intent-filter>
-                <action android:name="androidx.media3.session.MediaSessionService" />
+                <action android:name="androidx.media3.session.MediaLibraryService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
     </application>

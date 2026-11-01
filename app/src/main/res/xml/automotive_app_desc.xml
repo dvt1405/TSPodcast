@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android Auto: declares TSPodcast as a media app. Referenced by the
+    com.google.android.gms.car.application meta-data in AndroidManifest.xml.
+    The browse tree comes from PlayerSessionService (MediaLibraryService).
+-->
+<automotiveApp>
+    <uses name="media" />
+</automotiveApp>

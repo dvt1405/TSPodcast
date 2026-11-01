@@ -54,12 +54,27 @@
         <service
             android:name="tss.t.sharedplayer.service.PlayerSessionService"
             android:exported="true"
-            android:foregroundServiceType="mediaPlayback"
-            android:permission="android.permission.FOREGROUND_SERVICE">
+            android:foregroundServiceType="mediaPlayback">
+            <!--
+                MediaLibraryService: the session plus a browse tree (car phase). The legacy
+                MediaBrowserService action is what Android Auto and Android Automotive OS look
+                for; media3 answers both. See docs/planned/plans/android-auto.md.
+                No android:permission: the car hosts must be able to bind; callers are
+                filtered in PlayerSessionService.onGetSession instead.
+            -->
             <intent-filter>
-                <action android:name="androidx.media3.session.MediaSessionService" />
+                <action android:name="androidx.media3.session.MediaLibraryService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
+        <!-- Android Auto: this app is a media app (res/xml/automotive_app_desc.xml). -->
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
+        <!-- Small icon Android Auto uses for this app's notifications. -->
+        <meta-data
+            android:name="com.google.android.gms.car.notification.SmallIcon"
+            android:resource="@drawable/ic_stat_tspodcast" />
         <!-- Brand status-bar silhouette for FCM pushes (sharedFirebase defaults to ic_heart). -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"

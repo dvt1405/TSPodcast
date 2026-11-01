@@ -51,4 +51,11 @@
     <string name="notification_channel_name">Thông báo</string>
     <string name="notification_channel_description">Thông báo từ TSPodcast</string>
 
+    <!-- Android Auto / car browse tree (sharedPlayer MediaLibraryCatalog) -->
+    <string name="car_root_title" translatable="false">TSPodcast</string>
+    <string name="car_tab_continue">Tiếp tục nghe</string>
+    <string name="car_tab_favourites">Yêu thích</string>
+    <string name="car_tab_trending">Thịnh hành</string>
+    <string name="car_error_network">Không tải được danh sách. Kiểm tra kết nối mạng.</string>
+    <string name="car_error_not_found">Không tìm thấy nội dung này</string>
 </resources>
