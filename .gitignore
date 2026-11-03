@@ -21,6 +21,7 @@ local.properties
 /.idea/runConfigurations.xml
 /app/release
 /.env
+podcast-25c93-98a533cb35a5.json
 
 # Kotlin compiler session markers
 .kotlin/
