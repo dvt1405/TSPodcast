@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "tss.t.securedtoken"
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "28.1.13356709"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
