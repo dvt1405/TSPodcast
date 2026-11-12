@@ -1,10 +1,6 @@
 name: Android Test
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
   workflow_dispatch:
     inputs:
       buildType:
@@ -23,6 +19,30 @@ on:
         description: 'Firebase App Distribution groups (comma-separated)'
         required: true
         default: 'tspodcastrelease'
+# Manual only since 2026-11-12 (GitHub token incident). Triggers before:
+# on:
+#   push:
+#     branches: [ "main" ]
+#   pull_request:
+#     branches: [ "main" ]
+#   workflow_dispatch:
+#     inputs:
+#       buildType:
+#         description: 'Build type (debug or release)'
+#         required: true
+#         default: 'release'
+#         type: choice
+#         options:
+#           - debug
+#           - release
+#       releaseNotes:
+#         description: 'Release notes for this build'
+#         required: true
+#         default: 'New release with improvements and bug fixes'
+#       distributionGroups:
+#         description: 'Firebase App Distribution groups (comma-separated)'
+#         required: true
+#         default: 'tspodcastrelease'
 
 jobs:
   test:
