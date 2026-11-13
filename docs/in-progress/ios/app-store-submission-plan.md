@@ -104,7 +104,7 @@ Thêm vào bảng trên:
 - **Advertising Data** (Usage Data): Third-Party Advertising, Tracking = Có.
 - **Product Interaction**: thêm Third-Party Advertising.
 - **Coarse Location**: Third-Party Advertising, theo khai báo của ad SDK.
-- Bắt buộc có **ATT prompt** (§6) và `NSPrivacyTracking = true` trong manifest; tracking domain lấy từ privacy manifest của SDK.
+- Bắt buộc có **ATT prompt** (§6). Manifest của app để `NSPrivacyTracking = false`, `NSPrivacyTrackingDomains` rỗng: code của app không gọi domain tracking, việc tracking do SDK AdMob khai trong manifest riêng. Đặt `true` thì Apple bắt buộc có ít nhất một domain (build 3 bị ITMS-91064, 14/11/2026), mà domain khai ở đây bị iOS chặn khi người dùng chưa cho phép ATT, làm mất cả quảng cáo không cá nhân hoá. Device ID và Advertising Data vẫn để `NSPrivacyCollectedDataTypeTracking = true`, khớp nhãn App Privacy.
 
 > Thông tin bổ sung về SDK: Firebase công bố dữ liệu từng SDK thu tại https://firebase.google.com/docs/ios/app-store-data-collection. Trong đó: Crashlytics thu stack trace, trạng thái app và thông tin thiết bị/OS; FCM thu APNs token và model, ngôn ngữ, múi giờ; Remote Config thu quốc gia, ngôn ngữ, OS.
 

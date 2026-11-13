@@ -83,7 +83,7 @@ targets:
         # aps-environment = development; bản archive lấy giá trị của provisioning profile (M4 §4.3).
         CODE_SIGN_ENTITLEMENTS: TSPodcast/TSPodcast.entitlements
         MARKETING_VERSION: 1.0.0
-        CURRENT_PROJECT_VERSION: "3"
+        CURRENT_PROJECT_VERSION: "4"
         SUPPORTS_MACCATALYST: NO
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: NO
@@ -143,7 +143,7 @@ targets:
         INFOPLIST_FILE: TSPodcastNotificationService/Info.plist
         GENERATE_INFOPLIST_FILE: NO
         MARKETING_VERSION: 1.0.0
-        CURRENT_PROJECT_VERSION: "3"
+        CURRENT_PROJECT_VERSION: "4"
         APPLICATION_EXTENSION_API_ONLY: YES
         CODE_SIGN_STYLE: Automatic
         SKIP_INSTALL: YES
