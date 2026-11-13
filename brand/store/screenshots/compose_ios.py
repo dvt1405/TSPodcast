@@ -4,15 +4,19 @@
     python3 -I compose_ios.py <raw-dir> <out-dir>
 
 <raw-dir>/<app-language>/<NN-name>.png comes from iosApp/scripts/store-screenshots.sh
-(StoreScreenshotsUITests). Captions: ios-captions.json. Rendering: headless Google Chrome with
+(StoreScreenshotsUITests). Captions: ios-captions.json. The status bar of the capture is masked. Rendering: headless Google Chrome with
 the brand fonts from site/assets/fonts, same look as templates/appstore-6.9in-1320x2868.svg.
 """
-import html, json, os, subprocess, sys, tempfile
+import html, json, os, shutil, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FONTS = os.path.normpath(os.path.join(HERE, "../../../site/assets/fonts"))
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 W, H = 1320, 2868
+# The device status bar (real clock, battery, "back to app" crumb) is hidden by stretching the
+# clean top 1-px row of the capture (background only) over it. Heights are in the 986-px wide on-screen image.
+STATUS_BAR_PX = 112  # 47 pt on a 3x 1284-px capture, scaled to 986 px, + a small margin
+ROW_BELOW_PX = 1
 
 PAGE = """<!doctype html><html><head><meta charset="utf-8"><style>
 @font-face{{font-family:BVP;font-weight:500;src:url('file://{fonts}/be-vietnam-pro-400.woff2')}}
@@ -24,22 +28,25 @@ h1{{position:absolute;left:110px;right:110px;top:180px;margin:0;color:#fff;font-
 p{{position:absolute;left:110px;right:110px;top:{sub_top}px;margin:0;color:#C9D6FF;font-weight:500;font-size:49px;line-height:1.3}}
 .phone{{position:absolute;left:145px;top:841px;width:1030px;height:2180px;border-radius:78px;background:#0A0F24;box-shadow:0 24px 72px rgba(0,0,0,.35)}}
 .phone img{{position:absolute;left:22px;top:22px;width:986px;height:2136px;border-radius:65px;object-fit:cover;object-position:top}}
+.sb{{position:absolute;left:22px;top:22px;width:986px;height:1px;border-radius:65px 65px 0 0;background:url('file://{shot}') 0 -{row}px/986px auto no-repeat;transform-origin:top;transform:scaleY({sbh})}}
 </style></head><body><div class="dot"></div><h1>{title}</h1><p>{sub}</p>
-<div class="phone"><img src="file://{shot}"></div></body></html>"""
+<div class="phone"><img src="file://{shot}"><div class="sb"></div></div></body></html>"""
 
 
 def render(html_text, out):
     with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False, encoding="utf-8") as f:
         f.write(html_text)
         page = f.name
+    profile = tempfile.mkdtemp(prefix="compose-chrome-")
     try:
-        subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--hide-scrollbars",
+        subprocess.run([CHROME, "--headless=new", f"--user-data-dir={profile}", "--no-first-run", "--disable-gpu", "--hide-scrollbars",
                         "--force-device-scale-factor=1", f"--window-size={W},{H}",
                         "--allow-file-access-from-files", "--virtual-time-budget=3000",
                         f"--screenshot={out}", f"file://{page}"],
                        check=True, capture_output=True)
     finally:
         os.unlink(page)
+        shutil.rmtree(profile, ignore_errors=True)
 
 
 def main(raw_dir, out_dir):
@@ -59,7 +66,8 @@ def main(raw_dir, out_dir):
             sub_top = 180 + int(lines * fs * 1.16) + 40
             os.makedirs(os.path.join(out_dir, asc), exist_ok=True)
             render(PAGE.format(fonts=FONTS, w=W, h=H, fs=fs, sub_top=sub_top,
-                               title=html.escape(title), sub=html.escape(sub), shot=os.path.abspath(shot)),
+                               title=html.escape(title), sub=html.escape(sub), shot=os.path.abspath(shot),
+                               row=ROW_BELOW_PX, sbh=STATUS_BAR_PX),
                    os.path.join(out_dir, asc, f"{screen}.png"))
             done += 1
     print(f"rendered {done} screenshots into {out_dir}")

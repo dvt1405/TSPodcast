@@ -24,10 +24,19 @@ final class StoreScreenshotsUITests: TSPodcastUITestCase {
         settle(5)
         attachScreenshot("01-home")
 
-        firstShow.tap()
-        XCTAssertTrue(element(app, "detail.root").waitForExistence(timeout: 10), "detail not shown")
+        // Some trending feeds come back without episodes in a given storefront: try the next show.
         let episode = element(app, "detail.episode.0")
-        XCTAssertTrue(episode.waitForExistence(timeout: Self.networkTimeout), "no episode")
+        var opened = false
+        for index in 0..<5 {
+            let show = app.buttons["home.section.trending.item.\(index)"]
+            guard show.waitForExistence(timeout: 10) else { break }
+            if !show.isHittable { app.scrollViews.firstMatch.swipeLeft() }
+            show.tap()
+            XCTAssertTrue(element(app, "detail.root").waitForExistence(timeout: 10), "detail not shown")
+            if episode.waitForExistence(timeout: 20) { opened = true; break }
+            app.navigationBars.buttons.firstMatch.tap()
+        }
+        XCTAssertTrue(opened, "no trending show with episodes")
         settle(4)
         attachScreenshot("02-detail")
 
