@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore } from "react";
 import { CloseIcon, PhoneIcon } from "@/components/icons";
 import { t } from "@/lib/i18n";
-import { androidIntentUrl, playStoreUrl } from "@/lib/site";
+import { IOS_TESTFLIGHT_URL, androidIntentUrl, playStoreUrl } from "@/lib/site";
 
 // docs/in-progress/plans/seo-web-dashboard.md §A.10: a slim, dismissible banner that
 // remembers dismissal for 14 days and never pushes layout (it overlays the top
@@ -17,8 +17,13 @@ function isAndroid(): boolean {
   return /Android/i.test(navigator.userAgent);
 }
 
+/** iPhone/iPad, including iPadOS that reports itself as a Mac with touch. */
+function isIOS(): boolean {
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+}
+
 function bannerWanted(): boolean {
-  if (!isAndroid()) return false;
+  if (!isAndroid() && !isIOS()) return false;
   try {
     const at = Number(localStorage.getItem(DISMISS_KEY) ?? 0);
     return !at || Date.now() - at > DISMISS_FOR_MS;
@@ -27,9 +32,13 @@ function bannerWanted(): boolean {
   }
 }
 
-/** Android-only "smart app banner" (Chrome has no native one for Play apps). */
+/**
+ * "Smart app banner": Android opens the app or the Play Store (Chrome has no native banner for
+ * Play apps); iPhone/iPad joins the TestFlight beta until the App Store release.
+ */
 export function AppBanner() {
   const wanted = useSyncExternalStore(noopSubscribe, bannerWanted, () => false);
+  const ios = useSyncExternalStore(noopSubscribe, isIOS, () => false);
   const [dismissed, setDismissed] = useState(false);
   if (!wanted || dismissed) return null;
 
@@ -44,21 +53,22 @@ export function AppBanner() {
 
   return (
     <aside
-      aria-label={t.app.bannerTitle}
+      aria-label={ios ? t.app.iosBannerTitle : t.app.bannerTitle}
       className="fixed inset-x-2 top-2 z-50 flex items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2 text-sm shadow-lg"
     >
       <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-on-primary">
         <PhoneIcon size={18} />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold">{t.app.bannerTitle}</p>
-        <p className="truncate text-xs text-subtle">{t.app.bannerBody}</p>
+        <p className="truncate font-semibold">{ios ? t.app.iosBannerTitle : t.app.bannerTitle}</p>
+        <p className="truncate text-xs text-subtle">{ios ? t.app.iosBannerBody : t.app.bannerBody}</p>
       </div>
       <a
-        href={androidIntentUrl(playStoreUrl({ medium: "smart_banner" }))}
+        href={ios ? IOS_TESTFLIGHT_URL : androidIntentUrl(playStoreUrl({ medium: "smart_banner" }))}
+        rel={ios ? "noopener" : undefined}
         className="shrink-0 rounded-full bg-primary px-3.5 py-1.5 text-xs font-bold text-on-primary"
       >
-        {t.app.openInApp}
+        {ios ? t.app.joinBeta : t.app.openInApp}
       </a>
       <button
         type="button"
@@ -79,7 +89,8 @@ export function AppBanner() {
  */
 export function OpenInAppLink({ feedId, className = "" }: { feedId?: number; className?: string }) {
   const android = useSyncExternalStore(noopSubscribe, isAndroid, () => false);
-  const store = playStoreUrl({
+  const ios = useSyncExternalStore(noopSubscribe, isIOS, () => false);
+  const store = ios ? IOS_TESTFLIGHT_URL : playStoreUrl({
     medium: "open_in_app",
     content: feedId ? `podcast_${feedId}` : undefined,
     deeplink: feedId ? `/podcast/${feedId}` : undefined,

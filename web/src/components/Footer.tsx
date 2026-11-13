@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { t } from "@/lib/i18n";
-import { PODCASTINDEX_URL, SITE_NAME, STATIC_EXPORT, playStoreUrl } from "@/lib/site";
+import { IOS_TESTFLIGHT_URL, PODCASTINDEX_URL, SITE_NAME, STATIC_EXPORT, playStoreUrl } from "@/lib/site";
 
 export function Footer({ aiEnabled }: { aiEnabled: boolean }) {
   return (
@@ -41,6 +41,9 @@ export function Footer({ aiEnabled }: { aiEnabled: boolean }) {
           </a>
           <a href={playStoreUrl({ medium: "footer" })} rel="noopener" target="_blank" className="hover:text-primary">
             {t.app.getApp} (Android)
+          </a>
+          <a href={IOS_TESTFLIGHT_URL} rel="noopener" target="_blank" className="hover:text-primary">
+            {t.app.getApp} {t.app.iosBeta}
           </a>
         </nav>
         <p>© {SITE_NAME}</p>

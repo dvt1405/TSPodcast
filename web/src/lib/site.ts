@@ -19,6 +19,9 @@ export const ANDROID_PACKAGE = "tss.t.podcast";
 
 export const PLAY_STORE_URL = `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}`;
 
+/** Public TestFlight link of the iOS beta (group "Public Beta" in App Store Connect) until the App Store release. */
+export const IOS_TESTFLIGHT_URL = "https://testflight.apple.com/join/65pPR7ku";
+
 /**
  * Play Store link carrying an install referrer (docs/in-progress/plans/seo-web-dashboard.md
  * §A.10): utm_* for attribution plus `deeplink=/podcast/<id>` so the app can
