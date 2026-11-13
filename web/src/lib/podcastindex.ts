@@ -249,7 +249,7 @@ function toEpisode(e: RawEpisode): Episode {
 
 const keepPodcast = (p: PodcastSummary) => p.id > 0 && p.title !== "" && !isBlacklisted(p);
 const keepEpisode = (e: Episode) =>
-  e.id > 0 && e.enclosureUrl !== "" && !isBlacklisted({ id: e.id, feedId: e.feedId, title: e.title });
+  e.id > 0 && e.enclosureUrl !== "" && !isBlacklisted({ id: e.id, feedId: e.feedId, title: e.title, feedTitle: e.feedTitle });
 
 /** PodcastIndex returns `feed: []` / `episode: []` instead of 404 for unknown ids. */
 function single<T>(value: T | T[] | undefined | null): T | null {

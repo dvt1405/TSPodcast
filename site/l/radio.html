@@ -59,9 +59,10 @@
         <p class="lead">Kênh phát thanh trực tiếp ngay trên điện thoại, cùng podcast tiếng Việt và kho nhạc mở. Tắt màn hình vẫn nghe, không cần tài khoản.</p>
         <div class="btn-row">
           <a class="btn btn-coral" id="cta-hero-play" data-cta="hero-play" href="https://play.google.com/store/apps/details?id=tss.t.podcast&amp;referrer=utm_source%3Dwebsite%26utm_medium%3Dlanding"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 3.5v17a1 1 0 0 0 1.5.86l14-8.5a1 1 0 0 0 0-1.72l-14-8.5A1 1 0 0 0 6 3.5z"/></svg>Tải trên Google Play</a>
-          <a class="btn btn-ghost" id="cta-hero-web" data-cta="hero-web" href="https://tspodcast.vercel.app/radio?utm_source=website&amp;utm_medium=landing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-6h1a2 2 0 0 1 2 2zM3 15a2 2 0 0 0 2 2h1v-6H5a2 2 0 0 0-2 2z"/></svg>Nghe radio trên web</a>
+          <a class="btn btn-ghost" id="cta-hero-ios" data-cta="hero-ios-beta" href="https://testflight.apple.com/join/65pPR7ku"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M10 11v4l3.5-2z"/><path d="M10 18.5h4"/></svg>iPhone (Beta)</a>
+          <a class="btn btn-ghost" id="cta-hero-web" data-cta="hero-web" href="https://tspodcast.web.app/radio?utm_source=website&amp;utm_medium=landing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-6h1a2 2 0 0 1 2 2zM3 15a2 2 0 0 0 2 2h1v-6H5a2 2 0 0 0-2 2z"/></svg>Nghe radio trên web</a>
         </div>
-        <p class="note">Miễn phí, dành cho Android. Trên máy tính và thiết bị khác, bạn nghe ngay trên trình duyệt.</p>
+        <p class="note">Miễn phí trên Android. Bản iPhone đang thử nghiệm qua TestFlight (chưa có radio). Trên máy tính và thiết bị khác, bạn nghe ngay trên trình duyệt.</p>
       </div>
       <div class="hero-art">
         <img src="/assets/screens/02.webp" width="540" height="960" fetchpriority="high" alt="Màn hình Radio của TSPodcast với danh sách kênh phát thanh trực tiếp">
@@ -112,6 +113,7 @@
         <p>Tải về, mở app và nghe. Bạn không phải đăng ký, không phải nhập email hay số điện thoại.</p>
         <div class="btn-row">
           <a class="btn btn-coral" id="cta-free-play" data-cta="free-play" href="https://play.google.com/store/apps/details?id=tss.t.podcast&amp;referrer=utm_source%3Dwebsite%26utm_medium%3Dlanding"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 3.5v17a1 1 0 0 0 1.5.86l14-8.5a1 1 0 0 0 0-1.72l-14-8.5A1 1 0 0 0 6 3.5z"/></svg>Tải trên Google Play</a>
+          <a class="btn btn-ghost" id="cta-free-ios" data-cta="free-ios-beta" href="https://testflight.apple.com/join/65pPR7ku"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M10 11v4l3.5-2z"/><path d="M10 18.5h4"/></svg>iPhone (Beta, TestFlight)</a>
         </div>
       </div>
       <ul class="free-list card" data-reveal>
@@ -131,9 +133,8 @@
         <p>Mở TSPodcast trên web từ máy tính hay điện thoại, không cần cài đặt.</p>
       </div>
       <ul class="quick">
-        <li data-reveal><a class="card lift" id="cta-web-trending" data-cta="web-trending" href="https://tspodcast.vercel.app/trending?utm_source=website&amp;utm_medium=landing"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></span><span class="label"><strong>Thịnh hành</strong><span class="sub">Podcast đang được nghe nhiều</span></span><span class="arrow" aria-hidden="true">→</span></a></li>
-        <li data-reveal><a class="card lift" id="cta-web-radio" data-cta="web-radio" href="https://tspodcast.vercel.app/radio?utm_source=website&amp;utm_medium=landing"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19 5a10 10 0 0 1 0 14M5 19A10 10 0 0 1 5 5"/></svg></span><span class="label"><strong>Radio</strong><span class="sub">Kênh phát thanh trực tiếp</span></span><span class="arrow" aria-hidden="true">→</span></a></li>
-        <li data-reveal><a class="card lift" id="cta-web-search" data-cta="web-search" href="https://tspodcast.vercel.app/search?utm_source=website&amp;utm_medium=landing"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></span><span class="label"><strong>Tìm kiếm</strong><span class="sub">Theo tên chương trình, từ khoá</span></span><span class="arrow" aria-hidden="true">→</span></a></li>
+        <li data-reveal><a class="card lift" id="cta-web-trending" data-cta="web-trending" href="https://tspodcast.web.app/trending?utm_source=website&amp;utm_medium=landing"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></span><span class="label"><strong>Thịnh hành</strong><span class="sub">Podcast đang được nghe nhiều</span></span><span class="arrow" aria-hidden="true">→</span></a></li>
+        <li data-reveal><a class="card lift" id="cta-web-radio" data-cta="web-radio" href="https://tspodcast.web.app/radio?utm_source=website&amp;utm_medium=landing"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19 5a10 10 0 0 1 0 14M5 19A10 10 0 0 1 5 5"/></svg></span><span class="label"><strong>Radio</strong><span class="sub">Kênh phát thanh trực tiếp</span></span><span class="arrow" aria-hidden="true">→</span></a></li>
       </ul>
     </div>
   </section>
@@ -146,10 +147,10 @@
         <p>Chưa thấy câu trả lời? Gửi email tới <a href="mailto:admin@tuandv.me">admin@tuandv.me</a>.</p>
       </div>
       <div class="faq">
-        <details class="card" data-reveal><summary>TSPodcast có mất phí không?</summary><p>Không. TSPodcast miễn phí: bạn tải app trên Google Play và dùng mọi tính năng mà không phải trả tiền. Bản web tại <a data-cta="faq-web" href="https://tspodcast.vercel.app/?utm_source=website&amp;utm_medium=landing">tspodcast.vercel.app</a> cũng miễn phí.</p></details>
+        <details class="card" data-reveal><summary>TSPodcast có mất phí không?</summary><p>Không. TSPodcast miễn phí: bạn tải app trên Google Play hoặc bản beta cho iPhone và nghe mà không phải trả tiền. Bản web tại <a data-cta="faq-web" href="https://tspodcast.web.app/?utm_source=website&amp;utm_medium=landing">tspodcast.web.app</a> cũng miễn phí.</p></details>
         <details class="card" data-reveal><summary>Tôi có cần tạo tài khoản không?</summary><p>Không cần. App không có đăng ký hay đăng nhập. Danh sách yêu thích, lịch sử nghe, vị trí đang nghe và các tuỳ chọn của bạn được lưu ngay trên điện thoại.</p></details>
         <details class="card" data-reveal><summary>Podcast, radio và nhạc trong app lấy từ đâu?</summary><p>Danh mục podcast và nhạc lấy từ Podcast Index, một thư mục podcast mở. Âm thanh được phát trực tiếp từ máy chủ của nhà sản xuất chương trình, còn radio phát từ máy chủ của các đài. Nội dung thuộc về người tạo ra nó. TSPodcast là ứng dụng độc lập, không liên kết với các đài phát thanh hay nhà sản xuất podcast.</p></details>
-        <details class="card" data-reveal><summary>TSPodcast dùng được trên thiết bị nào?</summary><p>Hiện ứng dụng có trên Android qua Google Play. Trên máy tính hoặc thiết bị khác, bạn nghe được trên web tại <a data-cta="faq-web-devices" href="https://tspodcast.vercel.app/?utm_source=website&amp;utm_medium=landing">tspodcast.vercel.app</a>.</p></details>
+        <details class="card" data-reveal><summary>TSPodcast dùng được trên thiết bị nào?</summary><p>Ứng dụng có trên Android qua Google Play. Bản iPhone đang thử nghiệm beta: <a data-cta="faq-ios-beta" href="https://testflight.apple.com/join/65pPR7ku">tham gia qua TestFlight</a>, sắp có trên App Store (bản iPhone chưa có radio). Trên máy tính hoặc thiết bị khác, bạn nghe được trên web tại <a data-cta="faq-web-devices" href="https://tspodcast.web.app/?utm_source=website&amp;utm_medium=landing">tspodcast.web.app</a>.</p></details>
         <details class="card" data-reveal><summary>Tắt màn hình có nghe tiếp được không?</summary><p>Có. App phát nền khi bạn tắt màn hình hoặc mở app khác. Bạn điều khiển được từ thanh thông báo, màn hình khoá và tai nghe Bluetooth, và có thể hẹn giờ tắt theo số phút hoặc khi hết tập.</p></details>
         <details class="card" data-reveal><summary>Tôi gặp nội dung không phù hợp thì làm sao?</summary><p>Bạn có thể báo cáo nội dung hoặc ẩn chương trình ngay trong app, và bật tuỳ chọn ẩn nội dung dành cho người lớn trong Cài đặt. Yêu cầu gỡ nội dung xin gửi tới <a href="mailto:admin@tuandv.me">admin@tuandv.me</a>.</p></details>
       </div>
@@ -166,8 +167,9 @@
       <div>
         <h2>Nghe và tải</h2>
         <ul>
-          <li><a id="cta-footer-web" data-cta="footer-web" href="https://tspodcast.vercel.app/?utm_source=website&amp;utm_medium=landing">Nghe trên web</a></li>
+          <li><a id="cta-footer-web" data-cta="footer-web" href="https://tspodcast.web.app/?utm_source=website&amp;utm_medium=landing">Nghe trên web</a></li>
           <li><a id="cta-footer-play" data-cta="footer-play" href="https://play.google.com/store/apps/details?id=tss.t.podcast&amp;referrer=utm_source%3Dwebsite%26utm_medium%3Dlanding">Tải trên Google Play</a></li>
+          <li><a id="cta-footer-ios" data-cta="footer-ios-beta" href="https://testflight.apple.com/join/65pPR7ku">iPhone (Beta, TestFlight)</a></li>
           <li><a href="mailto:admin@tuandv.me">admin@tuandv.me</a></li>
         </ul>
       </div>
@@ -189,7 +191,7 @@
     </div>
   </div>
 </footer>
-<script>(function(){try{var q=new URLSearchParams(location.search),p=new URLSearchParams();["utm_source","utm_medium","utm_campaign","utm_content","utm_term","gclid"].forEach(function(n){var v=q.get(n);v&&p.set(n,v)});p.has("utm_source")||p.set("utm_source","website");p.has("utm_medium")||p.set("utm_medium","landing");var r=p.toString();document.querySelectorAll("a[data-cta]").forEach(function(a){var u=new URL(a.href);if(u.hostname=="play.google.com")u.searchParams.set("referrer",r);else if(u.hostname=="tspodcast.vercel.app")u.search=r;else return;a.href=u.href})}catch(e){}})();</script>
+<script>(function(){try{var q=new URLSearchParams(location.search),p=new URLSearchParams();["utm_source","utm_medium","utm_campaign","utm_content","utm_term","gclid"].forEach(function(n){var v=q.get(n);v&&p.set(n,v)});p.has("utm_source")||p.set("utm_source","website");p.has("utm_medium")||p.set("utm_medium","landing");var r=p.toString();document.querySelectorAll("a[data-cta]").forEach(function(a){var u=new URL(a.href);if(u.hostname=="play.google.com")u.searchParams.set("referrer",r);else if(u.hostname=="tspodcast.web.app")u.search=r;else return;a.href=u.href})}catch(e){}})();</script>
 <script>(function(){var l=document.querySelectorAll("[data-reveal]");if(!l.length||!("IntersectionObserver"in window))return;var o=new IntersectionObserver(function(t){t.forEach(function(x){if(!x.isIntersecting)return;var n=x.target;o.unobserve(n);n.classList.add("in");setTimeout(function(){n.removeAttribute("data-reveal")},1200)})},{rootMargin:"0px 0px -8% 0px"});[].forEach.call(l,function(n){n.style.setProperty("--d",[].indexOf.call(n.parentNode.children,n)%6);o.observe(n)});document.documentElement.classList.add("js")})();</script>
 </body>
 </html>

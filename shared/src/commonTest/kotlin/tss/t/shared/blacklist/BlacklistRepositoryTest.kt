@@ -25,7 +25,7 @@ class BlacklistRepositoryTest {
         assertFalse(repository.isInBlacklist("1"))
         // The asset lists 21 ids with duplicates; Android stores them in a Set.
         assertEquals(19, repository.feedIdCount)
-        assertEquals(10, repository.keywordCount)
+        assertEquals(68, repository.keywordCount)
         assertEquals(distinctAssetValues("feedId"), repository.feedIdCount)
         assertEquals(distinctAssetValues("filterText"), repository.keywordCount)
     }
@@ -55,7 +55,7 @@ class BlacklistRepositoryTest {
         listOf("not json", "", "   ", "[]", "\"text\"", "{broken").forEach { value ->
             val repository = BlacklistRepository(FakeConfig.blacklist(value))
             assertTrue(repository.isInBlacklist("7101342"), "value <$value> should fall back")
-            assertEquals(10, repository.keywordCount, "value <$value> should fall back")
+            assertEquals(distinctAssetValues("filterText"), repository.keywordCount, "value <$value> should fall back")
         }
     }
 
