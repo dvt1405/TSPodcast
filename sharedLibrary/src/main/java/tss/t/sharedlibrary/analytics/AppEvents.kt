@@ -101,6 +101,7 @@ object AppEvents {
         const val PODCAST_DETAIL = "podcast_detail"
         const val SETTINGS = "settings"
         const val HISTORY = "history"
+        const val PAYWALL = "paywall"
         const val ONBOARDING_CATEGORIES = "onboarding_categories"
         const val LOCATION_SHEET = "podcast_location_sheet"
         const val PRIVACY_SHEET = "privacy_consent_sheet"

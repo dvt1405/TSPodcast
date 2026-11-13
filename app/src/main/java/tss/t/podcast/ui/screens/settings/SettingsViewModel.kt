@@ -16,7 +16,15 @@ class SettingsViewModel @Inject constructor(
     private val uiPrefs: tss.t.core.storage.UiPrefs,
     private val languagePrefs: tss.t.core.storage.LanguagePrefs,
     private val locationPrefs: tss.t.core.storage.PodcastLocationPrefs,
+    billing: tss.t.billing.BillingController,
+    private val iapConfig: tss.t.billing.IapConfig,
 ) : ViewModel() {
+
+    /** Premium state for the "Premium / Remove ads" row (cached until Play answers). */
+    val entitlement: StateFlow<tss.t.billing.Entitlement> = billing.entitlement
+
+    /** Remote Config `iap_enabled`: hides the paywall entry only, never an owned Premium. */
+    val iapEnabled: Boolean get() = iapConfig.current().enabled
 
     /** Podcast locations (priority order); Home reloads by itself when they change. */
     val locations: StateFlow<List<tss.t.core.storage.PodcastLocation>> = locationPrefs.locations

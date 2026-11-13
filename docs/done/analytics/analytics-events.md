@@ -15,6 +15,7 @@ Mọi event của app Android đi qua **một API**: `AnalyticsTracker` (`shared
 | `FirebaseAnalyticsTracker` | `sharedFirebase/.../FirebaseAnalyticsTracker.kt` | Bản Firebase, bind bằng Hilt (`AbsFirebaseModule`) |
 | `RecordingAnalyticsTracker`, `NoOpAnalyticsTracker` | `AnalyticsTracker.kt` | Fake cho unit test / preview |
 | `AdsAnalytics`, `AdRevenue` | `ads/.../AdsAnalytics.kt` | Event quảng cáo, đổi doanh thu micros → GA4 `ad_impression` |
+| `BillingAnalytics`, `BillingEvents` | `billing/.../BillingAnalytics.kt` | Event paywall / mua Premium (§5.4) |
 | `PlaybackAnalytics` | `sharedPlayer/.../player/PlaybackAnalytics.kt` | Listener trên ExoPlayer của session: phát, dừng, tua, tiến độ, hết bài, lỗi |
 | `ApiErrorAnalyticsInterceptor` | `core/.../network/` | `api_error` cho mọi call API lỗi |
 | `SettingsAnalytics` | `app/.../analytics/SettingsAnalytics.kt` | User property + event đổi cài đặt, theo dõi thẳng các flow `*Prefs` |
@@ -47,6 +48,7 @@ Tham số: `screen_name`, `screen_class` (bằng nhau).
 | `podcast_detail` | Màn chi tiết show |
 | `player` | Màn Player |
 | `settings` | Cài đặt |
+| `paywall` | Màn Premium (paywall) |
 | `onboarding_1` … `onboarding_n` | Từng trang giới thiệu (thường bị bỏ vì chưa consent) |
 | `onboarding_categories` | Chọn chủ đề yêu thích sau onboarding |
 | `podcast_location_sheet` | Sheet "Vị trí podcast"; đóng sheet thì ghi lại `screen_view` của màn bên dưới |
@@ -165,6 +167,19 @@ GA4 cộng `value` vào **Doanh thu quảng cáo** (Kiếm tiền → Quảng c�
 
 GMA SDK cũ (`play-services-ads`) kéo theo `play-services-measurement-sdk-api` và tự ghi `ad_impression` khi AdMob liên kết Firebase. SDK Next-Gen 1.6.0 mà app dùng **không** phụ thuộc thư viện đó (đã xem POM), nên app tự ghi. Nếu sau này DebugView thấy hai `ad_impression` cho một quảng cáo (một cái `origin=auto`), tắt bản của app bằng Remote Config **`ads_ga4_ad_impression` = `false`** (`ads_paid` vẫn ghi).
 
+### 5.4 Premium / mua trong app
+
+Contract chung với iOS: `docs/in-progress/plans/monetization-ads-iap.md` §3. Mọi event có `source` (nơi mở paywall: `settings`; `deferred` = giao dịch chờ xử lý hoàn tất ngoài luồng mua) và, khi có, `product_id` = id nội bộ (`premium_monthly`, `premium_yearly`, `remove_ads_lifetime`), không phải id của store. `PaywallViewModel` ghi `paywall_view`, `PlayBillingController` ghi phần còn lại.
+
+| Event | Tham số thêm | Khi nào |
+|---|---|---|
+| `paywall_view` | | Mở màn Premium |
+| `purchase_start` | `product_id` | Bấm mua, sheet Google Play mở |
+| `purchase_success` | `product_id` | Play trả về PURCHASED (Premium bật ngay, quảng cáo tắt ngay) |
+| `purchase_cancel` | `product_id` | Người dùng đóng sheet |
+| `purchase_fail` | `product_id`, `code` (`BILLING_UNAVAILABLE`, `NETWORK_ERROR`, `ITEM_ALREADY_OWNED`…; `pending` = giao dịch chờ xử lý, chưa cấp quyền) | Lỗi hoặc chờ thanh toán |
+| `purchase_restore` | `result` (`premium` \| `none` \| `error`), `code` khi lỗi | Bấm "Khôi phục giao dịch" |
+
 ## 6. Lỗi
 
 | Event | Tham số | Ghi chú |
@@ -187,7 +202,7 @@ GMA SDK cũ (`play-services-ads`) kéo theo `play-services-measurement-sdk-api` 
 
 Kết quả thử trên emulator-5554 khi làm PR: có `user property` (5 cái) gửi tới Firebase, `screen_view discover`, `consent_status`, `ads_load_failed` (app_open_warm, `NETWORK_ERROR`, `screen=discover`); khi tắt thống kê, tracker ghi `consent=false` và không gửi. Lưu ý Firebase bỏ `screen_view` khi app đang ở nền ("Cannot log screen view event when the app is in the background").
 
-Unit test: `AnalyticsEventTest`, `AppEventsTest` (sharedLibrary), `AdsAnalyticsTest` (ads: micros → value, `ad_impression`, công tắc Remote Config), `ApiErrorAnalyticsInterceptorTest` (core), `ScreenTrackingTest` (app).
+Unit test: `AnalyticsEventTest`, `AppEventsTest` (sharedLibrary), `AdsAnalyticsTest` (ads: micros → value, `ad_impression`, công tắc Remote Config), `BillingAnalyticsTest` (billing: tên và tham số event paywall), `ApiErrorAnalyticsInterceptorTest` (core), `ScreenTrackingTest` (app).
 
 ## 8. Việc của owner trên GA4
 

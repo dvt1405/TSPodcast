@@ -152,4 +152,56 @@ Bildirme nedeni:
     <string name="web_link_not_found">Bu bağlantıdaki podcast bulunamadı</string>
     <string name="settings_language_follow_region">Bölgeye göre</string>
     <string name="settings_language_follow_region_value">Bölge · %1$s</string>
+    <!-- Premium / paywall (docs/in-progress/plans/monetization-ads-iap.md §3) -->
+    <string name="settings_premium">Premium / Reklamları kaldır</string>
+    <string name="settings_premium_hint">Reklamsız dinleyin ve uygulamayı destekleyin</string>
+    <string name="settings_premium_active">Premium etkin</string>
+    <string name="settings_premium_active_hint">Bu cihazda reklamlar kapalı</string>
+    <string name="paywall_title">Premium</string>
+    <string name="paywall_headline">Reklamsız dinleyin</string>
+    <string name="paywall_subtitle">Premium, TSPodcast\'teki tüm reklamları kapatır.</string>
+    <string name="paywall_benefit_no_ads">Banner, liste içi ve tam ekran reklam yok</string>
+    <string name="paywall_benefit_restore">Aynı Google hesabını kullanan her cihazda geri yükleyin</string>
+    <string name="paywall_benefit_support">Bağımsız bir podcast uygulamasını destekleyin</string>
+    <string name="paywall_plan_monthly">Aylık</string>
+    <string name="paywall_plan_yearly">Yıllık</string>
+    <string name="paywall_plan_lifetime">Ömür boyu</string>
+    <string name="paywall_plan_lifetime_hint">Tek seferlik ödeme</string>
+    <string name="paywall_badge_best_value">En avantajlı</string>
+    <string name="paywall_price_per_day">%1$s / gün</string>
+    <string name="paywall_price_per_week">%1$s / hafta</string>
+    <string name="paywall_price_per_month">%1$s / ay</string>
+    <string name="paywall_price_per_year">%1$s / yıl</string>
+    <string name="paywall_price_every">%1$s / %2$s</string>
+    <string name="paywall_trial">Ücretsiz deneme: %1$s</string>
+    <string name="paywall_buy">Devam</string>
+    <string name="paywall_start_trial">Ücretsiz denemeyi başlat</string>
+    <string name="paywall_restore">Satın alımları geri yükle</string>
+    <string name="paywall_auto_renew">Abonelikler, iptal edene kadar gösterilen fiyat ve dönemle otomatik olarak yenilenir. İstediğiniz zaman Google Play → Ödemeler ve abonelikler bölümünden iptal edebilirsiniz. Ücretsiz deneme varsa, öncesinde iptal etmezseniz deneme bitince ücretlendirilirsiniz.</string>
+    <string name="paywall_unavailable">Satın alma şu anda kullanılamıyor. Bağlantınızı ve Google Play\'i kontrol edip tekrar deneyin.</string>
+    <string name="paywall_retry">Tekrar dene</string>
+    <string name="paywall_pending">Satın alımınız beklemede. Ödeme tamamlanınca Premium etkinleşir.</string>
+    <string name="paywall_active_title">Premium etkin</string>
+    <string name="paywall_active_message">Teşekkürler! Reklamlar kapatıldı.</string>
+    <string name="paywall_manage">Aboneliği yönet</string>
+    <string name="paywall_restored">Satın alımlar geri yüklendi. Premium etkin.</string>
+    <string name="paywall_restore_none">Bu Google hesabı için geri yüklenecek satın alım yok.</string>
+    <string name="paywall_restore_failed">Google Play\'e ulaşılamadı. Daha sonra tekrar deneyin.</string>
+    <string name="paywall_purchase_failed">Satın alma tamamlanmadı. Lütfen tekrar deneyin.</string>
+    <plurals name="paywall_duration_days">
+        <item quantity="one">%d gün</item>
+        <item quantity="other">%d gün</item>
+    </plurals>
+    <plurals name="paywall_duration_weeks">
+        <item quantity="one">%d hafta</item>
+        <item quantity="other">%d hafta</item>
+    </plurals>
+    <plurals name="paywall_duration_months">
+        <item quantity="one">%d ay</item>
+        <item quantity="other">%d ay</item>
+    </plurals>
+    <plurals name="paywall_duration_years">
+        <item quantity="one">%d yıl</item>
+        <item quantity="other">%d yıl</item>
+    </plurals>
 </resources>

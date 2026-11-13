@@ -152,4 +152,56 @@ Anledning till rapporten:
     <string name="web_link_not_found">Hittade inte podden i länken</string>
     <string name="settings_language_follow_region">Efter region</string>
     <string name="settings_language_follow_region_value">Region · %1$s</string>
+    <!-- Premium / paywall (docs/in-progress/plans/monetization-ads-iap.md §3) -->
+    <string name="settings_premium">Premium / Ta bort annonser</string>
+    <string name="settings_premium_hint">Lyssna utan annonser och stöd appen</string>
+    <string name="settings_premium_active">Premium aktivt</string>
+    <string name="settings_premium_active_hint">Annonser är avstängda på den här enheten</string>
+    <string name="paywall_title">Premium</string>
+    <string name="paywall_headline">Lyssna utan annonser</string>
+    <string name="paywall_subtitle">Premium stänger av alla annonser i TSPodcast.</string>
+    <string name="paywall_benefit_no_ads">Inga banners, annonser i listor eller helskärmsannonser</string>
+    <string name="paywall_benefit_restore">Återställ på alla enheter med samma Google-konto</string>
+    <string name="paywall_benefit_support">Stöd en oberoende poddapp</string>
+    <string name="paywall_plan_monthly">Månadsvis</string>
+    <string name="paywall_plan_yearly">Årsvis</string>
+    <string name="paywall_plan_lifetime">Livstid</string>
+    <string name="paywall_plan_lifetime_hint">Engångsbetalning</string>
+    <string name="paywall_badge_best_value">Bäst värde</string>
+    <string name="paywall_price_per_day">%1$s / dag</string>
+    <string name="paywall_price_per_week">%1$s / vecka</string>
+    <string name="paywall_price_per_month">%1$s / månad</string>
+    <string name="paywall_price_per_year">%1$s / år</string>
+    <string name="paywall_price_every">%1$s / %2$s</string>
+    <string name="paywall_trial">Gratis provperiod: %1$s</string>
+    <string name="paywall_buy">Fortsätt</string>
+    <string name="paywall_start_trial">Starta gratis provperiod</string>
+    <string name="paywall_restore">Återställ köp</string>
+    <string name="paywall_auto_renew">Prenumerationer förnyas automatiskt till det visade priset och den visade perioden tills du säger upp dem. Säg upp när som helst i Google Play → Betalningar och prenumerationer. Om en gratis provperiod erbjuds debiteras du när den slutar, om du inte säger upp innan dess.</string>
+    <string name="paywall_unavailable">Köp är inte tillgängliga just nu. Kontrollera anslutningen och Google Play och försök igen.</string>
+    <string name="paywall_retry">Försök igen</string>
+    <string name="paywall_pending">Ditt köp väntar. Premium aktiveras när betalningen är klar.</string>
+    <string name="paywall_active_title">Premium är aktivt</string>
+    <string name="paywall_active_message">Tack! Annonserna är avstängda.</string>
+    <string name="paywall_manage">Hantera prenumeration</string>
+    <string name="paywall_restored">Köp återställda. Premium är aktivt.</string>
+    <string name="paywall_restore_none">Det finns inga köp att återställa för det här Google-kontot.</string>
+    <string name="paywall_restore_failed">Det gick inte att nå Google Play. Försök igen senare.</string>
+    <string name="paywall_purchase_failed">Köpet gick inte igenom. Försök igen.</string>
+    <plurals name="paywall_duration_days">
+        <item quantity="one">%d dag</item>
+        <item quantity="other">%d dagar</item>
+    </plurals>
+    <plurals name="paywall_duration_weeks">
+        <item quantity="one">%d vecka</item>
+        <item quantity="other">%d veckor</item>
+    </plurals>
+    <plurals name="paywall_duration_months">
+        <item quantity="one">%d månad</item>
+        <item quantity="other">%d månader</item>
+    </plurals>
+    <plurals name="paywall_duration_years">
+        <item quantity="one">%d år</item>
+        <item quantity="other">%d år</item>
+    </plurals>
 </resources>

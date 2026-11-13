@@ -152,4 +152,64 @@ Powód zgłoszenia:
     <string name="web_link_not_found">Nie znaleziono podcastu z tego linku</string>
     <string name="settings_language_follow_region">Według regionu</string>
     <string name="settings_language_follow_region_value">Region · %1$s</string>
+    <!-- Premium / paywall (docs/in-progress/plans/monetization-ads-iap.md §3) -->
+    <string name="settings_premium">Premium / Usuń reklamy</string>
+    <string name="settings_premium_hint">Słuchaj bez reklam i wspieraj aplikację</string>
+    <string name="settings_premium_active">Premium aktywne</string>
+    <string name="settings_premium_active_hint">Reklamy są wyłączone na tym urządzeniu</string>
+    <string name="paywall_title">Premium</string>
+    <string name="paywall_headline">Słuchaj bez reklam</string>
+    <string name="paywall_subtitle">Premium wyłącza wszystkie reklamy w TSPodcast.</string>
+    <string name="paywall_benefit_no_ads">Bez banerów, reklam na listach i reklam pełnoekranowych</string>
+    <string name="paywall_benefit_restore">Przywróć na każdym urządzeniu z tym samym kontem Google</string>
+    <string name="paywall_benefit_support">Wesprzyj niezależną aplikację do podcastów</string>
+    <string name="paywall_plan_monthly">Miesięcznie</string>
+    <string name="paywall_plan_yearly">Rocznie</string>
+    <string name="paywall_plan_lifetime">Dożywotnio</string>
+    <string name="paywall_plan_lifetime_hint">Płatność jednorazowa</string>
+    <string name="paywall_badge_best_value">Najkorzystniej</string>
+    <string name="paywall_price_per_day">%1$s / dzień</string>
+    <string name="paywall_price_per_week">%1$s / tydzień</string>
+    <string name="paywall_price_per_month">%1$s / miesiąc</string>
+    <string name="paywall_price_per_year">%1$s / rok</string>
+    <string name="paywall_price_every">%1$s / %2$s</string>
+    <string name="paywall_trial">Bezpłatny okres próbny: %1$s</string>
+    <string name="paywall_buy">Dalej</string>
+    <string name="paywall_start_trial">Rozpocznij bezpłatny okres próbny</string>
+    <string name="paywall_restore">Przywróć zakupy</string>
+    <string name="paywall_auto_renew">Subskrypcje odnawiają się automatycznie w podanej cenie i okresie, dopóki ich nie anulujesz. Możesz anulować w dowolnym momencie w Google Play → Płatności i subskrypcje. Jeśli jest okres próbny, opłata zostanie pobrana po jego zakończeniu, chyba że anulujesz wcześniej.</string>
+    <string name="paywall_unavailable">Zakupy są teraz niedostępne. Sprawdź połączenie i Google Play, a potem spróbuj ponownie.</string>
+    <string name="paywall_retry">Spróbuj ponownie</string>
+    <string name="paywall_pending">Twój zakup oczekuje na realizację. Premium włączy się po zakończeniu płatności.</string>
+    <string name="paywall_active_title">Premium jest aktywne</string>
+    <string name="paywall_active_message">Dziękujemy! Reklamy są wyłączone.</string>
+    <string name="paywall_manage">Zarządzaj subskrypcją</string>
+    <string name="paywall_restored">Przywrócono zakupy. Premium jest aktywne.</string>
+    <string name="paywall_restore_none">Brak zakupów do przywrócenia dla tego konta Google.</string>
+    <string name="paywall_restore_failed">Nie można połączyć się z Google Play. Spróbuj ponownie później.</string>
+    <string name="paywall_purchase_failed">Zakup się nie powiódł. Spróbuj ponownie.</string>
+    <plurals name="paywall_duration_days">
+        <item quantity="one">%d dzień</item>
+        <item quantity="few">%d dni</item>
+        <item quantity="many">%d dni</item>
+        <item quantity="other">%d dnia</item>
+    </plurals>
+    <plurals name="paywall_duration_weeks">
+        <item quantity="one">%d tydzień</item>
+        <item quantity="few">%d tygodnie</item>
+        <item quantity="many">%d tygodni</item>
+        <item quantity="other">%d tygodnia</item>
+    </plurals>
+    <plurals name="paywall_duration_months">
+        <item quantity="one">%d miesiąc</item>
+        <item quantity="few">%d miesiące</item>
+        <item quantity="many">%d miesięcy</item>
+        <item quantity="other">%d miesiąca</item>
+    </plurals>
+    <plurals name="paywall_duration_years">
+        <item quantity="one">%d rok</item>
+        <item quantity="few">%d lata</item>
+        <item quantity="many">%d lat</item>
+        <item quantity="other">%d roku</item>
+    </plurals>
 </resources>

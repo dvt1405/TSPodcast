@@ -22,6 +22,7 @@ class ScreenTrackingTest {
         assertEquals("player", screenName(TSRouter.Player.route, TSHomeRouter.Search.route))
         assertEquals("podcast_detail", screenName(TSRouter.PodcastDetail.route, null))
         assertEquals("settings", screenName(TSRouter.Settings.route, null))
+        assertEquals("paywall", screenName(TSRouter.Paywall.route, null))
         assertEquals("onboarding_categories", screenName(TSRouter.SelectFavouriteCategory.route, null))
     }
 

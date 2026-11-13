@@ -53,6 +53,8 @@ class AdPolicy(
     private val store: AdCounterStore,
     private val clock: () -> Long = System::currentTimeMillis,
     private val timeZone: () -> TimeZone = TimeZone::getDefault,
+    /** The user owns an ad-free product ([AdFreeEntitlement]): blocks every format. */
+    private val isPremium: () -> Boolean = { false },
 ) {
     fun day(now: Long): Long = Math.floorDiv(now + timeZone().getOffset(now), DAY_MS)
 
@@ -146,8 +148,9 @@ class AdPolicy(
         return Decision.Allow
     }
 
-    /** Banner / native: only the switches, consent and an active ad-free reward. */
+    /** Banner / native: Premium, the switches, consent and an active ad-free reward. */
     fun canShowInline(placement: AdPlacement, settings: AdsSettings, canRequestAds: Boolean): Decision {
+        if (isPremium()) return Decision.Block(AdFreeEntitlement.REASON_PREMIUM)
         if (!settings.adsEnabled) return Decision.Block("kill_switch")
         if (settings.placementsEnabled[placement] != true) return Decision.Block("placement_disabled")
         if (!canRequestAds) return Decision.Block("no_consent")
@@ -166,6 +169,7 @@ class AdPolicy(
         ctx: TriggerContext,
         now: Long,
     ): String? = when {
+        isPremium() -> AdFreeEntitlement.REASON_PREMIUM
         !settings.adsEnabled -> "kill_switch"
         settings.placementsEnabled[placement] != true -> "placement_disabled"
         !ctx.canRequestAds -> "no_consent"

@@ -152,4 +152,56 @@
     <string name="web_link_not_found">इस लिंक का पॉडकास्ट नहीं मिला</string>
     <string name="settings_language_follow_region">क्षेत्र के अनुसार</string>
     <string name="settings_language_follow_region_value">क्षेत्र · %1$s</string>
+    <!-- Premium / paywall (docs/in-progress/plans/monetization-ads-iap.md §3) -->
+    <string name="settings_premium">प्रीमियम / विज्ञापन हटाएं</string>
+    <string name="settings_premium_hint">बिना विज्ञापन सुनें और ऐप का साथ दें</string>
+    <string name="settings_premium_active">प्रीमियम सक्रिय</string>
+    <string name="settings_premium_active_hint">इस डिवाइस पर विज्ञापन बंद हैं</string>
+    <string name="paywall_title">प्रीमियम</string>
+    <string name="paywall_headline">बिना विज्ञापन के सुनें</string>
+    <string name="paywall_subtitle">प्रीमियम TSPodcast के सभी विज्ञापन बंद कर देता है।</string>
+    <string name="paywall_benefit_no_ads">न बैनर, न सूची में और न फ़ुल-स्क्रीन विज्ञापन</string>
+    <string name="paywall_benefit_restore">उसी Google खाते वाले किसी भी डिवाइस पर बहाल करें</string>
+    <string name="paywall_benefit_support">एक स्वतंत्र पॉडकास्ट ऐप का साथ दें</string>
+    <string name="paywall_plan_monthly">मासिक</string>
+    <string name="paywall_plan_yearly">वार्षिक</string>
+    <string name="paywall_plan_lifetime">आजीवन</string>
+    <string name="paywall_plan_lifetime_hint">एक बार भुगतान</string>
+    <string name="paywall_badge_best_value">सबसे किफ़ायती</string>
+    <string name="paywall_price_per_day">%1$s / दिन</string>
+    <string name="paywall_price_per_week">%1$s / सप्ताह</string>
+    <string name="paywall_price_per_month">%1$s / महीना</string>
+    <string name="paywall_price_per_year">%1$s / वर्ष</string>
+    <string name="paywall_price_every">%1$s / %2$s</string>
+    <string name="paywall_trial">मुफ़्त ट्रायल: %1$s</string>
+    <string name="paywall_buy">जारी रखें</string>
+    <string name="paywall_start_trial">मुफ़्त ट्रायल शुरू करें</string>
+    <string name="paywall_restore">खरीदारी बहाल करें</string>
+    <string name="paywall_auto_renew">सदस्यता दिखाई गई कीमत और अवधि पर अपने-आप नवीनीकृत होती है, जब तक आप उसे रद्द न करें। आप कभी भी Google Play → भुगतान और सदस्यताएं में जाकर रद्द कर सकते हैं। मुफ़्त ट्रायल होने पर, उसके ख़त्म होते ही शुल्क लगेगा, जब तक आप पहले रद्द न करें।</string>
+    <string name="paywall_unavailable">अभी खरीदारी उपलब्ध नहीं है। अपना कनेक्शन और Google Play जांचें, फिर दोबारा कोशिश करें।</string>
+    <string name="paywall_retry">फिर से कोशिश करें</string>
+    <string name="paywall_pending">आपकी खरीदारी लंबित है। भुगतान पूरा होते ही प्रीमियम चालू हो जाएगा।</string>
+    <string name="paywall_active_title">प्रीमियम सक्रिय है</string>
+    <string name="paywall_active_message">धन्यवाद! विज्ञापन बंद कर दिए गए हैं।</string>
+    <string name="paywall_manage">सदस्यता प्रबंधित करें</string>
+    <string name="paywall_restored">खरीदारी बहाल हो गई। प्रीमियम सक्रिय है।</string>
+    <string name="paywall_restore_none">इस Google खाते के लिए बहाल करने लायक कोई खरीदारी नहीं है।</string>
+    <string name="paywall_restore_failed">Google Play से कनेक्ट नहीं हो सका। बाद में फिर कोशिश करें।</string>
+    <string name="paywall_purchase_failed">खरीदारी पूरी नहीं हुई। कृपया फिर से कोशिश करें।</string>
+    <plurals name="paywall_duration_days">
+        <item quantity="one">%d दिन</item>
+        <item quantity="other">%d दिन</item>
+    </plurals>
+    <plurals name="paywall_duration_weeks">
+        <item quantity="one">%d सप्ताह</item>
+        <item quantity="other">%d सप्ताह</item>
+    </plurals>
+    <plurals name="paywall_duration_months">
+        <item quantity="one">%d महीना</item>
+        <item quantity="other">%d महीने</item>
+    </plurals>
+    <plurals name="paywall_duration_years">
+        <item quantity="one">%d वर्ष</item>
+        <item quantity="other">%d वर्ष</item>
+    </plurals>
 </resources>

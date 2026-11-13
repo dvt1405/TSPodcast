@@ -152,4 +152,56 @@ Reden van melding:
     <string name="web_link_not_found">Podcast uit deze link niet gevonden</string>
     <string name="settings_language_follow_region">Volgens regio</string>
     <string name="settings_language_follow_region_value">Regio · %1$s</string>
+    <!-- Premium / paywall (docs/in-progress/plans/monetization-ads-iap.md §3) -->
+    <string name="settings_premium">Premium / Advertenties verwijderen</string>
+    <string name="settings_premium_hint">Luister zonder advertenties en steun de app</string>
+    <string name="settings_premium_active">Premium actief</string>
+    <string name="settings_premium_active_hint">Advertenties staan uit op dit apparaat</string>
+    <string name="paywall_title">Premium</string>
+    <string name="paywall_headline">Luister zonder advertenties</string>
+    <string name="paywall_subtitle">Premium zet alle advertenties in TSPodcast uit.</string>
+    <string name="paywall_benefit_no_ads">Geen banners, advertenties in lijsten of op volledig scherm</string>
+    <string name="paywall_benefit_restore">Herstel op elk apparaat met hetzelfde Google-account</string>
+    <string name="paywall_benefit_support">Steun een onafhankelijke podcast-app</string>
+    <string name="paywall_plan_monthly">Maandelijks</string>
+    <string name="paywall_plan_yearly">Jaarlijks</string>
+    <string name="paywall_plan_lifetime">Levenslang</string>
+    <string name="paywall_plan_lifetime_hint">Eenmalige betaling</string>
+    <string name="paywall_badge_best_value">Voordeligst</string>
+    <string name="paywall_price_per_day">%1$s / dag</string>
+    <string name="paywall_price_per_week">%1$s / week</string>
+    <string name="paywall_price_per_month">%1$s / maand</string>
+    <string name="paywall_price_per_year">%1$s / jaar</string>
+    <string name="paywall_price_every">%1$s / %2$s</string>
+    <string name="paywall_trial">Gratis proefperiode: %1$s</string>
+    <string name="paywall_buy">Doorgaan</string>
+    <string name="paywall_start_trial">Gratis proefperiode starten</string>
+    <string name="paywall_restore">Aankopen herstellen</string>
+    <string name="paywall_auto_renew">Abonnementen worden automatisch verlengd tegen de getoonde prijs en periode tot je opzegt. Opzeggen kan altijd via Google Play → Betalingen en abonnementen. Bij een gratis proefperiode betaal je aan het einde ervan, tenzij je eerder opzegt.</string>
+    <string name="paywall_unavailable">Aankopen zijn nu niet beschikbaar. Controleer je verbinding en Google Play en probeer het opnieuw.</string>
+    <string name="paywall_retry">Opnieuw proberen</string>
+    <string name="paywall_pending">Je aankoop is in behandeling. Premium wordt actief zodra de betaling rond is.</string>
+    <string name="paywall_active_title">Premium is actief</string>
+    <string name="paywall_active_message">Bedankt! Advertenties staan uit.</string>
+    <string name="paywall_manage">Abonnement beheren</string>
+    <string name="paywall_restored">Aankopen hersteld. Premium is actief.</string>
+    <string name="paywall_restore_none">Geen aankopen om te herstellen voor dit Google-account.</string>
+    <string name="paywall_restore_failed">Kan Google Play niet bereiken. Probeer het later opnieuw.</string>
+    <string name="paywall_purchase_failed">De aankoop is niet gelukt. Probeer het opnieuw.</string>
+    <plurals name="paywall_duration_days">
+        <item quantity="one">%d dag</item>
+        <item quantity="other">%d dagen</item>
+    </plurals>
+    <plurals name="paywall_duration_weeks">
+        <item quantity="one">%d week</item>
+        <item quantity="other">%d weken</item>
+    </plurals>
+    <plurals name="paywall_duration_months">
+        <item quantity="one">%d maand</item>
+        <item quantity="other">%d maanden</item>
+    </plurals>
+    <plurals name="paywall_duration_years">
+        <item quantity="one">%d jaar</item>
+        <item quantity="other">%d jaar</item>
+    </plurals>
 </resources>

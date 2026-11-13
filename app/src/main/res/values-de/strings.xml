@@ -152,4 +152,56 @@ Grund der Meldung:
     <string name="web_link_not_found">Podcast aus diesem Link nicht gefunden</string>
     <string name="settings_language_follow_region">Nach Region</string>
     <string name="settings_language_follow_region_value">Region · %1$s</string>
+    <!-- Premium / paywall (docs/in-progress/plans/monetization-ads-iap.md §3) -->
+    <string name="settings_premium">Premium / Werbung entfernen</string>
+    <string name="settings_premium_hint">Ohne Werbung hören und die App unterstützen</string>
+    <string name="settings_premium_active">Premium aktiv</string>
+    <string name="settings_premium_active_hint">Werbung ist auf diesem Gerät aus</string>
+    <string name="paywall_title">Premium</string>
+    <string name="paywall_headline">Ohne Werbung hören</string>
+    <string name="paywall_subtitle">Premium schaltet jede Werbung in TSPodcast ab.</string>
+    <string name="paywall_benefit_no_ads">Keine Banner, keine Werbung in Listen oder im Vollbild</string>
+    <string name="paywall_benefit_restore">Auf jedem Gerät mit demselben Google-Konto wiederherstellen</string>
+    <string name="paywall_benefit_support">Unterstütze eine unabhängige Podcast-App</string>
+    <string name="paywall_plan_monthly">Monatlich</string>
+    <string name="paywall_plan_yearly">Jährlich</string>
+    <string name="paywall_plan_lifetime">Lebenslang</string>
+    <string name="paywall_plan_lifetime_hint">Einmalige Zahlung</string>
+    <string name="paywall_badge_best_value">Bestes Angebot</string>
+    <string name="paywall_price_per_day">%1$s / Tag</string>
+    <string name="paywall_price_per_week">%1$s / Woche</string>
+    <string name="paywall_price_per_month">%1$s / Monat</string>
+    <string name="paywall_price_per_year">%1$s / Jahr</string>
+    <string name="paywall_price_every">%1$s / %2$s</string>
+    <string name="paywall_trial">Kostenlos testen: %1$s</string>
+    <string name="paywall_buy">Weiter</string>
+    <string name="paywall_start_trial">Kostenlos testen</string>
+    <string name="paywall_restore">Käufe wiederherstellen</string>
+    <string name="paywall_auto_renew">Abos verlängern sich automatisch zum angezeigten Preis und Zeitraum, bis du kündigst. Du kannst jederzeit in Google Play → Zahlungen und Abos kündigen. Bei einem kostenlosen Testzeitraum wird nach dessen Ende abgebucht, wenn du nicht vorher kündigst.</string>
+    <string name="paywall_unavailable">Käufe sind gerade nicht möglich. Prüfe deine Verbindung und Google Play und versuche es erneut.</string>
+    <string name="paywall_retry">Erneut versuchen</string>
+    <string name="paywall_pending">Dein Kauf ist ausstehend. Premium wird aktiviert, sobald die Zahlung abgeschlossen ist.</string>
+    <string name="paywall_active_title">Premium ist aktiv</string>
+    <string name="paywall_active_message">Danke! Die Werbung ist ausgeschaltet.</string>
+    <string name="paywall_manage">Abo verwalten</string>
+    <string name="paywall_restored">Käufe wiederhergestellt. Premium ist aktiv.</string>
+    <string name="paywall_restore_none">Für dieses Google-Konto gibt es keine Käufe zum Wiederherstellen.</string>
+    <string name="paywall_restore_failed">Google Play ist nicht erreichbar. Bitte versuche es später erneut.</string>
+    <string name="paywall_purchase_failed">Der Kauf hat nicht geklappt. Bitte versuche es erneut.</string>
+    <plurals name="paywall_duration_days">
+        <item quantity="one">%d Tag</item>
+        <item quantity="other">%d Tage</item>
+    </plurals>
+    <plurals name="paywall_duration_weeks">
+        <item quantity="one">%d Woche</item>
+        <item quantity="other">%d Wochen</item>
+    </plurals>
+    <plurals name="paywall_duration_months">
+        <item quantity="one">%d Monat</item>
+        <item quantity="other">%d Monate</item>
+    </plurals>
+    <plurals name="paywall_duration_years">
+        <item quantity="one">%d Jahr</item>
+        <item quantity="other">%d Jahre</item>
+    </plurals>
 </resources>

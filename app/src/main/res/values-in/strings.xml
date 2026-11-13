@@ -152,4 +152,52 @@ Alasan laporan:
     <string name="web_link_not_found">Podcast dari tautan ini tidak ditemukan</string>
     <string name="settings_language_follow_region">Sesuai wilayah</string>
     <string name="settings_language_follow_region_value">Wilayah · %1$s</string>
+    <!-- Premium / paywall (docs/in-progress/plans/monetization-ads-iap.md §3) -->
+    <string name="settings_premium">Premium / Hapus iklan</string>
+    <string name="settings_premium_hint">Dengarkan tanpa iklan dan dukung aplikasi</string>
+    <string name="settings_premium_active">Premium aktif</string>
+    <string name="settings_premium_active_hint">Iklan nonaktif di perangkat ini</string>
+    <string name="paywall_title">Premium</string>
+    <string name="paywall_headline">Dengarkan tanpa iklan</string>
+    <string name="paywall_subtitle">Premium menghapus semua iklan di TSPodcast.</string>
+    <string name="paywall_benefit_no_ads">Tanpa banner, iklan di daftar, atau iklan layar penuh</string>
+    <string name="paywall_benefit_restore">Pulihkan di perangkat mana pun dengan akun Google yang sama</string>
+    <string name="paywall_benefit_support">Dukung aplikasi podcast independen</string>
+    <string name="paywall_plan_monthly">Bulanan</string>
+    <string name="paywall_plan_yearly">Tahunan</string>
+    <string name="paywall_plan_lifetime">Seumur hidup</string>
+    <string name="paywall_plan_lifetime_hint">Sekali bayar</string>
+    <string name="paywall_badge_best_value">Paling hemat</string>
+    <string name="paywall_price_per_day">%1$s / hari</string>
+    <string name="paywall_price_per_week">%1$s / minggu</string>
+    <string name="paywall_price_per_month">%1$s / bulan</string>
+    <string name="paywall_price_per_year">%1$s / tahun</string>
+    <string name="paywall_price_every">%1$s / %2$s</string>
+    <string name="paywall_trial">Uji coba gratis: %1$s</string>
+    <string name="paywall_buy">Lanjutkan</string>
+    <string name="paywall_start_trial">Mulai uji coba gratis</string>
+    <string name="paywall_restore">Pulihkan pembelian</string>
+    <string name="paywall_auto_renew">Langganan diperpanjang otomatis dengan harga dan periode yang ditampilkan sampai Anda membatalkannya. Batalkan kapan saja di Google Play → Pembayaran &amp; langganan. Jika ada uji coba gratis, biaya ditagih saat uji coba berakhir kecuali Anda membatalkan sebelumnya.</string>
+    <string name="paywall_unavailable">Pembelian belum tersedia saat ini. Periksa koneksi dan Google Play, lalu coba lagi.</string>
+    <string name="paywall_retry">Coba lagi</string>
+    <string name="paywall_pending">Pembelian Anda tertunda. Premium aktif setelah pembayaran selesai.</string>
+    <string name="paywall_active_title">Premium aktif</string>
+    <string name="paywall_active_message">Terima kasih! Iklan sudah dinonaktifkan.</string>
+    <string name="paywall_manage">Kelola langganan</string>
+    <string name="paywall_restored">Pembelian dipulihkan. Premium aktif.</string>
+    <string name="paywall_restore_none">Tidak ada pembelian untuk dipulihkan di akun Google ini.</string>
+    <string name="paywall_restore_failed">Tidak dapat terhubung ke Google Play. Coba lagi nanti.</string>
+    <string name="paywall_purchase_failed">Pembelian tidak berhasil. Silakan coba lagi.</string>
+    <plurals name="paywall_duration_days">
+        <item quantity="other">%d hari</item>
+    </plurals>
+    <plurals name="paywall_duration_weeks">
+        <item quantity="other">%d minggu</item>
+    </plurals>
+    <plurals name="paywall_duration_months">
+        <item quantity="other">%d bulan</item>
+    </plurals>
+    <plurals name="paywall_duration_years">
+        <item quantity="other">%d tahun</item>
+    </plurals>
 </resources>
