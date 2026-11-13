@@ -1,0 +1,18 @@
+TSPodcast is a podcast player focused on Vietnamese listeners. No account or login is required.
+
+Content source: podcast metadata comes from the Podcast Index API (podcastindex.org), used under its terms of service (attribution shown at the bottom of the Discover tab; cached data expires after 7 days). Audio is streamed directly from each publisher's public RSS enclosure URL. We do not host, modify, or re-encode any audio. The "Music library" row lists RSS feeds that artists publish themselves using the podcast:medium=music tag.
+
+Content safety: spam and gambling feeds are filtered with a remotely-updated blocklist, and explicit episodes are hidden by default (Settings > Content). Rights holders can request removal through https://tioshome.web.app; removals are applied server-side without an app update.
+
+Background audio: used only to continue playback of the podcast the user started (Lock Screen / Control Center controls).
+
+Ads: the app shows Google AdMob ads (banner, native, interstitial and app-open). On first launch the Google UMP consent form appears where required, then the App Tracking Transparency prompt; the IDFA is used only if the user allows tracking. Ad privacy choices can be changed in Settings.
+
+How to review:
+1. Complete the onboarding and pick any 3 categories. A privacy choice appears first: either button continues into the app.
+2. Discover tab: tap any podcast > tap an episode to play. Lock the device to verify background playback.
+3. Player: playback speed, sleep timer, skip back 15 s / forward 30 s, Up next list.
+4. Search tab: try "technology" or "history", or pick a category.
+The UI language follows the device language.
+
+Privacy: Firebase Analytics and Crashlytics run only after the user agrees on the first-launch privacy screen and can be changed in Settings > Privacy. They use a random per-install ID.
