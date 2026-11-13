@@ -59,7 +59,7 @@ android {
             base.archivesName.set("TSPodcast.${defaultConfig.versionName}_D")
         }
         release {
-            defaultConfig.versionCode = 10019
+            defaultConfig.versionCode = 10020
             defaultConfig.versionName = "v3.5.${defaultConfig.versionCode}"
             isMinifyEnabled = true
             isShrinkResources = true
@@ -190,6 +190,10 @@ dependencies {
     // AdMob (GMA Next-Gen SDK + UMP). :app only sees :ads types; drop this
     // line for an ad-free build and the seam falls back to its no-ops.
     implementation(project(":ads-admob"))
+    implementation(project(":billing"))
+    // Google Play Billing. :app only sees :billing types; without this line the
+    // paywall shows "unavailable" and a cached Premium keeps ads off.
+    implementation(project(":billing-play"))
 }
 
 // Firebase App Distribution configuration

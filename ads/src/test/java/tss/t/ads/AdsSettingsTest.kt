@@ -3,7 +3,10 @@ package tss.t.ads
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.json.JSONObject
+import org.junit.Assume.assumeTrue
 import org.junit.Test
+import java.io.File
 
 class AdsSettingsTest {
     private val defaults = AdsSettings.defaults(debug = false)
@@ -73,5 +76,28 @@ class AdsSettingsTest {
         assertFalse(debug.isEnabled(AdPlacement.InterstitialNav))
         assertFalse(debug.isEnabled(AdPlacement.RewardedAdFree))
         assertEquals(0L, debug.gracePeriodHours)
+    }
+
+    /**
+     * Contract §1.1: the in-app defaults equal the Remote Config template's `defaultValue`s
+     * (what Android receives), so publishing it does not change behaviour and a device that
+     * never fetched behaves like one that did.
+     */
+    @Test
+    fun `release defaults equal the remote config template`() {
+        val template = File("../remoteconfig/ads-iap.params.json")
+        assumeTrue("template not in this checkout", template.isFile)
+        val params = JSONObject(template.readText())
+            .getJSONObject("parameterGroups").getJSONObject("Ads (v3.5+)").getJSONObject("parameters")
+        val values = params.keys().asSequence().associateWith { key ->
+            params.getJSONObject(key).getJSONObject("defaultValue").getString("value")
+        }
+        // Every key the app reads is in the template, and nothing else is.
+        val appKeys = AdsKeys::class.java.declaredFields
+            .filter { java.lang.reflect.Modifier.isStatic(it.modifiers) && it.type == String::class.java }
+            .map { it.get(null) as String }
+            .toSet()
+        assertEquals(appKeys, values.keys)
+        assertEquals(defaults, AdsSettings.parse(defaults, allowUnitIdOverrides = true) { values[it] })
     }
 }

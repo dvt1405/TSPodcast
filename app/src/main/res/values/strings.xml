@@ -153,4 +153,52 @@ Lý do báo cáo:
     <string name="web_link_not_found">Không tìm thấy podcast trong link này</string>
     <string name="settings_language_follow_region">Theo khu vực</string>
     <string name="settings_language_follow_region_value">Theo khu vực · %1$s</string>
+    <!-- Premium / paywall (docs/in-progress/plans/monetization-ads-iap.md §3) -->
+    <string name="settings_premium">Premium / Bỏ quảng cáo</string>
+    <string name="settings_premium_hint">Nghe không quảng cáo và ủng hộ ứng dụng</string>
+    <string name="settings_premium_active">Đang dùng Premium</string>
+    <string name="settings_premium_active_hint">Đã tắt quảng cáo trên máy này</string>
+    <string name="paywall_title">Premium</string>
+    <string name="paywall_headline">Nghe podcast không quảng cáo</string>
+    <string name="paywall_subtitle">Premium tắt mọi quảng cáo trong TSPodcast.</string>
+    <string name="paywall_benefit_no_ads">Không banner, không quảng cáo trong danh sách hay toàn màn hình</string>
+    <string name="paywall_benefit_restore">Khôi phục trên mọi máy dùng cùng tài khoản Google</string>
+    <string name="paywall_benefit_support">Ủng hộ một ứng dụng podcast độc lập</string>
+    <string name="paywall_plan_monthly">Hằng tháng</string>
+    <string name="paywall_plan_yearly">Hằng năm</string>
+    <string name="paywall_plan_lifetime">Trọn đời</string>
+    <string name="paywall_plan_lifetime_hint">Thanh toán một lần</string>
+    <string name="paywall_badge_best_value">Tiết kiệm nhất</string>
+    <string name="paywall_price_per_day">%1$s / ngày</string>
+    <string name="paywall_price_per_week">%1$s / tuần</string>
+    <string name="paywall_price_per_month">%1$s / tháng</string>
+    <string name="paywall_price_per_year">%1$s / năm</string>
+    <string name="paywall_price_every">%1$s / %2$s</string>
+    <string name="paywall_trial">Dùng thử miễn phí %1$s</string>
+    <string name="paywall_buy">Tiếp tục</string>
+    <string name="paywall_start_trial">Bắt đầu dùng thử miễn phí</string>
+    <string name="paywall_restore">Khôi phục giao dịch</string>
+    <string name="paywall_auto_renew">Gói đăng ký tự động gia hạn theo giá và chu kỳ đã hiển thị cho đến khi bạn huỷ. Bạn có thể huỷ bất cứ lúc nào trong Google Play → Thanh toán và gói đăng ký. Nếu có dùng thử miễn phí, bạn sẽ bị tính phí khi hết thời gian dùng thử trừ khi huỷ trước đó.</string>
+    <string name="paywall_unavailable">Hiện chưa mua được. Kiểm tra kết nối mạng và Google Play rồi thử lại.</string>
+    <string name="paywall_retry">Thử lại</string>
+    <string name="paywall_pending">Giao dịch đang chờ xử lý. Premium sẽ bật khi thanh toán hoàn tất.</string>
+    <string name="paywall_active_title">Premium đang hoạt động</string>
+    <string name="paywall_active_message">Cảm ơn bạn! Quảng cáo đã được tắt.</string>
+    <string name="paywall_manage">Quản lý gói đăng ký</string>
+    <string name="paywall_restored">Đã khôi phục giao dịch. Premium đang hoạt động.</string>
+    <string name="paywall_restore_none">Không có giao dịch nào để khôi phục cho tài khoản Google này.</string>
+    <string name="paywall_restore_failed">Không kết nối được Google Play. Vui lòng thử lại sau.</string>
+    <string name="paywall_purchase_failed">Giao dịch chưa thành công. Vui lòng thử lại.</string>
+    <plurals name="paywall_duration_days">
+        <item quantity="other">%d ngày</item>
+    </plurals>
+    <plurals name="paywall_duration_weeks">
+        <item quantity="other">%d tuần</item>
+    </plurals>
+    <plurals name="paywall_duration_months">
+        <item quantity="other">%d tháng</item>
+    </plurals>
+    <plurals name="paywall_duration_years">
+        <item quantity="other">%d năm</item>
+    </plurals>
 </resources>

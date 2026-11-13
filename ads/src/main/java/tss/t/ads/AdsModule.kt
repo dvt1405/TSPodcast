@@ -21,6 +21,14 @@ import javax.inject.Singleton
 @Retention(AnnotationRetention.BINARY)
 annotation class AdsImplementation
 
+/**
+ * Qualifier for the [AdFreeEntitlement] the app provides (Premium from the billing layer).
+ * Optional: without it [NoAdFreeEntitlement] is used and nobody is ad free.
+ */
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class AdFreeSource
+
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class AdsSeamModule {
@@ -31,6 +39,10 @@ abstract class AdsSeamModule {
     @BindsOptionalOf
     @AdsImplementation
     abstract fun optionalRenderer(): AdRenderer
+
+    @BindsOptionalOf
+    @AdFreeSource
+    abstract fun optionalAdFree(): AdFreeEntitlement
 
     @Binds
     abstract fun bindAdsConfig(impl: RemoteAdsConfig): AdsConfig
@@ -51,7 +63,12 @@ abstract class AdsSeamModule {
             impl.orElse(NoOpAdRenderer)
 
         @Provides
+        fun adFreeEntitlement(@AdFreeSource impl: Optional<AdFreeEntitlement>): AdFreeEntitlement =
+            impl.orElse(NoAdFreeEntitlement)
+
+        @Provides
         @Singleton
-        fun adPolicy(store: AdCounterStore): AdPolicy = AdPolicy(store)
+        fun adPolicy(store: AdCounterStore, adFree: AdFreeEntitlement): AdPolicy =
+            AdPolicy(store, isPremium = { adFree.isAdFree.value })
     }
 }

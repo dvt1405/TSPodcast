@@ -103,9 +103,24 @@ struct MainTabView: View {
         .task { environment.playFixtureQueueIfRequested() }
         #endif
         .onChange(of: scenePhase) { _, phase in
-            if phase == .background {
+            switch phase {
+            case .background:
                 environment.audioEngine.persistPosition()
+                environment.ads.didEnterBackground()
+            case .active:
+                environment.ads.didBecomeActive()
+            default:
+                break
             }
+        }
+        // Ads (UMP → ATT → SDK) start on Main, once the app's own privacy sheet is closed, so the
+        // two prompts never stack (monetization-ads-iap.md §4).
+        .task(id: environment.consent.isPromptPresented) {
+            guard !environment.consent.isPromptPresented else { return }
+            environment.ads.start()
+        }
+        .onChange(of: environment.audioEngine.state.isPlaying || environment.audioEngine.state.isBuffering) { _, active in
+            environment.ads.playbackChanged(isActive: active)
         }
         #if DEBUG
         .overlay(alignment: .topLeading) {

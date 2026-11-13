@@ -57,5 +57,6 @@ internal fun screenName(outerRoute: String?, innerRoute: String?): String? = whe
     TSRouter.Player.route -> Screen.PLAYER
     TSRouter.Settings.route -> Screen.SETTINGS
     TSRouter.History.route -> Screen.HISTORY
+    TSRouter.Paywall.route -> Screen.PAYWALL
     else -> outerRoute.lowercase()
 }

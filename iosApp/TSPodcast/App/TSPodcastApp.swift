@@ -11,11 +11,14 @@ struct TSPodcastApp: App {
                 // Universal Links (M4 §4.5): both entry points feed the same router, which ignores
                 // every link while `APP_LINK_HOST` is empty.
                 .onOpenURL { url in
+                    // A link opened the app: no App Open ad over what the user asked for.
+                    appDelegate.environment.ads.onExternalLaunch()
                     let router = appDelegate.environment.deepLinks
                     Task { await router.handle(url) }
                 }
                 .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
                     guard let url = activity.webpageURL else { return }
+                    appDelegate.environment.ads.onExternalLaunch()
                     let router = appDelegate.environment.deepLinks
                     Task { await router.handle(url) }
                 }

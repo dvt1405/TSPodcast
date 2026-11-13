@@ -18,7 +18,7 @@ const ORIGIN = 'https://podcast-25c93.web.app';
 const PLAY = 'https://play.google.com/store/apps/details?id=tss.t.podcast';
 const WEB = 'https://tspodcast.vercel.app';
 const EMAIL = 'admin@tuandv.me';
-const UPDATED = '2026-11-01';
+const UPDATED = '2026-11-14';
 const DEFAULT_UTM = 'utm_source=website&utm_medium=landing';
 
 // Links work without JavaScript and already carry the default campaign values.

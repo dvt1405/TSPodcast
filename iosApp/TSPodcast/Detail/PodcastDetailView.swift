@@ -1,4 +1,5 @@
 import SwiftUI
+@preconcurrency import Shared
 
 /// Pushes `PodcastDetailView` for a route, with a model built by `AppEnvironment` (the data
 /// source and the player seam live there). Every stack's `navigationDestination(for:
@@ -17,8 +18,10 @@ struct PodcastDetailDestination: View {
 /// cover, the title and the full description with tappable links, then the episodes. A tap on
 /// an episode goes to the `PlaybackController` seam and stays here (Player is M3).
 ///
-/// The system back button and edge swipe replace Android's floating back button; no ads, no
-/// Favourite/Share button ([iOS+], out of scope).
+/// The system back button and edge swipe replace Android's floating back button; no
+/// Favourite/Share button ([iOS+], out of scope). Ads as on Android: the `podcast_detail_header`
+/// banner under the header, `podcast_detail_episodes` natives in the episode list (shared
+/// `NativeSlots`), and leaving the show is the `interstitial_nav` natural break.
 struct PodcastDetailView: View {
     @State private var model: PodcastDetailModel
     @State private var isHideConfirmationPresented = false
@@ -28,6 +31,9 @@ struct PodcastDetailView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    /// False once the screen is popped (not on a tab switch or the Player over it).
+    @Environment(\.isPresented) private var isPresented
+    @State private var appearedAt = Date()
 
     init(model: PodcastDetailModel) {
         _model = State(initialValue: model)
@@ -40,6 +46,7 @@ struct PodcastDetailView: View {
         ScrollView {
             VStack(spacing: 0) {
                 DetailHeader(podcast: model.podcast)
+                AdBannerSlot(placement: .podcastdetailheader)
                 if model.isShowingSavedEpisodes {
                     OfflineBanner()
                 }
@@ -80,6 +87,13 @@ struct PodcastDetailView: View {
         }
         .contentReportFallbackAlert(email: $reportFallbackEmail)
         .task { await model.loadIfNeeded() }
+        .onAppear { appearedAt = Date() }
+        .onChange(of: isPresented) { _, presented in
+            // Leaving the show: a natural break for the interstitial (AdPolicy decides).
+            if !presented {
+                environment.ads.didLeaveShow(dwell: Date().timeIntervalSince(appearedAt))
+            }
+        }
         .alert(Text("detail.error.title"), isPresented: $model.isShowingErrorAlert) {
             Button("action.retry") {
                 Task { await model.retry() }
@@ -325,6 +339,7 @@ private struct EpisodesSection: View {
             .accessibilityIdentifier("detail.episodes.loading")
         case .loaded(let rows):
             let nowPlayingID = model.nowPlayingEpisodeID
+            let adSlots = environment.ads.nativeSlots(after: rows.count, placement: .podcastdetailepisodes)
             LazyVStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
                     Button {
@@ -340,6 +355,9 @@ private struct EpisodesSection: View {
                     .accessibilityIdentifier("detail.episode.\(index)")
                     if index < rows.count - 1 {
                         GradientDivider()
+                    }
+                    if let slotKey = adSlots[index] {
+                        AdNativeSlot(placement: .podcastdetailepisodes, slotKey: slotKey)
                     }
                 }
             }

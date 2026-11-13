@@ -227,4 +227,28 @@ class AdPolicyTest {
             policy.canShowInline(AdPlacement.PlayerEpisodeList, release, true)
         )
     }
+
+    @Test
+    fun `premium blocks every format, before the kill switch and placements`() {
+        var premium = true
+        policy = AdPolicy(
+            store, clock = { now }, timeZone = { TimeZone.getTimeZone("UTC") },
+            isPremium = { premium },
+        )
+        val premiumBlock = Decision.Block(AdFreeEntitlement.REASON_PREMIUM)
+        assertEquals(premiumBlock, appOpen())
+        assertEquals(premiumBlock, appOpen(settings = release.copy(adsEnabled = false)))
+        assertEquals(
+            premiumBlock,
+            policy.canShowFullScreen(AdPlacement.InterstitialNav, release, okContext.copy(naturalBreakIndex = 3))
+        )
+        assertEquals(premiumBlock, policy.canShowRewarded(AdPlacement.RewardedAdFree, release, okContext))
+        assertEquals(premiumBlock, policy.canShowInline(AdPlacement.FavouriteTop, release, true))
+        assertEquals(premiumBlock, policy.canShowInline(AdPlacement.DiscoverInline, release, true))
+
+        // Live: losing Premium (expiry, refund) brings the normal rules back at once.
+        premium = false
+        assertEquals(Decision.Allow, appOpen())
+        assertEquals(Decision.Allow, policy.canShowInline(AdPlacement.FavouriteTop, release, true))
+    }
 }

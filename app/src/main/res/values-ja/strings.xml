@@ -152,4 +152,52 @@
     <string name="web_link_not_found">このリンクのポッドキャストが見つかりません</string>
     <string name="settings_language_follow_region">地域に合わせる</string>
     <string name="settings_language_follow_region_value">地域 · %1$s</string>
+    <!-- Premium / paywall (docs/in-progress/plans/monetization-ads-iap.md §3) -->
+    <string name="settings_premium">プレミアム / 広告を削除</string>
+    <string name="settings_premium_hint">広告なしで聴いてアプリを応援</string>
+    <string name="settings_premium_active">プレミアム利用中</string>
+    <string name="settings_premium_active_hint">この端末では広告がオフです</string>
+    <string name="paywall_title">プレミアム</string>
+    <string name="paywall_headline">広告なしで聴く</string>
+    <string name="paywall_subtitle">プレミアムで TSPodcast のすべての広告がオフになります。</string>
+    <string name="paywall_benefit_no_ads">バナー、リスト内広告、全画面広告なし</string>
+    <string name="paywall_benefit_restore">同じ Google アカウントのどの端末でも復元できます</string>
+    <string name="paywall_benefit_support">独立系ポッドキャストアプリを応援</string>
+    <string name="paywall_plan_monthly">月額</string>
+    <string name="paywall_plan_yearly">年額</string>
+    <string name="paywall_plan_lifetime">買い切り</string>
+    <string name="paywall_plan_lifetime_hint">1 回のお支払い</string>
+    <string name="paywall_badge_best_value">いちばんお得</string>
+    <string name="paywall_price_per_day">%1$s / 日</string>
+    <string name="paywall_price_per_week">%1$s / 週</string>
+    <string name="paywall_price_per_month">%1$s / 月</string>
+    <string name="paywall_price_per_year">%1$s / 年</string>
+    <string name="paywall_price_every">%1$s / %2$s</string>
+    <string name="paywall_trial">無料トライアル：%1$s</string>
+    <string name="paywall_buy">続ける</string>
+    <string name="paywall_start_trial">無料トライアルを開始</string>
+    <string name="paywall_restore">購入を復元</string>
+    <string name="paywall_auto_renew">定期購入は解約するまで、表示された価格と期間で自動更新されます。Google Play の「お支払いと定期購入」からいつでも解約できます。無料トライアルがある場合は、期間内に解約しない限り終了時に請求されます。</string>
+    <string name="paywall_unavailable">現在購入できません。接続と Google Play を確認してから、もう一度お試しください。</string>
+    <string name="paywall_retry">再試行</string>
+    <string name="paywall_pending">購入は保留中です。お支払いが完了するとプレミアムが有効になります。</string>
+    <string name="paywall_active_title">プレミアムが有効です</string>
+    <string name="paywall_active_message">ありがとうございます！広告はオフになりました。</string>
+    <string name="paywall_manage">定期購入を管理</string>
+    <string name="paywall_restored">購入を復元しました。プレミアムが有効です。</string>
+    <string name="paywall_restore_none">この Google アカウントに復元できる購入はありません。</string>
+    <string name="paywall_restore_failed">Google Play に接続できません。後でもう一度お試しください。</string>
+    <string name="paywall_purchase_failed">購入が完了しませんでした。もう一度お試しください。</string>
+    <plurals name="paywall_duration_days">
+        <item quantity="other">%d日間</item>
+    </plurals>
+    <plurals name="paywall_duration_weeks">
+        <item quantity="other">%d週間</item>
+    </plurals>
+    <plurals name="paywall_duration_months">
+        <item quantity="other">%dか月</item>
+    </plurals>
+    <plurals name="paywall_duration_years">
+        <item quantity="other">%d年</item>
+    </plurals>
 </resources>

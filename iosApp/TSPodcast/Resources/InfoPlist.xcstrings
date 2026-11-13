@@ -1,0 +1,102 @@
+{
+  "sourceLanguage" : "vi",
+  "strings" : {
+    "NSUserTrackingUsageDescription" : {
+      "comment" : "App Tracking Transparency prompt (ads).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erlaube das Tracking, damit die Werbung in TSPodcast besser zu dir passt. Die App funktioniert auch vollständig, wenn du ablehnst."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow tracking so the ads in TSPodcast are more relevant to you. The app works fully if you decline."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permite el seguimiento para que los anuncios de TSPodcast sean más relevantes para ti. La app funciona por completo si lo rechazas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autorisez le suivi pour que les annonces de TSPodcast vous correspondent mieux. L’app fonctionne entièrement si vous refusez."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ट्रैकिंग की अनुमति दें ताकि TSPodcast में विज्ञापन आपके लिए ज़्यादा प्रासंगिक हों। मना करने पर भी ऐप पूरी तरह काम करता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Izinkan pelacakan agar iklan di TSPodcast lebih relevan untuk Anda. Aplikasi tetap berfungsi penuh jika Anda menolak."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consenti il tracciamento per vedere in TSPodcast annunci più pertinenti. L’app funziona completamente anche se rifiuti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "トラッキングを許可すると、TSPodcast の広告があなたに合ったものになります。許可しなくてもアプリのすべての機能を使えます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추적을 허용하면 TSPodcast의 광고가 회원님과 더 관련 있게 표시됩니다. 거부해도 앱의 모든 기능을 사용할 수 있습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sta tracking toe zodat de advertenties in TSPodcast beter bij je passen. De app werkt volledig als je weigert."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zezwól na śledzenie, aby reklamy w TSPodcast były lepiej dopasowane. Aplikacja działa w pełni, jeśli odmówisz."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permita o rastreamento para que os anúncios no TSPodcast sejam mais relevantes para você. O app funciona por completo se você recusar."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tillåt spårning så att annonserna i TSPodcast blir mer relevanta för dig. Appen fungerar fullt ut även om du nekar."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TSPodcast'teki reklamların sizinle daha ilgili olması için izlemeye izin verin. Reddederseniz uygulama tamamen çalışmaya devam eder."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cho phép theo dõi để quảng cáo trong TSPodcast phù hợp với bạn hơn. Bạn vẫn dùng đầy đủ ứng dụng nếu từ chối."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

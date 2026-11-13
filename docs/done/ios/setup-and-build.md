@@ -266,6 +266,8 @@ $(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)
 
 iOS v1 đề xuất **không** có ads. Phần này dùng khi bật ở v1.1.
 
+> **Cập nhật 2026-11-13 (owner: tích hợp đầy đủ, mặc định bật):** contract chung là [monetization-ads-iap.md](../../in-progress/plans/monetization-ads-iap.md). iOS đã có: GMA 13.12.0 + UMP 3.1.0 qua SPM (`project.yml`), `GADApplicationIdentifier = $(ADMOB_APP_ID)` (Debug: test app id của Google, Release: app thật, `Config/{Debug,Release}.xcconfig`), `SKAdNetworkItems`, `NSUserTrackingUsageDescription` (`Resources/InfoPlist.xcstrings`). Logic thuần ở shared `tss.t.shared.ads` (`AdsSettings`, `AdPolicy`, `NativeSlots`, `IosAdUnitIds`) và `tss.t.shared.iap` (`IapSettings`), test so default với `remoteconfig/ads-iap.params.json`. Swift: `TSPodcast/Ads/` (`AdsController`: UMP → ATT → SDK, banner/native/interstitial/app open), `TSPodcast/Store/` (StoreKit 2, paywall); StoreKit Configuration `TSPodcast/Config/Products.storekit` gắn vào Run của scheme Debug. Debug chỉ dùng unit test của Google. Ad unit id thật không còn là bí mật (owner đã đưa vào contract), nên không đặt trong `Secrets.xcconfig` như mục 1 bên dưới.
+
 Android đang trong quá trình gỡ AppLovin để chuyển sang AdMob (GMA Next-Gen SDK + UMP), xem [../../in-progress/plans/admob-migration.md](../../in-progress/plans/admob-migration.md). iOS **dùng lại nguyên** các phần sau của kế hoạch đó:
 
 - bảng placement (§2.2);

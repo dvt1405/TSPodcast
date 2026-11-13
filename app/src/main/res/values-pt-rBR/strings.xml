@@ -152,4 +152,60 @@ Motivo da denúncia:
     <string name="web_link_not_found">Não encontramos o podcast deste link</string>
     <string name="settings_language_follow_region">Conforme a região</string>
     <string name="settings_language_follow_region_value">Região · %1$s</string>
+    <!-- Premium / paywall (docs/in-progress/plans/monetization-ads-iap.md §3) -->
+    <string name="settings_premium">Premium / Remover anúncios</string>
+    <string name="settings_premium_hint">Ouça sem anúncios e apoie o app</string>
+    <string name="settings_premium_active">Premium ativo</string>
+    <string name="settings_premium_active_hint">Os anúncios estão desativados neste dispositivo</string>
+    <string name="paywall_title">Premium</string>
+    <string name="paywall_headline">Ouça sem anúncios</string>
+    <string name="paywall_subtitle">O Premium desativa todos os anúncios do TSPodcast.</string>
+    <string name="paywall_benefit_no_ads">Sem banners, anúncios nas listas ou em tela cheia</string>
+    <string name="paywall_benefit_restore">Restaure em qualquer dispositivo com a mesma Conta do Google</string>
+    <string name="paywall_benefit_support">Apoie um app de podcasts independente</string>
+    <string name="paywall_plan_monthly">Mensal</string>
+    <string name="paywall_plan_yearly">Anual</string>
+    <string name="paywall_plan_lifetime">Vitalício</string>
+    <string name="paywall_plan_lifetime_hint">Pagamento único</string>
+    <string name="paywall_badge_best_value">Melhor valor</string>
+    <string name="paywall_price_per_day">%1$s / dia</string>
+    <string name="paywall_price_per_week">%1$s / semana</string>
+    <string name="paywall_price_per_month">%1$s / mês</string>
+    <string name="paywall_price_per_year">%1$s / ano</string>
+    <string name="paywall_price_every">%1$s / %2$s</string>
+    <string name="paywall_trial">Teste grátis: %1$s</string>
+    <string name="paywall_buy">Continuar</string>
+    <string name="paywall_start_trial">Começar teste grátis</string>
+    <string name="paywall_restore">Restaurar compras</string>
+    <string name="paywall_auto_renew">As assinaturas são renovadas automaticamente pelo preço e período mostrados até você cancelar. Cancele quando quiser no Google Play → Pagamentos e assinaturas. Se houver teste grátis, a cobrança ocorre ao fim dele, a menos que você cancele antes.</string>
+    <string name="paywall_unavailable">As compras não estão disponíveis agora. Verifique sua conexão e o Google Play e tente de novo.</string>
+    <string name="paywall_retry">Tentar de novo</string>
+    <string name="paywall_pending">Sua compra está pendente. O Premium será ativado quando o pagamento for concluído.</string>
+    <string name="paywall_active_title">O Premium está ativo</string>
+    <string name="paywall_active_message">Obrigado! Os anúncios foram desativados.</string>
+    <string name="paywall_manage">Gerenciar assinatura</string>
+    <string name="paywall_restored">Compras restauradas. O Premium está ativo.</string>
+    <string name="paywall_restore_none">Não há compras para restaurar nesta Conta do Google.</string>
+    <string name="paywall_restore_failed">Não foi possível conectar ao Google Play. Tente mais tarde.</string>
+    <string name="paywall_purchase_failed">A compra não foi concluída. Tente de novo.</string>
+    <plurals name="paywall_duration_days">
+        <item quantity="one">%d dia</item>
+        <item quantity="many">%d dias</item>
+        <item quantity="other">%d dias</item>
+    </plurals>
+    <plurals name="paywall_duration_weeks">
+        <item quantity="one">%d semana</item>
+        <item quantity="many">%d semanas</item>
+        <item quantity="other">%d semanas</item>
+    </plurals>
+    <plurals name="paywall_duration_months">
+        <item quantity="one">%d mês</item>
+        <item quantity="many">%d meses</item>
+        <item quantity="other">%d meses</item>
+    </plurals>
+    <plurals name="paywall_duration_years">
+        <item quantity="one">%d ano</item>
+        <item quantity="many">%d anos</item>
+        <item quantity="other">%d anos</item>
+    </plurals>
 </resources>

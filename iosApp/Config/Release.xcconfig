@@ -1,5 +1,8 @@
 // Configuration Release của target TSPodcast.
 #include "Shared.xcconfig"
 
+// GADApplicationIdentifier của Info.plist: app AdMob iOS thật (monetization-ads-iap.md §4).
+ADMOB_APP_ID = ca-app-pub-8696388065064767~2921388712
+
 // Secrets cục bộ (gitignored); CI ghi file này từ secret trước khi build.
 #include? "Secrets.xcconfig"

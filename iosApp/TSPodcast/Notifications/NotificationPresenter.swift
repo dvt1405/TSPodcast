@@ -10,14 +10,17 @@ import UserNotifications
 ///   (without `aps`), when it arrives in the foreground and when the user taps it. A push that
 ///   arrives in the background and is never tapped gives the app no callback, so it logs
 ///   nothing (plan §7 item 8);
-/// - a tap only opens the app (Android's notification has no content intent).
+/// - a tap only opens the app (Android's notification has no content intent); `onTap` tells the
+///   ad layer, so no App Open ad covers the app the user just opened from a notification.
 final class NotificationPresenter: NSObject, UNUserNotificationCenterDelegate, Sendable {
     static let typeKey = "type"
 
     private let analytics: any AnalyticsTracker
+    private let onTap: @Sendable () -> Void
 
-    init(analytics: any AnalyticsTracker) {
+    init(analytics: any AnalyticsTracker, onTap: @escaping @Sendable () -> Void = {}) {
         self.analytics = analytics
+        self.onTap = onTap
     }
 
     /// Presentation of a notification arriving while the app is in the foreground.
@@ -29,6 +32,7 @@ final class NotificationPresenter: NSObject, UNUserNotificationCenterDelegate, S
     /// The user tapped a notification.
     func didReceive(userInfo: [AnyHashable: Any]) {
         logReceive(userInfo, phase: "tap")
+        onTap()
     }
 
     static func presentationOptions(for userInfo: [AnyHashable: Any]) -> UNNotificationPresentationOptions {

@@ -152,4 +152,52 @@
     <string name="web_link_not_found">이 링크의 팟캐스트를 찾을 수 없습니다</string>
     <string name="settings_language_follow_region">지역에 맞춤</string>
     <string name="settings_language_follow_region_value">지역 · %1$s</string>
+    <!-- Premium / paywall (docs/in-progress/plans/monetization-ads-iap.md §3) -->
+    <string name="settings_premium">프리미엄 / 광고 제거</string>
+    <string name="settings_premium_hint">광고 없이 듣고 앱을 응원하세요</string>
+    <string name="settings_premium_active">프리미엄 이용 중</string>
+    <string name="settings_premium_active_hint">이 기기에서 광고가 꺼져 있습니다</string>
+    <string name="paywall_title">프리미엄</string>
+    <string name="paywall_headline">광고 없이 듣기</string>
+    <string name="paywall_subtitle">프리미엄은 TSPodcast의 모든 광고를 끕니다.</string>
+    <string name="paywall_benefit_no_ads">배너, 목록 내 광고, 전체 화면 광고 없음</string>
+    <string name="paywall_benefit_restore">같은 Google 계정을 쓰는 모든 기기에서 복원</string>
+    <string name="paywall_benefit_support">독립 팟캐스트 앱 응원하기</string>
+    <string name="paywall_plan_monthly">월간</string>
+    <string name="paywall_plan_yearly">연간</string>
+    <string name="paywall_plan_lifetime">평생</string>
+    <string name="paywall_plan_lifetime_hint">1회 결제</string>
+    <string name="paywall_badge_best_value">가장 저렴</string>
+    <string name="paywall_price_per_day">%1$s / 일</string>
+    <string name="paywall_price_per_week">%1$s / 주</string>
+    <string name="paywall_price_per_month">%1$s / 월</string>
+    <string name="paywall_price_per_year">%1$s / 년</string>
+    <string name="paywall_price_every">%1$s / %2$s</string>
+    <string name="paywall_trial">무료 체험: %1$s</string>
+    <string name="paywall_buy">계속</string>
+    <string name="paywall_start_trial">무료 체험 시작</string>
+    <string name="paywall_restore">구매 복원</string>
+    <string name="paywall_auto_renew">구독은 취소할 때까지 표시된 가격과 기간으로 자동 갱신됩니다. Google Play → 결제 및 정기 결제에서 언제든지 취소할 수 있습니다. 무료 체험이 있는 경우 그 전에 취소하지 않으면 체험이 끝날 때 요금이 청구됩니다.</string>
+    <string name="paywall_unavailable">지금은 구매할 수 없습니다. 연결 상태와 Google Play를 확인한 후 다시 시도하세요.</string>
+    <string name="paywall_retry">다시 시도</string>
+    <string name="paywall_pending">구매가 대기 중입니다. 결제가 완료되면 프리미엄이 활성화됩니다.</string>
+    <string name="paywall_active_title">프리미엄이 활성화되었습니다</string>
+    <string name="paywall_active_message">감사합니다! 광고가 꺼졌습니다.</string>
+    <string name="paywall_manage">구독 관리</string>
+    <string name="paywall_restored">구매를 복원했습니다. 프리미엄이 활성화되었습니다.</string>
+    <string name="paywall_restore_none">이 Google 계정에 복원할 구매가 없습니다.</string>
+    <string name="paywall_restore_failed">Google Play에 연결할 수 없습니다. 나중에 다시 시도하세요.</string>
+    <string name="paywall_purchase_failed">구매가 완료되지 않았습니다. 다시 시도하세요.</string>
+    <plurals name="paywall_duration_days">
+        <item quantity="other">%d일</item>
+    </plurals>
+    <plurals name="paywall_duration_weeks">
+        <item quantity="other">%d주</item>
+    </plurals>
+    <plurals name="paywall_duration_months">
+        <item quantity="other">%d개월</item>
+    </plurals>
+    <plurals name="paywall_duration_years">
+        <item quantity="other">%d년</item>
+    </plurals>
 </resources>

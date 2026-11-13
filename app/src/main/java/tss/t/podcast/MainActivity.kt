@@ -134,6 +134,9 @@ class MainActivity : ComponentActivity() {
     lateinit var adRenderer: AdRenderer
 
     @Inject
+    lateinit var billingController: tss.t.billing.BillingController
+
+    @Inject
     lateinit var adsHostSignals: AppAdsHostSignals
 
     @Inject
@@ -224,6 +227,9 @@ class MainActivity : ComponentActivity() {
         // UMP consent (form if required) -> Mobile Ads SDK init -> preload.
         // Inside the NativeLib guard on purpose: the broken-install screen
         // above has nothing to monetise.
+        // Play Billing: restores Premium (and acknowledges purchases) now and on every
+        // foreground. Premium switches ads off live, from the cached flag until the store answers.
+        billingController.start()
         adsController.start(this)
         setContent {
             val listState = remember {

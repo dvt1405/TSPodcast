@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
+import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -45,6 +46,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import tss.t.podcast.R
+import tss.t.podcast.ui.screens.paywall.openManageSubscription
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
 
@@ -66,8 +68,11 @@ fun SettingsScreen(
     viewModel: SettingsViewModel,
     onBack: () -> Unit,
     onOpenHistory: () -> Unit = {},
+    onOpenPaywall: () -> Unit = {},
 ) {
     val context = LocalContext.current
+    val entitlement by viewModel.entitlement.collectAsState()
+    val iapEnabled = androidx.compose.runtime.remember { viewModel.iapEnabled }
     val allowExplicit by viewModel.allowExplicit.collectAsState()
     val hiddenShows by viewModel.hiddenShows.collectAsState()
     val privacy by viewModel.privacy.collectAsState()
@@ -123,6 +128,20 @@ fun SettingsScreen(
                 .padding(padding)
                 .navigationBarsPadding()
         ) {
+            // Paywall entry (iap_enabled); an owned Premium always shows, with "Manage subscription".
+            if (entitlement.premium || iapEnabled) {
+                item {
+                    PremiumRow(premium = entitlement.premium, onClick = onOpenPaywall)
+                }
+                if (entitlement.premium && entitlement.subscriptionStoreProductId != null) {
+                    item {
+                        LinkRow(stringResource(R.string.paywall_manage)) {
+                            context.openManageSubscription(entitlement)
+                        }
+                    }
+                }
+                item { Divider() }
+            }
             item { SectionHeader(stringResource(R.string.settings_section_content)) }
             item {
                 SwitchRow(
@@ -297,6 +316,44 @@ fun SettingsScreen(
             }
             item { Spacer(Modifier.height(96.dp)) }
         }
+    }
+}
+
+@Composable
+private fun PremiumRow(premium: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 20.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            Icons.Rounded.WorkspacePremium,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(28.dp)
+        )
+        Column(
+            Modifier
+                .weight(1f)
+                .padding(start = 16.dp)
+        ) {
+            Text(
+                stringResource(if (premium) R.string.settings_premium_active else R.string.settings_premium),
+                style = TextStyles.SubTitle2
+            )
+            Text(
+                stringResource(if (premium) R.string.settings_premium_active_hint else R.string.settings_premium_hint),
+                style = TextStyles.SubTitle4,
+                color = Colors.Gray60
+            )
+        }
+        Icon(
+            Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+            contentDescription = null,
+            tint = Colors.Gray60
+        )
     }
 }
 

@@ -31,4 +31,10 @@ enum AppLog {
 
     /// Universal Links (M4): kind and id of a link, the host of an ignored one; never the full URL.
     static let deepLink = Logger(subsystem: subsystem, category: "DeepLink")
+
+    /// AdMob, UMP consent and ATT: placements, block reasons, consent status; never an ad id.
+    static let ads = Logger(subsystem: subsystem, category: "Ads")
+
+    /// StoreKit 2: product loads, purchases, entitlements (product ids only).
+    static let store = Logger(subsystem: subsystem, category: "Store")
 }

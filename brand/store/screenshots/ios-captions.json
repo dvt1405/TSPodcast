@@ -1,0 +1,82 @@
+{
+  "screens": ["01-home", "02-detail", "03-player", "04-search"],
+  "locales": {
+    "vi":    { "app": "vi",    "locale": "vi_VN", "captions": [
+      ["Podcast Việt và\nthế giới mỗi ngày", "Chương trình thịnh hành, cập nhật liên tục"],
+      ["Mọi tập mới\nở một nơi", "Mô tả, danh sách tập, nghe tiếp chỗ dở"],
+      ["Tắt màn hình\nvẫn nghe tiếp", "Hẹn giờ tắt, tốc độ 0.5×–3×, tua nhanh"],
+      ["Tìm đúng chủ đề\nbạn quan tâm", "Kinh doanh, lịch sử, truyện, công nghệ…"]]},
+    "en-US": { "app": "en",    "locale": "en_US", "captions": [
+      ["Podcasts from\naround the world", "Trending shows, updated all day"],
+      ["Every new episode\nin one place", "Show notes, episode list, resume where you left"],
+      ["Keep listening\nwith the screen off", "Sleep timer, 0.5×–3× speed, quick skips"],
+      ["Find the topics\nyou care about", "Business, history, stories, tech…"]]},
+    "en-GB": { "app": "en",    "locale": "en_GB", "same_as": "en-US" },
+    "de-DE": { "app": "de",    "locale": "de_DE", "captions": [
+      ["Podcasts aus\naller Welt", "Angesagte Sendungen, ständig aktuell"],
+      ["Alle neuen Folgen\nan einem Ort", "Beschreibung, Folgenliste, weiterhören"],
+      ["Weiterhören bei\nausgeschaltetem Display", "Sleep-Timer, 0,5×–3× Tempo, Sprungtasten"],
+      ["Finde die Themen,\ndie dich interessieren", "Wirtschaft, Geschichte, Storys, Technik…"]]},
+    "es-ES": { "app": "es",    "locale": "es_ES", "captions": [
+      ["Podcasts de\ntodo el mundo", "Programas en tendencia, siempre al día"],
+      ["Todos los episodios\nen un solo lugar", "Descripción, lista de episodios, sigue donde ibas"],
+      ["Sigue escuchando\ncon la pantalla apagada", "Temporizador, velocidad 0,5×–3×, saltos rápidos"],
+      ["Encuentra los temas\nque te interesan", "Negocios, historia, relatos, tecnología…"]]},
+    "es-MX": { "app": "es",    "locale": "es_MX", "same_as": "es-ES" },
+    "fr-FR": { "app": "fr",    "locale": "fr_FR", "captions": [
+      ["Des podcasts du\nmonde entier", "Émissions tendance, mises à jour en continu"],
+      ["Tous les épisodes\nau même endroit", "Description, liste d'épisodes, reprise auto"],
+      ["Écoutez même\nécran éteint", "Minuteur, vitesse 0,5×–3×, sauts rapides"],
+      ["Trouvez les sujets\nqui vous parlent", "Business, histoire, récits, tech…"]]},
+    "hi":    { "app": "hi",    "locale": "hi_IN", "captions": [
+      ["दुनिया भर के\nपॉडकास्ट", "ट्रेंडिंग शो, हमेशा अपडेट"],
+      ["हर नया एपिसोड\nएक ही जगह", "विवरण, एपिसोड सूची, जहाँ छोड़ा वहीं से सुनें"],
+      ["स्क्रीन बंद हो\nतब भी सुनें", "स्लीप टाइमर, 0.5×–3× स्पीड, तेज़ स्किप"],
+      ["अपनी पसंद के\nविषय खोजें", "बिज़नेस, इतिहास, कहानियाँ, टेक…"]]},
+    "id":    { "app": "id",    "locale": "id_ID", "captions": [
+      ["Podcast dari\nseluruh dunia", "Acara populer, terus diperbarui"],
+      ["Semua episode baru\ndi satu tempat", "Deskripsi, daftar episode, lanjut dengar"],
+      ["Tetap dengar\nsaat layar mati", "Timer tidur, kecepatan 0,5×–3×, lompat cepat"],
+      ["Temukan topik\nfavoritmu", "Bisnis, sejarah, cerita, teknologi…"]]},
+    "it":    { "app": "it",    "locale": "it_IT", "captions": [
+      ["Podcast da\ntutto il mondo", "Programmi di tendenza, sempre aggiornati"],
+      ["Tutti gli episodi\nin un unico posto", "Descrizione, elenco episodi, riprendi l'ascolto"],
+      ["Continua ad ascoltare\na schermo spento", "Timer, velocità 0,5×–3×, salti rapidi"],
+      ["Trova gli argomenti\nche ti interessano", "Business, storia, racconti, tecnologia…"]]},
+    "ja":    { "app": "ja",    "locale": "ja_JP", "captions": [
+      ["世界中の\nポッドキャスト", "人気の番組を毎日更新"],
+      ["新しいエピソードを\nひとつの場所で", "説明、エピソード一覧、続きから再生"],
+      ["画面オフでも\n聴き続けられる", "スリープタイマー、0.5×〜3×速、スキップ"],
+      ["興味のある\nテーマを探そう", "ビジネス、歴史、物語、テクノロジー…"]]},
+    "ko":    { "app": "ko",    "locale": "ko_KR", "captions": [
+      ["전 세계의\n팟캐스트", "인기 프로그램, 매일 업데이트"],
+      ["새 에피소드를\n한곳에서", "설명, 에피소드 목록, 이어 듣기"],
+      ["화면을 꺼도\n계속 듣기", "취침 타이머, 0.5×–3× 속도, 빠른 건너뛰기"],
+      ["관심 있는 주제를\n찾아보세요", "비즈니스, 역사, 이야기, 기술…"]]},
+    "nl-NL": { "app": "nl",    "locale": "nl_NL", "captions": [
+      ["Podcasts van\nover de hele wereld", "Populaire shows, altijd actueel"],
+      ["Alle nieuwe afleveringen\nop één plek", "Beschrijving, afleveringen, verder luisteren"],
+      ["Blijf luisteren\nmet scherm uit", "Slaaptimer, 0,5×–3× snelheid, snel skippen"],
+      ["Vind de onderwerpen\ndie jij leuk vindt", "Business, geschiedenis, verhalen, tech…"]]},
+    "pl":    { "app": "pl",    "locale": "pl_PL", "captions": [
+      ["Podcasty\nz całego świata", "Popularne audycje, stale aktualizowane"],
+      ["Wszystkie odcinki\nw jednym miejscu", "Opis, lista odcinków, słuchaj dalej"],
+      ["Słuchaj przy\nwyłączonym ekranie", "Wyłącznik czasowy, tempo 0,5×–3×, przewijanie"],
+      ["Znajdź tematy,\nktóre lubisz", "Biznes, historia, opowieści, technologia…"]]},
+    "pt-BR": { "app": "pt-BR", "locale": "pt_BR", "captions": [
+      ["Podcasts do\nmundo todo", "Programas em alta, sempre atualizados"],
+      ["Todos os episódios\nem um só lugar", "Descrição, lista de episódios, continue de onde parou"],
+      ["Continue ouvindo\ncom a tela apagada", "Timer, velocidade 0,5×–3×, avanço rápido"],
+      ["Encontre os temas\nque você curte", "Negócios, história, histórias, tecnologia…"]]},
+    "sv":    { "app": "sv",    "locale": "sv_SE", "captions": [
+      ["Poddar från\nhela världen", "Populära program, alltid uppdaterade"],
+      ["Alla nya avsnitt\npå ett ställe", "Beskrivning, avsnittslista, lyssna vidare"],
+      ["Lyssna vidare\nmed skärmen av", "Insomningstimer, 0,5×–3× hastighet, snabbhopp"],
+      ["Hitta ämnen\ndu gillar", "Affärer, historia, berättelser, teknik…"]]},
+    "tr":    { "app": "tr",    "locale": "tr_TR", "captions": [
+      ["Dünyanın dört\nbir yanından podcast", "Popüler programlar, sürekli güncel"],
+      ["Tüm yeni bölümler\ntek bir yerde", "Açıklama, bölüm listesi, kaldığın yerden dinle"],
+      ["Ekran kapalıyken\ndinlemeye devam et", "Uyku zamanlayıcı, 0,5×–3× hız, hızlı atlama"],
+      ["İlgilendiğin\nkonuları bul", "İş, tarih, hikâyeler, teknoloji…"]]}
+  }
+}

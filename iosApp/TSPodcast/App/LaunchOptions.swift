@@ -39,6 +39,8 @@ struct LaunchOptions: Equatable, Sendable {
     /// Any `-uitest-…` argument: the brand intro before Onboarding is skipped, so UI tests land
     /// on the first onboarding page as before the intro existed.
     var skipIntro = false
+    /// `-uitest-no-ads`: the ad layer stays off (store screenshots, UI tests), as for a Premium user.
+    var noAds = false
 
     enum ConsentChoice: String, Equatable, Sendable {
         case all
@@ -69,6 +71,7 @@ struct LaunchOptions: Equatable, Sendable {
         detailExplicit = arguments.contains("-uitest-detail-explicit")
         playbackProbe = arguments.contains("-uitest-playback-probe")
         forceLive = arguments.contains("-uitest-force-live")
+        noAds = arguments.contains("-uitest-no-ads")
         let audioURL = environment["TSP_UITEST_AUDIO_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
         audioURLOverride = audioURL.flatMap { $0.isEmpty ? nil : URL(string: $0) }
         consentChoice = arguments.lazy

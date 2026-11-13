@@ -30,6 +30,9 @@ import tss.t.podcast.ui.screens.player.PlayerScreen
 import tss.t.podcast.ui.screens.player.PlayerViewModel
 import tss.t.podcast.ui.screens.podcastsdetail.PodcastDetailScreen
 import tss.t.podcast.ui.screens.podcastsdetail.PodcastViewModel
+import tss.t.billing.PaywallSource
+import tss.t.podcast.ui.screens.paywall.PaywallScreen
+import tss.t.podcast.ui.screens.paywall.PaywallViewModel
 import tss.t.podcast.ui.screens.settings.SettingsScreen
 import tss.t.podcast.ui.screens.settings.SettingsViewModel
 
@@ -153,7 +156,23 @@ fun TSNavGraph(
             SettingsScreen(
                 viewModel = settingsViewModel,
                 onBack = { navHost.popBackStack() },
-                onOpenHistory = { navHost.navigate(TSRouter.History.route) }
+                onOpenHistory = { navHost.navigate(TSRouter.History.route) },
+                onOpenPaywall = { navHost.navigate(TSRouter.Paywall.route) }
+            )
+        }
+
+        composable(
+            TSRouter.Paywall.route,
+            enterTransition = Motion.pushEnter,
+            exitTransition = Motion.pushExit,
+            popEnterTransition = Motion.popEnter,
+            popExitTransition = Motion.popExit,
+        ) {
+            val paywallViewModel: PaywallViewModel = viewModel(viewModelStoreOwner)
+            PaywallScreen(
+                viewModel = paywallViewModel,
+                source = PaywallSource.SETTINGS,
+                onBack = { navHost.popBackStack() }
             )
         }
 
@@ -222,7 +241,8 @@ enum class TSRouter(val route: String) {
     PodcastDetail("PodcastDetail"),
     Player("Player"),
     Settings("Settings"),
-    History("History")
+    History("History"),
+    Paywall("Paywall")
 }
 
 enum class TSHomeRouter(val route: String) {

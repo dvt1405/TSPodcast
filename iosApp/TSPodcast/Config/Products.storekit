@@ -1,0 +1,106 @@
+{
+  "identifier": "5A1F3C2E-7B8D-4E6F-9A0B-1C2D3E4F5A6B",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "29.99",
+      "familyShareable": false,
+      "internalID": "6748000003",
+      "localizations": [
+        {
+          "description": "Mua một lần, không quảng cáo mãi mãi.",
+          "displayName": "Bỏ quảng cáo trọn đời",
+          "locale": "vi"
+        },
+        {
+          "description": "One purchase, no ads forever.",
+          "displayName": "Remove Ads Lifetime",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "tss.t.podcast.remove_ads.lifetime",
+      "referenceName": "Remove Ads Lifetime",
+      "type": "NonConsumable"
+    }
+  ],
+  "settings": {
+    "_applicationInternalID": "6748000000",
+    "_developerTeamID": "57N5M3BU77",
+    "_failTransactionsEnabled": false,
+    "_locale": "vi",
+    "_storefront": "VNM",
+    "_storeKitErrors": []
+  },
+  "subscriptionGroups": [
+    {
+      "id": "21700000",
+      "localizations": [],
+      "name": "premium",
+      "subscriptions": [
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "1.99",
+          "familyShareable": false,
+          "groupNumber": 2,
+          "internalID": "6748000001",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "Nghe podcast không quảng cáo.",
+              "displayName": "Premium hằng tháng",
+              "locale": "vi"
+            },
+            {
+              "description": "Listen to podcasts without ads.",
+              "displayName": "Premium Monthly",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "tss.t.podcast.premium.monthly",
+          "recurringSubscriptionPeriod": "P1M",
+          "referenceName": "Premium Monthly",
+          "subscriptionGroupID": "21700000",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "14.99",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "6748000002",
+          "introductoryOffer": {
+            "internalID": "6748000004",
+            "numberOfPeriods": 1,
+            "paymentMode": "free",
+            "subscriptionPeriod": "P1W"
+          },
+          "localizations": [
+            {
+              "description": "Nghe podcast không quảng cáo, dùng thử 7 ngày.",
+              "displayName": "Premium hằng năm",
+              "locale": "vi"
+            },
+            {
+              "description": "Listen to podcasts without ads, 7-day free trial.",
+              "displayName": "Premium Yearly",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "tss.t.podcast.premium.yearly",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "Premium Yearly",
+          "subscriptionGroupID": "21700000",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
+        }
+      ]
+    }
+  ],
+  "version": {
+    "major": 4,
+    "minor": 0
+  }
+}

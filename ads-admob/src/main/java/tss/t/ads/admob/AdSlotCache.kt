@@ -141,6 +141,14 @@ class AdSlotCache @Inject constructor(
         all.forEach { slot -> slot.state.value?.destroy(); slot.state.value = null }
     }
 
+    /** Destroys every loaded banner and native (the user became Premium). */
+    fun clearAll() {
+        clearBanners()
+        val all = natives.values.toList()
+        natives.clear()
+        all.forEach { slot -> slot.state.value?.destroy(); slot.state.value = null }
+    }
+
     private fun canRetry(slot: Slot<*>): Boolean =
         System.currentTimeMillis() - slot.failedAt > RETRY_AFTER_FAILURE_MS
 

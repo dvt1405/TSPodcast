@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import tss.t.ads.AdFormat
+import tss.t.ads.AdFreeEntitlement
 import tss.t.ads.AdPlacement
 import tss.t.ads.AdPolicy
 import tss.t.ads.AdsAnalytics
@@ -48,6 +49,7 @@ import tss.t.ads.AdCounterStore
 import tss.t.ads.Decision
 import tss.t.ads.RewardResult
 import tss.t.ads.TriggerContext
+import java.lang.ref.WeakReference
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -70,6 +72,12 @@ import kotlin.coroutines.resume
  * playing/buffering, never on the Player, never on a notification/deep-link
  * launch, caps and gaps from Remote Config).
  *
+ * Premium ([AdFreeEntitlement]): while the user is ad free the state is
+ * `Disabled("premium")`, no consent form is shown, the SDK is not initialised,
+ * the preloaders are destroyed and every slot renders nothing. Buying switches
+ * ads off at once; losing Premium (expiry, refund) starts the normal flow again
+ * on the host Activity.
+ *
  * Threading: public methods are called on the main thread. SDK callbacks
  * arrive on background threads and only touch StateFlows, atomics and the
  * synchronized counter store; anything that touches a View or an Activity is
@@ -86,6 +94,7 @@ class AdMobAdsController @Inject constructor(
     private val analytics: AdsAnalytics,
     private val unitIds: AdUnitIds,
     private val slotCache: AdSlotCache,
+    private val adFree: AdFreeEntitlement,
 ) : AdsController, DefaultLifecycleObserver, Application.ActivityLifecycleCallbacks {
 
     private val mainScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -112,13 +121,21 @@ class AdMobAdsController @Inject constructor(
     private var backgroundAt = 0L
     private var pendingWarmStartBackgroundMs: Long? = null
     private var externalLaunch = false
+    private var hostActivity: WeakReference<Activity>? = null
 
     override fun start(activity: Activity) {
         hostActivityClass = activity.javaClass
+        hostActivity = WeakReference(activity)
         if (observersRegistered.compareAndSet(false, true)) {
             activity.application.registerActivityLifecycleCallbacks(this)
             ProcessLifecycleOwner.get().lifecycle.addObserver(this)
             store.startSession()
+            mainScope.launch { adFree.isAdFree.collect(::onAdFreeChanged) }
+        }
+        if (adFree.isAdFree.value) {
+            _state.value = AdsState.Disabled(AdFreeEntitlement.REASON_PREMIUM)
+            log("ads disabled: premium")
+            return
         }
         val settings = config.current()
         if (!settings.adsEnabled) {
@@ -139,9 +156,13 @@ class AdMobAdsController @Inject constructor(
             _privacyOptionsRequired.value = consent.privacyOptionsRequired
             analytics.consent(consent.consentStatus, canRequest, error?.errorCode)
             log("consent done: status=${consent.consentStatus} canRequestAds=$canRequest error=${error?.message}")
+            // Bought Premium while the form was up: stay off.
+            if (adFree.isAdFree.value) return@gather
             _state.value = AdsState.Ready(canRequest)
             if (canRequest) initializeSdk()
             updateCanLoad()
+            // SDK already up from before a Premium period: the preloaders were destroyed.
+            if (sdkInitialized.get()) startPreloaders()
         }
     }
 
@@ -172,7 +193,38 @@ class AdMobAdsController @Inject constructor(
 
     private fun updateCanLoad() {
         _canLoadAds.value = sdkInitialized.get() && consent.canRequestAds &&
-                config.current().adsEnabled
+                config.current().adsEnabled && !adFree.isAdFree.value
+    }
+
+    /** Main thread. The first value replays the current one, which [start] already handled. */
+    private fun onAdFreeChanged(premium: Boolean) {
+        if (premium) {
+            if (_state.value == AdsState.Disabled(AdFreeEntitlement.REASON_PREMIUM)) return
+            _state.value = AdsState.Disabled(AdFreeEntitlement.REASON_PREMIUM)
+            updateCanLoad()
+            stopPreloaders()
+            slotCache.clearAll()
+            log("premium: ads off")
+        } else if (_state.value == AdsState.Disabled(AdFreeEntitlement.REASON_PREMIUM)) {
+            _state.value = AdsState.Idle
+            log("premium ended: ads back on")
+            hostActivity?.get()?.takeUnless { it.isFinishing || it.isDestroyed }?.let(::start)
+        }
+    }
+
+    private fun stopPreloaders() {
+        val started = startedPreloaders.toList()
+        startedPreloaders.clear()
+        started.forEach { placement ->
+            runCatching {
+                when (placement.format) {
+                    AdFormat.AppOpen -> AppOpenAdPreloader.destroy(placement.key)
+                    AdFormat.Interstitial -> InterstitialAdPreloader.destroy(placement.key)
+                    AdFormat.Rewarded -> RewardedAdPreloader.destroy(placement.key)
+                    else -> Unit
+                }
+            }.onFailure { Log.w(TAG, "destroy preloader ${placement.key} failed", it) }
+        }
     }
 
     private fun startPreloaders() {
@@ -235,6 +287,7 @@ class AdMobAdsController @Inject constructor(
     // ----- Activity callbacks (main thread) -----
 
     override fun onActivityResumed(activity: Activity) {
+        if (activity.javaClass == hostActivityClass) hostActivity = WeakReference(activity)
         val backgroundMs = pendingWarmStartBackgroundMs ?: return
         // Not our host (e.g. the SDK's own AdActivity): wait for the host.
         if (activity.javaClass != hostActivityClass) return
@@ -361,7 +414,7 @@ class AdMobAdsController @Inject constructor(
             if (error != null) Log.w(TAG, "privacy options form: ${error.message}")
             _privacyOptionsRequired.value = consent.privacyOptionsRequired
             updateCanLoad()
-            if (consent.canRequestAds) initializeSdk()
+            if (consent.canRequestAds && !adFree.isAdFree.value) initializeSdk()
         }
     }
 

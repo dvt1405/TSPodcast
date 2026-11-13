@@ -1,4 +1,5 @@
 import SwiftUI
+@preconcurrency import Shared
 
 /// The "Tìm kiếm" tab (Android `SearchScreen`, features-spec §3.9): the search field in the
 /// navigation bar, the "Tất cả"/"Nhạc" chips always under it, then
@@ -17,8 +18,12 @@ struct SearchView: View {
 
     var body: some View {
         ScrollView {
-            content
-                .padding(.bottom, 24)
+            VStack(spacing: 0) {
+                // Under the mode chips, above every state (Android `AdBannerSlot(SearchResults)`).
+                AdBannerSlot(placement: .searchresults)
+                content
+            }
+            .padding(.bottom, 24)
         }
         .scrollDismissesKeyboard(.immediately)
         // M5: the chips float over the results (`safeAreaBar` on iOS 26, so the system scroll edge

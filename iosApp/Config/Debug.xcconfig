@@ -1,5 +1,8 @@
 // Configuration Debug của target TSPodcast.
 #include "Shared.xcconfig"
 
+// GADApplicationIdentifier của Info.plist: test app id của Google (Debug chỉ dùng ad unit test của Google, monetization-ads-iap.md §1.5).
+ADMOB_APP_ID = ca-app-pub-3940256099942544~1458002511
+
 // Secrets cục bộ (gitignored). Dấu "?" để build không lỗi khi file chưa có.
 #include? "Secrets.xcconfig"

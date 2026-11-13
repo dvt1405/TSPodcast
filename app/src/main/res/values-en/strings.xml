@@ -152,4 +152,56 @@ Reason for report:
     <string name="web_link_not_found">Couldn\'t find the podcast in this link</string>
     <string name="settings_language_follow_region">Match region</string>
     <string name="settings_language_follow_region_value">Region · %1$s</string>
+    <!-- Premium / paywall (docs/in-progress/plans/monetization-ads-iap.md §3) -->
+    <string name="settings_premium">Premium / Remove ads</string>
+    <string name="settings_premium_hint">Listen without ads and support the app</string>
+    <string name="settings_premium_active">Premium active</string>
+    <string name="settings_premium_active_hint">Ads are off on this device</string>
+    <string name="paywall_title">Premium</string>
+    <string name="paywall_headline">Listen without ads</string>
+    <string name="paywall_subtitle">Premium turns off every ad in TSPodcast.</string>
+    <string name="paywall_benefit_no_ads">No banners, in-feed or full-screen ads</string>
+    <string name="paywall_benefit_restore">Restore on any device with the same Google account</string>
+    <string name="paywall_benefit_support">Support an independent podcast app</string>
+    <string name="paywall_plan_monthly">Monthly</string>
+    <string name="paywall_plan_yearly">Yearly</string>
+    <string name="paywall_plan_lifetime">Lifetime</string>
+    <string name="paywall_plan_lifetime_hint">One-time payment</string>
+    <string name="paywall_badge_best_value">Best value</string>
+    <string name="paywall_price_per_day">%1$s / day</string>
+    <string name="paywall_price_per_week">%1$s / week</string>
+    <string name="paywall_price_per_month">%1$s / month</string>
+    <string name="paywall_price_per_year">%1$s / year</string>
+    <string name="paywall_price_every">%1$s / %2$s</string>
+    <string name="paywall_trial">Free trial: %1$s</string>
+    <string name="paywall_buy">Continue</string>
+    <string name="paywall_start_trial">Start free trial</string>
+    <string name="paywall_restore">Restore purchases</string>
+    <string name="paywall_auto_renew">Subscriptions renew automatically at the price and period shown until you cancel. Cancel anytime in Google Play → Payments &amp; subscriptions. If a free trial is offered, you are charged when it ends unless you cancel before then.</string>
+    <string name="paywall_unavailable">Purchases aren\'t available right now. Check your connection and Google Play, then try again.</string>
+    <string name="paywall_retry">Try again</string>
+    <string name="paywall_pending">Your purchase is pending. Premium turns on once the payment is complete.</string>
+    <string name="paywall_active_title">Premium is active</string>
+    <string name="paywall_active_message">Thank you! Ads are turned off.</string>
+    <string name="paywall_manage">Manage subscription</string>
+    <string name="paywall_restored">Purchases restored. Premium is active.</string>
+    <string name="paywall_restore_none">No purchases to restore for this Google account.</string>
+    <string name="paywall_restore_failed">Couldn\'t reach Google Play. Please try again later.</string>
+    <string name="paywall_purchase_failed">The purchase didn\'t go through. Please try again.</string>
+    <plurals name="paywall_duration_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <plurals name="paywall_duration_weeks">
+        <item quantity="one">%d week</item>
+        <item quantity="other">%d weeks</item>
+    </plurals>
+    <plurals name="paywall_duration_months">
+        <item quantity="one">%d month</item>
+        <item quantity="other">%d months</item>
+    </plurals>
+    <plurals name="paywall_duration_years">
+        <item quantity="one">%d year</item>
+        <item quantity="other">%d years</item>
+    </plurals>
 </resources>
