@@ -8,10 +8,10 @@ PODCASTINDEX_USER_AGENT =
 
 // URL chính sách bảo mật (màn Cài đặt, guideline 5.1.1). Rỗng = ẩn dòng "Chính sách bảo mật" (handoff).
 // Bẫy "//" như trên: viết https:/$()/example.com/privacy.
-PRIVACY_POLICY_URL = https:/$()/podcast-25c93.web.app/privacy
+PRIVACY_POLICY_URL = https:/$()/tspodcast.web.app/privacy
 // "Điều khoản sử dụng" trên paywall (Apple 3.1.2). Rỗng = EULA chuẩn của Apple
 // (https://www.apple.com/legal/internet-services/itunes/dev/stdeula/). Ví dụ: https:/$()/example.com/terms
-TERMS_OF_USE_URL = https:/$()/podcast-25c93.web.app/terms
+TERMS_OF_USE_URL = https:/$()/tspodcast.web.app/terms
 
 // Host của Universal Link (deep link /podcast/<feedId>-<slug>, /episode/<id>-<slug>, M4 §4.5), ví dụ
 // tspodcast.example.com (không có https://). Rỗng = app không nhận link nào cho tới khi owner có domain,
