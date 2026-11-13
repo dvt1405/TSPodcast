@@ -88,7 +88,7 @@ class AdsSettingsTest {
         val template = File("../remoteconfig/ads-iap.params.json")
         assumeTrue("template not in this checkout", template.isFile)
         val params = JSONObject(template.readText())
-            .getJSONObject("parameterGroups").getJSONObject("Ads").getJSONObject("parameters")
+            .getJSONObject("parameterGroups").getJSONObject("Ads (v3.5+)").getJSONObject("parameters")
         val values = params.keys().asSequence().associateWith { key ->
             params.getJSONObject(key).getJSONObject("defaultValue").getString("value")
         }

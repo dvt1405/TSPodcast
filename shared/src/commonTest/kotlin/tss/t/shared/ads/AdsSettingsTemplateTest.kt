@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
  * so a device that never fetched Remote Config behaves like one that did.
  */
 class AdsSettingsTemplateTest {
-    private val template = RemoteConfigTemplate.iosValuesByGroup.getValue("Ads")
+    private val template = RemoteConfigTemplate.iosValuesByGroup.getValue("Ads (v3.5+)")
     private val defaults = AdsSettings.defaults(debug = false)
 
     @Test

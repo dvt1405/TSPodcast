@@ -7,7 +7,7 @@
     }
   ],
   "parameterGroups": {
-    "Ads": {
+    "Ads (v3.5+)": {
       "description": "AdMob: kill switch, unit id theo nền tảng, vị trí, tần suất. Android đọc ở ads/AdsConfig.kt (AdsKeys). Xem remoteconfig/README.md.",
       "parameters": {
         "ads_enabled": {
