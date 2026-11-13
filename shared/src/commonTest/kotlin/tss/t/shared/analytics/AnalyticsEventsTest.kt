@@ -49,4 +49,32 @@ class AnalyticsEventsTest {
         assertEquals("end_of_episode", AnalyticsEvents.sleepTimerOption(SleepTimerOption.EndOfEpisode))
         assertEquals("off", AnalyticsEvents.sleepTimerOption(SleepTimerOption.Off))
     }
+
+    /** Same names and parameters as Android `AppEvents.podcastLocationsChange` / `locationChipSelect`. */
+    @Test
+    fun podcastLocationEventsMatchAndroid() {
+        assertEquals(listOf("podcast_locations_change", "location_chip_select"), AnalyticsEvents.LOCATION_EVENTS)
+        val params = listOf(
+            AnalyticsEvents.PARAM_REGION, AnalyticsEvents.PARAM_SECTION, AnalyticsEvents.PARAM_PRIMARY_LOCATION,
+            AnalyticsEvents.PARAM_LOCATIONS, AnalyticsEvents.PARAM_PRIMARY_CHANGED, AnalyticsEvents.PARAM_CHANGE,
+        )
+        for (name in AnalyticsEvents.LOCATION_EVENTS + params) {
+            assertTrue(name.length <= AnalyticsDefaults.MAX_NAME_LENGTH, name)
+            assertTrue(Regex("[a-z][a-z_]*").matches(name), name)
+        }
+        assertEquals(
+            mapOf(
+                "count" to "3",
+                "primary_location" to "VN",
+                "locations" to "VN,US,JP",
+                "primary_changed" to "false",
+                "change" to "add",
+            ),
+            AnalyticsEvents.podcastLocationsChangeParams(listOf("VN", "US", "JP"), listOf("VN", "US")),
+        )
+        val reorder = AnalyticsEvents.podcastLocationsChangeParams(listOf("US", "VN"), listOf("VN", "US"))
+        assertEquals("true", reorder["primary_changed"])
+        assertEquals("reorder", reorder["change"])
+        assertEquals("remove", AnalyticsEvents.podcastLocationsChangeParams(listOf("US"), listOf("VN", "US"))["change"])
+    }
 }

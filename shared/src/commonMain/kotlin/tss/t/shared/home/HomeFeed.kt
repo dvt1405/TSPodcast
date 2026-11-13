@@ -4,13 +4,18 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import tss.t.shared.blacklist.HiddenShowsRepository
 import tss.t.shared.blacklist.withoutHidden
+import tss.t.shared.location.PodcastLocation
+import tss.t.shared.location.PodcastLocationRepository
 import tss.t.shared.model.LiveEpisode
 import tss.t.shared.model.Podcast
 import tss.t.shared.model.TSDataState
 import tss.t.shared.model.TrendingPodcastRes
+import tss.t.shared.newshub.NewsEpisode
 import tss.t.shared.preferences.AppPreferences
 import tss.t.shared.usecase.GetLiveEpisodes
+import tss.t.shared.usecase.GetLocationNews
 import tss.t.shared.usecase.GetMusicFeeds
+import tss.t.shared.usecase.GetPodcastsByLocation
 import tss.t.shared.usecase.GetRecentFeeds
 import tss.t.shared.usecase.GetTrendingPodcasts
 import tss.t.shared.util.EpochClock
@@ -25,6 +30,10 @@ import tss.t.shared.util.EpochClock
  * see handoff). Last, the shows the user hid ([HiddenShowsRepository], M6 §3.5) are dropped:
  * podcasts by `id`/`feedId`, live items by `feedId`. E3 `recent/episodes` and E4
  * `recent/newfeeds` are never called ([Sửa]).
+ *
+ * Trending, "Có thể bạn yêu thích" and recent use the primary podcast location's language only
+ * (`lang=vi`, Android `PodcastLocationPrefs.contentLangParam`); [byLocation] and [locationNews]
+ * are the per-location lists of "Podcast theo vị trí" and "Thời sự".
  */
 class HomeFeed internal constructor(
     private val getTrendingPodcasts: GetTrendingPodcasts,
@@ -34,13 +43,16 @@ class HomeFeed internal constructor(
     private val preferences: AppPreferences,
     private val hiddenShows: HiddenShowsRepository,
     private val clock: EpochClock,
-    /** Content language (app language, "vi,en" style); null in tests keeps [LANG]. */
-    private val contentLanguage: tss.t.shared.i18n.ContentLanguageRepository? = null,
+    private val getPodcastsByLocation: GetPodcastsByLocation,
+    private val getLocationNews: GetLocationNews,
+    /** Podcast locations: the primary one's language is the `lang` of the lists; null keeps [LANG]. */
+    private val locations: PodcastLocationRepository? = null,
 ) {
     /**
      * "Podcasts thịnh hành" (E1, last 7 days, no category) and "Có thể bạn yêu thích" (E1, last
      * 10 days, `cat = favouriteCatIds`), requested in parallel, with `MainViewModel`'s fallback:
-     * when only one of them succeeds, both sections show its list; when both fail, both are
+     * when only one of them succeeds, or "Có thể bạn yêu thích" is empty, both sections show the
+     * other list; when both fail, both are
      * `Error` (the screen offers a retry instead of Android's empty lists).
      */
     suspend fun trendingSections(favouriteCatIds: String?): TrendingSections = coroutineScope {
@@ -63,6 +75,10 @@ class HomeFeed internal constructor(
         val forYou = forYouCall.await().toPodcasts(allowExplicit, hidden)
 
         when {
+            // A single-language location can have no trending show in the favourite categories:
+            // the general trending list instead of nothing (Android `MainViewModel.getTrending`).
+            trending is TSDataState.Success && forYou is TSDataState.Success && forYou.data.isEmpty() ->
+                TrendingSections(trending, trending)
             trending is TSDataState.Success && forYou is TSDataState.Success -> TrendingSections(trending, forYou)
             trending is TSDataState.Success -> TrendingSections(trending, trending)
             forYou is TSDataState.Success -> TrendingSections(forYou, forYou)
@@ -104,7 +120,35 @@ class HomeFeed internal constructor(
         return result.toPodcasts(allowExplicit, hiddenShows.hiddenIds())
     }
 
-    private suspend fun lang(): String = contentLanguage?.langParam() ?: LANG
+    /**
+     * "Podcast theo vị trí": trending shows of [location] ([GetPodcastsByLocation], 40 shows of the
+     * last 7 days, 15-minute cache unless [force]), without explicit (D6) and hidden shows.
+     */
+    suspend fun byLocation(location: PodcastLocation, force: Boolean): TSDataState<List<Podcast>> {
+        val allowExplicit = preferences.allowExplicitContent()
+        return when (val result = getPodcastsByLocation(location, force = force)) {
+            is TSDataState.Success -> TSDataState.Success(
+                result.data.filterExplicit(allowExplicit).withoutHidden(hiddenShows.hiddenIds()),
+            )
+            else -> result
+        }
+    }
+
+    /**
+     * "Thời sự" of [location] from the catalog ([GetLocationNews]), without hidden shows and,
+     * unless explicit content is allowed (D6), without explicit shows or episodes. Empty when
+     * nothing loaded.
+     */
+    suspend fun locationNews(location: PodcastLocation, force: Boolean): List<NewsEpisode> {
+        val allowExplicit = preferences.allowExplicitContent()
+        val hidden = hiddenShows.hiddenIds()
+        return getLocationNews(location, force = force).filter { item ->
+            item.feed.id !in hidden && item.episode.feedId !in hidden &&
+                (allowExplicit || (!item.feed.explicit && item.episode.explicit != EXPLICIT))
+        }
+    }
+
+    private suspend fun lang(): String = locations?.contentLangParam() ?: LANG
 
     private fun TSDataState<TrendingPodcastRes>.toPodcasts(
         allowExplicit: Boolean,

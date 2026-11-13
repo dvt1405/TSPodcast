@@ -18,13 +18,6 @@ class ContentLanguagesTest {
     }
 
     @Test
-    fun englishIsAlwaysAdded() {
-        assertEquals("vi,en", ContentLanguages.langParam(ContentLanguages.byTag("vi")!!))
-        assertEquals("ja,en", ContentLanguages.langParam(ContentLanguages.byTag("ja-JP")!!))
-        assertEquals("en", ContentLanguages.langParam(ContentLanguages.byTag("en-GB")!!))
-    }
-
-    @Test
     fun sameFifteenLanguagesAsAndroid() {
         assertEquals(15, ContentLanguages.SUPPORTED.size)
     }

@@ -7,7 +7,8 @@ import tss.t.shared.model.TrendingPodcastRes
 import tss.t.shared.network.PodcastIndexApi
 
 /**
- * E5 `recent/feeds`, blacklist-filtered. No cache and no retry (same reason as
+ * E5 `recent/feeds`, blacklist-filtered and without shows titled in another script than [lang]
+ * (Android `PodcastsRepositoryImpl.getRecentFeeds`). No cache and no retry (same reason as
  * [GetLiveEpisodes]).
  *
  * @param since epoch seconds, or null for the API default.
@@ -31,7 +32,7 @@ class GetRecentFeeds internal constructor(
             notcat = notcat,
         )
         return when (result) {
-            is TSDataState.Success -> TSDataState.Success(result.data.filterRecentFeeds(blacklist))
+            is TSDataState.Success -> TSDataState.Success(result.data.filterRecentFeeds(blacklist).withTitlesIn(lang))
             else -> result
         }
     }
