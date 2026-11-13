@@ -11,7 +11,7 @@
 # Không chạm UI, không chụp màn hình, không in secret.
 set -u
 
-BUNDLE_ID="tss.t.podcast"
+BUNDLE_ID="tss.t.podcast.ios"
 WAIT_SECONDS="${SMOKE_WAIT_SECONDS:-15}"
 REPORTS_DIR="$HOME/Library/Logs/DiagnosticReports"
 

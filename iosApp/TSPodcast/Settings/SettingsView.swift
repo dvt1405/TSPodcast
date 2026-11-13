@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// Settings sheet, opened from the gear of the Discover tab (`settings.open`): notifications,
-/// explicit content, hidden shows (M6), app language, privacy choices (M6), privacy policy and version.
+/// Settings sheet, opened from the gear of the Discover tab (`settings.open`): Premium (paywall or
+/// its status), notifications, explicit content, hidden shows (M6), app language, privacy choices
+/// (M6, + the UMP ad privacy options when required), privacy policy and version.
 struct SettingsView: View {
     @State var model: SettingsModel
     @Environment(\.dismiss) private var dismiss
@@ -11,6 +12,8 @@ struct SettingsView: View {
         @Bindable var notifications = model.notifications
         NavigationStack {
             Form {
+                PremiumSection(store: environment.store, paywallEnabled: environment.monetization.iap().enabled)
+
                 Section {
                     Toggle("settings.notifications", isOn: Binding(
                         get: { model.notifications.isEnabled },
@@ -49,7 +52,7 @@ struct SettingsView: View {
                     }
                 }
 
-                PrivacySection(consent: environment.consent)
+                PrivacySection(consent: environment.consent, ads: environment.ads)
 
                 Section {
                     if let url = model.privacyURL {
@@ -90,6 +93,7 @@ struct SettingsView: View {
 /// once, and when the choice was saved.
 private struct PrivacySection: View {
     let consent: ConsentController
+    let ads: AdsController
 
     var body: some View {
         Section {
@@ -104,12 +108,66 @@ private struct PrivacySection: View {
                 set: { allowed in Task { await consent.setCrashReports(allowed) } }
             ))
             .accessibilityIdentifier("settings.crash")
+
+            // UMP: only where a regulation requires a way to change ad consent (EEA, UK, …).
+            if ads.privacyOptionsRequired {
+                Button {
+                    ads.showPrivacyOptions()
+                } label: {
+                    Text("ads.privacyOptions")
+                }
+                .accessibilityIdentifier("settings.adPrivacyOptions")
+            }
         } header: {
             Text("settings.privacySection")
         } footer: {
             if let decidedAt = consent.snapshot.decidedAt {
                 Text("settings.consent.decidedAt \(decidedAt.formatted(date: .abbreviated, time: .shortened))")
                     .accessibilityIdentifier("settings.consent.decidedAt")
+            }
+        }
+    }
+}
+
+/// "Premium – Bỏ quảng cáo" (contract §3): opens the paywall, hidden when `iap_enabled` is
+/// false; once Premium, "Đang dùng Premium" and "Quản lý gói" (`AppStore.showManageSubscriptions`)
+/// whatever `iap_enabled` says (a purchase is kept, §1.4).
+private struct PremiumSection: View {
+    let store: StoreModel
+    let paywallEnabled: Bool
+
+    var body: some View {
+        if store.isPremium {
+            Section {
+                Label {
+                    Text("settings.premium.active")
+                } icon: {
+                    Image(systemName: "checkmark.seal.fill")
+                        .foregroundStyle(Color.brandPrimary)
+                }
+                .accessibilityIdentifier("settings.premium.active")
+                if store.hasActiveSubscription {
+                    Button {
+                        Task { await store.showManageSubscriptions() }
+                    } label: {
+                        Text("settings.premium.manage")
+                    }
+                    .accessibilityIdentifier("settings.premium.manage")
+                }
+            }
+        } else if paywallEnabled {
+            Section {
+                NavigationLink {
+                    PaywallView(model: PaywallModel(store: store, source: "settings"))
+                } label: {
+                    Label {
+                        Text("settings.premium")
+                    } icon: {
+                        Image(systemName: "crown.fill")
+                            .foregroundStyle(Color.brandPrimary)
+                    }
+                }
+                .accessibilityIdentifier("settings.premium")
             }
         }
     }

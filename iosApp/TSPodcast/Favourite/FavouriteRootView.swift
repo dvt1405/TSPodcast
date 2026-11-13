@@ -1,8 +1,10 @@
 import SwiftUI
+@preconcurrency import Shared
 
 /// Root of the "Yêu thích" tab (Android `FavouriteScreen`): the favourites newest first, or
 /// Android's empty state (`EmptyFavouriteWidget`: illustration, "Không có chương trình yêu
-/// thích." and "Khám phá thêm", which switches to the Discover tab). No ad banner (D2).
+/// thích." and "Khám phá thêm", which switches to the Discover tab). The `favourite_top` banner
+/// sits above the list (Android `AdBannerSlot(FavouriteTop)`), never on the empty state.
 struct FavouriteRootView: View {
     @Bindable var model: FavouriteModel
     let onDiscoverMore: () -> Void
@@ -56,6 +58,7 @@ private struct FavouriteList: View {
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
+                AdBannerSlot(placement: .favouritetop)
                 ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
                     Button {
                         select(index)

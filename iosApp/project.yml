@@ -19,6 +19,14 @@ packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk
     exactVersion: 12.19.2
+  # Quảng cáo (docs/in-progress/plans/monetization-ads-iap.md §4): Google Mobile Ads SDK + UMP, ghim exact
+  # version. GMA khai dependency UMP "1.1.0"..<"4.0.0", nên bản ghim ở đây là bản được dùng.
+  GoogleMobileAds:
+    url: https://github.com/googleads/swift-package-manager-google-mobile-ads
+    exactVersion: 13.12.0
+  GoogleUserMessagingPlatform:
+    url: https://github.com/googleads/swift-package-manager-google-user-messaging-platform
+    exactVersion: 3.1.0
 
 settings:
   base:
@@ -27,7 +35,7 @@ settings:
     # bản Release (ONLY_ACTIVE_ARCH = NO) link thiếu symbol Kotlin cho x86_64.
     EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: 3AYA8D7LW2
 
 targets:
   TSPodcast:
@@ -38,6 +46,10 @@ targets:
         excludes:
           - Info.plist
           - TSPodcast.entitlements
+          - Config/Products.storekit
+      # StoreKit Configuration (mua hàng local, scheme Debug): trong project nhưng không vào bundle.
+      - path: TSPodcast/Config/Products.storekit
+        buildPhase: none
     dependencies:
       - target: TSPodcastNotificationService
       - package: Firebase
@@ -50,13 +62,17 @@ targets:
         product: FirebaseRemoteConfig
       - package: Firebase
         product: FirebaseMessaging
+      - package: GoogleMobileAds
+        product: GoogleMobileAds
+      - package: GoogleUserMessagingPlatform
+        product: GoogleUserMessagingPlatform
     configFiles:
       Debug: Config/Debug.xcconfig
       Release: Config/Release.xcconfig
     settings:
       base:
         PRODUCT_NAME: TSPodcast
-        PRODUCT_BUNDLE_IDENTIFIER: tss.t.podcast
+        PRODUCT_BUNDLE_IDENTIFIER: tss.t.podcast.ios
         # Đặt ở target vì preset của XcodeGen cho app iOS ghi đè TARGETED_DEVICE_FAMILY = 1,2 ở tầng target.
         IPHONEOS_DEPLOYMENT_TARGET: "17.0"
         SWIFT_VERSION: "6.0"
@@ -120,7 +136,7 @@ targets:
     settings:
       base:
         PRODUCT_NAME: TSPodcastNotificationService
-        PRODUCT_BUNDLE_IDENTIFIER: tss.t.podcast.NotificationService
+        PRODUCT_BUNDLE_IDENTIFIER: tss.t.podcast.ios.NotificationService
         IPHONEOS_DEPLOYMENT_TARGET: "17.0"
         SWIFT_VERSION: "6.0"
         TARGETED_DEVICE_FAMILY: "1"
@@ -147,7 +163,7 @@ targets:
       - target: TSPodcast
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: tss.t.podcast.tests
+        PRODUCT_BUNDLE_IDENTIFIER: tss.t.podcast.ios.tests
         GENERATE_INFOPLIST_FILE: YES
         IPHONEOS_DEPLOYMENT_TARGET: "17.0"
         SWIFT_VERSION: "6.0"
@@ -167,7 +183,7 @@ targets:
       - target: TSPodcast
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: tss.t.podcast.uitests
+        PRODUCT_BUNDLE_IDENTIFIER: tss.t.podcast.ios.uitests
         GENERATE_INFOPLIST_FILE: YES
         IPHONEOS_DEPLOYMENT_TARGET: "17.0"
         SWIFT_VERSION: "6.0"
@@ -183,6 +199,8 @@ schemes:
         TSPodcastUITests: [test]
     run:
       config: Debug
+      # StoreKit 2 chạy với sản phẩm local (premium monthly/yearly, remove ads lifetime) khi Run từ Xcode.
+      storeKitConfiguration: TSPodcast/Config/Products.storekit
     test:
       config: Debug
       gatherCoverageData: false
@@ -201,6 +219,7 @@ schemes:
         TSPodcastTests: [test]
     run:
       config: Debug
+      storeKitConfiguration: TSPodcast/Config/Products.storekit
     test:
       config: Debug
       gatherCoverageData: false

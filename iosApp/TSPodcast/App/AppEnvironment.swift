@@ -51,6 +51,12 @@ final class AppEnvironment {
     @ObservationIgnored let navigation: MainNavigation
     /// Universal Links (`.onOpenURL` / `.onContinueUserActivity`), host from `TSAppLinkHost` (M4 §4.5).
     @ObservationIgnored let deepLinks: DeepLinkRouter
+    /// Ads + IAP settings from Remote Config over the template defaults (monetization-ads-iap.md).
+    @ObservationIgnored let monetization: MonetizationConfig
+    /// StoreKit 2: products, purchases, the Premium entitlement.
+    @ObservationIgnored let store: StoreModel
+    /// AdMob + UMP + ATT; off while Premium.
+    @ObservationIgnored let ads: AdsController
 
     var preferences: AppPreferences { graph.appPreferences }
     var favouriteCategories: FavouriteCategories { graph.favouriteCategories }
@@ -105,6 +111,14 @@ final class AppEnvironment {
         self.firebase = firebase
         let analytics = ConsentGatedAnalyticsTracker(inner: services.analytics, gate: consentGate)
         self.analytics = analytics
+        // Premium is read from its cache first, so the ad layer starts already off for a buyer.
+        let monetization = MonetizationConfig(config: services.config)
+        self.monetization = monetization
+        let store = StoreModel(config: monetization, analytics: PurchaseAnalytics(tracker: analytics))
+        self.store = store
+        let ads = AdsController(config: monetization, analytics: AdsAnalytics(tracker: analytics), isPremium: store.isPremium)
+        self.ads = ads
+        store.onPremiumChange = { [weak ads] premium in ads?.setPremium(premium) }
         let installId = graph.installId
         let crash = crashReporter ?? services.crashReporter
         consent = ConsentController(
@@ -119,7 +133,9 @@ final class AppEnvironment {
         )
         hiddenShows = HiddenShowsModel(store: SharedHiddenShowsStore(repository: graph.hiddenShows), analytics: analytics)
         contentReporter = ContentReporter(info: Bundle.main.infoDictionary ?? [:], analytics: analytics)
-        notificationPresenter = NotificationPresenter(analytics: analytics)
+        notificationPresenter = NotificationPresenter(analytics: analytics, onTap: {
+            Task { @MainActor in ads.onExternalLaunch() }
+        })
         notifications = NotificationsModel(
             preferences: SharedNotificationPreferences(preferences: graph.appPreferences),
             system: notificationSystem ?? SystemNotifications(),
@@ -174,6 +190,13 @@ final class AppEnvironment {
         let remoteConfig = services.remoteConfig.map { source in
             RemoteConfigLoader(source: source, crash: crash, onActivated: { sharedGraph.reloadRemoteConfig() })
         }
+        ads.host = AdsHost(
+            isPlaybackActive: { [weak engine] in
+                guard let state = engine?.state else { return false }
+                return state.isPlaying || state.isBuffering
+            },
+            isOnPlayerScreen: { [weak self] in self?.isPlayerPresented ?? false }
+        )
         ShortcutBridge.register(self)
         Task.detached(priority: .utility) {
             if let remoteConfig {
@@ -188,6 +211,8 @@ final class AppEnvironment {
     func didFinishLaunching() {
         UNUserNotificationCenter.current().delegate = notificationPresenter
         Task { await notifications.start() }
+        // StoreKit: `Transaction.updates` must be listened to from launch (renewals, Ask to Buy).
+        store.start()
     }
 
     /// The minimal Settings sheet (M4 §4.4).

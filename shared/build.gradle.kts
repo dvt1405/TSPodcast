@@ -110,6 +110,7 @@ val generateBundledAssets by tasks.registering(GenerateJsonSourcesTask::class) {
 
 val ANDROID_SCHEMA = "core/schemas/tss.t.core.storage.PodcastDatabase/6.json"
 val SHARED_SCHEMA = "schemas/tss.t.shared.storage.PodcastDatabase/1.json"
+val ADS_IAP_TEMPLATE = "remoteconfig/ads-iap.params.json"
 
 // Real PodcastIndex payloads that the Android debug build uses, as test fixtures.
 val generateTestFixtures by tasks.registering(GenerateJsonSourcesTask::class) {
@@ -126,7 +127,12 @@ val generateTestFixtures by tasks.registering(GenerateJsonSourcesTask::class) {
         // the new file from the next build on.
         rootProject.file(ANDROID_SCHEMA),
         file(SHARED_SCHEMA),
+        // Remote Config template of ads + IAP: the in-app defaults must equal what iOS gets from it
+        // (AdsSettingsTemplateTest, IapSettingsTemplateTest; docs/in-progress/plans/monetization-ads-iap.md §1).
+        rootProject.file(ADS_IAP_TEMPLATE),
     )
+    // Key = "<parent directory>/<file name>", which is the whole path here.
+    propertyNames.put(ADS_IAP_TEMPLATE, "adsIapTemplate")
     propertyNames.put(ANDROID_SCHEMA.substringBeforeLast('/').substringAfterLast('/') + "/6.json", "androidDatabaseSchemaV6")
     propertyNames.put(SHARED_SCHEMA.substringBeforeLast('/').substringAfterLast('/') + "/1.json", "sharedDatabaseSchemaV1")
     packageName.set("tss.t.shared.fixtures")

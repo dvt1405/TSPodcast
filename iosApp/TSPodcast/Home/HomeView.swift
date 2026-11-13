@@ -1,9 +1,10 @@
 import SwiftUI
+@preconcurrency import Shared
 
 /// Home/Discover (Android `DiscoverPodcastsScreen`): trending, "Thời sự & Bản tin" (M6 §3.4,
 /// only while the news hub is on), music (+ subtitle), live, recent and "Có thể bạn yêu thích",
-/// then the Podcast Index attribution required by its terms (7.2). No ad slots and no "Privacy
-/// options" link (owner decision D1/D2).
+/// then the Podcast Index attribution required by its terms (7.2). The `discover_inline` native ad
+/// sits between music and live (Android); the UMP "privacy options" entry is in Settings.
 ///
 /// Podcast taps push Podcast detail (`DiscoverRoute.podcast`) on this tab's stack, zooming out of
 /// the tapped cover on iOS 18+; the news section pushes the hub (`DiscoverRoute.newsHub`); a Live
@@ -28,6 +29,8 @@ struct HomeView: View {
 
                 SectionHeader(section: .music, title: "home.section.music", subtitle: "home.section.music.subtitle")
                 PodcastCarousel(section: .music, state: model.music, zoomNamespace: zoomNamespace, retry: retry(.music))
+
+                AdNativeSlot(placement: .discoverinline)
 
                 SectionHeader(section: .live, title: "home.section.live")
                 LivePager(state: model.live, retry: retry(.live))
