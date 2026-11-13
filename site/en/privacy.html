@@ -56,7 +56,7 @@
     <header class="doc-head">
       <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li aria-current="page">Privacy Policy</li></ol></nav>
 <h1>TSPodcast Privacy Policy</h1>
-<p class="meta">Effective 1 November 2026. Applies to the TSPodcast apps for Android and iOS and to this website.</p>
+<p class="meta">Effective 14 November 2026. Applies to the TSPodcast apps for Android and iOS and to this website.</p>
 <p><a class="lang-switch" href="/privacy" hreflang="vi" lang="vi">Đọc bằng tiếng Việt</a></p>
 <p>The Vietnamese version is the primary version. If the two versions differ, the Vietnamese version prevails.</p>
     </header>
@@ -70,7 +70,8 @@
     <li>TSPodcast has no accounts. We do not ask for your name, email address or phone number.</li>
     <li>Your favourites, listening history, playback positions and settings are stored on your device.</li>
     <li>Usage analytics (Firebase Analytics) and crash reporting (Firebase Crashlytics) are switched on only if you agree on first launch. You can turn them off at any time in Settings.</li>
-    <li>The Android app shows ads through the Google Mobile Ads SDK (AdMob), which may process your advertising ID, IP address and device information.</li>
+    <li>The Android and iOS apps show ads through the Google Mobile Ads SDK (AdMob), which may process your advertising ID, IP address and device information. On iOS the advertising identifier (IDFA) is used only if you choose "Allow" in the tracking prompt.</li>
+    <li>Premium (ad-free) is paid through Google Play or the App Store. We never receive your card or payment account details.</li>
     <li>When you search or listen, requests go to Podcast Index and to the servers of podcast publishers or radio stations.</li>
     <li>We do not sell your data.</li>
   </ul>
@@ -112,12 +113,12 @@
 <h3 id="ads">3.2 Advertising: Google Mobile Ads SDK (AdMob) and Google User Messaging Platform (UMP)</h3>
 <p>The Android app shows Google ads through the Google Mobile Ads SDK. To serve and measure ads and to prevent fraud, this SDK and Google UMP may process:</p>
 <ul>
-  <li>your Android advertising ID;</li>
+  <li>your Android advertising ID, or your iOS advertising identifier (IDFA) if you allow tracking;</li>
   <li>your IP address and the approximate location derived from it;</li>
   <li>device information (model, OS, language, carrier) and interactions with ads;</li>
   <li>your consent choices.</li>
 </ul>
-<p>Where required, the app shows Google's UMP consent form before loading ads. You can change your choices through <strong>"Tùy chọn quyền riêng tư và quảng cáo"</strong> (Privacy and ad options) in the app. You can also reset or delete your advertising ID in Android settings (Settings → Privacy → Ads; the exact path varies by device).</p>
+<p>Where required, the app shows Google's UMP consent form before loading ads. You can change your choices through <strong>"Tùy chọn quyền riêng tư và quảng cáo"</strong> (Privacy and ad options) in the app. You can also reset or delete your advertising ID in Android settings (Settings → Privacy → Ads; the exact path varies by device). On iOS the app asks for tracking permission with Apple's App Tracking Transparency prompt after the UMP form; if you do not allow it, the IDFA is not used and ads are still shown but not personalised with data from other apps. You can change this in iOS Settings → Privacy &amp; Security → Tracking.</p>
 <p>Google processes this data under the <a href="https://policies.google.com/privacy">Google Privacy Policy</a>. See also <a href="https://policies.google.com/technologies/partner-sites">How Google uses information from sites or apps that use our services</a>.</p>
 
 <h3 id="content-servers">3.3 Third-party content servers</h3>
@@ -131,6 +132,9 @@
 <h3 id="email">3.4 Email you send us</h3>
 <p>If you send feedback, a bug report or a content report by email, we receive your email address and what you write. We use it only to reply to and handle your request.</p>
 
+<h3 id="purchases">3.5 In-app purchases (Premium)</h3>
+<p>Premium (ad-free) is sold through Google Play Billing on Android and the App Store (StoreKit) on iOS. Google or Apple processes the payment under its own policies; we never receive your card number, name or billing email. The app only receives the transaction status (product, transaction ID, subscription period) to unlock Premium and keeps it on the device. If you agreed to analytics, Firebase Analytics records the purchase event (the plan name, no payment details).</p>
+
 <h2 id="purposes">4. Purposes and legal bases</h2>
 <div class="table-wrap">
 <table>
@@ -140,7 +144,7 @@
     <tr><td>Filtering spam, gambling and reported content; feature flags</td><td>Firebase Remote Config</td><td>Legitimate interest in keeping the app safe and stable</td></tr>
     <tr><td>Understanding how the app is used to improve it</td><td>Firebase Analytics</td><td>Your consent</td></tr>
     <tr><td>Finding and fixing crashes</td><td>Firebase Crashlytics</td><td>Your consent</td></tr>
-    <tr><td>Serving and measuring ads, preventing fraud</td><td>Google Mobile Ads SDK, UMP</td><td>Your consent (through the UMP form or your Android advertising ID settings)</td></tr>
+    <tr><td>Serving and measuring ads, preventing fraud</td><td>Google Mobile Ads SDK, UMP</td><td>Your consent (through the UMP form, your Android advertising ID settings, or "Allow" in the iOS tracking prompt)</td></tr>
     <tr><td>Notifications about new podcasts</td><td>Firebase Cloud Messaging</td><td>Your consent when you allow notifications</td></tr>
     <tr><td>Replying to feedback and handling reports and takedown requests</td><td>Email you send</td><td>Your request</td></tr>
   </tbody>
@@ -182,7 +186,7 @@
 <p><strong>How to exercise them:</strong></p>
 <ul>
   <li>Withdraw consent to analytics and crash reporting: turn them off in the app's <strong>Settings</strong>.</li>
-  <li>Change ad choices: use <strong>"Tùy chọn quyền riêng tư và quảng cáo"</strong> in the app, or reset/delete your advertising ID in Android settings.</li>
+  <li>Change ad choices: use <strong>"Tùy chọn quyền riêng tư và quảng cáo"</strong> in the app, or reset/delete your advertising ID in Android settings; on iOS, turn tracking on or off in Settings → Privacy &amp; Security → Tracking.</li>
   <li>Turn off notifications: Android Settings → Apps → TSPodcast → Notifications.</li>
   <li>Anything else: email <a href="mailto:admin@tuandv.me">admin@tuandv.me</a>. We reply within the time limits set by law. Because the app has no accounts, we may need some extra information (see section 11) to find the right data.</li>
 </ul>
@@ -198,10 +202,10 @@
 <p>Step-by-step guide: <a href="/en/delete-data">Delete your data</a>.</p>
 
 <h2 id="ios">12. iOS app</h2>
-<p>When released, the TSPodcast iOS app contains no advertising SDK. Analytics and crash reporting on iOS are switched on only with your consent and can be turned off in the app's Settings → Privacy. The rest of this policy applies as it does on Android.</p>
+<p>The TSPodcast iOS app shows ads through the Google Mobile Ads SDK as described in section 3.2: Google's UMP consent form (where required), then Apple's App Tracking Transparency prompt. The IDFA is used only if you choose "Allow". Analytics and crash reporting on iOS are switched on only with your consent and can be turned off in the app's Settings → Privacy. The rest of this policy applies as it does on Android.</p>
 
 <h2 id="website">13. This website</h2>
-<p>podcast-25c93.web.app does not use cookies and does not run analytics or advertising tools. The hosting provider (Google Firebase Hosting) may keep technical access logs, such as IP address and browser, to operate and protect the service.</p>
+<p>tspodcast.web.app and podcast-25c93.web.app do not use cookies and do not run analytics or advertising tools. Your theme choice (light/dark) and a dismissed app banner are stored only in your browser. The hosting provider (Google Firebase Hosting) may keep technical access logs, such as IP address and browser, to operate and protect the service.</p>
 
 <h2 id="changes">14. Changes to this policy</h2>
 <p>When this policy changes we update this page and the effective date at the top. If a change significantly affects your rights, we will tell you in the app or on the Google Play listing and ask for consent again where needed.</p>

@@ -27,6 +27,18 @@ export function Footer({ aiEnabled }: { aiEnabled: boolean }) {
               {t.nav.search}
             </Link>
           )}
+          <Link href="/privacy" className="hover:text-primary">
+            Chính sách quyền riêng tư
+          </Link>
+          <Link href="/terms" className="hover:text-primary">
+            Điều khoản sử dụng
+          </Link>
+          <Link href="/delete-data" className="hover:text-primary">
+            Xoá dữ liệu
+          </Link>
+          <a href="mailto:admin@tuandv.me" className="hover:text-primary">
+            Liên hệ hỗ trợ
+          </a>
           <a href={playStoreUrl({ medium: "footer" })} rel="noopener" target="_blank" className="hover:text-primary">
             {t.app.getApp} (Android)
           </a>

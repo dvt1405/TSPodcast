@@ -56,7 +56,7 @@
     <header class="doc-head">
       <nav class="crumbs" aria-label="Đường dẫn"><ol><li><a href="/">Trang chủ</a></li><li aria-current="page">Chính sách quyền riêng tư</li></ol></nav>
 <h1>Chính sách quyền riêng tư của TSPodcast</h1>
-<p class="meta">Có hiệu lực từ ngày 01/11/2026. Áp dụng cho ứng dụng TSPodcast trên Android và iOS và cho trang web này.</p>
+<p class="meta">Có hiệu lực từ ngày 14/11/2026. Áp dụng cho ứng dụng TSPodcast trên Android và iOS và cho trang web này.</p>
 <p><a class="lang-switch" href="/en/privacy" hreflang="en" lang="en">Read in English</a></p>
     </header>
     <aside class="doc-toc">
@@ -69,7 +69,8 @@
     <li>TSPodcast không có tài khoản. Chúng tôi không hỏi tên, email hay số điện thoại của bạn.</li>
     <li>Danh sách yêu thích, lịch sử nghe, vị trí đang nghe và các tuỳ chọn được lưu ngay trên máy của bạn.</li>
     <li>Thống kê sử dụng (Firebase Analytics) và báo lỗi (Firebase Crashlytics) chỉ bật khi bạn đồng ý ở lần mở app đầu tiên. Bạn tắt được bất cứ lúc nào trong Cài đặt.</li>
-    <li>Ứng dụng Android có hiển thị quảng cáo qua Google Mobile Ads SDK (AdMob). SDK này có thể xử lý ID quảng cáo, địa chỉ IP và thông tin thiết bị.</li>
+    <li>Ứng dụng trên Android và iOS có hiển thị quảng cáo qua Google Mobile Ads SDK (AdMob). SDK này có thể xử lý ID quảng cáo, địa chỉ IP và thông tin thiết bị. Trên iOS, ID quảng cáo (IDFA) chỉ được dùng khi bạn cho phép ở hộp thoại "Cho phép theo dõi".</li>
+    <li>Gói Premium (bỏ quảng cáo) được thanh toán qua Google Play hoặc App Store. Chúng tôi không nhận thông tin thẻ hay tài khoản thanh toán của bạn.</li>
     <li>Khi bạn tìm kiếm hoặc nghe, yêu cầu được gửi tới Podcast Index, máy chủ của nhà sản xuất chương trình hoặc của đài phát thanh.</li>
     <li>Chúng tôi không bán dữ liệu của bạn.</li>
   </ul>
@@ -109,14 +110,14 @@
 <p>Tìm hiểu thêm: <a href="https://firebase.google.com/support/privacy">Quyền riêng tư và bảo mật trong Firebase</a>.</p>
 
 <h3 id="quang-cao">3.2. Quảng cáo: Google Mobile Ads SDK (AdMob) và Google User Messaging Platform (UMP)</h3>
-<p>Ứng dụng Android hiển thị quảng cáo của Google thông qua Google Mobile Ads SDK. Để hiển thị, đo lường quảng cáo và chống gian lận, SDK này và Google UMP có thể xử lý:</p>
+<p>Ứng dụng trên Android và iOS hiển thị quảng cáo của Google thông qua Google Mobile Ads SDK. Để hiển thị, đo lường quảng cáo và chống gian lận, SDK này và Google UMP có thể xử lý:</p>
 <ul>
-  <li>ID quảng cáo của Android (Advertising ID);</li>
+  <li>ID quảng cáo của Android (Advertising ID), hoặc ID quảng cáo của iOS (IDFA) nếu bạn cho phép theo dõi;</li>
   <li>địa chỉ IP và vị trí gần đúng suy ra từ IP;</li>
   <li>thông tin thiết bị (model, hệ điều hành, ngôn ngữ, nhà mạng) và tương tác với quảng cáo;</li>
   <li>lựa chọn đồng ý của bạn.</li>
 </ul>
-<p>Ở những khu vực có yêu cầu, ứng dụng hiển thị biểu mẫu đồng ý của Google UMP trước khi tải quảng cáo. Bạn có thể đổi lựa chọn qua mục <strong>"Tùy chọn quyền riêng tư và quảng cáo"</strong> trong ứng dụng. Bạn cũng có thể đặt lại hoặc xoá ID quảng cáo trong Cài đặt Android (Cài đặt → Quyền riêng tư → Quảng cáo, tên mục có thể khác tuỳ máy).</p>
+<p>Ở những khu vực có yêu cầu, ứng dụng hiển thị biểu mẫu đồng ý của Google UMP trước khi tải quảng cáo. Bạn có thể đổi lựa chọn qua mục <strong>"Tùy chọn quyền riêng tư và quảng cáo"</strong> trong ứng dụng. Bạn cũng có thể đặt lại hoặc xoá ID quảng cáo trong Cài đặt Android (Cài đặt → Quyền riêng tư → Quảng cáo, tên mục có thể khác tuỳ máy). Trên iOS, ứng dụng hỏi quyền theo dõi qua hộp thoại App Tracking Transparency sau biểu mẫu UMP; nếu bạn không cho phép, IDFA không được dùng và quảng cáo vẫn hiển thị nhưng không cá nhân hoá theo dữ liệu từ app khác. Bạn đổi lựa chọn trong Cài đặt iOS → Quyền riêng tư &amp; Bảo mật → Theo dõi.</p>
 <p>Google xử lý dữ liệu này theo <a href="https://policies.google.com/privacy">Chính sách quyền riêng tư của Google</a>. Xem thêm <a href="https://policies.google.com/technologies/partner-sites">Cách Google sử dụng thông tin từ các trang web hoặc ứng dụng sử dụng dịch vụ của Google</a>.</p>
 
 <h3 id="noi-dung">3.3. Máy chủ nội dung của bên thứ ba</h3>
@@ -130,6 +131,9 @@
 <h3 id="email">3.4. Email bạn gửi cho chúng tôi</h3>
 <p>Nếu bạn gửi góp ý, báo lỗi hoặc báo cáo nội dung qua email, chúng tôi nhận địa chỉ email và những gì bạn viết. Chúng tôi chỉ dùng chúng để trả lời và xử lý yêu cầu của bạn.</p>
 
+<h3 id="mua-trong-app">3.5. Mua trong ứng dụng (Premium)</h3>
+<p>Gói Premium (bỏ quảng cáo) được bán qua Google Play Billing trên Android và qua App Store (StoreKit) trên iOS. Google hoặc Apple xử lý thanh toán theo chính sách riêng của họ; chúng tôi không nhận số thẻ, tên hay email thanh toán. Ứng dụng chỉ nhận trạng thái giao dịch (mã sản phẩm, mã giao dịch, thời hạn gói) để mở khoá Premium và lưu trạng thái này trên máy. Nếu bạn đã đồng ý thống kê, Firebase Analytics ghi nhận sự kiện mua (tên gói, không có thông tin thanh toán).</p>
+
 <h2 id="muc-dich">4. Mục đích và căn cứ xử lý</h2>
 <div class="table-wrap">
 <table>
@@ -139,7 +143,7 @@
     <tr><td>Lọc nội dung rác, cờ bạc và nội dung bị báo cáo; bật/tắt tính năng</td><td>Firebase Remote Config</td><td>Lợi ích chính đáng trong việc giữ ứng dụng an toàn và hoạt động ổn định</td></tr>
     <tr><td>Hiểu cách app được dùng để cải thiện</td><td>Firebase Analytics</td><td>Sự đồng ý của bạn</td></tr>
     <tr><td>Phát hiện và sửa lỗi</td><td>Firebase Crashlytics</td><td>Sự đồng ý của bạn</td></tr>
-    <tr><td>Hiển thị và đo lường quảng cáo, chống gian lận</td><td>Google Mobile Ads SDK, UMP</td><td>Sự đồng ý của bạn (qua biểu mẫu UMP hoặc cài đặt ID quảng cáo của Android)</td></tr>
+    <tr><td>Hiển thị và đo lường quảng cáo, chống gian lận</td><td>Google Mobile Ads SDK, UMP</td><td>Sự đồng ý của bạn (qua biểu mẫu UMP, cài đặt ID quảng cáo của Android, hoặc lựa chọn "Cho phép theo dõi" trên iOS)</td></tr>
     <tr><td>Gửi thông báo về podcast mới</td><td>Firebase Cloud Messaging</td><td>Sự đồng ý của bạn khi cho phép thông báo</td></tr>
     <tr><td>Trả lời góp ý, xử lý báo cáo và yêu cầu gỡ nội dung</td><td>Email bạn gửi</td><td>Yêu cầu của bạn</td></tr>
   </tbody>
@@ -181,7 +185,7 @@
 <p><strong>Cách thực hiện:</strong></p>
 <ul>
   <li>Rút đồng ý thống kê và báo lỗi: tắt trong <strong>Cài đặt</strong> của ứng dụng.</li>
-  <li>Đổi lựa chọn quảng cáo: mục <strong>"Tùy chọn quyền riêng tư và quảng cáo"</strong> trong ứng dụng, hoặc đặt lại/xoá ID quảng cáo trong Cài đặt Android.</li>
+  <li>Đổi lựa chọn quảng cáo: mục <strong>"Tùy chọn quyền riêng tư và quảng cáo"</strong> trong ứng dụng, hoặc đặt lại/xoá ID quảng cáo trong Cài đặt Android; trên iOS, bật/tắt quyền theo dõi trong Cài đặt → Quyền riêng tư &amp; Bảo mật → Theo dõi.</li>
   <li>Tắt thông báo: trong Cài đặt Android → Ứng dụng → TSPodcast → Thông báo.</li>
   <li>Các yêu cầu khác: gửi email tới <a href="mailto:admin@tuandv.me">admin@tuandv.me</a>. Chúng tôi trả lời trong thời hạn pháp luật quy định. Vì ứng dụng không có tài khoản, chúng tôi có thể cần bạn cung cấp thêm thông tin (xem mục 11) để tìm đúng dữ liệu.</li>
 </ul>
@@ -197,10 +201,10 @@
 <p>Hướng dẫn chi tiết: <a href="/delete-data">trang Xoá dữ liệu</a>.</p>
 
 <h2 id="ios">12. Ứng dụng iOS</h2>
-<p>Khi được phát hành, ứng dụng TSPodcast trên iOS không chứa SDK quảng cáo. Thống kê sử dụng và báo lỗi trên iOS chỉ bật khi bạn đồng ý và tắt được trong Cài đặt → Quyền riêng tư của ứng dụng. Các mục khác của chính sách này áp dụng như với Android.</p>
+<p>Ứng dụng TSPodcast trên iOS hiển thị quảng cáo qua Google Mobile Ads SDK như mô tả ở mục 3.2: biểu mẫu Google UMP (ở khu vực có yêu cầu), sau đó là hộp thoại App Tracking Transparency của Apple. IDFA chỉ được dùng khi bạn chọn "Cho phép". Thống kê sử dụng và báo lỗi trên iOS chỉ bật khi bạn đồng ý và tắt được trong Cài đặt → Quyền riêng tư của ứng dụng. Các mục khác của chính sách này áp dụng như với Android.</p>
 
 <h2 id="trang-web">13. Trang web này</h2>
-<p>Trang podcast-25c93.web.app không dùng cookie, không chạy công cụ thống kê hay quảng cáo. Nhà cung cấp hosting (Google Firebase Hosting) có thể ghi nhật ký truy cập kỹ thuật như địa chỉ IP và trình duyệt để vận hành và bảo vệ dịch vụ.</p>
+<p>Các trang tspodcast.web.app và podcast-25c93.web.app không dùng cookie, không chạy công cụ thống kê hay quảng cáo. Tuỳ chọn giao diện (sáng/tối) và việc ẩn banner cài app chỉ được lưu trong trình duyệt của bạn. Nhà cung cấp hosting (Google Firebase Hosting) có thể ghi nhật ký truy cập kỹ thuật như địa chỉ IP và trình duyệt để vận hành và bảo vệ dịch vụ.</p>
 
 <h2 id="thay-doi">14. Thay đổi chính sách</h2>
 <p>Khi chính sách thay đổi, chúng tôi cập nhật trang này và ngày hiệu lực ở đầu trang. Nếu thay đổi làm ảnh hưởng đáng kể tới quyền của bạn, chúng tôi sẽ thông báo trong ứng dụng hoặc trên trang Google Play và hỏi lại sự đồng ý khi cần.</p>
