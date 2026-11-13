@@ -2,7 +2,7 @@ TSPodcast is a podcast player focused on Vietnamese listeners. No account or log
 
 Content source: podcast metadata comes from the Podcast Index API (podcastindex.org), used under its terms of service (attribution shown at the bottom of the Discover tab; cached data expires after 7 days). Audio is streamed directly from each publisher's public RSS enclosure URL. We do not host, modify, or re-encode any audio. The "Music library" row lists RSS feeds that artists publish themselves using the podcast:medium=music tag.
 
-Content safety: spam and gambling feeds are filtered with a remotely-updated blocklist, and explicit episodes are hidden by default (Settings > Content). Rights holders can request removal through https://tioshome.web.app; removals are applied server-side without an app update.
+Content safety: spam and gambling feeds are filtered with a remotely-updated blocklist, and explicit episodes are hidden by default (Settings > Content). Rights holders can request removal through https://podcast-25c93.web.app; removals are applied server-side without an app update.
 
 Background audio: used only to continue playback of the podcast the user started (Lock Screen / Control Center controls).
 
