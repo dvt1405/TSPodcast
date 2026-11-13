@@ -77,9 +77,42 @@ final class FakeHomeDataSource: HomeDataSource, @unchecked Sendable {
         return lock.withLock { _recent }
     }
 
-    private func enter(_ loader: HomeModel.Loader) async {
+    // MARK: Locations (counted apart from `allCalls`)
+
+    private var _byLocation: [String: Result<[PodcastCard], HomeLoadError>] = [:]
+    private var _newsByLocation: [String: [NewsItem]] = [:]
+    private var _locationCalls: [String] = []
+
+    func setPodcasts(_ result: Result<[PodcastCard], HomeLoadError>, in region: String) {
+        lock.withLock { _byLocation[region] = result }
+    }
+
+    func setNews(_ items: [NewsItem], in region: String) {
+        lock.withLock { _newsByLocation[region] = items }
+    }
+
+    /// `podcasts.<region>[.force]` and `news.<region>[.force]`, in call order.
+    var locationCalls: [String] { lock.withLock { _locationCalls } }
+
+    func podcasts(in location: PodcastLocationItem, force: Bool) async -> Result<[PodcastCard], HomeLoadError> {
+        await enter(.locations, counted: false)
+        return lock.withLock {
+            _locationCalls.append("podcasts.\(location.region)\(force ? ".force" : "")")
+            return _byLocation[location.region] ?? .success([.sample(100)])
+        }
+    }
+
+    func news(in location: PodcastLocationItem, force: Bool) async -> [NewsItem] {
+        await enter(.locations, counted: false)
+        return lock.withLock {
+            _locationCalls.append("news.\(location.region)\(force ? ".force" : "")")
+            return _newsByLocation[location.region] ?? []
+        }
+    }
+
+    private func enter(_ loader: HomeModel.Loader, counted: Bool = true) async {
         let mustWait = lock.withLock {
-            _calls[loader, default: 0] += 1
+            if counted { _calls[loader, default: 0] += 1 }
             return held.contains(loader)
         }
         guard mustWait else { return }

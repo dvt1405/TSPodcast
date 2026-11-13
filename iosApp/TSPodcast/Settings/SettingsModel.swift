@@ -41,7 +41,7 @@ final class SettingsModel {
     let version: String
     /// Name of the app language on the "Ngôn ngữ" row. `Bundle.main.preferredLocalizations` is the
     /// per-app language of iOS Settings → TSPodcast → Language (iOS relaunches the app when it
-    /// changes); shared `ContentLanguage` follows it for the podcast lists.
+    /// changes). Which podcasts are listed follows the podcast locations, not this language.
     let languageName: String
 
     @ObservationIgnored private let explicit: any ExplicitContentPreference

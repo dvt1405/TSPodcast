@@ -11,11 +11,13 @@ struct CategoryPodcastsDestination: View {
     }
 }
 
-/// Podcasts trending in one category (features-spec §3.9 [Sửa]), titled with the category name.
+/// Podcasts trending in one category (features-spec §3.9 [Sửa]), titled with the category name,
+/// under "Thịnh hành tại 🇻🇳 Việt Nam" (the primary podcast location).
 /// A tap opens Podcast detail on the Search stack (the `PodcastRoute` destination of
 /// `SearchView`).
 struct CategoryPodcastsView: View {
     @State private var model: CategoryPodcastsModel
+    @Environment(\.locale) private var locale
 
     init(model: CategoryPodcastsModel) {
         _model = State(initialValue: model)
@@ -25,6 +27,15 @@ struct CategoryPodcastsView: View {
         ScrollView {
             // The id sits on the content, not on the scroll view (see `HomeView`).
             VStack(spacing: 0) {
+                if let location = model.location {
+                    Text("search.category.trendingIn \(location.flagAndName(in: locale))")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .accessibilityIdentifier("categoryPodcasts.location")
+                }
                 content
             }
             .padding(.bottom, 24)

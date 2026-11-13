@@ -7,8 +7,8 @@ struct CategoryPodcastsRoute: Hashable, Sendable {
     let category: CategoryItem
 }
 
-/// Podcasts trending in one category (features-spec §3.9 [Sửa]: Android loads the E9 categories
-/// on Search but never shows them). E1 with `cat=<id>` through shared `SearchFeed`, with its own
+/// Podcasts trending in one category in the primary podcast location (Android topic page,
+/// `SearchViewModel.selectCategory`). E1 with `cat=<id>` through shared `SearchFeed`, with its own
 /// loading, empty and failed states and "Tải lại".
 @MainActor
 @Observable
@@ -24,14 +24,20 @@ final class CategoryPodcastsModel {
     private(set) var state: State = .loading
 
     @ObservationIgnored private let dataSource: any SearchDataSource
+    @ObservationIgnored private let locations: PodcastLocationsModel?
     @ObservationIgnored private var hasStarted = false
     /// Latest request; an older result that arrives late is dropped.
     @ObservationIgnored private var latestRequest = 0
 
-    init(category: CategoryItem, dataSource: any SearchDataSource) {
+    init(category: CategoryItem, dataSource: any SearchDataSource, locations: PodcastLocationsModel? = nil) {
         self.category = category
         self.dataSource = dataSource
+        self.locations = locations
     }
+
+    /// The primary podcast location the list is trending in: "Thịnh hành tại 🇻🇳 Việt Nam"
+    /// (Android `SelectedCategoryHeader`); nil without locations.
+    var location: PodcastLocationItem? { locations?.primary }
 
     /// First load, once per pushed screen (`.task` runs again when the view reappears).
     func loadIfNeeded() async {
@@ -50,6 +56,7 @@ final class CategoryPodcastsModel {
         latestRequest += 1
         let request = latestRequest
         state = .loading
+        await locations?.load()
         let result = await dataSource.categoryPodcasts(categoryId: category.id)
         guard request == latestRequest else { return }
         switch result {

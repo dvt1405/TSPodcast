@@ -70,6 +70,32 @@ final class HomeFeedDataSource: HomeDataSource, @unchecked Sendable {
         }
     }
 
+    func podcasts(in location: PodcastLocationItem, force: Bool) async -> Result<[PodcastCard], HomeLoadError> {
+        await waitIfSlow()
+        let section = "location_\(location.region)"
+        guard let shared = PodcastLocations.shared.byRegion(region: location.region) else {
+            return .failure(HomeLoadError(reason: "UnknownLocation"))
+        }
+        do {
+            return Self.podcasts(try await feed.byLocation(location: shared, force: force), section: section)
+        } catch {
+            return .failure(Self.thrown(error, section: section))
+        }
+    }
+
+    func news(in location: PodcastLocationItem, force: Bool) async -> [NewsItem] {
+        await waitIfSlow()
+        guard let shared = PodcastLocations.shared.byRegion(region: location.region) else { return [] }
+        do {
+            let items = try await feed.locationNews(location: shared, force: force).map(NewsItem.init)
+            AppLog.app.notice("home_location_news region=\(location.region, privacy: .public) count=\(items.count, privacy: .public)")
+            return items
+        } catch {
+            _ = Self.thrown(error, section: "news_\(location.region)")
+            return []
+        }
+    }
+
     // MARK: - Mapping
 
     private func waitIfSlow() async {

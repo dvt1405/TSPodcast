@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Settings sheet, opened from the gear of the Discover tab (`settings.open`): Premium (paywall or
-/// its status), notifications, explicit content, hidden shows (M6), app language, privacy choices
+/// its status), notifications, explicit content, hidden shows (M6), podcast locations, app language, privacy choices
 /// (M6, + the UMP ad privacy options when required), privacy policy and version.
 struct SettingsView: View {
     @State var model: SettingsModel
@@ -34,6 +34,23 @@ struct SettingsView: View {
                     }
                     .accessibilityIdentifier("settings.hiddenShows")
                 }
+
+                // "Vị trí podcast" (Android Settings): the locations Home and Search follow.
+                Section {
+                    NavigationLink {
+                        PodcastLocationView(model: environment.podcastLocations)
+                    } label: {
+                        LabeledContent {
+                            Text(verbatim: environment.podcastLocations.locations.map(\.flag).joined(separator: " "))
+                        } label: {
+                            Text("settings.podcastLocation")
+                        }
+                    }
+                    .accessibilityIdentifier("settings.podcastLocation")
+                } footer: {
+                    Text("settings.podcastLocation.hint")
+                }
+                .task { await environment.podcastLocations.load() }
 
                 // The app language is the per-app language of iOS Settings (shown there because the
                 // app ships 15 localizations): the row opens the app's page in Settings.
