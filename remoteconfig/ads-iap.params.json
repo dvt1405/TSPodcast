@@ -1,0 +1,213 @@
+{
+  "conditions": [
+    {
+      "name": "platform_ios",
+      "expression": "device.os == 'ios'",
+      "tagColor": "BLUE"
+    }
+  ],
+  "parameterGroups": {
+    "Ads": {
+      "description": "AdMob: kill switch, unit id theo nền tảng, vị trí, tần suất. Android đọc ở ads/AdsConfig.kt (AdsKeys). Xem remoteconfig/README.md.",
+      "parameters": {
+        "ads_enabled": {
+          "defaultValue": {
+            "value": "true"
+          },
+          "description": "Kill switch toàn bộ quảng cáo (Android + iOS). Mặc định bật; người dùng Premium không bao giờ thấy quảng cáo.",
+          "valueType": "BOOLEAN"
+        },
+        "ads_unit_ids": {
+          "defaultValue": {
+            "value": "{}"
+          },
+          "conditionalValues": {
+            "platform_ios": {
+              "value": "{\"app_open_warm\":\"ca-app-pub-8696388065064767/9264415720\",\"app_open_cold\":\"ca-app-pub-8696388065064767/9264415720\",\"discover_inline\":\"ca-app-pub-8696388065064767/2538245333\",\"podcast_detail_episodes\":\"ca-app-pub-8696388065064767/2538245333\",\"discover_fav_inline\":\"ca-app-pub-8696388065064767/5141512895\",\"favourite_top\":\"ca-app-pub-8696388065064767/5141512895\",\"player_episode_list\":\"ca-app-pub-8696388065064767/5141512895\",\"podcast_detail_header\":\"ca-app-pub-8696388065064767/5141512895\",\"search_results\":\"ca-app-pub-8696388065064767/5141512895\",\"discover_collapsible\":\"ca-app-pub-8696388065064767/5141512895\",\"interstitial_nav\":\"ca-app-pub-8696388065064767/4518696367\",\"rewarded_ad_free\":\"ca-app-pub-8696388065064767/8512626743\",\"rewarded_interstitial\":\"ca-app-pub-8696388065064767/2729817023\"}"
+            }
+          },
+          "description": "Unit id theo placement (chỉ bản release đọc). Android {} = dùng id build-time (GitHub secrets). iOS: unit của app ca-app-pub-8696388065064767~2921388712.",
+          "valueType": "JSON"
+        },
+        "ads_placements_enabled": {
+          "defaultValue": {
+            "value": "{\"favourite_top\":true,\"podcast_detail_header\":true,\"podcast_detail_episodes\":true,\"discover_inline\":true,\"search_results\":true,\"discover_fav_inline\":false,\"player_episode_list\":false,\"discover_collapsible\":false,\"interstitial_nav\":true,\"rewarded_ad_free\":false,\"app_open_warm\":true,\"app_open_cold\":false}"
+          },
+          "description": "Bật/tắt từng placement (key = AdPlacement.key). Key thiếu thì giữ default trong app.",
+          "valueType": "JSON"
+        },
+        "ads_grace_period_hours": {
+          "defaultValue": {
+            "value": "24"
+          },
+          "description": "Không hiện quảng cáo trong N giờ đầu sau khi cài.",
+          "valueType": "NUMBER"
+        },
+        "ads_app_open_min_background_sec": {
+          "defaultValue": {
+            "value": "30"
+          },
+          "description": "App Open chỉ hiện khi app đã ở nền ít nhất N giây.",
+          "valueType": "NUMBER"
+        },
+        "ads_app_open_min_interval_min": {
+          "defaultValue": {
+            "value": "60"
+          },
+          "description": "Khoảng cách tối thiểu giữa hai lần App Open (phút).",
+          "valueType": "NUMBER"
+        },
+        "ads_app_open_daily_cap": {
+          "defaultValue": {
+            "value": "3"
+          },
+          "description": "Số App Open tối đa mỗi ngày.",
+          "valueType": "NUMBER"
+        },
+        "ads_app_open_skip_first_sessions": {
+          "defaultValue": {
+            "value": "2"
+          },
+          "description": "Bỏ qua App Open ở N phiên đầu tiên.",
+          "valueType": "NUMBER"
+        },
+        "ads_min_gap_fullscreen_sec": {
+          "defaultValue": {
+            "value": "90"
+          },
+          "description": "Khoảng cách tối thiểu giữa hai quảng cáo toàn màn hình bất kỳ (giây).",
+          "valueType": "NUMBER"
+        },
+        "ads_interstitial_every_n": {
+          "defaultValue": {
+            "value": "3"
+          },
+          "description": "Interstitial sau mỗi N lần rời màn show.",
+          "valueType": "NUMBER"
+        },
+        "ads_interstitial_min_interval_sec": {
+          "defaultValue": {
+            "value": "240"
+          },
+          "description": "Khoảng cách tối thiểu giữa hai interstitial (giây).",
+          "valueType": "NUMBER"
+        },
+        "ads_interstitial_session_cap": {
+          "defaultValue": {
+            "value": "2"
+          },
+          "description": "Số interstitial tối đa mỗi phiên.",
+          "valueType": "NUMBER"
+        },
+        "ads_interstitial_daily_cap": {
+          "defaultValue": {
+            "value": "4"
+          },
+          "description": "Số interstitial tối đa mỗi ngày.",
+          "valueType": "NUMBER"
+        },
+        "ads_interstitial_min_dwell_sec": {
+          "defaultValue": {
+            "value": "20"
+          },
+          "description": "Người dùng phải ở màn đang rời ít nhất N giây mới hiện interstitial.",
+          "valueType": "NUMBER"
+        },
+        "ads_interstitial_after_playback_sec": {
+          "defaultValue": {
+            "value": "60"
+          },
+          "description": "Không hiện interstitial trong N giây sau khi audio dừng.",
+          "valueType": "NUMBER"
+        },
+        "ads_native_first_index": {
+          "defaultValue": {
+            "value": "3"
+          },
+          "description": "Vị trí native đầu tiên trong danh sách (>= 1).",
+          "valueType": "NUMBER"
+        },
+        "ads_native_interval": {
+          "defaultValue": {
+            "value": "8"
+          },
+          "description": "Khoảng cách giữa hai native trong danh sách (>= 1).",
+          "valueType": "NUMBER"
+        },
+        "ads_native_max_per_list": {
+          "defaultValue": {
+            "value": "3"
+          },
+          "description": "Số native tối đa trong một danh sách.",
+          "valueType": "NUMBER"
+        },
+        "ads_native_template": {
+          "defaultValue": {
+            "value": "small"
+          },
+          "description": "Mẫu native: small | medium.",
+          "valueType": "STRING"
+        },
+        "ads_rewarded_ad_free_minutes": {
+          "defaultValue": {
+            "value": "120"
+          },
+          "description": "Số phút không quảng cáo sau khi xem rewarded.",
+          "valueType": "NUMBER"
+        },
+        "ads_rewarded_daily_cap": {
+          "defaultValue": {
+            "value": "3"
+          },
+          "description": "Số rewarded tối đa mỗi ngày.",
+          "valueType": "NUMBER"
+        },
+        "ads_min_app_version": {
+          "defaultValue": {
+            "value": "0"
+          },
+          "description": "Tắt quảng cáo trên bản có versionCode (Android) / build (iOS) nhỏ hơn giá trị này.",
+          "valueType": "NUMBER"
+        },
+        "ads_ga4_ad_impression": {
+          "defaultValue": {
+            "value": "true"
+          },
+          "description": "Log GA4 ad_impression từ paid event. Tắt nếu liên kết AdMob-Firebase đã tự log (tránh đếm doanh thu 2 lần).",
+          "valueType": "BOOLEAN"
+        }
+      }
+    },
+    "IAP": {
+      "description": "Gói mua trong app: Play Billing (Android), StoreKit 2 (iOS). Xem remoteconfig/README.md.",
+      "parameters": {
+        "iap_enabled": {
+          "defaultValue": {
+            "value": "false"
+          },
+          "description": "Bật paywall / mua trong app trên cả 2 nền tảng. Đang false (2026-11-13): chờ Apple duyệt Paid Apps Agreement. Quyền Premium đã mua vẫn giữ.",
+          "valueType": "BOOLEAN"
+        },
+        "iap_default_product": {
+          "defaultValue": {
+            "value": "premium_yearly"
+          },
+          "description": "id (không phải store_product_id) của gói được chọn sẵn trên paywall.",
+          "valueType": "STRING"
+        },
+        "iap_products": {
+          "defaultValue": {
+            "value": "{\"version\":1,\"products\":[{\"id\":\"premium_monthly\",\"type\":\"subscription\",\"store_product_id\":\"premium\",\"base_plan_id\":\"monthly\",\"period\":\"P1M\",\"benefits\":[\"ad_free\"],\"badge\":null,\"order\":1},{\"id\":\"premium_yearly\",\"type\":\"subscription\",\"store_product_id\":\"premium\",\"base_plan_id\":\"yearly\",\"period\":\"P1Y\",\"benefits\":[\"ad_free\"],\"badge\":\"best_value\",\"order\":2},{\"id\":\"remove_ads_lifetime\",\"type\":\"one_time\",\"store_product_id\":\"remove_ads_lifetime\",\"benefits\":[\"ad_free\"],\"badge\":null,\"order\":3}]}"
+          },
+          "conditionalValues": {
+            "platform_ios": {
+              "value": "{\"version\":1,\"products\":[{\"id\":\"premium_monthly\",\"type\":\"subscription\",\"store_product_id\":\"tss.t.podcast.premium.monthly\",\"subscription_group\":\"premium\",\"period\":\"P1M\",\"benefits\":[\"ad_free\"],\"badge\":null,\"order\":1},{\"id\":\"premium_yearly\",\"type\":\"subscription\",\"store_product_id\":\"tss.t.podcast.premium.yearly\",\"subscription_group\":\"premium\",\"period\":\"P1Y\",\"benefits\":[\"ad_free\"],\"badge\":\"best_value\",\"order\":2},{\"id\":\"remove_ads_lifetime\",\"type\":\"one_time\",\"store_product_id\":\"tss.t.podcast.remove_ads.lifetime\",\"benefits\":[\"ad_free\"],\"badge\":null,\"order\":3}]}"
+            }
+          },
+          "description": "Danh sách gói. Giá, chu kỳ và dùng thử lấy từ store (không ghi ở đây). Android: product + base plan (Play Console); iOS: product id (App Store Connect).",
+          "valueType": "JSON"
+        }
+      }
+    }
+  }
+}
