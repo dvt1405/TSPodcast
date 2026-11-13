@@ -116,9 +116,10 @@ final class AppEnvironment {
         self.monetization = monetization
         let store = StoreModel(config: monetization, analytics: PurchaseAnalytics(tracker: analytics))
         self.store = store
-        let ads = AdsController(config: monetization, analytics: AdsAnalytics(tracker: analytics), isPremium: store.isPremium)
+        let noAds = launchOptions.noAds
+        let ads = AdsController(config: monetization, analytics: AdsAnalytics(tracker: analytics), isPremium: store.isPremium || noAds)
         self.ads = ads
-        store.onPremiumChange = { [weak ads] premium in ads?.setPremium(premium) }
+        store.onPremiumChange = { [weak ads] premium in ads?.setPremium(premium || noAds) }
         let installId = graph.installId
         let crash = crashReporter ?? services.crashReporter
         consent = ConsentController(
