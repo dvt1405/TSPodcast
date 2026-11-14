@@ -1,5 +1,6 @@
 # Kế hoạch: đưa website `web/` lên VPS (bản đầy đủ: search, AI, ISR)
 
+> **Cập nhật 2026-11-14:** owner bỏ web nghe trực tuyến; `web/` và `deploy-web.yml` đã xoá (PR #72). `tspodcast.web.app` chỉ còn landing `site/`.
 > **Trạng thái: Đang làm** (2026-11-01) — đã xong phần code: image Docker, Caddy, compose, workflow `deploy-web.yml`, [hướng dẫn deploy](../../done/deploy/README.md) (PR #32); bản tĩnh Firebase Hosting (PR #26).
 > Còn lại: thuê VPS, tên miền, secrets `VPS_*`, deploy thật. Web nghe hiện chạy trên Vercel.
 
