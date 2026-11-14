@@ -54,7 +54,9 @@ import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import tss.t.coreapi.models.EpisodeResponse
 import tss.t.coreapi.models.TrendingPodcastRes
+import tss.t.podcast.ui.screens.player.widgets.PlayerAdUi
 import tss.t.podcast.ui.screens.player.widgets.PlayerArea
+import tss.t.podcast.ui.screens.player.widgets.rememberPlayerAdUi
 import tss.t.podcast.ui.screens.player.widgets.SlideArea
 import tss.t.podcast.ui.screens.player.widgets.SlideAreaState
 import tss.t.sharedplayer.player.PlaybackExtrasState
@@ -73,8 +75,24 @@ fun PlayerScreen(
         mutableStateOf(SlideAreaState.Hidden)
     }
     val coroutineScope = rememberCoroutineScope()
+    val hasError = playerControlUIState.exception != null
+    val playerAds = viewmodel.playerAds
+    val adUi = rememberPlayerAdUi(
+        ads = playerAds,
+        mediaId = episode.mediaId,
+        upNextExpanded = slideState == SlideAreaState.Expanded,
+        hasError = hasError,
+        isLive = extras.isLive,
+    )
+    val withAdRows = remember(adUi.context) {
+        { list: List<MediaItem>, open: Boolean ->
+            playerAds.upNextRows(list, adUi.context.copy(upNextExpanded = open))
+        }
+    }
     PlayerScreen(
         episode = episode,
+        adUi = adUi,
+        withAdRows = withAdRows,
         isPlaying = playerControlUIState.isPlaying,
         slideState = slideState,
         currentPosition = playerControlUIState.currentDuration,
@@ -84,7 +102,7 @@ fun PlayerScreen(
             playerControlUIState.currentProgress
         },
         extras = extras,
-        hasError = playerControlUIState.exception != null,
+        hasError = hasError,
         onFavourite = {
             viewmodel.onFavouriteChanged(it)
         },
@@ -151,6 +169,8 @@ internal fun PlayerScreen(
     onDismissSlideArea: () -> Unit = {},
     isEpisodeFavourite: Boolean = false,
     onSlideStateChanged: (SlideAreaState) -> Unit = {},
+    adUi: PlayerAdUi = PlayerAdUi(),
+    withAdRows: (List<MediaItem>, Boolean) -> List<Any> = { list, _ -> list },
 ) {
     var dragDelta by remember {
         mutableFloatStateOf(0f)
@@ -282,7 +302,8 @@ internal fun PlayerScreen(
             onSeek = onSeek,
             onPlayerSizeChanged = {
                 playerArea  = it.coerceAtLeast(playerArea)
-            }
+            },
+            ads = adUi,
         )
         SlideArea(
             playList = playList,
@@ -293,7 +314,8 @@ internal fun PlayerScreen(
             state = slideState,
             onStateChanged = onSlideStateChanged,
             fling = fling,
-            playerAreaHeight = playerArea
+            playerAreaHeight = playerArea,
+            withAdRows = withAdRows,
         )
     }
 }

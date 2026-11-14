@@ -28,6 +28,32 @@ data class TriggerContext(
     val sincePlaybackMs: Long? = null,
 )
 
+/**
+ * Facts about the Player when one of its placements would show (Android `PlayerAdContext`,
+ * docs/in-progress/plans/player-ads-and-premium.md §3.5).
+ */
+data class PlayerAdContext(
+    val canRequestAds: Boolean,
+    /** Height of the window the Player is drawn in (pt). */
+    val windowHeightDp: Int,
+    /** iPhone landscape (compact vertical size class). */
+    val isCompactHeight: Boolean = false,
+    /** Accessibility text size (AX1+) or VoiceOver is on. */
+    val isAccessibilityMode: Boolean = false,
+    /** The Player shows its playback error. */
+    val hasPlaybackError: Boolean = false,
+    /** The Up next sheet is fully open (not the peek, not mid-drag). */
+    val upNextExpanded: Boolean = false,
+    val isLive: Boolean = false,
+    /**
+     * `player_pause`: how long the user's own pause has lasted while the Player was shown, or
+     * null when not paused by the user (playing, buffering, sleep timer, interruption, error).
+     */
+    val manualPauseMs: Long? = null,
+    /** `player_pause`: the card is already up for this pause (cap and gap were checked then). */
+    val pauseCardShowing: Boolean = false,
+)
+
 /** Persistent counters behind the caps. iOS: `UserDefaultsAdCounterStore` (main thread). */
 interface AdCounterStore {
     /** First time the ad layer ran on this install (stored on the first call). */
@@ -143,6 +169,49 @@ class AdPolicy(
         commonBlock(placement, settings, canRequestAds, clock.nowMillis())
             ?.let { Decision.Block(it) } ?: Decision.Allow
 
+    /**
+     * The Player placements (`player_now_playing`, `player_up_next`, `player_pause`), as Android's
+     * `canShowPlayerInline`: the [canShowInline] rules (Premium is checked by the caller on iOS),
+     * then the grace period and the first session (`ads_player_respect_grace`), and where each one
+     * may appear (§3.1, §3.5). "Never adjacent to the controls" is a layout rule of the screens.
+     */
+    fun canShowPlayerInline(
+        placement: AdPlacement,
+        settings: AdsSettings,
+        ctx: PlayerAdContext,
+    ): Decision {
+        val base = canShowInline(placement, settings, ctx.canRequestAds)
+        if (base !is Decision.Allow) return base
+        if (!placement.isPlayer) return Decision.Block("not_player")
+        val now = clock.nowMillis()
+        if (settings.playerRespectGrace) {
+            if (now - store.installAt(now) < settings.gracePeriodHours * HOUR_MS) {
+                return Decision.Block("grace")
+            }
+            if (store.sessionCount <= 1) return Decision.Block("first_session")
+        }
+        if (placement == AdPlacement.PlayerUpNext) {
+            return if (ctx.upNextExpanded) Decision.Allow else Decision.Block("up_next_collapsed")
+        }
+        if (ctx.isCompactHeight) return Decision.Block("compact_height")
+        if (ctx.windowHeightDp < settings.playerMinHeightDp) return Decision.Block("short_screen")
+        if (ctx.isAccessibilityMode) return Decision.Block("accessibility")
+        if (ctx.hasPlaybackError) return Decision.Block("player_error")
+        if (placement == AdPlacement.PlayerPause) {
+            if (ctx.isLive) return Decision.Block("live")
+            val paused = ctx.manualPauseMs ?: return Decision.Block("not_paused")
+            if (paused < settings.playerPauseDelaySec * SEC_MS) return Decision.Block("pause_delay")
+            if (!ctx.pauseCardShowing) {
+                if (store.shownThisSession(placement) >= settings.playerPauseSessionCap) {
+                    return Decision.Block("session_cap")
+                }
+                val last = store.lastShownAt(placement)
+                if (last > 0 && now - last < PLAYER_PAUSE_MIN_GAP_MS) return Decision.Block("interval")
+            }
+        }
+        return Decision.Allow
+    }
+
     fun recordShown(placement: AdPlacement) {
         val now = clock.nowMillis()
         store.recordShown(placement, now, day(now))
@@ -176,6 +245,9 @@ class AdPolicy(
         const val MIN_MS = 60 * SEC_MS
         const val HOUR_MS = 60 * MIN_MS
         const val DAY_MS = 24 * HOUR_MS
+
+        /** Two pause cards are at least this far apart (fixed in code, §3.6). */
+        const val PLAYER_PAUSE_MIN_GAP_MS = 5 * MIN_MS
     }
 }
 
@@ -195,14 +267,40 @@ object NativeSlots {
      * is off.
      */
     fun afterIndices(itemCount: Int, placement: AdPlacement, settings: AdsSettings): List<Int> {
-        if (!settings.isEnabled(placement) || settings.nativeMaxPerList <= 0) return emptyList()
-        val first = settings.nativeFirstIndex.coerceAtLeast(1)
-        val interval = settings.nativeInterval.coerceAtLeast(1)
+        if (!settings.isEnabled(placement)) return emptyList()
+        return indices(itemCount, settings.nativeFirstIndex, settings.nativeInterval, settings.nativeMaxPerList)
+    }
+
+    /**
+     * 0-based indices of the Up next items a `player_up_next` row follows (Android
+     * `upNextSlotIndices`, player-ads-and-premium.md §3.2): after item
+     * [AdsSettings.playerUpNextFirstIndex] (never the first row), then every
+     * [AdsSettings.playerUpNextInterval], at most [AdsSettings.playerUpNextMax], never last.
+     * Empty when the placement is off.
+     */
+    fun upNextAfterIndices(itemCount: Int, settings: AdsSettings): List<Int> {
+        if (!settings.isEnabled(AdPlacement.PlayerUpNext)) return emptyList()
+        return indices(
+            itemCount,
+            settings.playerUpNextFirstIndex.coerceAtLeast(2),
+            settings.playerUpNextInterval,
+            settings.playerUpNextMax,
+        )
+    }
+
+    /**
+     * After item [first] (1-based), then every [interval] items, at most [max] times, never after
+     * the last item (Android `nativeSlotIndices`).
+     */
+    fun indices(itemCount: Int, first: Int, interval: Int, max: Int): List<Int> {
+        if (max <= 0) return emptyList()
+        val start = first.coerceAtLeast(1)
+        val step = interval.coerceAtLeast(1)
         val out = ArrayList<Int>()
         for (index in 0 until itemCount) {
             val position = index + 1
-            val isSlot = position == first || (position > first && (position - first) % interval == 0)
-            if (isSlot && out.size < settings.nativeMaxPerList && position < itemCount) out.add(index)
+            val isSlot = position == start || (position > start && (position - start) % step == 0)
+            if (isSlot && out.size < max && position < itemCount) out.add(index)
         }
         return out
     }
@@ -222,4 +320,59 @@ object NativeSlots {
         }
         return out
     }
+}
+
+/** Why the now-playing strip is evaluated (Android `PlayerAdRules.StripMoment`). */
+enum class PlayerStripMoment {
+    /** The Player has just opened. */
+    Opened,
+
+    /** Another episode became current while the Player is shown. */
+    EpisodeChanged,
+
+    /** Anything else: an ad finished loading, a setting or the Player state changed. */
+    Updated,
+}
+
+/**
+ * When the Player's ads appear, refresh and go, a port of Android `ads/.../PlayerAdRules.kt`
+ * (player-ads-and-premium.md §3.1 #3, §3.2, §3.5; same cases in `PlayerAdsTest`).
+ */
+object PlayerAdRules {
+    /**
+     * Whether the `player_now_playing` strip is on screen after [moment]. It appears only at
+     * Player open or an episode change and only with an ad already loaded, so nothing moves while
+     * the Player is looked at; it goes as soon as it is no longer allowed.
+     */
+    fun stripVisible(moment: PlayerStripMoment, wasVisible: Boolean, allowed: Boolean, hasAd: Boolean): Boolean =
+        when (moment) {
+            PlayerStripMoment.Opened, PlayerStripMoment.EpisodeChanged -> allowed && hasAd
+            PlayerStripMoment.Updated -> wasVisible && allowed && hasAd
+        }
+
+    /** Refresh period of the visible strip, or null when it changes only with the episode. */
+    fun refreshIntervalMs(settings: AdsSettings): Long? =
+        settings.playerNativeRefreshSec.takeIf { it > 0 }?.times(AdPolicy.SEC_MS)
+
+    /** How long to wait before replacing the visible strip's ad: 0 = now, null = never. */
+    fun refreshDelayMs(ageMs: Long?, settings: AdsSettings): Long? {
+        val interval = refreshIntervalMs(settings) ?: return null
+        val age = ageMs ?: return null
+        return (interval - age).coerceAtLeast(0)
+    }
+
+    /** On an episode change: replace an ad at least one period old (always when refresh is 0). */
+    fun refreshOnEpisodeChange(ageMs: Long?, settings: AdsSettings): Boolean {
+        val age = ageMs ?: return false
+        val interval = refreshIntervalMs(settings) ?: return true
+        return age >= interval
+    }
+
+    /** How long the user's own pause has lasted while the Player was shown, or null. */
+    fun manualPauseMs(pausedAt: Long?, playerShownAt: Long, now: Long): Long? =
+        pausedAt?.let { (now - maxOf(it, playerShownAt)).coerceAtLeast(0) }
+
+    /** Time until the pause card is due: 0 when due, null when not paused by the user. */
+    fun pauseCardDueInMs(manualPauseMs: Long?, settings: AdsSettings): Long? =
+        manualPauseMs?.let { (settings.playerPauseDelaySec * AdPolicy.SEC_MS - it).coerceAtLeast(0) }
 }

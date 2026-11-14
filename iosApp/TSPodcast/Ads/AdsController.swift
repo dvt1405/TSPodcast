@@ -242,6 +242,7 @@ final class AdsController {
     /// Audio started or stopped: `ads_interstitial_after_playback_sec` counts from the last audio.
     func playbackChanged(isActive: Bool) {
         lastPlaybackAt = Date()
+        if isActive { preloadPlayer() }
     }
 
     private func triggerContext(backgroundMs: Int64? = nil, breakIndex: Int32 = 0, dwellMs: Int64? = nil) -> TriggerContext {
@@ -417,10 +418,10 @@ final class AdsController {
         banner.load(Request())
     }
 
-    /// Loads a native ad into `slot` when empty or older than an hour.
-    func loadNative(into slot: InlineAdSlot) {
+    /// Loads a native ad into `slot` when empty or older than an hour (`force`: whatever its age).
+    func loadNative(into slot: InlineAdSlot, force: Bool = false) {
         guard allowsInline(slot.placement), slot.canRetry, !slot.isLoading else { return }
-        if slot.nativeAd != nil, let loadedAt = slot.loadedAt, Date().timeIntervalSince(loadedAt) < Self.interstitialMaxAge { return }
+        if !force, slot.nativeAd != nil, let loadedAt = slot.loadedAt, Date().timeIntervalSince(loadedAt) < Self.interstitialMaxAge { return }
         slot.isLoading = true
         analytics.request(slot.placement)
         let videoOptions = VideoOptions()
@@ -452,9 +453,94 @@ final class AdsController {
         return slots
     }
 
-    /// Template of a native placement: Discover is the medium one (Android), else Remote Config.
+    /// Template of a native placement: Discover and the Player pause card are medium, the Player
+    /// strip and Up next rows small (Android), else Remote Config.
     func nativeTemplate(for placement: AdPlacement) -> NativeTemplate {
-        placement == .discoverinline ? .medium : config.ads().nativeTemplate
+        switch placement {
+        case .discoverinline, .playerpause: .medium
+        case .playernowplaying, .playerupnext: .small
+        default: config.ads().nativeTemplate
+        }
+    }
+
+    // MARK: - Player placements (player-ads-and-premium.md §3)
+
+    /// `player_now_playing`, `player_up_next`, `player_pause`: `canLoadAds` (consent, SDK,
+    /// Premium, kill switch) + shared `AdPolicy.canShowPlayerInline` (placement switch, ad-free
+    /// reward, grace and first session, where each may appear). All three are off by default.
+    func allowsPlayer(_ placement: AdPlacement, _ context: PlayerAdContext) -> Bool {
+        guard canLoadAds else { return false }
+        return policy.canShowPlayerInline(placement: placement, settings: config.ads(), ctx: context) is DecisionAllow
+    }
+
+    /// Up next ad rows of a queue of `count` items: item index → slot key, from shared
+    /// `NativeSlots.upNextAfterIndices` (after item 3, then every 8, at most 2, never first or
+    /// last). Empty unless the sheet is fully open (`context.upNextExpanded`) and allowed.
+    func upNextSlots(count: Int, context: PlayerAdContext) -> [Int: String] {
+        guard allowsPlayer(.playerupnext, context) else { return [:] }
+        let indices = NativeSlots.shared.upNextAfterIndices(itemCount: Int32(clamping: count), settings: config.ads())
+        var slots: [Int: String] = [:]
+        for (number, index) in indices.enumerated() {
+            slots[index.intValue] = "ad-\(number)"
+        }
+        return slots
+    }
+
+    /// Audio started: load the strip's ad in the background so it can be there when the Player
+    /// opens (it is only inserted at open or an episode change).
+    func preloadPlayer() {
+        let context = Self.playerContext(
+            windowHeight: UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.screen.bounds.height }.first ?? 0,
+            isAccessibilityMode: UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory || UIAccessibility.isVoiceOverRunning
+        )
+        guard allowsPlayer(.playernowplaying, context) else { return }
+        loadNative(into: slot(.playernowplaying))
+    }
+
+    /// A pause card appeared: counts towards `ads_player_pause_session_cap` and the 5 min gap.
+    func recordPauseShown() {
+        policy.recordShown(placement: .playerpause)
+    }
+
+    /// The facts the shared policy needs about the Player (consent is `canLoadAds`'s).
+    static func playerContext(
+        windowHeight: CGFloat,
+        isCompactHeight: Bool = false,
+        isAccessibilityMode: Bool = false,
+        hasPlaybackError: Bool = false,
+        upNextExpanded: Bool = false,
+        isLive: Bool = false,
+        manualPauseMs: Int64? = nil,
+        pauseCardShowing: Bool = false
+    ) -> PlayerAdContext {
+        PlayerAdContext(
+            canRequestAds: true,
+            windowHeightDp: Int32(clamping: Int(windowHeight.rounded(.down))),
+            isCompactHeight: isCompactHeight,
+            isAccessibilityMode: isAccessibilityMode,
+            hasPlaybackError: hasPlaybackError,
+            upNextExpanded: upNextExpanded,
+            isLive: isLive,
+            manualPauseMs: manualPauseMs.map { KotlinLong(value: $0) },
+            pauseCardShowing: pauseCardShowing
+        )
+    }
+
+    /// Replaces the slot's native ad now (strip refresh); the current one stays until it arrives.
+    func reloadNative(into slot: InlineAdSlot) {
+        loadNative(into: slot, force: true)
+    }
+
+    /// Drops the slot's native ad (a used pause card): the next pause loads a new one.
+    func discardNative(_ slot: InlineAdSlot) {
+        slot.nativeAd = nil
+        slot.loadedAt = nil
+    }
+
+    /// Milliseconds since the slot's native ad arrived, nil when empty.
+    func nativeAgeMs(_ slot: InlineAdSlot) -> Int64? {
+        guard slot.nativeAd != nil, let loadedAt = slot.loadedAt else { return nil }
+        return Int64(Date().timeIntervalSince(loadedAt) * 1000)
     }
 
     fileprivate func paid(_ placement: AdPlacement, _ value: AdValue, source: String?) {

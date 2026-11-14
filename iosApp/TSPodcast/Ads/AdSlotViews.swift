@@ -35,8 +35,19 @@ struct AdBannerSlot: View {
 
 /// Native placement (Android `AdNativeSlot`), same zero-size-when-empty contract.
 struct AdNativeSlot: View {
+    /// How the card sits in its parent.
+    enum Style {
+        /// A row of a list or feed (16 pt sides, 8 pt above and below).
+        case row
+        /// The Player strip under the artwork: fills the frame it is given, body on one line.
+        case strip
+        /// The Player pause card in place of the artwork: fills the square, media takes the rest.
+        case fill
+    }
+
     let placement: AdPlacement
     var slotKey = "0"
+    var style: Style = .row
 
     @Environment(AppEnvironment.self) private var environment
 
@@ -46,12 +57,20 @@ struct AdNativeSlot: View {
             let slot = ads.slot(placement, key: slotKey)
             Group {
                 if let nativeAd = slot.nativeAd {
-                    NativeAdContainer(nativeAd: nativeAd, template: ads.nativeTemplate(for: placement))
-                        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .accessibilityIdentifier("ad.native.\(placement.key)")
+                    // Its own opaque card, apart from the Player's blurred artwork (AdMob native policy).
+                    NativeAdContainer(
+                        nativeAd: nativeAd,
+                        template: ads.nativeTemplate(for: placement),
+                        compact: style == .strip,
+                        fillsHeight: style == .fill
+                    )
+                    .frame(maxHeight: style == .row ? nil : .infinity)
+                    .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .padding(.horizontal, style == .row ? 16 : 0)
+                    .padding(.vertical, style == .row ? 8 : 0)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("ad.native.\(placement.key)")
                 } else {
                     Color.clear.frame(height: 0)
                 }
@@ -91,9 +110,11 @@ private struct BannerContainer: UIViewRepresentable {
 private struct NativeAdContainer: UIViewRepresentable {
     let nativeAd: NativeAd
     let template: NativeTemplate
+    var compact = false
+    var fillsHeight = false
 
     func makeUIView(context: Context) -> NativeAdTemplateView {
-        NativeAdTemplateView(medium: template == .medium)
+        NativeAdTemplateView(medium: template == .medium, compact: compact, fillsHeight: fillsHeight)
     }
 
     func updateUIView(_ view: NativeAdTemplateView, context: Context) {
@@ -102,6 +123,7 @@ private struct NativeAdContainer: UIViewRepresentable {
 
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: NativeAdTemplateView, context: Context) -> CGSize? {
         let width = proposal.width ?? uiView.window?.windowScene?.screen.bounds.width ?? 375
+        if fillsHeight, let height = proposal.height { return CGSize(width: width, height: height) }
         let size = uiView.systemLayoutSizeFitting(
             CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
             withHorizontalFittingPriority: .required,
@@ -116,6 +138,8 @@ private struct NativeAdContainer: UIViewRepresentable {
 /// label (AdMob native policy); AdChoices is drawn by the SDK in a corner.
 /// - Small: icon, headline, body/advertiser and the call to action in one row.
 /// - Medium: the same header, a `MediaView` (image or muted video) and a full-width button.
+/// `compact` (the Player strip) keeps the body to one line; `fillsHeight` (the Player pause card)
+/// lets the media take the height left in the square instead of a fixed 180 pt.
 final class NativeAdTemplateView: NativeAdView {
     private let icon = UIImageView()
     private let headline = UILabel()
@@ -123,10 +147,14 @@ final class NativeAdTemplateView: NativeAdView {
     private let badge = PaddedLabel()
     private let cta = UIButton(type: .system)
     private let media: MediaView?
+    private let compact: Bool
+    private let fillsHeight: Bool
     private weak var boundAd: NativeAd?
 
-    init(medium: Bool) {
+    init(medium: Bool, compact: Bool = false, fillsHeight: Bool = false) {
         media = medium ? MediaView() : nil
+        self.compact = compact
+        self.fillsHeight = fillsHeight
         super.init(frame: .zero)
         build()
     }
@@ -156,7 +184,7 @@ final class NativeAdTemplateView: NativeAdView {
         body.font = .preferredFont(forTextStyle: .footnote)
         body.adjustsFontForContentSizeCategory = true
         body.textColor = .secondaryLabel
-        body.numberOfLines = 2
+        body.numberOfLines = compact ? 1 : 2
 
         var buttonConfig = UIButton.Configuration.filled()
         buttonConfig.baseBackgroundColor = accent
@@ -201,7 +229,13 @@ final class NativeAdTemplateView: NativeAdView {
             media.clipsToBounds = true
             media.layer.cornerRadius = 8
             media.translatesAutoresizingMaskIntoConstraints = false
-            media.heightAnchor.constraint(equalToConstant: 180).isActive = true
+            if fillsHeight {
+                media.heightAnchor.constraint(greaterThanOrEqualToConstant: 80).isActive = true
+                media.setContentHuggingPriority(.defaultLow, for: .vertical)
+                media.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+            } else {
+                media.heightAnchor.constraint(equalToConstant: 180).isActive = true
+            }
             root.addArrangedSubview(media)
             root.addArrangedSubview(cta)
             mediaView = media

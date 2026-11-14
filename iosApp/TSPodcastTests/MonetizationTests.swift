@@ -194,6 +194,90 @@ final class AdsControllerTests: XCTestCase {
         let ads = makeController(premium: false)
         XCTAssertEqual(ads.nativeTemplate(for: .discoverinline), .medium)
         XCTAssertEqual(ads.nativeTemplate(for: .podcastdetailepisodes), .small)
+        // Player (player-ads-and-premium.md §3.2): strip and Up next small, pause card medium.
+        XCTAssertEqual(ads.nativeTemplate(for: .playernowplaying), .small)
+        XCTAssertEqual(ads.nativeTemplate(for: .playerupnext), .small)
+        XCTAssertEqual(ads.nativeTemplate(for: .playerpause), .medium)
+    }
+
+    func testPlayerPlacementsNeedConsentAndTheSDK() {
+        let open = AdsController.playerContext(windowHeight: 852, upNextExpanded: true, manualPauseMs: 10_000)
+        for ads in [makeController(premium: false), makeController(premium: true)] {
+            XCTAssertFalse(ads.allowsPlayer(.playernowplaying, open))
+            XCTAssertFalse(ads.allowsPlayer(.playerpause, open))
+            XCTAssertEqual(ads.upNextSlots(count: 30, context: open), [:])
+        }
+    }
+
+    func testPlayerContextCarriesThePlayerFacts() {
+        let ctx = AdsController.playerContext(
+            windowHeight: 667.6, isCompactHeight: true, isAccessibilityMode: true, hasPlaybackError: true,
+            upNextExpanded: true, isLive: true, manualPauseMs: 6_000, pauseCardShowing: true
+        )
+        XCTAssertTrue(ctx.canRequestAds, "consent is canLoadAds's")
+        XCTAssertEqual(ctx.windowHeightDp, 667)
+        XCTAssertTrue(ctx.isCompactHeight && ctx.isAccessibilityMode && ctx.hasPlaybackError)
+        XCTAssertTrue(ctx.upNextExpanded && ctx.isLive && ctx.pauseCardShowing)
+        XCTAssertEqual(ctx.manualPauseMs?.int64Value, 6_000)
+        XCTAssertNil(AdsController.playerContext(windowHeight: 800).manualPauseMs)
+    }
+}
+
+/// Player placements on iOS (docs/in-progress/plans/player-ads-and-premium.md §3): settings,
+/// units, and the shared rules as Swift calls them (full cases: shared `PlayerAdsTest`).
+final class PlayerAdsTests: XCTestCase {
+    private let player: [AdPlacement] = [.playernowplaying, .playerupnext, .playerpause]
+
+    func testPlayerPlacementsAreOffByDefaultWithTheTemplateSettings() {
+        for debug in [false, true] {
+            let ads = MonetizationConfig(config: FakeConfigAPI(), buildNumber: 1, debug: debug).ads()
+            for placement in player {
+                XCTAssertFalse(ads.isEnabled(placement: placement), placement.key)
+                XCTAssertTrue(placement.isPlayer)
+            }
+            XCTAssertFalse(ads.isEnabled(placement: .playerepisodelist))
+            XCTAssertEqual(ads.playerMinHeightDp, 640)
+            XCTAssertEqual(ads.playerNativeRefreshSec, 60)
+            XCTAssertEqual(ads.playerUpNextFirstIndex, 3)
+            XCTAssertEqual(ads.playerUpNextInterval, 8)
+            XCTAssertEqual(ads.playerUpNextMax, 2)
+            XCTAssertEqual(ads.playerPauseDelaySec, 5)
+            XCTAssertEqual(ads.playerPauseSessionCap, 3)
+            XCTAssertEqual(ads.playerRespectGrace, !debug)
+        }
+    }
+
+    func testRemoteConfigTurnsAPlacementOn() {
+        let remote = FakeConfigAPI([
+            "ads_placements_enabled": #"{"player_up_next":true}"#,
+            "ads_player_native_refresh_sec": "10",
+        ])
+        let ads = MonetizationConfig(config: remote, buildNumber: 1, debug: false).ads()
+        XCTAssertTrue(ads.isEnabled(placement: .playerupnext))
+        XCTAssertFalse(ads.isEnabled(placement: .playernowplaying))
+        XCTAssertEqual(ads.playerNativeRefreshSec, 30, "below 30 counts as 30")
+    }
+
+    func testPlayerPlacementsUseTheExistingNativeUnit() {
+        let release = MonetizationConfig(config: FakeConfigAPI(), buildNumber: 1, debug: false)
+        let debug = MonetizationConfig(config: FakeConfigAPI(), buildNumber: 1, debug: true)
+        for placement in player {
+            XCTAssertEqual(release.adUnitID(for: placement), "ca-app-pub-8696388065064767/2538245333", placement.key)
+            XCTAssertEqual(debug.adUnitID(for: placement), "ca-app-pub-3940256099942544/3986624511", placement.key)
+        }
+    }
+
+    func testSharedRulesFromSwift() {
+        let settings = AdsSettings.companion.defaults(debug: false)
+        XCTAssertEqual(NativeSlots.shared.upNextAfterIndices(itemCount: 30, settings: settings), [],
+                       "off by default")
+        XCTAssertTrue(PlayerAdRules.shared.stripVisible(moment: .opened, wasVisible: false, allowed: true, hasAd: true))
+        XCTAssertFalse(PlayerAdRules.shared.stripVisible(moment: .updated, wasVisible: false, allowed: true, hasAd: true))
+        XCTAssertEqual(PlayerAdRules.shared.refreshDelayMs(ageMs: KotlinLong(value: 15_000), settings: settings)?.int64Value, 45_000)
+        XCTAssertEqual(
+            PlayerAdRules.shared.manualPauseMs(pausedAt: KotlinLong(value: 3_000), playerShownAt: 8_000, now: 10_000)?.int64Value,
+            2_000
+        )
     }
 }
 

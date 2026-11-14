@@ -84,6 +84,16 @@ class PlayerManager @Inject constructor(
     var lastPlayingAt: Long = 0L
         private set
 
+    private val _manualPauseAt = MutableStateFlow<Long?>(null)
+
+    /**
+     * Elapsed-realtime millis of the user's own pause (Player, notification, headset, car), or
+     * null while playing or after any other stop (sleep timer, audio focus loss, headphones
+     * unplugged, end of the episode). The Player's pause card (`player_pause`) only follows a
+     * pause the user chose (player-ads-and-premium.md §3.2).
+     */
+    val manualPauseAt: StateFlow<Long?> = _manualPauseAt.asStateFlow()
+
     /** Set while the sleep timer itself pauses, so that pause does not count as the user's. */
     private var pausingForTimer = false
     private var lastPositionSaveAt = 0L
@@ -445,6 +455,14 @@ class PlayerManager @Inject constructor(
 
     private val extrasListener = object : Player.Listener {
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            _manualPauseAt.value = if (
+                !playWhenReady && reason == Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST &&
+                !pausingForTimer
+            ) {
+                android.os.SystemClock.elapsedRealtime()
+            } else {
+                null
+            }
             if (playWhenReady) return
             when (reason) {
                 Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST ->
@@ -470,6 +488,8 @@ class PlayerManager @Inject constructor(
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            // Another episode: the pause belonged to the previous one.
+            _manualPauseAt.value = null
             // The item left behind by a skip inside the queue: save where it was left.
             val left = lastSeen
             if (left != null && left.item.mediaId != mediaItem?.mediaId &&

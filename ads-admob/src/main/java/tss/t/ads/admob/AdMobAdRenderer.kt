@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.MaterialTheme
@@ -30,8 +31,11 @@ import tss.t.ads.AdPlacement
 import tss.t.ads.AdPolicy
 import tss.t.ads.AdRenderer
 import tss.t.ads.AdsConfig
+import tss.t.ads.AdsSettings
 import tss.t.ads.Decision
 import tss.t.ads.NativeTemplate
+import tss.t.ads.PlayerNativeSlot
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -107,22 +111,19 @@ class AdMobAdRenderer @Inject constructor(
         if (policy.canShowInline(placement, settings, canLoad) !is Decision.Allow) return
         val slot = remember(placement, slotKey) { cache.nativeSlot(placement, slotKey) }
         LaunchedEffect(slot) {
-            cache.loadNative(slot, placement) {
-                NativeAdRequest.Builder(
-                    unitIds.forPlacement(placement, settings),
-                    listOf(NativeAd.NativeAdType.NATIVE)
-                )
-                    // Never let a video ad make sound over a podcast.
-                    .setVideoOptions(VideoOptions.Builder().setStartMuted(true).build())
-                    .build()
-            }
+            cache.loadNative(slot, placement) { nativeRequest(placement, settings) }
         }
         val nativeAd by slot.ad.collectAsState()
         val ad = nativeAd ?: return
+        // Player: the strip is a one-line small card, the pause card a medium one that fills the
+        // artwork box, Up next rows are small (player-ads-and-premium.md §3.2).
         val template = when (placement) {
-            AdPlacement.DiscoverInline -> NativeTemplate.Medium
+            AdPlacement.DiscoverInline, AdPlacement.PlayerPause -> NativeTemplate.Medium
+            AdPlacement.PlayerNowPlaying, AdPlacement.PlayerUpNext -> NativeTemplate.Small
             else -> settings.nativeTemplate
         }
+        val compact = placement == AdPlacement.PlayerNowPlaying
+        val fill = placement == AdPlacement.PlayerPause
         val colors = NativeAdColors(
             text = MaterialTheme.colorScheme.onSurface.toArgb(),
             secondaryText = MaterialTheme.colorScheme.onSurfaceVariant.toArgb(),
@@ -131,13 +132,52 @@ class AdMobAdRenderer @Inject constructor(
             onAccent = MaterialTheme.colorScheme.onPrimary.toArgb(),
         )
         AndroidView(
-            factory = { ctx -> NativeAdTemplateView(ctx, template) },
+            factory = { ctx -> NativeAdTemplateView(ctx, template, compact = compact, fillHeight = fill) },
             update = { view -> view.bind(ad, colors) },
-            modifier = modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
+            modifier = if (fill) {
+                modifier.fillMaxSize()
+            } else {
+                modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+            },
         )
     }
+
+    override fun playerSlot(placement: AdPlacement, slotKey: String): PlayerNativeSlot =
+        PlayerSlot(placement, cache.nativeSlot(placement, slotKey))
+
+    /** A Player slot: loads only when consent, the SDK and [AdPolicy.canShowInline] allow. */
+    private inner class PlayerSlot(
+        private val placement: AdPlacement,
+        private val slot: AdSlotCache.Slot<NativeAd>,
+    ) : PlayerNativeSlot {
+        override val hasAd: StateFlow<Boolean> = slot.hasAd
+
+        override fun ageMs(): Long? = cache.ageMs(slot)
+
+        override fun load() = load(force = false)
+
+        override fun reload() = load(force = true)
+
+        override fun discard() = cache.discardNative(slot)
+
+        private fun load(force: Boolean) {
+            val canLoad = controller.canLoadAds.value
+            val settings = config.current()
+            if (!canLoad || policy.canShowInline(placement, settings, canLoad) !is Decision.Allow) return
+            cache.loadNative(slot, placement, force) { nativeRequest(placement, settings) }
+        }
+    }
+
+    private fun nativeRequest(placement: AdPlacement, settings: AdsSettings): NativeAdRequest =
+        NativeAdRequest.Builder(
+            unitIds.forPlacement(placement, settings),
+            listOf(NativeAd.NativeAdType.NATIVE)
+        )
+            // Never let a video ad make sound over a podcast.
+            .setVideoOptions(VideoOptions.Builder().setStartMuted(true).build())
+            .build()
 
     private companion object {
         const val MAX_BANNER_HEIGHT_DP = 100

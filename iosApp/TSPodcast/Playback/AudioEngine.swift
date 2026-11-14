@@ -92,6 +92,12 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
     @ObservationIgnored private var autoAdvance = false
     @ObservationIgnored let hooks: Hooks
 
+    /// When the user paused (Player, MiniPlayer, Lock Screen, Shortcuts), nil while playing and
+    /// after any other stop (interruption, lost route, sleep timer, end of the episode, error). The
+    /// Player's pause card (`player_pause`) follows only a pause the user chose
+    /// (player-ads-and-premium.md §3.2).
+    private(set) var manualPauseAt: Date?
+
     /// "Áp dụng cho mọi show" of the speed sheet (shared `PlaybackProfileRepository.isApplyToAll`).
     private(set) var appliesSpeedToAll = false
     #if DEBUG
@@ -169,6 +175,7 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
             return
         }
         wasPlayingBeforeInterruption = false
+        manualPauseAt = nil
         if reachedEnd {
             reachedEnd = false
             player.seek(to: .zero)
@@ -196,6 +203,7 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         restoreVolume()
         publishSleepTimer()
         pausePlayback()
+        if state.current != nil { manualPauseAt = Date() }
     }
 
     func togglePlayPause() {
@@ -495,6 +503,7 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
         detachItemObservers()
         player.pause()
         player.replaceCurrentItem(with: nil)
+        manualPauseAt = nil
         failed = false
         reachedEnd = false
         detectedLive = false
@@ -669,6 +678,7 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
     }
 
     private func fail() {
+        manualPauseAt = nil
         failed = true
         wantsToPlay = false
         player.pause()
@@ -678,6 +688,8 @@ final class AudioEngine: PlaybackController, RemoteCommandHandling, AudioSession
 
     private func pausePlayback() {
         guard state.current != nil else { return }
+        // Any stop but the user's own (`pause()` sets it again right after).
+        manualPauseAt = nil
         wantsToPlay = false
         player.pause()
         publish()

@@ -26,6 +26,32 @@ data class TriggerContext(
 )
 
 /**
+ * Facts about the Player when one of its placements would show
+ * (docs/in-progress/plans/player-ads-and-premium.md §3.5).
+ */
+data class PlayerAdContext(
+    val canRequestAds: Boolean,
+    /** Height of the window the Player is drawn in (dp / pt). */
+    val windowHeightDp: Int,
+    /** iPhone landscape (compact vertical size class). Android: false (the height rule covers it). */
+    val isCompactHeight: Boolean = false,
+    /** Accessibility text size (iOS AX1+, Android font scale ≥ 1.3) or a screen reader is on. */
+    val isAccessibilityMode: Boolean = false,
+    /** The Player shows its playback error. */
+    val hasPlaybackError: Boolean = false,
+    /** The Up next list is fully open (not the peek, not mid-drag). */
+    val upNextExpanded: Boolean = false,
+    val isLive: Boolean = false,
+    /**
+     * `player_pause`: how long the user's own pause has lasted while the Player was shown, or
+     * null when not paused by the user (playing, buffering, sleep timer, focus loss, error).
+     */
+    val manualPauseMs: Long? = null,
+    /** `player_pause`: the card is already up for this pause (cap and gap were checked then). */
+    val pauseCardShowing: Boolean = false,
+)
+
+/**
  * Persistent counters behind the frequency caps. Implementations must be
  * thread-safe: the Mobile Ads SDK calls back on background threads.
  */
@@ -158,6 +184,52 @@ class AdPolicy(
         return Decision.Allow
     }
 
+    /**
+     * The Player placements (`player_now_playing`, `player_up_next`, `player_pause`): the
+     * [canShowInline] rules, then the grace period and the first session
+     * (`ads_player_respect_grace`), and where each one may appear (§3.1, §3.5). "Never adjacent
+     * to the controls" is a layout rule of the screens, not checked here.
+     */
+    fun canShowPlayerInline(
+        placement: AdPlacement,
+        settings: AdsSettings,
+        ctx: PlayerAdContext,
+    ): Decision {
+        val base = canShowInline(placement, settings, ctx.canRequestAds)
+        if (base !is Decision.Allow) return base
+        if (!placement.isPlayer) return Decision.Block("not_player")
+        val now = clock()
+        if (settings.playerRespectGrace) {
+            if (now - store.installAt(now) < settings.gracePeriodHours * HOUR_MS) {
+                return Decision.Block("grace")
+            }
+            if (store.sessionCount <= 1) return Decision.Block("first_session")
+        }
+        if (placement == AdPlacement.PlayerUpNext) {
+            return if (ctx.upNextExpanded) Decision.Allow else Decision.Block("up_next_collapsed")
+        }
+        // On the Player itself: room for the artwork area and nothing that pushes content.
+        if (ctx.isCompactHeight) return Decision.Block("compact_height")
+        if (ctx.windowHeightDp < settings.playerMinHeightDp) return Decision.Block("short_screen")
+        if (ctx.isAccessibilityMode) return Decision.Block("accessibility")
+        if (ctx.hasPlaybackError) return Decision.Block("player_error")
+        if (placement == AdPlacement.PlayerPause) {
+            if (ctx.isLive) return Decision.Block("live")
+            val paused = ctx.manualPauseMs ?: return Decision.Block("not_paused")
+            if (paused < settings.playerPauseDelaySec * SEC_MS) return Decision.Block("pause_delay")
+            if (!ctx.pauseCardShowing) {
+                if (store.shownThisSession(placement) >= settings.playerPauseSessionCap) {
+                    return Decision.Block("session_cap")
+                }
+                val last = store.lastShownAt(placement)
+                if (last > 0 && now - last < PLAYER_PAUSE_MIN_GAP_MS) {
+                    return Decision.Block("interval")
+                }
+            }
+        }
+        return Decision.Allow
+    }
+
     fun recordShown(placement: AdPlacement) {
         val now = clock()
         store.recordShown(placement, now, day(now))
@@ -182,5 +254,8 @@ class AdPolicy(
         const val MIN_MS = 60 * SEC_MS
         const val HOUR_MS = 60 * MIN_MS
         const val DAY_MS = 24 * HOUR_MS
+
+        /** Two pause cards are at least this far apart (fixed in code, §3.6). */
+        const val PLAYER_PAUSE_MIN_GAP_MS = 5 * MIN_MS
     }
 }

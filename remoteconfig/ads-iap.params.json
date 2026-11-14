@@ -23,7 +23,7 @@
           },
           "conditionalValues": {
             "platform_ios": {
-              "value": "{\"app_open_warm\":\"ca-app-pub-8696388065064767/9264415720\",\"app_open_cold\":\"ca-app-pub-8696388065064767/9264415720\",\"discover_inline\":\"ca-app-pub-8696388065064767/2538245333\",\"podcast_detail_episodes\":\"ca-app-pub-8696388065064767/2538245333\",\"discover_fav_inline\":\"ca-app-pub-8696388065064767/5141512895\",\"favourite_top\":\"ca-app-pub-8696388065064767/5141512895\",\"player_episode_list\":\"ca-app-pub-8696388065064767/5141512895\",\"podcast_detail_header\":\"ca-app-pub-8696388065064767/5141512895\",\"search_results\":\"ca-app-pub-8696388065064767/5141512895\",\"discover_collapsible\":\"ca-app-pub-8696388065064767/5141512895\",\"interstitial_nav\":\"ca-app-pub-8696388065064767/4518696367\",\"rewarded_ad_free\":\"ca-app-pub-8696388065064767/8512626743\",\"rewarded_interstitial\":\"ca-app-pub-8696388065064767/2729817023\"}"
+              "value": "{\"app_open_warm\":\"ca-app-pub-8696388065064767/9264415720\",\"app_open_cold\":\"ca-app-pub-8696388065064767/9264415720\",\"discover_inline\":\"ca-app-pub-8696388065064767/2538245333\",\"podcast_detail_episodes\":\"ca-app-pub-8696388065064767/2538245333\",\"discover_fav_inline\":\"ca-app-pub-8696388065064767/5141512895\",\"favourite_top\":\"ca-app-pub-8696388065064767/5141512895\",\"player_episode_list\":\"ca-app-pub-8696388065064767/5141512895\",\"podcast_detail_header\":\"ca-app-pub-8696388065064767/5141512895\",\"search_results\":\"ca-app-pub-8696388065064767/5141512895\",\"discover_collapsible\":\"ca-app-pub-8696388065064767/5141512895\",\"interstitial_nav\":\"ca-app-pub-8696388065064767/4518696367\",\"rewarded_ad_free\":\"ca-app-pub-8696388065064767/8512626743\",\"rewarded_interstitial\":\"ca-app-pub-8696388065064767/2729817023\",\"player_now_playing\":\"ca-app-pub-8696388065064767/2538245333\",\"player_up_next\":\"ca-app-pub-8696388065064767/2538245333\",\"player_pause\":\"ca-app-pub-8696388065064767/2538245333\"}"
             }
           },
           "description": "Unit id theo placement (chỉ bản release đọc). Android {} = dùng id build-time (GitHub secrets). iOS: unit của app ca-app-pub-8696388065064767~2921388712.",
@@ -31,7 +31,7 @@
         },
         "ads_placements_enabled": {
           "defaultValue": {
-            "value": "{\"favourite_top\":true,\"podcast_detail_header\":true,\"podcast_detail_episodes\":true,\"discover_inline\":true,\"search_results\":true,\"discover_fav_inline\":false,\"player_episode_list\":false,\"discover_collapsible\":false,\"interstitial_nav\":true,\"rewarded_ad_free\":false,\"app_open_warm\":true,\"app_open_cold\":false}"
+            "value": "{\"favourite_top\":true,\"podcast_detail_header\":true,\"podcast_detail_episodes\":true,\"discover_inline\":true,\"search_results\":true,\"discover_fav_inline\":false,\"player_episode_list\":false,\"discover_collapsible\":false,\"interstitial_nav\":true,\"rewarded_ad_free\":false,\"app_open_warm\":true,\"app_open_cold\":false,\"player_now_playing\":false,\"player_up_next\":false,\"player_pause\":false}"
           },
           "description": "Bật/tắt từng placement (key = AdPlacement.key). Key thiếu thì giữ default trong app.",
           "valueType": "JSON"
@@ -175,6 +175,62 @@
           },
           "description": "Log GA4 ad_impression từ paid event. Tắt nếu liên kết AdMob-Firebase đã tự log (tránh đếm doanh thu 2 lần).",
           "valueType": "BOOLEAN"
+        },
+        "ads_player_respect_grace": {
+          "defaultValue": {
+            "value": "true"
+          },
+          "description": "Placement Player (player_now_playing, player_up_next, player_pause) tuân theo ads_grace_period_hours và bỏ phiên đầu.",
+          "valueType": "BOOLEAN"
+        },
+        "ads_player_min_height_dp": {
+          "defaultValue": {
+            "value": "640"
+          },
+          "description": "Cửa sổ thấp hơn N dp/pt thì không có player_now_playing / player_pause.",
+          "valueType": "NUMBER"
+        },
+        "ads_player_native_refresh_sec": {
+          "defaultValue": {
+            "value": "60"
+          },
+          "description": "Khoảng tối thiểu (giây) giữa hai ad của player_now_playing khi Player đang hiện. 0 = chỉ đổi khi đổi tập. Dưới 30 thì coi là 30.",
+          "valueType": "NUMBER"
+        },
+        "ads_player_up_next_first_index": {
+          "defaultValue": {
+            "value": "3"
+          },
+          "description": "Hàng ad đầu tiên trong Up next sau mục thứ N (>= 2, không bao giờ là hàng đầu).",
+          "valueType": "NUMBER"
+        },
+        "ads_player_up_next_interval": {
+          "defaultValue": {
+            "value": "8"
+          },
+          "description": "Khoảng cách giữa hai hàng ad trong Up next (>= 1).",
+          "valueType": "NUMBER"
+        },
+        "ads_player_up_next_max": {
+          "defaultValue": {
+            "value": "2"
+          },
+          "description": "Số hàng ad tối đa trong Up next.",
+          "valueType": "NUMBER"
+        },
+        "ads_player_pause_delay_sec": {
+          "defaultValue": {
+            "value": "5"
+          },
+          "description": "Người dùng tự dừng (và Player hiện) bao nhiêu giây thì thẻ player_pause mới hiện.",
+          "valueType": "NUMBER"
+        },
+        "ads_player_pause_session_cap": {
+          "defaultValue": {
+            "value": "3"
+          },
+          "description": "Số thẻ player_pause tối đa mỗi phiên (cách nhau >= 5 phút, cố định trong code).",
+          "valueType": "NUMBER"
         }
       }
     },

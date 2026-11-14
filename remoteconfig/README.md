@@ -39,11 +39,20 @@ AdMob iOS (app `ca-app-pub-8696388065064767~2921388712`):
 | Interstitial | `ca-app-pub-8696388065064767/4518696367` | interstitial_nav |
 | Rewarded interstitial | `ca-app-pub-8696388065064767/2729817023` | rewarded_interstitial |
 | Rewarded | `ca-app-pub-8696388065064767/8512626743` | rewarded_ad_free |
-| Native | `ca-app-pub-8696388065064767/2538245333` | discover_inline, podcast_detail_episodes |
+| Native | `ca-app-pub-8696388065064767/2538245333` | discover_inline, podcast_detail_episodes, player_now_playing, player_up_next, player_pause |
 | App Open | `ca-app-pub-8696388065064767/9264415720` | app_open_warm, app_open_cold |
 
 App ID **không** lấy được từ Remote Config: Google Mobile Ads SDK đọc `GADApplicationIdentifier`
 trong `Info.plist` lúc khởi động, nên khi tích hợp SDK trên iOS phải đặt App ID ở đó.
+
+### Quảng cáo trong Player
+
+Ba placement `player_up_next`, `player_now_playing`, `player_pause` (native) **mặc định tắt** trong
+`ads_placements_enabled`; iOS dùng unit Native hiện có, Android dùng `ADMOB_UNIT_NATIVE`. Key
+`ads_player_*` (grace, chiều cao tối thiểu, refresh, vị trí trong Up next, thẻ pause): xem
+`docs/in-progress/plans/player-ads-and-premium.md` §3.6. Ví dụ bật Up next: đổi
+`"player_up_next":false` thành `true` trong `ads_placements_enabled` (nên theo % người dùng, §3.8).
+Trước khi bật trên iOS cần mục "Báo cáo quảng cáo" trong Player (App Store 2.5.18).
 
 ## IAP
 

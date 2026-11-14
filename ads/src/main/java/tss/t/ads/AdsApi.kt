@@ -31,11 +31,24 @@ enum class AdPlacement(val key: String, val format: AdFormat) {
     SearchResults("search_results", AdFormat.Banner),
     DiscoverCollapsible("discover_collapsible", AdFormat.CollapsibleBanner),
     InterstitialNav("interstitial_nav", AdFormat.Interstitial),
-    RewardedAdFree("rewarded_ad_free", AdFormat.Rewarded);
+    RewardedAdFree("rewarded_ad_free", AdFormat.Rewarded),
+
+    /** Small native strip under the Player artwork (player-ads-and-premium.md §3.2). */
+    PlayerNowPlaying("player_now_playing", AdFormat.Native),
+
+    /** Small native rows in the Player's "Tiếp theo" list, only while it is fully open. */
+    PlayerUpNext("player_up_next", AdFormat.Native),
+
+    /** Medium native in place of the artwork after a manual pause (A/B). */
+    PlayerPause("player_pause", AdFormat.Native);
 
     val isFullScreen: Boolean
         get() = format == AdFormat.AppOpen || format == AdFormat.Interstitial ||
                 format == AdFormat.Rewarded
+
+    /** The Player placements, gated by [AdPolicy.canShowPlayerInline]. */
+    val isPlayer: Boolean
+        get() = this == PlayerNowPlaying || this == PlayerUpNext || this == PlayerPause
 
     companion object {
         fun fromKey(key: String): AdPlacement? = entries.firstOrNull { it.key == key }
@@ -136,6 +149,37 @@ interface AdsHostSignals {
     fun lastPlaybackAt(): Long = 0L
 }
 
+/**
+ * A native slot of the Player whose loading the caller drives
+ * (docs/in-progress/plans/player-ads-and-premium.md §3.1 #3): the strip is only inserted when an
+ * ad is already loaded (at Player open or an episode change), it is refreshed in place, and every
+ * pause card gets a new ad. Rendered with [AdNativeSlot] and the same placement / slot key.
+ */
+interface PlayerNativeSlot {
+    /** An ad is loaded and ready to render. */
+    val hasAd: StateFlow<Boolean>
+
+    /** Milliseconds since the loaded ad arrived, or null when the slot is empty. */
+    fun ageMs(): Long?
+
+    /** Loads when empty or older than an hour. No-op until consent and the SDK allow requests. */
+    fun load()
+
+    /** Loads a replacement; the current ad stays on screen until the new one arrives. */
+    fun reload()
+
+    /** Drops the loaded ad (a pause card was used: the next pause gets a new one). */
+    fun discard()
+
+    object None : PlayerNativeSlot {
+        override val hasAd: StateFlow<Boolean> = MutableStateFlow(false).asStateFlow()
+        override fun ageMs(): Long? = null
+        override fun load() = Unit
+        override fun reload() = Unit
+        override fun discard() = Unit
+    }
+}
+
 /** Renders banner / native slots. `:ads-admob` provides the real one. */
 interface AdRenderer {
     @Composable
@@ -143,6 +187,10 @@ interface AdRenderer {
 
     @Composable
     fun Native(placement: AdPlacement, slotKey: String, modifier: Modifier)
+
+    /** The kept slot of a Player placement, for preload and refresh. */
+    fun playerSlot(placement: AdPlacement, slotKey: String = "0"): PlayerNativeSlot =
+        PlayerNativeSlot.None
 }
 
 object NoOpAdRenderer : AdRenderer {
