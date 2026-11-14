@@ -40,3 +40,7 @@ iosApp/Config/Firebase/*/GoogleService-Info.plist
 
 # Firebase CLI deploy cache
 .firebase/
+
+# Firebase CLI logs
+firebase-debug.log
+*-debug.log
