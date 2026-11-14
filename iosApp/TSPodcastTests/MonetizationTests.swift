@@ -15,7 +15,7 @@ final class FakeConfigAPI: NSObject, ConfigAPI, @unchecked Sendable {
 
 /// Ads + IAP settings on iOS (docs/in-progress/plans/monetization-ads-iap.md §1, §2, §4).
 final class MonetizationConfigTests: XCTestCase {
-    func testNoRemoteValueGivesTheTemplateDefaultsAdsAndIapOn() {
+    func testNoRemoteValueGivesTheTemplateDefaultsAdsOnIapOff() {
         let config = MonetizationConfig(config: FakeConfigAPI(), buildNumber: 1, debug: false)
         let ads = config.ads()
         XCTAssertTrue(ads.adsEnabled)
@@ -24,7 +24,8 @@ final class MonetizationConfigTests: XCTestCase {
         XCTAssertFalse(ads.isEnabled(placement: .rewardedadfree))
         XCTAssertEqual(ads.gracePeriodHours, 24)
         let iap = config.iap()
-        XCTAssertTrue(iap.enabled)
+        // IAP is hidden this phase (owner 2026-11-13, Paid Apps Agreement pending); RC turns it on.
+        XCTAssertFalse(iap.enabled)
         XCTAssertEqual(iap.defaultProductId, "premium_yearly")
         XCTAssertEqual(iap.products.map(\.storeProductId), [
             "tss.t.podcast.premium.monthly", "tss.t.podcast.premium.yearly", "tss.t.podcast.remove_ads.lifetime",
