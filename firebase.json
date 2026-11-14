@@ -2,27 +2,126 @@
   "hosting": [
     {
       "site": "tspodcast",
-      "public": "web/out",
+      "public": "site",
       "cleanUrls": true,
       "trailingSlash": false,
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**",
+        "_src/**",
+        "README.md"
+      ],
+      "redirects": [
+        {
+          "source": "/privacy-policy",
+          "destination": "/privacy",
+          "type": 301
+        },
+        {
+          "source": "/privacy-policy.html",
+          "destination": "/privacy",
+          "type": 301
+        },
+        {
+          "source": "/policy",
+          "destination": "/privacy",
+          "type": 301
+        },
+        {
+          "source": "/policy.html",
+          "destination": "/privacy",
+          "type": 301
+        },
+        {
+          "source": "/data-deletion",
+          "destination": "/delete-data",
+          "type": 301
+        }
+      ],
       "headers": [
         {
           "source": "**",
           "headers": [
-            { "key": "X-Content-Type-Options", "value": "nosniff" },
-            { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-            { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-            { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "strict-origin-when-cross-origin"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "Permissions-Policy",
+              "value": "camera=(), microphone=(), geolocation=()"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self'; script-src 'sha256-/P0aKbSfeaoM6Yix+EYjHOQD/mGJnLuIaZJYiqXFNWc=' 'sha256-3pSbmrWlgVxWDICVtHcN0cT63c7cLY5lkLJZBkt+7Uw='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'self'; upgrade-insecure-requests"
+            }
           ]
         },
         {
-          "source": "/_next/static/**",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "source": "/",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=300, must-revalidate"
+            }
+          ]
         },
         {
-          "source": "**/*.@(html|txt)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" }]
+          "source": "**/!(*.*)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=300, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "**/*.@(html|txt|xml|webmanifest)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=300, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "/assets/fonts/**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
+        },
+        {
+          "source": "**/*.@(webp|png|svg|ico)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=604800"
+            }
+          ]
+        },
+        {
+          "source": "/l/**",
+          "headers": [
+            {
+              "key": "X-Robots-Tag",
+              "value": "noindex, follow"
+            }
+          ]
         }
       ]
     },
@@ -31,49 +130,123 @@
       "public": "site",
       "cleanUrls": true,
       "trailingSlash": false,
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "_src/**", "README.md"],
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**",
+        "_src/**",
+        "README.md"
+      ],
       "redirects": [
-        { "source": "/privacy-policy", "destination": "/privacy", "type": 301 },
-        { "source": "/privacy-policy.html", "destination": "/privacy", "type": 301 },
-        { "source": "/policy", "destination": "/privacy", "type": 301 },
-        { "source": "/policy.html", "destination": "/privacy", "type": 301 },
-        { "source": "/data-deletion", "destination": "/delete-data", "type": 301 }
+        {
+          "source": "/privacy-policy",
+          "destination": "/privacy",
+          "type": 301
+        },
+        {
+          "source": "/privacy-policy.html",
+          "destination": "/privacy",
+          "type": 301
+        },
+        {
+          "source": "/policy",
+          "destination": "/privacy",
+          "type": 301
+        },
+        {
+          "source": "/policy.html",
+          "destination": "/privacy",
+          "type": 301
+        },
+        {
+          "source": "/data-deletion",
+          "destination": "/delete-data",
+          "type": 301
+        }
       ],
       "headers": [
         {
           "source": "**",
           "headers": [
-            { "key": "X-Content-Type-Options", "value": "nosniff" },
-            { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-            { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-            { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
-            { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
-            { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'sha256-rhso6By1F6S+JSjsr/wbHy5e61zRkx8Jq4veAUWiTPk=' 'sha256-3pSbmrWlgVxWDICVtHcN0cT63c7cLY5lkLJZBkt+7Uw='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'self'; upgrade-insecure-requests" }
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "strict-origin-when-cross-origin"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "Permissions-Policy",
+              "value": "camera=(), microphone=(), geolocation=()"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self'; script-src 'sha256-/P0aKbSfeaoM6Yix+EYjHOQD/mGJnLuIaZJYiqXFNWc=' 'sha256-3pSbmrWlgVxWDICVtHcN0cT63c7cLY5lkLJZBkt+7Uw='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'self'; upgrade-insecure-requests"
+            }
           ]
         },
         {
           "source": "/",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=300, must-revalidate"
+            }
+          ]
         },
         {
           "source": "**/!(*.*)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=300, must-revalidate"
+            }
+          ]
         },
         {
           "source": "**/*.@(html|txt|xml|webmanifest)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=300, must-revalidate"
+            }
+          ]
         },
         {
           "source": "/assets/fonts/**",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.@(webp|png|svg|ico)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=604800"
+            }
+          ]
         },
         {
           "source": "/l/**",
-          "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }]
+          "headers": [
+            {
+              "key": "X-Robots-Tag",
+              "value": "noindex, follow"
+            }
+          ]
         }
       ]
     }

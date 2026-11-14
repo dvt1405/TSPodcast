@@ -14,21 +14,20 @@ const SRC = dirname(fileURLToPath(import.meta.url));
 const OUT = join(SRC, '..');
 const REPO = join(OUT, '..');
 
-const ORIGIN = 'https://podcast-25c93.web.app';
+const ORIGIN = 'https://tspodcast.web.app';
 const PLAY = 'https://play.google.com/store/apps/details?id=tss.t.podcast';
-const WEB = 'https://tspodcast.vercel.app';
+const APP_STORE = 'https://apps.apple.com/vn/app/id6834456695';
 const EMAIL = 'admin@tuandv.me';
 const UPDATED = '2026-11-14';
 const DEFAULT_UTM = 'utm_source=website&utm_medium=landing';
 
 // Links work without JavaScript and already carry the default campaign values.
 const playHref = `${PLAY}&referrer=${encodeURIComponent(DEFAULT_UTM)}`;
-const webHref = (path = '/') => `${WEB}${path}?${DEFAULT_UTM}`;
 
 // Copies utm_* and gclid from the page URL into every a[data-cta]: Google Play gets them as the
 // install `referrer`, the web app as normal query parameters. Keep it < 1 KB. If you change it,
 // update the sha256 in the Content-Security-Policy of firebase.json (this script checks).
-const CAMPAIGN_JS = `(function(){try{var q=new URLSearchParams(location.search),p=new URLSearchParams();["utm_source","utm_medium","utm_campaign","utm_content","utm_term","gclid"].forEach(function(n){var v=q.get(n);v&&p.set(n,v)});p.has("utm_source")||p.set("utm_source","website");p.has("utm_medium")||p.set("utm_medium","landing");var r=p.toString();document.querySelectorAll("a[data-cta]").forEach(function(a){var u=new URL(a.href);if(u.hostname=="play.google.com")u.searchParams.set("referrer",r);else if(u.hostname=="tspodcast.vercel.app")u.search=r;else return;a.href=u.href})}catch(e){}})();`;
+const CAMPAIGN_JS = `(function(){try{var q=new URLSearchParams(location.search),p=new URLSearchParams();["utm_source","utm_medium","utm_campaign","utm_content","utm_term","gclid"].forEach(function(n){var v=q.get(n);v&&p.set(n,v)});p.has("utm_source")||p.set("utm_source","website");p.has("utm_medium")||p.set("utm_medium","landing");var r=p.toString();document.querySelectorAll("a[data-cta]").forEach(function(a){var u=new URL(a.href);if(u.hostname=="play.google.com")u.searchParams.set("referrer",r);else if(u.hostname=="tspodcast.web.app")u.search=r;else return;a.href=u.href})}catch(e){}})();`;
 // Scroll reveal. Every [data-reveal] gets `--d` (stagger index among its siblings) and is revealed
 // by an IntersectionObserver; no layout is read synchronously. html.js is set last, so without
 // JavaScript (or if this script fails) nothing is ever hidden. The attribute is removed after the
@@ -116,13 +115,13 @@ const SHOTS = [
 
 const FAQ = [
   ['TSPodcast có mất phí không?',
-    `Không. TSPodcast miễn phí: bạn tải app trên Google Play và dùng mọi tính năng mà không phải trả tiền. Bản web tại <a data-cta="faq-web" href="${esc(webHref('/'))}">tspodcast.vercel.app</a> cũng miễn phí.`],
+    `Không. TSPodcast miễn phí: bạn tải app trên Google Play hoặc App Store và nghe mà không phải trả tiền.`],
   ['Tôi có cần tạo tài khoản không?',
     'Không cần. App không có đăng ký hay đăng nhập. Danh sách yêu thích, lịch sử nghe, vị trí đang nghe và các tuỳ chọn của bạn được lưu ngay trên điện thoại.'],
   ['Podcast, radio và nhạc trong app lấy từ đâu?',
     'Danh mục podcast và nhạc lấy từ Podcast Index, một thư mục podcast mở. Âm thanh được phát trực tiếp từ máy chủ của nhà sản xuất chương trình, còn radio phát từ máy chủ của các đài. Nội dung thuộc về người tạo ra nó. TSPodcast là ứng dụng độc lập, không liên kết với các đài phát thanh hay nhà sản xuất podcast.'],
   ['TSPodcast dùng được trên thiết bị nào?',
-    `Hiện ứng dụng có trên Android qua Google Play. Trên máy tính hoặc thiết bị khác, bạn nghe được trên web tại <a data-cta="faq-web-devices" href="${esc(webHref('/'))}">tspodcast.vercel.app</a>.`],
+    `Ứng dụng có trên Android qua Google Play và trên iPhone qua <a data-cta="faq-app-store" href="${esc(APP_STORE)}">App Store</a> (bản iPhone chưa có radio).`],
   ['Tắt màn hình có nghe tiếp được không?',
     'Có. App phát nền khi bạn tắt màn hình hoặc mở app khác. Bạn điều khiển được từ thanh thông báo, màn hình khoá và tai nghe Bluetooth, và có thể hẹn giờ tắt theo số phút hoặc khi hết tập.'],
   ['Tôi gặp nội dung không phù hợp thì làm sao?',
@@ -135,11 +134,10 @@ const LANDINGS = [
   {
     file: 'index.html', path: '/', index: true,
     title: 'TSPodcast: Nghe podcast tiếng Việt, radio online miễn phí',
-    description: 'Ứng dụng Android miễn phí để nghe podcast tiếng Việt và quốc tế, radio online và kho nhạc mở. Không cần tài khoản. Thế giới trong tai bạn.',
+    description: 'Ứng dụng miễn phí trên Android và iPhone để nghe podcast tiếng Việt và quốc tế, kho nhạc mở và radio online. Không cần tài khoản. Thế giới trong tai bạn.',
     h1: 'Nghe podcast tiếng Việt, radio online và nhạc miễn phí',
     lead: 'TSPodcast gom podcast Việt và thế giới, kênh phát thanh trực tiếp và kho nhạc mở vào một ứng dụng. Mở ra là nghe, không cần tài khoản.',
     hero: ['01', 'Màn hình Khám phá của TSPodcast với mục Podcasts thịnh hành và Kho nhạc'],
-    webPath: '/', webLabel: 'Nghe ngay trên web',
     features: ['podcast', 'radio', 'music', 'player', 'background', 'safety'],
   },
   {
@@ -149,17 +147,15 @@ const LANDINGS = [
     h1: 'Nghe radio online miễn phí, chạm là phát',
     lead: 'Kênh phát thanh trực tiếp ngay trên điện thoại, cùng podcast tiếng Việt và kho nhạc mở. Tắt màn hình vẫn nghe, không cần tài khoản.',
     hero: ['02', 'Màn hình Radio của TSPodcast với danh sách kênh phát thanh trực tiếp'],
-    webPath: '/radio', webLabel: 'Nghe radio trên web',
     features: ['radio', 'background', 'player', 'podcast', 'music', 'safety'],
   },
   {
     file: 'l/podcast.html', path: '/l/podcast', index: false,
     title: 'Nghe podcast tiếng Việt miễn phí mỗi ngày | TSPodcast',
-    description: 'Podcast tiếng Việt và quốc tế thịnh hành, gợi ý theo hơn 100 chủ đề bạn chọn, nghe nền khi tắt màn hình. Ứng dụng Android miễn phí.',
+    description: 'Podcast tiếng Việt và quốc tế thịnh hành, gợi ý theo hơn 100 chủ đề bạn chọn, nghe nền khi tắt màn hình. Ứng dụng miễn phí trên Android và iPhone.',
     h1: 'Nghe podcast tiếng Việt mỗi ngày, miễn phí',
     lead: 'Chương trình thịnh hành, gợi ý theo hơn 100 chủ đề bạn chọn, tốc độ phát và hẹn giờ tắt tuỳ ý. Không cần tài khoản.',
     hero: ['04', 'Màn hình Tìm kiếm của TSPodcast với kết quả cho từ khoá kinh doanh'],
-    webPath: '/trending', webLabel: 'Nghe podcast trên web',
     features: ['podcast', 'player', 'background', 'music', 'radio', 'safety'],
   },
 ];
@@ -214,6 +210,7 @@ function head(p) {
 <meta name="description" content="${esc(p.description)}">
 ${p.noindex ? '<meta name="robots" content="noindex, follow">\n' : ''}<link rel="canonical" href="${canonical}">
 ${alts ? alts + '\n' : ''}<meta name="theme-color" content="#0B1A4A">
+<meta name="apple-itunes-app" content="app-id=6834456695">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -273,8 +270,8 @@ function footer(lang) {
       <div>
         <h2>Nghe và tải</h2>
         <ul>
-          <li><a id="cta-footer-web" data-cta="footer-web" href="${esc(webHref('/'))}">Nghe trên web</a></li>
           <li><a id="cta-footer-play" data-cta="footer-play" href="${esc(playHref)}">Tải trên Google Play</a></li>
+          <li><a id="cta-footer-ios" data-cta="footer-app-store" href="${esc(APP_STORE)}">Tải trên App Store</a></li>
           <li><a href="mailto:${EMAIL}">${EMAIL}</a></li>
         </ul>
       </div>
@@ -305,7 +302,7 @@ function featureCard(key) {
 }
 
 const ORG = { '@type': 'Organization', '@id': `${ORIGIN}/#organization`, name: 'TSPodcast', url: `${ORIGIN}/`,
-  logo: `${ORIGIN}/icon-512.png`, email: EMAIL, sameAs: [PLAY] };
+  logo: `${ORIGIN}/icon-512.png`, email: EMAIL, sameAs: [PLAY, APP_STORE] };
 
 function landingJsonLd(v) {
   return [{
@@ -315,7 +312,7 @@ function landingJsonLd(v) {
       { '@type': 'WebSite', '@id': `${ORIGIN}/#website`, url: `${ORIGIN}/`, name: 'TSPodcast', inLanguage: 'vi',
         publisher: { '@id': `${ORIGIN}/#organization` } },
       { '@type': 'SoftwareApplication', '@id': `${ORIGIN}/#app`, name: 'TSPodcast', url: `${ORIGIN}/`,
-        description: v.description, operatingSystem: 'Android', applicationCategory: 'MultimediaApplication',
+        description: v.description, operatingSystem: 'Android, iOS', applicationCategory: 'MultimediaApplication',
         inLanguage: 'vi', isAccessibleForFree: true, downloadUrl: PLAY, installUrl: PLAY,
         image: `${ORIGIN}/assets/img/og-image.png`,
         screenshot: SHOTS.map(([n]) => `${ORIGIN}/assets/screens/${n}.webp`),
@@ -337,11 +334,6 @@ function landing(v) {
     preloadImage: `/assets/screens/${heroN}.webp`,
     jsonld: v.index ? landingJsonLd(v) : [],
   };
-  const quick = [
-    ['/trending', 'trend', 'Thịnh hành', 'Podcast đang được nghe nhiều', 'web-trending'],
-    ['/radio', 'waves', 'Radio', 'Kênh phát thanh trực tiếp', 'web-radio'],
-    ['/search', 'search', 'Tìm kiếm', 'Theo tên chương trình, từ khoá', 'web-search'],
-  ];
   return `${head(p)}
 <body>
 ${header('vi', true)}
@@ -354,9 +346,9 @@ ${header('vi', true)}
         <p class="lead">${v.lead}</p>
         <div class="btn-row">
           <a class="btn btn-coral" id="cta-hero-play" data-cta="hero-play" href="${esc(playHref)}">${playIcon}Tải trên Google Play</a>
-          <a class="btn btn-ghost" id="cta-hero-web" data-cta="hero-web" href="${esc(webHref(v.webPath))}">${icon('headphones')}${v.webLabel}</a>
+          <a class="btn btn-coral" id="cta-hero-ios" data-cta="hero-app-store" href="${esc(APP_STORE)}">${icon('phone')}Tải trên App Store</a>
         </div>
-        <p class="note">Miễn phí, dành cho Android. Trên máy tính và thiết bị khác, bạn nghe ngay trên trình duyệt.</p>
+        <p class="note">Miễn phí trên Android và iPhone${v.path === '/l/radio' ? ' (radio hiện chỉ có trên Android)' : ''}.</p>
       </div>
       <div class="hero-art">
         <img src="/assets/screens/${heroN}.webp" width="540" height="960" fetchpriority="high" alt="${esc(heroAlt)}">
@@ -397,6 +389,7 @@ ${header('vi', true)}
         <p>Tải về, mở app và nghe. Bạn không phải đăng ký, không phải nhập email hay số điện thoại.</p>
         <div class="btn-row">
           <a class="btn btn-coral" id="cta-free-play" data-cta="free-play" href="${esc(playHref)}">${playIcon}Tải trên Google Play</a>
+          <a class="btn btn-coral" id="cta-free-ios" data-cta="free-app-store" href="${esc(APP_STORE)}">${icon('phone')}Tải trên App Store</a>
         </div>
       </div>
       <ul class="free-list card" data-reveal>
@@ -404,19 +397,6 @@ ${header('vi', true)}
         <li><span><strong>Không cần đăng ký.</strong> Danh sách yêu thích, lịch sử và vị trí đang nghe được lưu ngay trên máy của bạn.</span></li>
         <li><span><strong>Bạn quyết định.</strong> Chọn có chia sẻ thống kê sử dụng và báo lỗi hay không ngay lần mở app đầu tiên, đổi lại bất cứ lúc nào trong Cài đặt.</span></li>
         <li><span><strong>Tiếng Việt.</strong> Giao diện tiếng Việt, ưu tiên chương trình tiếng Việt.</span></li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="section section-alt" id="nghe-tren-web" aria-labelledby="web-title">
-    <div class="wrap">
-      <div class="section-head" data-reveal>
-        <p class="kicker">Nghe trên web</p>
-        <h2 id="web-title">Chưa cài app? Nghe ngay trên trình duyệt</h2>
-        <p>Mở TSPodcast trên web từ máy tính hay điện thoại, không cần cài đặt.</p>
-      </div>
-      <ul class="quick">
-        ${quick.map(([path, ic, label, sub, cta]) => `<li data-reveal><a class="card lift" id="cta-${cta}" data-cta="${cta}" href="${esc(webHref(path))}"><span class="icon">${icon(ic)}</span><span class="label"><strong>${label}</strong><span class="sub">${sub}</span></span><span class="arrow" aria-hidden="true">→</span></a></li>`).join('\n        ')}
       </ul>
     </div>
   </section>
@@ -492,7 +472,7 @@ ${footer(lang)}
 
 function notFound() {
   const p = { lang: 'vi', path: '/404', canonical: '/', noindex: true, title: 'Không tìm thấy trang | TSPodcast',
-    description: 'Trang bạn tìm không tồn tại. Quay lại trang chủ TSPodcast hoặc nghe podcast, radio online ngay trên web.' };
+    description: 'Trang bạn tìm không tồn tại. Quay lại trang chủ TSPodcast hoặc tải app trên Google Play, App Store.' };
   return `${head(p)}
 <body>
 ${header('vi', false)}
@@ -502,7 +482,7 @@ ${header('vi', false)}
     <p>Đường dẫn này không tồn tại hoặc đã được chuyển đi.</p>
     <div class="btn-row">
       <a class="btn btn-primary" href="/">Về trang chủ</a>
-      <a class="btn btn-outline" id="cta-404-web" data-cta="404-web" href="${esc(webHref('/'))}">Nghe ngay trên web</a>
+      <a class="btn btn-outline" id="cta-404-store" data-cta="404-app-store" href="${esc(APP_STORE)}">Tải trên App Store</a>
     </div>
   </div>
 </main>
