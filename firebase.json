@@ -7,7 +7,7 @@
       "trailingSlash": false,
       "ignore": [
         "firebase.json",
-        "**/.*",
+        "**/.DS_Store",
         "**/node_modules/**",
         "_src/**",
         "README.md"
@@ -122,6 +122,42 @@
               "value": "noindex, follow"
             }
           ]
+        },
+        {
+          "source": "/.well-known/apple-app-site-association",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        {
+          "source": "/.well-known/assetlinks.json",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "/podcast/**",
+          "destination": "/open.html"
+        },
+        {
+          "source": "/episode/**",
+          "destination": "/open.html"
+        },
+        {
+          "source": "/en/podcast/**",
+          "destination": "/open.html"
+        },
+        {
+          "source": "/en/episode/**",
+          "destination": "/open.html"
         }
       ]
     },
@@ -132,7 +168,7 @@
       "trailingSlash": false,
       "ignore": [
         "firebase.json",
-        "**/.*",
+        "**/.DS_Store",
         "**/node_modules/**",
         "_src/**",
         "README.md"
@@ -247,6 +283,42 @@
               "value": "noindex, follow"
             }
           ]
+        },
+        {
+          "source": "/.well-known/apple-app-site-association",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        {
+          "source": "/.well-known/assetlinks.json",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "/podcast/**",
+          "destination": "/open.html"
+        },
+        {
+          "source": "/episode/**",
+          "destination": "/open.html"
+        },
+        {
+          "source": "/en/podcast/**",
+          "destination": "/open.html"
+        },
+        {
+          "source": "/en/episode/**",
+          "destination": "/open.html"
         }
       ]
     }

@@ -5,11 +5,12 @@ import android.content.Intent
 import java.text.Normalizer
 
 /**
- * Links into the listening web app (Vercel), same paths and slugs as `web/src/lib/slug.ts`, so a
- * shared podcast or episode opens in a browser for people without the app.
+ * Share links on the TSPodcast landing site. `/podcast/<id>-<slug>` and `/episode/<id>-<slug>`
+ * (optionally under `/en/`) open the app through Android App Links (`/.well-known/assetlinks.json`
+ * on the site); without the app the site shows an "open in the app" page with the store links.
  */
 object WebLinks {
-    const val WEB_HOST = "tspodcast.vercel.app"
+    const val WEB_HOST = "tspodcast.web.app"
     const val WEB_BASE = "https://$WEB_HOST"
 
     /** A shared web link this app opens: a show or an episode, by PodcastIndex id. */
@@ -18,12 +19,12 @@ object WebLinks {
         data class Episode(val episodeId: Long) : Target
     }
 
-    /** `https://tspodcast.vercel.app/podcast/123-slug` → [Target.Podcast] (123), else null. */
+    /** `https://tspodcast.web.app/podcast/123-slug` (or `/en/podcast/…`) → [Target.Podcast] (123), else null. */
     fun parse(uri: android.net.Uri?): Target? {
         uri ?: return null
         if (uri.scheme != "https" && uri.scheme != "http") return null
         if (!uri.host.equals(WEB_HOST, ignoreCase = true)) return null
-        val segments = uri.pathSegments
+        val segments = uri.pathSegments.let { if (it.firstOrNull() == "en") it.drop(1) else it }
         if (segments.size < 2) return null
         val id = segments[1].substringBefore('-').toLongOrNull()?.takeIf { it > 0 } ?: return null
         return when (segments[0]) {
