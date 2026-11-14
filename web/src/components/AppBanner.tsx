@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore } from "react";
 import { CloseIcon, PhoneIcon } from "@/components/icons";
 import { t } from "@/lib/i18n";
-import { IOS_TESTFLIGHT_URL, androidIntentUrl, playStoreUrl } from "@/lib/site";
+import { APP_STORE_URL, androidIntentUrl, playStoreUrl } from "@/lib/site";
 
 // docs/in-progress/plans/seo-web-dashboard.md §A.10: a slim, dismissible banner that
 // remembers dismissal for 14 days and never pushes layout (it overlays the top
@@ -34,7 +34,7 @@ function bannerWanted(): boolean {
 
 /**
  * "Smart app banner": Android opens the app or the Play Store (Chrome has no native banner for
- * Play apps); iPhone/iPad joins the TestFlight beta until the App Store release.
+ * Play apps); iPhone/iPad opens the App Store (Safari also shows its own Smart App Banner).
  */
 export function AppBanner() {
   const wanted = useSyncExternalStore(noopSubscribe, bannerWanted, () => false);
@@ -64,11 +64,11 @@ export function AppBanner() {
         <p className="truncate text-xs text-subtle">{ios ? t.app.iosBannerBody : t.app.bannerBody}</p>
       </div>
       <a
-        href={ios ? IOS_TESTFLIGHT_URL : androidIntentUrl(playStoreUrl({ medium: "smart_banner" }))}
+        href={ios ? APP_STORE_URL : androidIntentUrl(playStoreUrl({ medium: "smart_banner" }))}
         rel={ios ? "noopener" : undefined}
         className="shrink-0 rounded-full bg-primary px-3.5 py-1.5 text-xs font-bold text-on-primary"
       >
-        {ios ? t.app.joinBeta : t.app.openInApp}
+        {ios ? t.app.getOnAppStore : t.app.openInApp}
       </a>
       <button
         type="button"
@@ -90,7 +90,7 @@ export function AppBanner() {
 export function OpenInAppLink({ feedId, className = "" }: { feedId?: number; className?: string }) {
   const android = useSyncExternalStore(noopSubscribe, isAndroid, () => false);
   const ios = useSyncExternalStore(noopSubscribe, isIOS, () => false);
-  const store = ios ? IOS_TESTFLIGHT_URL : playStoreUrl({
+  const store = ios ? APP_STORE_URL : playStoreUrl({
     medium: "open_in_app",
     content: feedId ? `podcast_${feedId}` : undefined,
     deeplink: feedId ? `/podcast/${feedId}` : undefined,

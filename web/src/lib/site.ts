@@ -19,8 +19,9 @@ export const ANDROID_PACKAGE = "tss.t.podcast";
 
 export const PLAY_STORE_URL = `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}`;
 
-/** Public TestFlight link of the iOS beta (group "Public Beta" in App Store Connect) until the App Store release. */
-export const IOS_TESTFLIGHT_URL = "https://testflight.apple.com/join/65pPR7ku";
+/** The iPhone app on the App Store (App Store Connect app 6834456695). */
+export const APP_STORE_ID = "6834456695";
+export const APP_STORE_URL = `https://apps.apple.com/vn/app/id${APP_STORE_ID}`;
 
 /**
  * Play Store link carrying an install referrer (docs/in-progress/plans/seo-web-dashboard.md
