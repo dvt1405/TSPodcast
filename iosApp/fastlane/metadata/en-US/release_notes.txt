@@ -1,1 +1,1 @@
-First release of TSPodcast: trending podcasts, 100+ topics, search inside shows, playback speed, sleep timer, skip and resume, and an app in 15 languages.
+Choose your podcast regions: up to 3 (Vietnam, US, Japan…); the main one sets the language of trending shows and recommendations. New "Podcasts by region" on Discover with each region's top shows, news by region, and search that favours your languages. Stronger gambling-spam filter.

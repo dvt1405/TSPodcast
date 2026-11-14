@@ -1,1 +1,1 @@
-Primera versión de TSPodcast: podcasts en tendencia en tu idioma y en inglés, más de 100 temas, búsqueda dentro de los programas, velocidad, temporizador de apagado, saltos y reanudación, app en 15 idiomas.
+Elige hasta 3 regiones de pódcast (Vietnam, EE. UU., Japón…); la principal define el idioma de las tendencias y recomendaciones. Nuevo «Pódcast por región» en Descubrir con los programas destacados de cada región, noticias por región y una búsqueda que prioriza tus idiomas. Filtro más estricto contra el spam de apuestas.

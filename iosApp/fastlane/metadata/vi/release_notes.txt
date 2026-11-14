@@ -1,1 +1,1 @@
-Phiên bản đầu tiên của TSPodcast: podcast thịnh hành bằng tiếng Việt và tiếng Anh, hơn 100 chủ đề, tìm tập trong chương trình, chỉnh tốc độ, hẹn giờ tắt, tua và nghe tiếp, app có 15 ngôn ngữ.
+Chọn vị trí podcast: tối đa 3 khu vực (Việt Nam, Mỹ, Nhật…), khu vực chính quyết định ngôn ngữ của danh sách thịnh hành và gợi ý. Mục mới "Podcast theo vị trí" trên Khám phá với chương trình nổi bật của từng khu vực, "Thời sự" theo khu vực, tìm kiếm ưu tiên ngôn ngữ bạn chọn. Lọc nội dung cờ bạc chặt hơn.
