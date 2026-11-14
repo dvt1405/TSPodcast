@@ -199,10 +199,10 @@ final class DeepLinkRouterTests: XCTestCase {
         XCTAssertEqual(AppLinkHost.hosts(from: ["TSAppLinkHost": " example.com "]), ["example.com"])
     }
 
-    /// The app ships with `TSAppLinkHost = $(APP_LINK_HOST)`, empty by default: no link is accepted.
-    func testTheAppHasNoHostByDefault() {
+    /// The app ships with `TSAppLinkHost = $(APP_LINK_HOST)` = the landing site of the share links.
+    func testTheAppAcceptsTheShareLinkHost() {
         XCTAssertNotNil(Bundle.main.object(forInfoDictionaryKey: AppLinkHost.infoKey), "Info.plist declares TSAppLinkHost")
-        XCTAssertEqual(AppLinkHost.hosts(from: Bundle.main.infoDictionary ?? [:]), [])
+        XCTAssertEqual(AppLinkHost.hosts(from: Bundle.main.infoDictionary ?? [:]), [ShareLinks.host])
     }
 
     /// The real data source maps an E12 episode like a favourite tap: one-item playlist saved with
