@@ -39,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
@@ -51,8 +52,8 @@ import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import kotlinx.coroutines.launch
-import tss.t.ads.AdBannerSlot
-import tss.t.ads.AdPlacement
+import tss.t.ads.AdNativeSlot
+import tss.t.ads.AdSlotRow
 import tss.t.podcast.ui.screens.podcastsdetail.widgets.EpisodeWidget
 import tss.t.sharedlibrary.theme.Colors
 import tss.t.sharedlibrary.theme.TextStyles
@@ -76,7 +77,13 @@ fun BoxScope.SlideArea(
     fling: Float = 0f,
     onStateChanged: (SlideAreaState) -> Unit = {},
     onSelected: MediaItem.() -> Unit = {},
-    playerAreaHeight: Int = 0
+    playerAreaHeight: Int = 0,
+    /**
+     * The list with its `player_up_next` ad rows for "fully open" (true) or not; the default adds
+     * none. Rows exist only once the panel has finished opening and go as soon as it starts to
+     * close, so the peek never shows one (player-ads-and-premium.md §3.2).
+     */
+    withAdRows: (List<MediaItem>, Boolean) -> List<Any> = { list, _ -> list },
 ) {
     val initSize = remember(playerAreaHeight) {
         playerAreaHeight.toFloat()
@@ -190,14 +197,19 @@ fun BoxScope.SlideArea(
             slideAreaState = flingSlideAreaState(fling)
         }
     }
+    // Fully open: the open animation finished. Cleared as soon as the panel starts to close.
+    var fullyOpen by remember { mutableStateOf(false) }
     LaunchedEffect(slideAreaState, dragging) {
         if (slideAreaState == SlideAreaState.Hidden) {
+            fullyOpen = false
             anim.animateTo(-initSize)
         } else {
             anim.animateTo(0f)
+            fullyOpen = true
         }
         onStateChanged(slideAreaState)
     }
+    val rows = remember(playList, fullyOpen, withAdRows) { withAdRows(playList, fullyOpen) }
     val density = LocalDensity.current
     Column(
         modifier = Modifier
@@ -260,10 +272,8 @@ fun BoxScope.SlideArea(
         HorizontalDivider(
             color = Colors.NeutralDark.copy(0.3f),
         )
-        AdBannerSlot(
-            placement = AdPlacement.PlayerEpisodeList, // off by default (Remote Config)
-            modifier = Modifier.padding(vertical = 4.dp)
-        )
+        // No ad here: right under the title it could show in the peek next to the speed / sleep
+        // timer row (player_episode_list stays off; the native rows in the open list replace it).
         LazyColumn(
             modifier = Modifier
                 .statusBarsPadding()
@@ -296,14 +306,34 @@ fun BoxScope.SlideArea(
             item {
                 Spacer(modifier = Modifier.size(20.dp))
             }
-            items(playList.size) {
+            items(rows.size, key = { index ->
+                when (val row = rows[index]) {
+                    is AdSlotRow -> row.lazyKey
+                    is MediaItem -> "item/$index/${row.mediaId}"
+                    else -> index
+                }
+            }) {
+                val row = rows[it]
+                if (row is AdSlotRow) {
+                    // Labelled native row on its own card, away from the Previous/Next and the
+                    // first item (never the first row). Zero height until an ad loaded.
+                    AdNativeSlot(
+                        placement = row.placement,
+                        slotKey = row.slotKey,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    )
+                    return@items
+                }
+                val mediaItem = row as MediaItem
                 EpisodeWidget(
-                    mediaItem = playList[it],
+                    mediaItem = mediaItem,
                     modifier = Modifier
                         .clickable(
                             enabled = !dragging && !listState.isScrollInProgress,
                             onClick = {
-                                onSelected(playList[it])
+                                onSelected(mediaItem)
                             }
                         )
                         .padding(

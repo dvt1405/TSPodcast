@@ -71,6 +71,8 @@ class PlayerViewModel @Inject constructor(
     private val getEpisodeLocalUseCase: GetEpisodeLocalUseCase,
     private val getPlayableLink: GetPlayableLink,
     private val listeningHistoryUseCase: ListeningHistoryUseCase,
+    /** The Player's ads (strip, Up next rows, pause card), off by default. */
+    val playerAds: tss.t.podcast.ads.PlayerAds,
 ) : ViewModel(), Player.Listener {
 
     private val currentPlayer: Player
@@ -104,6 +106,14 @@ class PlayerViewModel @Inject constructor(
 
     init {
         restoreSession()
+        // Audio started: get the Player strip's ad ready, so it can be there when the Player
+        // opens (an ad is never inserted while the Player is looked at).
+        viewModelScope.launch {
+            miniPlayerState
+                .map { it.currentMediaItem?.mediaId to it.isPlaying }
+                .distinctUntilChanged()
+                .collect { (mediaId, playing) -> if (mediaId != null && playing) playerAds.preloadNowPlaying() }
+        }
     }
 
     /**

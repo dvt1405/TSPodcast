@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -29,6 +32,7 @@ import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -38,6 +42,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import coil.compose.AsyncImage
+import tss.t.ads.AdNativeSlot
+import tss.t.ads.AdPlacement
 import tss.t.sharedlibrary.theme.TextStyles
 import tss.t.sharedlibrary.utils.imageRequestBuilder
 import tss.t.sharedplayer.player.PlaybackExtrasState
@@ -77,6 +83,7 @@ fun BoxScope.PlayerArea(
     onLoop: () -> Unit = {},
     onSeek: (Float) -> Unit = {},
     onPlayerSizeChanged: (Int) -> Unit = {},
+    ads: PlayerAdUi = PlayerAdUi(),
 ) {
 
     val formatBuilder = remember {
@@ -121,22 +128,66 @@ fun BoxScope.PlayerArea(
             .navigationBarsPadding()
             .padding(top = 70.dp)
     ) {
+        // The artwork area keeps its square size whatever it shows, so the title, the seek bar and
+        // the controls never move because of an ad (player-ads-and-premium.md §3.1 #3, §3.3):
+        // the artwork alone; the artwork shrunk above the `player_now_playing` strip; or the
+        // `player_pause` card in its place. The strip ends ≥ 48 dp above the seek bar's touch
+        // area (20 dp + two title lines + the show name + 10 dp).
         Box(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 30.dp)
+                .padding(bottom = 20.dp)
+                .aspectRatio(1f)
         ) {
-            AsyncImage(
-                model = imageRequestBuilder(LocalContext.current)
-                    .diskCacheKey(episode.mediaMetadata.artworkUri.toString())
-                    .data(episode.mediaMetadata.artworkUri)
-                    .build(),
-                contentDescription = episode.mediaMetadata.title.toString(),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 30.dp)
-                    .padding(bottom = 20.dp)
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(12.dp))
-            )
+            val artwork: @Composable (Modifier) -> Unit = { modifier ->
+                AsyncImage(
+                    model = imageRequestBuilder(LocalContext.current)
+                        .diskCacheKey(episode.mediaMetadata.artworkUri.toString())
+                        .data(episode.mediaMetadata.artworkUri)
+                        .build(),
+                    contentDescription = episode.mediaMetadata.title.toString(),
+                    modifier = modifier.clip(RoundedCornerShape(12.dp))
+                )
+            }
+            when {
+                ads.pauseCard -> AdNativeSlot(
+                    placement = AdPlacement.PlayerPause,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                )
+
+                ads.strip -> Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        artwork(
+                            Modifier
+                                .fillMaxHeight()
+                                .aspectRatio(1f)
+                        )
+                    }
+                    Spacer(Modifier.height(PLAYER_STRIP_GAP))
+                    AdNativeSlot(
+                        placement = AdPlacement.PlayerNowPlaying,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(PLAYER_STRIP_HEIGHT)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surface)
+                    )
+                }
+
+                else -> artwork(Modifier.fillMaxSize())
+            }
         }
         Text(
             modifier = Modifier
@@ -228,3 +279,7 @@ fun BoxScope.PlayerArea(
         )
     }
 }
+
+/** Height of the `player_now_playing` strip (plan: 72–88 dp) and its gap under the artwork. */
+private val PLAYER_STRIP_HEIGHT = 80.dp
+private val PLAYER_STRIP_GAP = 8.dp
