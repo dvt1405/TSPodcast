@@ -102,7 +102,7 @@ release; debug dùng test app id `ca-app-pub-3940256099942544~1458002511`).
 | Interstitial | `ca-app-pub-8696388065064767/4518696367` | interstitial_nav |
 | Rewarded interstitial | `ca-app-pub-8696388065064767/2729817023` | (chưa có placement) |
 | Rewarded | `ca-app-pub-8696388065064767/8512626743` | rewarded_ad_free |
-| Native | `ca-app-pub-8696388065064767/2538245333` | discover_inline, podcast_detail_episodes |
+| Native | `ca-app-pub-8696388065064767/2538245333` | discover_inline, podcast_detail_episodes, player_now_playing, player_up_next, player_pause |
 | App Open | `ca-app-pub-8696388065064767/9264415720` | app_open_warm, app_open_cold |
 
 Consent: UMP trước, rồi ATT (`NSUserTrackingUsageDescription`), chỉ request ad khi UMP

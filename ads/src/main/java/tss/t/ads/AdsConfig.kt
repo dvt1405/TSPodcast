@@ -39,6 +39,16 @@ object AdsKeys {
      * revenue twice (docs/done/analytics/analytics-events.md §Quảng cáo).
      */
     const val GA4_AD_IMPRESSION = "ads_ga4_ad_impression"
+
+    // Player placements (docs/in-progress/plans/player-ads-and-premium.md §3.6).
+    const val PLAYER_RESPECT_GRACE = "ads_player_respect_grace"
+    const val PLAYER_MIN_HEIGHT_DP = "ads_player_min_height_dp"
+    const val PLAYER_NATIVE_REFRESH_SEC = "ads_player_native_refresh_sec"
+    const val PLAYER_UP_NEXT_FIRST_INDEX = "ads_player_up_next_first_index"
+    const val PLAYER_UP_NEXT_INTERVAL = "ads_player_up_next_interval"
+    const val PLAYER_UP_NEXT_MAX = "ads_player_up_next_max"
+    const val PLAYER_PAUSE_DELAY_SEC = "ads_player_pause_delay_sec"
+    const val PLAYER_PAUSE_SESSION_CAP = "ads_player_pause_session_cap"
 }
 
 enum class NativeTemplate { Small, Medium }
@@ -76,6 +86,20 @@ data class AdsSettings(
     val minAppVersion: Long,
     /** [AdsKeys.GA4_AD_IMPRESSION]. */
     val ga4AdImpression: Boolean = true,
+    /** Player placements follow [gracePeriodHours] and skip the first session. */
+    val playerRespectGrace: Boolean = true,
+    /** No `player_now_playing` / `player_pause` in a window lower than this (dp). */
+    val playerMinHeightDp: Int = 640,
+    /** Minimum age before the visible strip is refreshed; 0 = only on an episode change, else ≥ 30. */
+    val playerNativeRefreshSec: Long = 60,
+    /** First Up next ad row after item N (≥ 2: never the first row). */
+    val playerUpNextFirstIndex: Int = 3,
+    val playerUpNextInterval: Int = 8,
+    val playerUpNextMax: Int = 2,
+    /** A manual pause this long (and the Player shown as long) before the pause card. */
+    val playerPauseDelaySec: Long = 5,
+    /** Pause cards per session, at least [AdPolicy.PLAYER_PAUSE_MIN_GAP_MS] apart. */
+    val playerPauseSessionCap: Int = 3,
 ) {
     fun isEnabled(placement: AdPlacement): Boolean =
         adsEnabled && placementsEnabled[placement] == true
@@ -94,6 +118,10 @@ data class AdsSettings(
             AdPlacement.RewardedAdFree to false,
             AdPlacement.AppOpenWarm to true,
             AdPlacement.AppOpenCold to false,
+            // Player placements: off until rolled out (player-ads-and-premium.md §3.8).
+            AdPlacement.PlayerNowPlaying to false,
+            AdPlacement.PlayerUpNext to false,
+            AdPlacement.PlayerPause to false,
         )
 
         /**
@@ -131,6 +159,15 @@ data class AdsSettings(
             rewardedAdFreeMinutes = 120,
             rewardedDailyCap = 3,
             minAppVersion = 0,
+            // Debug: no grace and no first-session skip, like the other placements.
+            playerRespectGrace = !debug,
+            playerMinHeightDp = 640,
+            playerNativeRefreshSec = 60,
+            playerUpNextFirstIndex = 3,
+            playerUpNextInterval = 8,
+            playerUpNextMax = 2,
+            playerPauseDelaySec = 5,
+            playerPauseSessionCap = 3,
         )
 
         /**
@@ -232,8 +269,26 @@ data class AdsSettings(
                 rewardedDailyCap = int(AdsKeys.REWARDED_DAILY_CAP, defaults.rewardedDailyCap),
                 minAppVersion = long(AdsKeys.MIN_APP_VERSION, defaults.minAppVersion),
                 ga4AdImpression = bool(AdsKeys.GA4_AD_IMPRESSION, defaults.ga4AdImpression),
+                playerRespectGrace = bool(AdsKeys.PLAYER_RESPECT_GRACE, defaults.playerRespectGrace),
+                playerMinHeightDp = int(AdsKeys.PLAYER_MIN_HEIGHT_DP, defaults.playerMinHeightDp),
+                playerNativeRefreshSec = long(
+                    AdsKeys.PLAYER_NATIVE_REFRESH_SEC, defaults.playerNativeRefreshSec
+                ).let { if (it == 0L) 0L else it.coerceAtLeast(MIN_PLAYER_REFRESH_SEC) },
+                playerUpNextFirstIndex = int(
+                    AdsKeys.PLAYER_UP_NEXT_FIRST_INDEX, defaults.playerUpNextFirstIndex
+                ).coerceAtLeast(2),
+                playerUpNextInterval = int(AdsKeys.PLAYER_UP_NEXT_INTERVAL, defaults.playerUpNextInterval)
+                    .coerceAtLeast(1),
+                playerUpNextMax = int(AdsKeys.PLAYER_UP_NEXT_MAX, defaults.playerUpNextMax),
+                playerPauseDelaySec = long(AdsKeys.PLAYER_PAUSE_DELAY_SEC, defaults.playerPauseDelaySec),
+                playerPauseSessionCap = int(
+                    AdsKeys.PLAYER_PAUSE_SESSION_CAP, defaults.playerPauseSessionCap
+                ),
             )
         }
+
+        /** `ads_player_native_refresh_sec` below this (and not 0) counts as this. */
+        const val MIN_PLAYER_REFRESH_SEC = 30L
 
         /** `ca-app-pub-<16 digits>/<10 digits>`. Anything else is ignored. */
         private val AD_UNIT_ID = Regex("""ca-app-pub-\d{16}/\d{10}""")
