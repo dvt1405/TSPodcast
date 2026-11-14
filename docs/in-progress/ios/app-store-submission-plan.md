@@ -1,6 +1,6 @@
 # Kế hoạch đưa TSPodcast iOS qua App Store Review
 
-> **Trạng thái: Đang làm** (2026-11-01) — đã có: `PrivacyInfo.xcprivacy`, script kiểm required reason API, review notes cho hub tin (PR #30), metadata App Store 15 ngôn ngữ (PR #46, #48).
+> **Trạng thái: Đang làm** (2026-11-14) — 1.0 phát hành 13/11/2026, 1.1 chờ duyệt; nhãn App Privacy theo kịch bản có ads §4.2, manifest `NSPrivacyTracking=false` (xem handoff). Ghi chú cũ: đã có: `PrivacyInfo.xcprivacy`, script kiểm required reason API, review notes cho hub tin (PR #30), metadata App Store 15 ngôn ngữ (PR #46, #48).
 > Còn lại: tài khoản Apple Developer, bản ghi App Store Connect, TestFlight, nộp duyệt (§13, §15, §16).
 
 > Thông tin đã kiểm tra ngày 2026-10-29. Apple thay đổi yêu cầu thường xuyên, nên trước mỗi lần nộp phải đọc lại:

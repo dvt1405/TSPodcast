@@ -1,5 +1,6 @@
 # Kế hoạch: Website chuẩn SEO, dashboard tăng trưởng và chiến dịch quảng cáo
 
+> **Cập nhật 2026-11-14:** owner bỏ web nghe trực tuyến; `web/` và `deploy-web.yml` đã xoá (PR #72). `tspodcast.web.app` chỉ còn landing `site/`.
 > **Trạng thái: Đang làm** (2026-11-01) — đã xong phần lớn mục A: web Next.js (PR #23, #44) có sitemap, JSON-LD, `app-ads.txt`, `assetlinks.json`, chạy ở `tspodcast.vercel.app`; trang sản phẩm Firebase (PR #37); ASO (PR #35, #48).
 > Còn lại: tên miền riêng, Search Console, GA4 web, dashboard BigQuery/Looker (mục B), chiến dịch quảng cáo (mục C).
 

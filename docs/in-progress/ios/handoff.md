@@ -1,18 +1,53 @@
 # Handoff iOS — việc cần owner
 
-> **Trạng thái: Đang làm** (2026-11-01) — danh sách việc owner còn mở cho iOS (tài khoản Apple, Firebase iOS, xác nhận nguồn tin, văn bản consent...). Cập nhật lần cuối ở M6 (30/10/2026).
+> **Trạng thái: Đang làm** (2026-11-14) — iOS 1.0 đã lên App Store, 1.1 chờ duyệt. Việc owner còn mở ở mục "Cần owner (14/11/2026)"; danh sách cũ (M0–M6) để ở mục lưu trữ cuối file.
 
 Danh sách những việc agent không làm thay được, hoặc đã phải tự quyết thay owner trong lúc xây app iOS. Mỗi mục ghi rõ: việc gì, vì sao bị chặn, trong lúc chờ đã làm gì, file liên quan. Agent cập nhật file này sau mỗi milestone; mục nào đã xử lý thì xoá.
 
 Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bản nghiệm thu từng milestone: [milestones/](../../done/ios/milestones/).
 
-## Cần owner xử lý / quyết định
+## Tình trạng (14/11/2026)
 
-### Máy và môi trường
+- **App Store:** app "TSPodcast: Nghe podcast" (Apple ID 6834456695, bundle `tss.t.podcast.ios`, team Kun Tun 3AYA8D7LW2). 1.0 build 4 **Ready for Sale**; 1.1 build 5 (vị trí podcast) **Waiting for Review**, tự phát hành. Link: `https://apps.apple.com/vn/app/id6834456695`.
+- **TestFlight:** nhóm Internal (owner) và Public Beta (`https://testflight.apple.com/join/65pPR7ku`, tối đa 1000, build 4 chờ Beta Review).
+- **Firebase:** app iOS `tss.t.podcast.ios` trong project `podcast-25c93` (cùng project Android); plist Release ở `iosApp/Config/Firebase/Release/`.
+- **Web:** `tspodcast.web.app` (landing chính) và `podcast-25c93.web.app` cùng phục vụ `site/`. Web nghe trực tuyến đã bỏ.
+- **Kế hoạch tiếp theo:** [../plans/next-phase-2026-11.md](../plans/next-phase-2026-11.md).
+
+## Cần owner (14/11/2026)
+
+| # | Việc | Vì sao agent không làm được | Ảnh hưởng |
+|---|---|---|---|
+| 1 | **Paid Apps Agreement + thuế** trên App Store Connect (Business) | Thông tin pháp lý/ngân hàng của owner | Chưa bán IAP được trên iOS; owner chọn bật IAP cùng lúc 2 nền tảng nên Android cũng chờ |
+| 2 | **Xác minh trader (DSA)** ở App Store Connect → Business → Compliance | Khai thông tin pháp lý | 27 nước EU chưa bán app |
+| 3 | **Mở khoá iPhone "Tun"** khi agent chạy test (Auto-Lock = Không bao giờ trong lúc làm việc) | Thiết bị vật lý | PR #74 (ads trong Player) chờ chạy unit test iOS |
+| 4 | **Quyền Owner Firebase `podcast-25c93`**: hiện chỉ `chintk111999@gmail.com` là Owner người dùng; tài khoản của owner không có trong IAM | Thay đổi quyền truy cập | Rủi ro mất quyền quản trị; agent chỉ thao tác qua service account |
+| 5 | **Email nhận báo cáo nội dung** `CONTENT_REPORT_EMAIL` (`iosApp/Config/Shared.xcconfig`, đang rỗng → các lối "Báo cáo" bị ẩn). Gợi ý: `admin@tuandv.me` (đã công khai trên trang privacy) | Chọn hộp thư theo dõi được | Guideline 5.2 (takedown) và 2.5.18 (báo cáo quảng cáo) |
+| 6 | **Quyết định link chia sẻ / App Links** (Android vẫn trỏ `tspodcast.vercel.app` đã chết) | Quyết định sản phẩm | Xem next-phase §4.1 |
+| 7 | Đổi **Website trên Play Console** sang `tspodcast.web.app` | Owner chọn thời điểm | app-ads.txt có ở cả 2 domain nên AdMob không bị ảnh hưởng |
+| 8 | Văn bản consent chính thức, `confirmedAt` cho nguồn "Thời sự & Bản tin", key PodcastIndex riêng cho iOS, APNs key cho push | Như ở mục lưu trữ dưới | Hub tin ẩn trong Release; push iOS chưa chạy |
+
+## Quyết định agent đã tự chọn (13–14/11/2026, owner xác nhận hoặc đổi)
+
+- Bundle iOS `tss.t.podcast.ios` (owner chọn; `tss.t.podcast` thuộc team khác).
+- Phân loại độ tuổi theo app-store-submission-plan §10 + có quảng cáo; nội dung bên thứ ba "Yes"; phát hành 1.0 thủ công, 1.1 tự động (owner yêu cầu "deploy luôn").
+- Nhãn App Privacy: 8 loại dữ liệu, Device ID + Advertising Data "dùng để tracking". `PrivacyInfo.xcprivacy` để `NSPrivacyTracking = false`, không tracking domain (ITMS-91064 ở build 3; khai domain sẽ làm iOS chặn cả quảng cáo không cá nhân hoá khi chưa cho phép ATT).
+- Review notes: `iosApp/fastlane/metadata/review_information/notes.txt`; liên hệ review lấy từ app TS Remote TV cùng tài khoản (không lưu trong repo).
+- Privacy/Terms cập nhật 14/11/2026: iOS có AdMob (UMP → ATT), mục mua trong ứng dụng, mục Premium trong Điều khoản.
+- Site Hosting `tioshome` (tạo nhầm) đã xoá — tên đó thuộc sản phẩm "home" của owner.
+- Quảng cáo trong Player (PR #74): banner `player_episode_list` cũ trên Android bị gỡ khỏi bảng Tiếp theo (rủi ro bấm nhầm), key RC giữ và vẫn tắt.
+
+## Lưu trữ: danh sách M0–M6 (trước 13/11/2026)
+
+> Nhiều mục dưới đây đã xong trong đợt 13–14/11 (tài khoản Apple, Firebase iOS, privacy URL, nhãn App Privacy, provisioning). Mục còn mở đã được đưa lên bảng "Cần owner" ở trên.
+
+### Cần owner xử lý / quyết định
+
+#### Máy và môi trường
 
 - **iPhone "Tun" chưa build/cài được (cả M5, T1–T4; M6 T1 cũng vậy, kiểm lại 30/10/2026 đầu M6 T1).** Xcode báo `iOS 26.2 is not installed. Please download and install the platform from Xcode > Settings > Components.` cho destination Tun (component platform iOS đang tải lại; lần kiểm cuối 13:52 ngày 30/10/2026). `devicectl` báo Tun `available (paired)`, nên chỉ còn thiếu platform. Trong lúc chờ: toàn bộ code M5 đã commit, kiểm bằng typecheck Swift 6 toàn app (SDK iOS 26.2, deployment 17: 0 lỗi, 0 cảnh báo) + 31 test logic chạy trên macOS + kiểm tĩnh §6. Cần: platform iOS cài xong trong Xcode > Settings > Components; iPhone mở khoá khi chạy. Sau đó chạy 4 bước ở `docs/in-progress/ios/progress.md` mục M5 T4 "Chờ chạy trên iPhone khi có iOS platform" (unit test 275 test, build Debug, smoke, rồi owner xem theo bảng "Owner xem trên iPhone") và mục M6 T1 cùng tên (303 test sau T1). **Lần kiểm M6 T2 (30/10/2026):** `xcodebuild -showdestinations` không còn liệt kê Tun và `xcrun devicectl list devices` báo Tun `unavailable` (thử 2 lần), nên ngoài platform còn cần mở khoá/cắm lại iPhone. Mục "Chờ chạy trên iPhone" của M6 T2 trong progress.md: 333 unit test + smoke (sheet consent hiện ở lần cài mới không được làm crash). **Lần kiểm M6 T3 (30/10/2026):** `-showdestinations` đã liệt kê Tun, `xcodebuild -showsdks` có `iphoneos26.2`, devicectl báo `available (paired)` → platform có vẻ đã cài xong; T3 không chạy build trên máy vì đang có một `xcodebuild` của phiên khác trên cùng project, để orchestrator chạy chung M5+M6 (334 unit test sau T3). **Lần kiểm M6 T4 (30/10/2026 ~16:30):** platform đã cài, Tun chạy được: `xcodebuild test -only-testing:TSPodcastTests` trên Tun **370/370 pass** (M5 + M6 T1–T4, với `FIREBASE_PLIST_DIR` rỗng), build Debug + smoke 15 s (và 20 s với `-newshub-include-unconfirmed`) không crash. Còn lại cho owner: xem trên iPhone theo bảng M5 T4 "Owner xem trên iPhone" và mục "Để QC" của M6. **Lần kiểm M6 T5 (30/10/2026 ~17:00):** Tun `connected`, `xcodebuild test` **385/385 pass** (thêm App Shortcuts), build Debug + cài + smoke 15 s không crash. Platform iOS không còn là điểm chặn; bullet này giữ để lịch sử, owner xoá được.
 
-### Tài khoản và cloud resource
+#### Tài khoản và cloud resource
 
 - **Firebase iOS app** (bundle `tss.t.podcast`) và file `GoogleService-Info.plist` (setup-and-build §4).
   - Bị chặn vì: agent không được tạo cloud resource, không gọi dịch vụ Firebase.
@@ -70,7 +105,7 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
   - Cần owner: (1) xin xác nhận, điền `confirmedAt: "YYYY-MM-DD"` cho từng nguồn đồng ý (hoặc qua RC `news_hub_v1`, cùng schema); (2) quyết giữ hay thay Tuổi Trẻ/Báo Pháp luật (có thể nhờ nhà phát hành sửa feed hoặc báo PodcastIndex), vì ngưỡng "≥ 3 nguồn tin" tính theo nguồn **dùng được**. File: `shared/assets/news_hub_default.json`, `shared/src/commonMain/kotlin/tss/t/shared/newshub/`.
   - M6 T4: cổng phát hành là `iosApp/scripts/check-news-hub-gate.sh` (hôm nay in `confirmed news=0 night=0`, thoát 1), có dòng trong `docs/in-progress/ios/app-store-submission-plan.md` §15 và checklist §16. Review notes §14 đã có đoạn "News & Bulletins" (on-demand, RSS của toà soạn, phát từ URL nhà xuất bản, không live, không re-host, xác nhận khi được yêu cầu, chữ "trực tiếp" trong mô tả feed VOV). Dưới ngưỡng hoặc chưa có ý kiến luật sư (L4) trước code freeze 16/12/2026 → owner quyết; bỏ hub thì **gỡ hub khỏi binary** (mục Home, route, màn `NewsHub/`) và bỏ đoạn đó khỏi notes, không ẩn.
 
-### Quyết định agent đã tự chọn (owner xác nhận hoặc đổi)
+#### Quyết định agent đã tự chọn (owner xác nhận hoặc đổi)
 
 - **Search gửi ít tham số hơn Android:** E7/E8 không gửi `pretty=false`, E8 không gửi `aponly=false`; E11 không retry `SerializationException`. PO M0 đánh giá không đổi dữ liệu trả về (progress.md, M0 T2).
 - **Kotlin giữ 2.2.0, không dùng SKIE**, tích hợp framework bằng cách A (`embedAndSignAppleFrameworkForXcode`). Hệ quả: mỗi lần build Xcode đều chạy lại bước Gradle, build tăng dần chậm hơn (M0 review).
@@ -150,7 +185,7 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
 - **(M6, PO chọn) Giờ "trước 11:00" của Điểm tin sáng theo UTC+7 cố định** (`VN_OFFSET_MILLIS`, giờ phát hành ở VN; không thêm `kotlinx-datetime`), còn ngày trên thẻ brief theo lịch/múi giờ của máy (plan M6 §7 mục 8). Người dùng ở múi giờ khác vẫn được ưu tiên "Thời sự 6h" theo giờ VN. File: `shared/src/commonMain/kotlin/tss/t/shared/newshub/MorningBrief.kt`, `iosApp/TSPodcast/NewsHub/BriefCardFormat.swift`.
 - **(M6 T5) App Shortcuts** (agent tự chọn): câu trong code là tiếng Anh (`Continue listening on \(.applicationName)`, …), bản vi nằm trong `AppShortcuts.xcstrings` (vi là ngôn ngữ nguồn của project nhưng tiếng Anh là ngôn ngữ Siri chắc chắn có trên iOS 17). "Tiếp tục nghe" khi player trống phát lại **danh sách đã lưu của show** chứa tập cuối (mọi tập của show trong Room, mới nhất trước — giống tap Favourite), không phải đúng danh sách gốc (vd. danh sách tin nhiều show) và không tự chuyển tập; từ vị trí đã lưu; không mở Player. Không có gì để tiếp tục → intent trả lỗi có lời "Chưa có tập nào để tiếp tục" (Siri đọc/Phím tắt hiện thông báo, App Intents không cho cùng một intent lúc có lúc không có dialog). "Tạm dừng" khi không có gì đang phát: không làm gì (không huỷ hẹn giờ) nhưng vẫn log `shortcut_invoked`. "Hẹn giờ tắt" mặc định 30 phút (Siri không hỏi), Shortcuts cho chọn 1–180, logic vẫn clamp; đặt được cả khi chưa phát gì. Trước mỗi intent app đọc lựa chọn consent đã lưu (intent có thể khởi động app ở nền khi chưa có màn nào), nên event theo đúng lựa chọn. File: `iosApp/TSPodcast/Shortcuts/`.
 
-### Môi trường test
+#### Môi trường test
 
 - **(M5) Nhánh fallback iOS 17/18 của Liquid Glass chưa ai nhìn thấy** (plan M5 §7 mục 4).
   - Vì sao bị chặn: deployment target vẫn iOS 17.0, nhưng không còn simulator (owner đã xoá để tiết kiệm ổ đĩa) và iPhone "Tun" chạy iOS 27, nên chỉ thấy được nhánh glass. Nhánh fallback (`.regularMaterial` cho panel/chip/MiniPlayer capsule nổi, Player kiểu M3 với vòng tròn `brandSecondary`, thanh "Lưu" nền `.bar`, chip trên nền trang) mới chỉ qua compiler.

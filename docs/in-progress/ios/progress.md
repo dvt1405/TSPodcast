@@ -1,11 +1,27 @@
 # Tiến độ iOS
 
-> **Trạng thái: Đang làm** (2026-11-01) — M0–M6 đã nghiệm thu và vào `main` ở PR #30 (bảng milestone bên dưới ghi M5/M6 theo lúc viết).
-> Còn lại: pha QC (UI test), việc owner trong [handoff.md](handoff.md), nộp App Store.
+> **Trạng thái: Đang làm** (2026-11-14) — 1.0 đã lên App Store (13/11), 1.1 (vị trí podcast) chờ duyệt. Ads AdMob + IAP StoreKit 2 (ẩn) đã vào app; quảng cáo trong Player ở PR #74.
+> Còn lại: parity pha 2–3 và các việc ở [../plans/next-phase-2026-11.md](../plans/next-phase-2026-11.md), việc owner trong [handoff.md](handoff.md).
 
 Nhật ký tiến độ cho app iOS của TSPodcast (hướng (a): KMP shared logic + SwiftUI + AVFoundation). Mỗi milestone có file kế hoạch riêng trong [milestones/](../../done/ios/milestones/). Chuẩn parity là [features-spec.md](../../done/ios/features-spec.md).
 
 Quyết định owner đã chốt (không mở lại): Android giữ nguyên, không chuyển sang `shared`; iOS v1 không có Radio, Ads, ATT, Facebook SDK; analytics không có `device_id` (chỉ Install ID); mặc định lọc nội dung explicit (D6).
+
+> **Cập nhật 13/11/2026:** owner đổi quyết định — iOS **có** quảng cáo AdMob (UMP + ATT) và IAP (Premium bỏ quảng cáo), cấu hình qua Remote Config; iOS phải có đủ tính năng như Android **trừ Radio** (14/11). Android được dùng `shared` cho logic mới.
+
+## Nhật ký 13–14/11/2026: phát hành và parity pha 1
+
+| Ngày | Việc | PR / kết quả |
+|---|---|---|
+| 13/11 | Ads (AdMob 13.12, UMP 3.1, ATT) + StoreKit 2 + paywall, cấu hình qua RC; bundle `tss.t.podcast.ios`, team 3AYA8D7LW2; Firebase app iOS trong `podcast-25c93` | #67 |
+| 13/11 | App Store Connect: metadata 17 ngôn ngữ, 68 ảnh chụp trên iPhone (`StoreScreenshotsUITests`, `iosApp/scripts/store-screenshots.sh`), App Privacy, độ tuổi, review notes; IAP ẩn (`iap_enabled=false`) | #67 |
+| 14/11 | Build 3 bị INVALID_BINARY (ITMS-91064) → manifest `NSPrivacyTracking=false`, build 4 nộp lại; 1.0 Ready for Sale | #68 |
+| 14/11 | Privacy/Terms cập nhật (iOS ads, Premium); landing `tspodcast.web.app`; bỏ web nghe trực tuyến; nút App Store | #69, #70, #72 |
+| 14/11 | Parity pha 1: vị trí podcast (tối đa 3, khu vực chính quyết định `lang`), "Podcast theo vị trí", "Thời sự" theo khu vực, tìm kiếm lọc theo ngôn ngữ; logic trong `shared/location`. 452 test shared + `TSPodcastTests` pass trên iPhone | #71 |
+| 14/11 | 1.1 (build 5) nộp duyệt, tự phát hành; giá IAP 29k/249k/499k trên ASC | — |
+| 14/11 | Kế hoạch quảng cáo trong Player + gói Premium; code ads Player cả 2 nền tảng (mặc định tắt), chờ test iOS trên máy | #73, #74 (mở) |
+
+Lưu ý quy trình: build/archive dùng team 3AYA8D7LW2; export/upload TestFlight bằng tài khoản Xcode (`-allowProvisioningUpdates`, không dùng API key vì key App Manager không cloud-sign được). Test máy thật cần iPhone "Tun" mở khoá suốt lượt chạy.
 
 ## Bảng milestone
 

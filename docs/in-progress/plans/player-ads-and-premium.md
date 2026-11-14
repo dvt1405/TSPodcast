@@ -1,6 +1,6 @@
 # Quảng cáo trong Player + danh sách "Tiếp theo", và kế hoạch gói Premium (Android + iOS)
 
-> **Trạng thái: Kế hoạch, chưa code** (2026-11-14). Mọi placement mới ở đây **mặc định tắt** qua Remote
+> **Trạng thái: Đang làm** (2026-11-14) — owner đã chốt (mục dưới); code 3 placement ở PR #74, chưa merge. Mọi placement mới ở đây **mặc định tắt** qua Remote
 > Config; chưa đổi app, Remote Config, App Store Connect hay Play Console.
 
 > Yêu cầu owner (2026-11-14): "Thêm cả phần ads vào màn player và list podcast trong player luôn, tham
