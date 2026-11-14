@@ -130,6 +130,7 @@
 		868687267B805001E6A15ACA /* HomeNewsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66896E6BB8B9C27FE481F81E /* HomeNewsSection.swift */; };
 		86D8DE05BBB103C20F015A39 /* OnboardingPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3DB6A0B9367FA4818FFF58F /* OnboardingPage.swift */; };
 		86E1367907C9BEEFE50BFAAC /* SettingsModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FC577D41A4FAD994C075B98 /* SettingsModelTests.swift */; };
+		895FF8840B5F770E39492903 /* ShareLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B3450EE4D97D1DF5B14DBC /* ShareLinks.swift */; };
 		8995F63742C3B505AA3C816D /* SearchErrorUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C9EA78B92C48EC5A860400 /* SearchErrorUITests.swift */; };
 		8C48189646DEB8A6C59AA895 /* HiddenShowsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE5E4B153CE7032A631F9697 /* HiddenShowsView.swift */; };
 		8F17E633AA641E18DD4F9CE0 /* AdsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C00EE9A17E6FA911187B39D /* AdsController.swift */; };
@@ -170,6 +171,7 @@
 		B38B9AB88B9E6C33427AEB58 /* StoreScreenshotsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEC600FDDBADE58F809C1341 /* StoreScreenshotsUITests.swift */; };
 		B4780E9D0C5404B221D03A20 /* PlaybackProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2ADC13E1351A4C3EBD5A2B /* PlaybackProbe.swift */; };
 		B4B1F959FA672DF8022FC668 /* AppShortcuts.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = DEAA31784C0F5090BD890EB0 /* AppShortcuts.xcstrings */; };
+		B56A421E31443035A0ADA58D /* ShareLinksTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EAFDCB9E699137CF27A71D /* ShareLinksTests.swift */; };
 		B91B4403661EFE768ED2DAEE /* PodcastLocationItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A42FD4F84FF88497385D82 /* PodcastLocationItem.swift */; };
 		BA1A422685E8A5C9774559B1 /* SleepTimerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85DF53EAA794A54FF9E416CB /* SleepTimerSheet.swift */; };
 		BA1FA912C89A48E06FD45EBA /* MonetizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6956B56FD30DCB62C55A7A76 /* MonetizationTests.swift */; };
@@ -363,6 +365,7 @@
 		73B77CE9629BE5ED49BF6719 /* ConsentControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsentControllerTests.swift; sourceTree = "<group>"; };
 		74CC299125D85F9FA88B2849 /* NewsHubActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsHubActions.swift; sourceTree = "<group>"; };
 		7774A37568AAA9A88E9C00F8 /* RemoteConfigLoaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteConfigLoaderTests.swift; sourceTree = "<group>"; };
+		77EAFDCB9E699137CF27A71D /* ShareLinksTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareLinksTests.swift; sourceTree = "<group>"; };
 		785694FB6591D68F4F30647C /* NewsHubDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsHubDataSource.swift; sourceTree = "<group>"; };
 		796A8EBB9F10B3B384B3A979 /* ConsentController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsentController.swift; sourceTree = "<group>"; };
 		7B3B02B94361388ED4CD606C /* AudioSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionController.swift; sourceTree = "<group>"; };
@@ -375,6 +378,7 @@
 		80A16EB15D0EA442B79BF463 /* SettingsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModel.swift; sourceTree = "<group>"; };
 		811F9C0ECD094F51643AAFDC /* NewsHubStringsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsHubStringsTests.swift; sourceTree = "<group>"; };
 		81A9303C7739D5AB332E7BF7 /* FakeSearchDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeSearchDataSource.swift; sourceTree = "<group>"; };
+		82B3450EE4D97D1DF5B14DBC /* ShareLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareLinks.swift; sourceTree = "<group>"; };
 		834B462EA545AAF8301DD94E /* NewsHistoryOrder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsHistoryOrder.swift; sourceTree = "<group>"; };
 		85D118F5E1AB472F3EFC0874 /* PodcastDetailModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastDetailModel.swift; sourceTree = "<group>"; };
 		85DF53EAA794A54FF9E416CB /* SleepTimerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepTimerSheet.swift; sourceTree = "<group>"; };
@@ -607,6 +611,7 @@
 				2250EE6D56853AFDE07332C1 /* ServicesTestSupport.swift */,
 				5FC577D41A4FAD994C075B98 /* SettingsModelTests.swift */,
 				2F539EE9F1D6F2673C17B31E /* SharedModelFactory.swift */,
+				77EAFDCB9E699137CF27A71D /* ShareLinksTests.swift */,
 				5704BB586C8F18164AC5B6EF /* ShortcutActionsTests.swift */,
 				5342FC972E71780713660E16 /* ShortcutWiringTests.swift */,
 				71CE43CDB0181E04DC900E9E /* StubURLProtocol.swift */,
@@ -733,6 +738,7 @@
 			children = (
 				55E6BA81E700E5BB14EA50F1 /* DeepLinkRouter.swift */,
 				EB36120E86B405CD6EDB74BD /* SharedDeepLinkDataSource.swift */,
+				82B3450EE4D97D1DF5B14DBC /* ShareLinks.swift */,
 			);
 			path = DeepLink;
 			sourceTree = "<group>";
@@ -1367,6 +1373,7 @@
 				5138BB6C2C21815DE66AF34B /* SearchView.swift in Sources */,
 				F36A842F69C7211C229BEB61 /* SettingsModel.swift in Sources */,
 				9662AFC92C34B22DEDC9601E /* SettingsView.swift in Sources */,
+				895FF8840B5F770E39492903 /* ShareLinks.swift in Sources */,
 				AE6576E247F3904182332CF3 /* SharedConsentStore.swift in Sources */,
 				5C351B287D545C3F343DA79B /* SharedDeepLinkDataSource.swift in Sources */,
 				354D46CCF157C0FCB2A7EDB4 /* SharedNewsHubDataSource.swift in Sources */,
@@ -1444,6 +1451,7 @@
 				63472A08B7A203A294C3CFEC /* SearchResultItemTests.swift in Sources */,
 				FE18E2BB1BF4D13E2A81538A /* ServicesTestSupport.swift in Sources */,
 				86E1367907C9BEEFE50BFAAC /* SettingsModelTests.swift in Sources */,
+				B56A421E31443035A0ADA58D /* ShareLinksTests.swift in Sources */,
 				FB4E17820A54B6128BFF849F /* SharedModelFactory.swift in Sources */,
 				010656098AFC6F507CCDE318 /* ShortcutActionsTests.swift in Sources */,
 				25166CEFFE493A3462B6B0A2 /* ShortcutWiringTests.swift in Sources */,

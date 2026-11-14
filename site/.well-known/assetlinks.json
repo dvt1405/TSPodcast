@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "tss.t.podcast",
+      "sha256_cert_fingerprints": [
+        "39:BE:DE:10:39:FB:D6:10:DD:EB:44:2E:17:7E:1D:89:13:55:FF:62:33:30:31:15:EF:33:5D:E2:90:CD:91:19"
+      ]
+    }
+  }
+]

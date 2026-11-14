@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["3AYA8D7LW2.tss.t.podcast.ios"],
+        "components": [
+          { "/": "/podcast/*" },
+          { "/": "/episode/*" },
+          { "/": "/en/podcast/*" },
+          { "/": "/en/episode/*" }
+        ]
+      }
+    ]
+  }
+}

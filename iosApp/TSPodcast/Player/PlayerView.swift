@@ -106,7 +106,7 @@ struct PlayerView: View {
                     .accessibilityLabel(Text("player.close"))
                     .accessibilityIdentifier("player.close")
                     Spacer()
-                    if environment.contentReporter.isAvailable, let item = state.current {
+                    if let item = state.current {
                         moreMenu(for: item)
                     }
                 }
@@ -408,16 +408,25 @@ struct PlayerView: View {
         pauseCheck = Date()
     }
 
-    /// `…` of the close row (M6 §3.5): "Báo cáo nội dung" for the current episode. Shown only
-    /// when a report address is configured, since it is the menu's only entry.
+    /// `…` of the close row: "Chia sẻ" the current episode (`ShareLinks`) and, when a report
+    /// address is configured, "Báo cáo nội dung" (M6 §3.5). Live items (no episode id) have no share.
     private func moreMenu(for item: PlaybackItem) -> some View {
         Menu {
-            Button {
-                report(item)
-            } label: {
-                Label("report.action", systemImage: "exclamationmark.bubble")
+            if !item.isLive, let episodeId = Int64(item.id), episodeId > 0 {
+                let url = ShareLinks.episode(id: episodeId, title: item.title)
+                ShareLink(item: ShareLinks.episodeText(title: item.title, url: url)) {
+                    Label("share.action", systemImage: "square.and.arrow.up")
+                }
+                .accessibilityIdentifier("player.share")
             }
-            .accessibilityIdentifier("player.report")
+            if environment.contentReporter.isAvailable {
+                Button {
+                    report(item)
+                } label: {
+                    Label("report.action", systemImage: "exclamationmark.bubble")
+                }
+                .accessibilityIdentifier("player.report")
+            }
         } label: {
             Image(systemName: "ellipsis")
                 .font(.title3.weight(.semibold))
