@@ -44,10 +44,7 @@ export const metadata: Metadata = {
     images: OG_IMAGES,
   },
   twitter: { card: "summary_large_image", images: ["/og-image.png"] },
-  appLinks: {
-    android: { package: ANDROID_PACKAGE, app_name: SITE_NAME },
-    ios: { app_store_id: APP_STORE_ID, app_name: SITE_NAME },
-  },
+  appLinks: { android: { package: ANDROID_PACKAGE, app_name: SITE_NAME } },
   itunes: { appId: APP_STORE_ID },
   other: { "google-play-app": `app-id=${ANDROID_PACKAGE}` },
   formatDetection: { telephone: false },
