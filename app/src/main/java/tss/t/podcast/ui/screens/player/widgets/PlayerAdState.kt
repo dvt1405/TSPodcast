@@ -145,7 +145,7 @@ fun rememberPlayerAdUi(
         now = SystemClock.elapsedRealtime()
     }
     val pauseMs = PlayerAdRules.manualPauseMs(manualPauseAt, shownSince, now)
-    val pauseAllowed = foreground && ads.decide(
+    val pauseAllowed = foreground && !upNextExpanded && ads.decide(
         AdPlacement.PlayerPause,
         base.copy(manualPauseMs = pauseMs, pauseCardShowing = cardActive),
     ) is Decision.Allow
