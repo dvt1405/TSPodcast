@@ -8,7 +8,6 @@ import tss.t.shared.TestGraph
 import tss.t.shared.config.ConfigAPI
 import tss.t.shared.model.TSDataState
 import tss.t.shared.network.respondJson
-import tss.t.shared.preferences.AppPreferences
 import tss.t.shared.preferences.InMemoryKeyValueStore
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -27,10 +26,10 @@ class SearchFeedTest {
 
     // Feed 12 is blacklisted by id, "Casino night" by the keyword in its title, 13 is explicit.
     private val searchBody = """{"count":4,"feeds":[
-        {"id":11,"title":"Vietnam stories","explicit":false},
-        {"id":12,"title":"Blocked by id","explicit":false},
-        {"id":13,"title":"Explicit show","explicit":true},
-        {"id":14,"title":"Casino night","explicit":false}]}"""
+        {"id":11,"title":"Vietnam stories","language":"vi","explicit":false},
+        {"id":12,"title":"Blocked by id","language":"vi","explicit":false},
+        {"id":13,"title":"Explicit show","language":"vi","explicit":true},
+        {"id":14,"title":"Casino night","language":"vi","explicit":false}]}"""
     private val trendingBody = """{"count":3,"feeds":[
         {"id":21,"title":"Arts A"},
         {"id":12,"title":"Blocked by id"},
@@ -153,7 +152,8 @@ class SearchFeedTest {
         }
     }
 
-    // M2-AC3: trending per category
+    // M2-AC3 + locations: the topic page is trending in the primary location (Android
+    // `SearchViewModel.selectCategory`: 60 shows, 30 days, the location's language only).
 
     @Test
     fun categoryPodcastsCallTrendingWithTheCategory() = runTest {
@@ -164,17 +164,27 @@ class SearchFeedTest {
 
         val request = test.requests.single()
         assertEquals(TRENDING, request.path())
-        assertEquals("100", request.param("max"))
-        assertEquals("1699395200", request.param("since"))
-        assertEquals("vi,en", request.param("lang"))
+        assertEquals("60", request.param("max"))
+        assertEquals("1697408000", request.param("since"))
+        assertEquals("vi", request.param("lang"))
         assertEquals("55", request.param("cat"))
         assertFalse("notcat" in request.url.parameters.names())
         assertEquals(listOf(21L, 23L), podcasts.map { it.id }, "blacklisted item dropped")
     }
 
     @Test
-    fun categoryPodcastsAreCachedInMemoryAndOnDisk() = runTest {
-        val store = InMemoryKeyValueStore(mapOf(tss.t.shared.i18n.ContentLanguageRepository.KEY_LANGUAGE to "vi"))
+    fun categoryPodcastsFollowThePrimaryLocation() = runTest {
+        val test = graph()
+        test.graph.podcastLocations.setLocations(listOf("JP", "VN"))
+
+        test.graph.searchFeed.categoryPodcasts(55)
+
+        assertEquals("ja", test.requests.single().param("lang"))
+    }
+
+    @Test
+    fun categoryPodcastsAreCachedInMemoryForFifteenMinutes() = runTest {
+        val store = InMemoryKeyValueStore(TestGraph.VIETNAM)
         val test = TestGraph(config = blacklist, store = store, handler = { respondJson(trendingBody) })
         val feed = test.graph.searchFeed
 
@@ -184,14 +194,7 @@ class SearchFeedTest {
 
         assertEquals(1, test.requests.size, "+14:59 comes from the cache")
         assertEquals(listOf(21L, 23L), again.map { it.id })
-        val keys = store.snapshot().keys
-        assertTrue(AppPreferences.cachedTrendingKey("55") in keys)
-        assertTrue("cachedTrending_55" in keys)
-
-        // A relaunch on the same store, still inside 15 minutes: served from disk.
-        val relaunch = TestGraph(config = blacklist, clock = test.clock, store = store, handler = { respondJson(trendingBody) })
-        assertEquals(listOf(21L, 23L), relaunch.graph.searchFeed.categoryPodcasts(55).data().map { it.id })
-        assertEquals(0, relaunch.requests.size)
+        assertFalse(store.snapshot().keys.any { it.startsWith("cachedTrending") }, "memory only, like Android")
 
         test.advance(2.seconds) // +15:01
         feed.categoryPodcasts(55)
@@ -221,7 +224,7 @@ class SearchFeedTest {
     // M6-AC10 / AC11: blocked hosts never reach Search, hidden shows are dropped last.
 
     private val spamSearchBody = """{"count":3,"feeds":[
-        {"id":11,"title":"Vietnam stories","url":"https://ok.example/rss","explicit":false},
+        {"id":11,"title":"Vietnam stories","language":"vi-VN","url":"https://ok.example/rss","explicit":false},
         {"id":15,"title":"Spam","url":"https://feeds.ngocbaomedia.com/rss","explicit":false},
         {"id":16,"title":"Moved spam","url":"https://ok.example/16","originalUrl":"https://ngocbaomedia.com/16","explicit":false}]}"""
     private val spamTrendingBody = """{"count":3,"feeds":[
@@ -254,6 +257,46 @@ class SearchFeedTest {
 
         test.graph.hiddenShows.unhide(11)
         assertEquals(listOf(11L, 13L), feed.search("vietnam", SearchMode.All).data().map { it.id })
+    }
+
+    // Podcast locations: only shows in the chosen locations' languages, by priority (Android
+    // `PodcastsRepositoryImpl.filtered`); music search is left mixed.
+
+    private val mixedSearchBody = """{"count":6,"feeds":[
+        {"id":1,"title":"English show","language":"en-US","explicit":false},
+        {"id":2,"title":"Chuyện Việt","language":"vi","explicit":false},
+        {"id":3,"title":"Sin idioma","language":"","explicit":false},
+        {"id":4,"title":"公众号均速阅读模拟提升指南推荐","language":"vi","explicit":false},
+        {"id":5,"title":"日本の番組","language":"ja","explicit":false},
+        {"id":6,"title":"Tin Việt","language":"VI-vn","explicit":false}]}"""
+
+    @Test
+    fun podcastSearchKeepsTheLocationLanguagesByPriority() = runTest {
+        val test = TestGraph(handler = { respondJson(mixedSearchBody) })
+        val feed = test.graph.searchFeed
+
+        assertEquals(listOf(2L, 6L), feed.search("q", SearchMode.All).data().map { it.id }, "Vietnam only, no CJK spam")
+
+        test.graph.podcastLocations.setLocations(listOf("US", "VN", "JP"))
+        assertEquals(listOf(1L, 2L, 6L, 5L), feed.search("q", SearchMode.All).data().map { it.id })
+    }
+
+    @Test
+    fun musicSearchIsNotFilteredByLocation() = runTest {
+        val test = TestGraph(handler = { respondJson(mixedSearchBody) })
+
+        assertEquals(listOf(1L, 2L, 3L, 4L, 5L, 6L), test.graph.searchFeed.search("q", SearchMode.Music).data().map { it.id })
+    }
+
+    @Test
+    fun inLanguagesDropsFeedsWithoutALanguage() {
+        val feeds = listOf(
+            tss.t.shared.model.Feed(id = 1, language = "", title = "A"),
+            tss.t.shared.model.Feed(id = 2, language = "pt-BR", title = "B"),
+            tss.t.shared.model.Feed(id = 3, language = "in", title = "C"),
+        )
+        assertEquals(listOf(3L, 2L), SearchFeed.inLanguages(feeds, listOf("id", "pt")).map { it.id })
+        assertEquals(emptyList(), SearchFeed.inLanguages(feeds, emptyList()))
     }
 
     private companion object {

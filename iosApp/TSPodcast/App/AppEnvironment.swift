@@ -47,6 +47,9 @@ final class AppEnvironment {
     @ObservationIgnored let searchDataSource: any SearchDataSource
     /// "Thời sự & Bản tin" over shared `NewsHubRepository` (M6 §3.4), for Home and the hub screen.
     @ObservationIgnored let newsHubDataSource: any NewsHubDataSource
+    /// "Vị trí podcast" over shared `PodcastLocationRepository`: Settings, the Home sheet, Home and
+    /// the Search topic page.
+    @ObservationIgnored let podcastLocations: PodcastLocationsModel
     /// Tab, Discover stack and Settings sheet of Main, which Universal Links drive too.
     @ObservationIgnored let navigation: MainNavigation
     /// Universal Links (`.onOpenURL` / `.onContinueUserActivity`), host from `TSAppLinkHost` (M4 §4.5).
@@ -173,6 +176,10 @@ final class AppEnvironment {
             analytics: analytics,
             delay: launchOptions.slowNetwork ? HomeFeedDataSource.slowNetworkDelay : nil
         )
+        podcastLocations = PodcastLocationsModel(
+            store: SharedPodcastLocationStore(repository: graph.podcastLocations),
+            analytics: analytics
+        )
         navigation = MainNavigation()
         deepLinks = DeepLinkRouter(
             hosts: AppLinkHost.hosts(from: Bundle.main.infoDictionary ?? [:]),
@@ -251,8 +258,11 @@ final class AppEnvironment {
             favourites: favouriteCategories,
             delay: launchOptions.slowNetwork ? HomeFeedDataSource.slowNetworkDelay : nil
         )
-        let model = HomeModel(dataSource: dataSource, newsHub: newsHubDataSource)
+        let model = HomeModel(dataSource: dataSource, newsHub: newsHubDataSource, locations: podcastLocations)
         hiddenShows.onHide { [weak model] feedId in model?.removeShow(feedId: feedId) }
+        podcastLocations.onChange { [weak model] previous, current in
+            Task { await model?.locationsChanged(from: previous, to: current) }
+        }
         return model
     }
 
@@ -364,9 +374,9 @@ final class AppEnvironment {
         return model
     }
 
-    /// Podcasts trending in `category`, pushed from a Search category chip.
+    /// Podcasts trending in `category` in the primary location, pushed from a Search category chip.
     func makeCategoryPodcastsModel(for category: CategoryItem) -> CategoryPodcastsModel {
-        CategoryPodcastsModel(category: category, dataSource: searchDataSource)
+        CategoryPodcastsModel(category: category, dataSource: searchDataSource, locations: podcastLocations)
     }
 
     private static func audioHooks(_ options: LaunchOptions) -> AudioEngine.Hooks {

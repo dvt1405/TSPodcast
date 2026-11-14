@@ -89,7 +89,8 @@ struct SearchLoadError: Error, Equatable, Sendable {
 protocol SearchDataSource: Sendable {
     /// One search request for an already trimmed, non-blank `query`.
     func search(query: String, scope: SearchScope) async -> Result<[SearchResultItem], SearchLoadError>
-    /// Podcasts trending in category `categoryId` (E1 `cat=<id>`, 7 days, `lang=vi`).
+    /// Podcasts trending in category `categoryId` in the primary podcast location (E1 `cat=<id>`,
+    /// 60 shows, 30 days, `lang` of that location).
     func categoryPodcasts(categoryId: Int) async -> Result<[PodcastCard], SearchLoadError>
 }
 

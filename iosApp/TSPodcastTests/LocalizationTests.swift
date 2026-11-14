@@ -15,7 +15,7 @@ final class LocalizationTests: XCTestCase {
         try bundle(language).localizedString(forKey: key, value: "<missing>", table: "Localizable")
     }
 
-    /// The 15 app languages (shared `ContentLanguage`); several localizations is what makes iOS
+    /// The 15 app languages (shared `ContentLanguages`); several localizations is what makes iOS
     /// show Settings → TSPodcast → Language.
     static let languages = ["vi", "en", "es", "pt-BR", "fr", "de", "it", "nl", "sv", "pl", "tr", "ja", "ko", "id", "hi"]
 
@@ -100,7 +100,39 @@ final class LocalizationTests: XCTestCase {
     func testLanguageRowStrings() throws {
         XCTAssertEqual(try text("settings.language", "vi"), "Ngôn ngữ")
         XCTAssertEqual(try text("settings.language", "en"), "Language")
-        XCTAssertEqual(try text("settings.language.hint", "en"), "Podcasts follow the app language and always include English shows.")
+        // Podcasts follow the podcast locations now, not the app language (Android settings_language_hint).
+        XCTAssertEqual(try text("settings.language.hint", "en"), "Language of the app")
+        XCTAssertEqual(try text("settings.language.hint", "vi"), "Ngôn ngữ giao diện của app")
+    }
+
+    /// "Vị trí podcast": the Android texts (location_*, settings_podcast_location*, search_category_trending_in).
+    func testPodcastLocationStrings() throws {
+        let vi: [String: String] = [
+            "location.section.title": "Podcast theo vị trí",
+            "location.section.subtitle": "Thịnh hành ở các vị trí bạn chọn",
+            "location.manage": "Sắp xếp",
+            "location.sheet.title": "Vị trí podcast",
+            "location.add": "Thêm vị trí",
+            "location.limitReached": "Đã đủ 3 vị trí, hãy bỏ bớt để thêm",
+            "location.primary": "Chính",
+            "location.done": "Xong",
+            "location.empty": "Chưa có podcast thịnh hành ở vị trí này",
+            "location.topPick": "Nổi bật nhất",
+            "settings.podcastLocation": "Vị trí podcast",
+            "settings.podcastLocation.hint": "Trang chủ và tìm kiếm theo vị trí bạn chọn",
+        ]
+        for (key, value) in vi {
+            XCTAssertEqual(try text(key, "vi"), value, key)
+        }
+        XCTAssertEqual(try text("location.manage", "en"), "Arrange")
+        XCTAssertEqual(try text("settings.podcastLocation", "en"), "Podcast locations")
+        let trendingIn = "search.category.trendingIn %@"
+        XCTAssertEqual(String(format: try text(trendingIn, "vi"), "🇻🇳 Việt Nam"), "Thịnh hành tại 🇻🇳 Việt Nam")
+        XCTAssertEqual(String(format: try text(trendingIn, "en"), "🇺🇸 United States"), "Trending in 🇺🇸 United States")
+        for language in Self.languages {
+            XCTAssertFalse(try text("location.sheet.hint", language).contains("<missing>"), language)
+            XCTAssertFalse(try text("location.section.title", language).lowercased().contains("radio"), language)
+        }
     }
 
     func testVietnameseTexts() throws {

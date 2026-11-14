@@ -3,6 +3,7 @@ package tss.t.shared.usecase
 import tss.t.shared.blacklist.BlacklistRepository
 import tss.t.shared.blacklist.filterTrending
 import tss.t.shared.cache.InMemoryTtlCache
+import tss.t.shared.location.LanguageMatch
 import tss.t.shared.model.TSDataState
 import tss.t.shared.model.TrendingPodcastRes
 import tss.t.shared.network.PodcastIndexApi
@@ -16,7 +17,8 @@ import tss.t.shared.util.EpochClock
  * 2. otherwise the disk copy (`cachedTrending` / `lastUpdateTrending` without a category,
  *    `cachedTrending_<cat>` / `lastUpdateTrending_<cat>` with one), when younger than 15
  *    minutes; it is put back in memory with its original timestamp;
- * 3. otherwise the network. Only a `Success` is stored, already filtered, in both tiers.
+ * 3. otherwise the network. Only a `Success` is stored, already filtered (blacklist, then
+ *    [LanguageMatch.titleFits] for the first language of [lang], like Android), in both tiers.
  *
  * The cache key is [cat] normalized (null and blank share one entry), never [since]: callers
  * compute `since` from the current time, so it differs on every call. Android keeps one slot
@@ -55,7 +57,7 @@ class GetTrendingPodcasts internal constructor(
             notcat = notcat,
         )
         if (result !is TSDataState.Success) return result
-        val filtered = result.data.filterTrending(blacklist)
+        val filtered = result.data.filterTrending(blacklist).withTitlesIn(lang)
         val now = clock.nowMillis()
         cache.put(key, filtered, storedAtMillis = now)
         preferences.saveTrending(key, filtered, savedAtMillis = now)
@@ -70,4 +72,14 @@ class GetTrendingPodcasts internal constructor(
         cache.put(key, cached.value, storedAtMillis = cached.savedAtMillis)
         return cached.value
     }
+}
+
+/**
+ * Drops shows titled in another script than the first language of [lang] (`vi` or `vi,en` →
+ * `vi`; Android `LanguageMatch.titleFits`, e.g. Chinese spam tagged Vietnamese).
+ */
+internal fun TrendingPodcastRes.withTitlesIn(lang: String): TrendingPodcastRes {
+    val code = LanguageMatch.code(lang.substringBefore(','))
+    val kept = items.filter { LanguageMatch.titleFits(it.title, code) }
+    return if (kept.size == items.size) this else copy(count = kept.size, items = kept)
 }

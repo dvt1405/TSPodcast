@@ -60,13 +60,15 @@ final class SettingsModelTests: XCTestCase {
         )
     }
 
-    /// The app's own Info.plist: `PRIVACY_POLICY_URL` is empty until the owner sets it (handoff),
-    /// so the row is hidden; the version reads "1.0.0 (1)".
+    /// The app's own Info.plist: `PRIVACY_POLICY_URL` is the landing site's policy, and the version
+    /// row reads "<marketing version> (<build>)".
     func testAppInfoPlist() {
         let info = Bundle.main.infoDictionary ?? [:]
         XCTAssertNotNil(info[SettingsModel.privacyPolicyKey], "TSPrivacyPolicyURL is declared")
-        XCTAssertNil(SettingsModel.privacyURL(from: info))
-        XCTAssertEqual(SettingsModel.version(from: info), "1.0.0 (1)")
+        XCTAssertEqual(SettingsModel.privacyURL(from: info)?.absoluteString, "https://tspodcast.web.app/privacy")
+        let short = info["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info["CFBundleVersion"] as? String ?? "?"
+        XCTAssertEqual(SettingsModel.version(from: info), "\(short) (\(build))")
     }
 
     /// The "Ngôn ngữ" row names the app language, first letter capitalised.

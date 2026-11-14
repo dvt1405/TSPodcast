@@ -45,9 +45,15 @@ struct TrendingSectionsResult: Equatable, Sendable {
     var forYou: Result<[PodcastCard], HomeLoadError>
 }
 
-/// The four loaders behind the five Home sections. `HomeFeedDataSource` is the real one (shared
-/// `HomeFeed`); unit tests use a fake. Every call returns a value: failures are `.failure`.
+/// The loaders behind the Home sections. `HomeFeedDataSource` is the real one (shared `HomeFeed`);
+/// unit tests use a fake. Every call returns a value: failures are `.failure`.
 protocol HomeDataSource: Sendable {
+    /// "Podcast theo vị trí" of one location (E1 `lang=<code>`, 40 shows, 7 days, title filter,
+    /// D6, hidden shows); `force` skips the 15-minute cache (pull-to-refresh).
+    func podcasts(in location: PodcastLocationItem, force: Bool) async -> Result<[PodcastCard], HomeLoadError>
+    /// "Thời sự" of one location from the catalog (newest episode of each trending News show in the
+    /// last 72 h); empty when nothing loaded.
+    func news(in location: PodcastLocationItem, force: Bool) async -> [NewsItem]
     /// Trending (E1, 7 days) and forYou (E1, 10 days, favourite categories), with the fallback.
     func trendingSections() async -> TrendingSectionsResult
     /// "Kho nhạc" (E6).

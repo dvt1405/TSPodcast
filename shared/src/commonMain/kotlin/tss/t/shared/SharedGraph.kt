@@ -15,8 +15,10 @@ import tss.t.shared.detail.ShowEpisodeSearch
 import tss.t.shared.favourite.FavouriteRepository
 import tss.t.shared.favourite.FavouriteResolver
 import tss.t.shared.home.HomeFeed
+import tss.t.shared.location.PodcastLocationRepository
 import tss.t.shared.model.CategoryRes
 import tss.t.shared.model.EpisodeResponse
+import tss.t.shared.model.Podcast
 import tss.t.shared.model.PodcastByFeedIdRes
 import tss.t.shared.model.TrendingPodcastRes
 import tss.t.shared.newshub.NewsHubConfigRepository
@@ -47,8 +49,10 @@ import tss.t.shared.usecase.GetCategories
 import tss.t.shared.usecase.GetEpisodeByFeedId
 import tss.t.shared.usecase.GetEpisodeById
 import tss.t.shared.usecase.GetLiveEpisodes
+import tss.t.shared.usecase.GetLocationNews
 import tss.t.shared.usecase.GetMusicFeeds
 import tss.t.shared.usecase.GetPodcastByFeedID
+import tss.t.shared.usecase.GetPodcastsByLocation
 import tss.t.shared.usecase.GetRecentFeeds
 import tss.t.shared.usecase.GetTrendingPodcasts
 import tss.t.shared.usecase.PruneApiCache
@@ -163,8 +167,20 @@ class SharedGraph(
     /** Run once per launch, off the main thread (features-spec §1). */
     val pruneApiCache = PruneApiCache(database, clock, crash)
 
-    /** Content language (15 markets, "vi,en" style): first launch from the system, then the app language. */
-    val contentLanguage = tss.t.shared.i18n.ContentLanguageRepository(store)
+    /**
+     * Podcast locations (up to 3, in priority order): first launch from the device, then
+     * "Vị trí podcast". The primary one's language is the `lang` of Home's lists.
+     */
+    val podcastLocations = PodcastLocationRepository(store)
+
+    private val locationCache =
+        InMemoryTtlCache<String, List<Podcast>>(InMemoryTtlCache.API_CACHE_TTL, clock)
+
+    /** Trending shows of one location (Home "Podcast theo vị trí", Search topic page). */
+    val getPodcastsByLocation = GetPodcastsByLocation(api, blacklistRepository, locationCache, clock)
+
+    /** "Thời sự" of one location from the catalog. */
+    val getLocationNews = GetLocationNews(getPodcastsByLocation, api, blacklistRepository, clock)
 
     /** Every call behind Home/Discover (M1 §4.2). */
     val homeFeed = HomeFeed(
@@ -175,7 +191,9 @@ class SharedGraph(
         preferences = appPreferences,
         hiddenShows = hiddenShows,
         clock = clock,
-        contentLanguage = contentLanguage,
+        getPodcastsByLocation = getPodcastsByLocation,
+        getLocationNews = getLocationNews,
+        locations = podcastLocations,
     )
 
     /** Podcast detail: E10 ‖ E11, E10 decides, D6 (M2 §4.1). */
@@ -193,15 +211,14 @@ class SharedGraph(
         preferences = appPreferences,
     )
 
-    /** Search tab: E7/E8 with D6, and trending per category (M2 §4.1). */
+    /** Search tab: E7/E8 with D6 and the location languages, and the topic page (M2 §4.1). */
     val searchFeed = SearchFeed(
         searchPodcasts = searchPodcasts,
         searchMusicFeeds = searchMusicFeeds,
-        getTrendingPodcasts = getTrendingPodcasts,
+        getPodcastsByLocation = getPodcastsByLocation,
         preferences = appPreferences,
         hiddenShows = hiddenShows,
-        clock = clock,
-        contentLanguage = contentLanguage,
+        locations = podcastLocations,
     )
 
     /** Listening position per episode, in the app's key-value store (M3 §4.3). */

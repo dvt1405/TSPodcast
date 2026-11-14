@@ -33,11 +33,9 @@ class TestGraph(
     config: ConfigAPI = FakeConfig(),
     credentials: CredentialsProvider = FakeCredentials(),
     val clock: FixedClock = FixedClock(START_MILLIS),
-    // Content language pinned to Vietnamese (the tests predate the 15 languages and expect lang=vi),
-    // with the UI language left unknown so the host JVM locale does not change it.
-    val store: KeyValueStore = InMemoryKeyValueStore(
-        mapOf(tss.t.shared.i18n.ContentLanguageRepository.KEY_LANGUAGE to "vi"),
-    ),
+    // Podcast location pinned to Vietnam (the tests predate locations and expect lang=vi), so the
+    // host JVM locale does not change it.
+    val store: KeyValueStore = InMemoryKeyValueStore(VIETNAM),
     val database: FakePodcastDaos = FakePodcastDaos(),
     val crash: FakeCrashReporter = FakeCrashReporter(),
     private val handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData = {
@@ -62,5 +60,9 @@ class TestGraph(
 
     companion object {
         const val START_MILLIS = 1_700_000_000_000L
+
+        /** A store whose podcast location is Vietnam only. */
+        val VIETNAM: Map<String, String> =
+            mapOf(tss.t.shared.location.PodcastLocationRepository.KEY_LOCATIONS to "VN")
     }
 }

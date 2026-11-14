@@ -179,10 +179,11 @@ final class HomeModelTests: XCTestCase {
         XCTAssertEqual(HomeModel.loader(for: .live), .live)
         XCTAssertEqual(HomeModel.loader(for: .recent), .recent)
         XCTAssertEqual(HomeModel.loader(for: .news), .news)
+        XCTAssertEqual(HomeModel.loader(for: .location), .locations)
         XCTAssertEqual(
             HomeSection.allCases,
-            [.trending, .news, .music, .live, .recent, .forYou],
-            "Android order, with the news section right after trending (M6 §3.4)"
+            [.trending, .news, .location, .music, .live, .recent, .forYou],
+            "Android order: news right after trending (M6 §3.4), then the podcasts by location"
         )
     }
 

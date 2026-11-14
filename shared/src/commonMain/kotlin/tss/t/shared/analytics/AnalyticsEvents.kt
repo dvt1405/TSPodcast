@@ -47,6 +47,49 @@ object AnalyticsEvents {
         SHORTCUT_INVOKED,
     )
 
+    /**
+     * The podcast locations changed (Settings or Home → "Vị trí podcast"), Android
+     * `AppEvents.podcastLocationsChange`; params from [podcastLocationsChangeParams].
+     */
+    const val PODCAST_LOCATIONS_CHANGE = "podcast_locations_change"
+
+    /** A location chip of Home; [PARAM_REGION], [PARAM_SECTION] = [SECTION_LOCATION] | [SECTION_NEWS]. */
+    const val LOCATION_CHIP_SELECT = "location_chip_select"
+
+    /** The podcast location events, same names and parameters as Android. */
+    val LOCATION_EVENTS: List<String> = listOf(PODCAST_LOCATIONS_CHANGE, LOCATION_CHIP_SELECT)
+
+    const val PARAM_REGION = "region"
+    const val PARAM_SECTION = "section"
+    const val PARAM_PRIMARY_LOCATION = "primary_location"
+    const val PARAM_LOCATIONS = "locations"
+    const val PARAM_PRIMARY_CHANGED = "primary_changed"
+    const val PARAM_CHANGE = "change"
+
+    /** [PARAM_SECTION] of [LOCATION_CHIP_SELECT]: "Podcast theo vị trí" or "Thời sự". */
+    const val SECTION_LOCATION = "location"
+    const val SECTION_NEWS = "news"
+
+    /**
+     * Parameters of [PODCAST_LOCATIONS_CHANGE] for [regions] (new, priority order) after
+     * [previous]: `count`, `primary_location`, `locations` (`VN,US`), `primary_changed`
+     * (`true`/`false`) and `change` = `add` | `remove` | `reorder`.
+     */
+    fun podcastLocationsChangeParams(regions: List<String>, previous: List<String>): Map<String, String> = buildMap {
+        put(PARAM_COUNT, regions.size.toString())
+        regions.firstOrNull()?.let { put(PARAM_PRIMARY_LOCATION, it) }
+        put(PARAM_LOCATIONS, regions.joinToString(","))
+        put(PARAM_PRIMARY_CHANGED, (regions.firstOrNull() != previous.firstOrNull()).toString())
+        put(
+            PARAM_CHANGE,
+            when {
+                regions.size > previous.size -> "add"
+                regions.size < previous.size -> "remove"
+                else -> "reorder"
+            },
+        )
+    }
+
     const val PARAM_FROM = "from"
     const val PARAM_COUNT = "count"
     const val PARAM_SOURCE_KEY = "source_key"

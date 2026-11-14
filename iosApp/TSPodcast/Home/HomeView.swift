@@ -1,8 +1,9 @@
 import SwiftUI
 @preconcurrency import Shared
 
-/// Home/Discover (Android `DiscoverPodcastsScreen`): trending, "Thời sự & Bản tin" (M6 §3.4,
-/// only while the news hub is on), music (+ subtitle), live, recent and "Có thể bạn yêu thích",
+/// Home/Discover (Android `DiscoverPodcastsScreen`): trending, "Thời sự & Bản tin" (per podcast
+/// location; the news hub of M6 §3.4 for the primary one), "Podcast theo vị trí" (chips, top pick,
+/// ranked grid, "Sắp xếp" → location sheet), music (+ subtitle), live, recent and "Có thể bạn yêu thích",
 /// then the Podcast Index attribution required by its terms (7.2). The `discover_inline` native ad
 /// sits between music and live (Android); the UMP "privacy options" entry is in Settings.
 ///
@@ -14,6 +15,9 @@ struct HomeView: View {
     let model: HomeModel
 
     @Namespace private var zoomNamespace
+    @Environment(AppEnvironment.self) private var environment
+    /// "Sắp xếp" of "Podcast theo vị trí": the location editor as a sheet.
+    @State private var isEditingLocations = false
 
     var body: some View {
         ScrollView {
@@ -25,7 +29,11 @@ struct HomeView: View {
                 SectionHeader(section: .trending, title: "home.section.trending")
                 PodcastCarousel(section: .trending, state: model.trending, zoomNamespace: zoomNamespace, retry: retry(.trending))
 
-                HomeNewsSection(state: model.news, retry: retry(.news))
+                HomeNewsSection(model: model, retry: retry(.news))
+
+                HomeLocationSection(model: model, zoomNamespace: zoomNamespace) {
+                    isEditingLocations = true
+                }
 
                 SectionHeader(section: .music, title: "home.section.music", subtitle: "home.section.music.subtitle")
                 PodcastCarousel(section: .music, state: model.music, zoomNamespace: zoomNamespace, retry: retry(.music))
@@ -52,6 +60,12 @@ struct HomeView: View {
         #endif
         .refreshable { await model.refresh() }
         .task { await model.loadIfNeeded() }
+        .sheet(isPresented: $isEditingLocations) {
+            NavigationStack {
+                PodcastLocationView(model: environment.podcastLocations, showsDone: true)
+            }
+            .presentationDetents([.large])
+        }
         .navigationDestination(for: DiscoverRoute.self) { route in
             switch route {
             case .podcast(let podcast):

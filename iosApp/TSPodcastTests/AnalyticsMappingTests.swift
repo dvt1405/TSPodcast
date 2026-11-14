@@ -86,7 +86,7 @@ final class AnalyticsMappingTests: XCTestCase {
     }
 
     func testDefaultVersionsComeFromTheSystemAndTheBundle() {
-        XCTAssertEqual(FirebaseAnalyticsTracker.bundleVersion(), "1.0.0")
+        XCTAssertEqual(FirebaseAnalyticsTracker.bundleVersion(), Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String)
         XCTAssertTrue(FirebaseAnalyticsTracker.systemVersion().split(separator: ".").count == 3)
     }
 }
