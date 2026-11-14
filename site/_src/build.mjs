@@ -492,6 +492,34 @@ ${footer('vi')}
 `;
 }
 
+// ---------------------------------------------------------------- open in app
+// Shared links /podcast/<id>-<slug> and /episode/<id>-<slug> (and /en/…) are rewritten here by
+// firebase.json. With the app installed, Android App Links (/.well-known/assetlinks.json) and iOS
+// Universal Links (/.well-known/apple-app-site-association) open the app directly; otherwise this
+// page offers the stores. No script, so the CSP needs no new hash.
+function openInApp() {
+  const p = { lang: 'vi', path: '/open', canonical: '/', noindex: true, title: 'Mở trong ứng dụng TSPodcast',
+    description: 'Mở chương trình này trong ứng dụng TSPodcast, miễn phí trên Android và iPhone.' };
+  return `${head(p)}
+<body>
+${header('vi', false)}
+<main id="main" class="notfound">
+  <div class="wrap">
+    <h1>Nghe trong ứng dụng TSPodcast</h1>
+    <p>Chương trình được chia sẻ mở trong ứng dụng TSPodcast. Nếu đã cài app, hãy mở lại link này trên điện thoại. Chưa có app? Tải miễn phí:</p>
+    <div class="btn-row">
+      <a class="btn btn-coral" id="cta-open-play" data-cta="open-play" href="${esc(playHref)}">${playIcon}Tải trên Google Play</a>
+      <a class="btn btn-coral" id="cta-open-ios" data-cta="open-app-store" href="${esc(APP_STORE)}">${icon('phone')}Tải trên App Store</a>
+    </div>
+    <p class="note"><a href="/">Tìm hiểu thêm về TSPodcast</a></p>
+  </div>
+</main>
+${footer('vi')}
+</body>
+</html>
+`;
+}
+
 // ---------------------------------------------------------------- write
 function write(file, html) {
   const out = join(OUT, file);
@@ -503,6 +531,7 @@ function write(file, html) {
 for (const v of LANDINGS) write(v.file, landing(v));
 for (const d of DOCS) for (const lang of ['vi', 'en']) write(d[lang].file, doc(d, lang));
 write('404.html', notFound());
+write('open.html', openInApp());
 
 const urls = [
   ['/', '1.0'],
