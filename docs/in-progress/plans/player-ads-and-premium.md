@@ -12,6 +12,12 @@
 
 ---
 
+## Owner đã quyết (2026-11-14)
+
+- **Placement Player:** làm `player_up_next` (native trong Tiếp theo), `player_now_playing` (dải native dưới ảnh bìa) và `player_pause` (A/B), cả Android lẫn iOS, **mặc định tắt** trên Remote Config. Chưa làm mục "Gỡ quảng cáo / Báo cáo quảng cáo" trong menu Player (lưu ý: App Store 2.5.18 yêu cầu có cách báo cáo quảng cáo — phải có trước khi bật placement Player trên iOS).
+- **Giá:** 29.000₫/tháng, 249.000₫/năm (dùng thử 7 ngày), 499.000₫ trọn đời. Đã đặt trên App Store Connect (VN là nước gốc, nước khác theo quy đổi của Apple). Play Console: tạo sản phẩm cùng giá khi bật IAP.
+- **Bật IAP:** chờ bật **cùng lúc** Android và iOS (sau Paid Apps Agreement); `iap_enabled` giữ `false`.
+
 ## 0. Tóm tắt khuyến nghị
 
 1. **Không bao giờ** đặt quảng cáo toàn màn hình (interstitial, app open) trên Player hay ngay khi bấm
