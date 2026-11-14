@@ -106,10 +106,15 @@ struct PodcastDetailView: View {
         }
     }
 
-    /// `…` of the navigation bar: "Ẩn show này" and, when an address is configured, "Báo cáo
-    /// nội dung" (M6 §3.5).
+    /// `…` of the navigation bar: "Chia sẻ" (link on tspodcast.web.app, `ShareLinks`), "Ẩn show
+    /// này" and, when an address is configured, "Báo cáo nội dung" (M6 §3.5).
     private var moreMenu: some View {
         Menu {
+            let shareURL = ShareLinks.podcast(id: model.podcast.feedId, title: model.podcast.title)
+            ShareLink(item: ShareLinks.podcastText(title: model.podcast.title, url: shareURL)) {
+                Label("share.action", systemImage: "square.and.arrow.up")
+            }
+            .accessibilityIdentifier("detail.share")
             Button {
                 isHideConfirmationPresented = true
             } label: {
