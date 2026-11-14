@@ -1,7 +1,16 @@
 # Quảng cáo trong Player + danh sách "Tiếp theo", và kế hoạch gói Premium (Android + iOS)
 
-> **Trạng thái: Kế hoạch, chưa code** (2026-11-14). Mọi placement mới ở đây **mặc định tắt** qua Remote
-> Config; chưa đổi app, Remote Config, App Store Connect hay Play Console.
+> **Trạng thái (2026-11-14): đã code 3 placement Player (P0–P2 + thẻ pause), Android + iOS, mặc định
+> tắt.** `player_up_next`, `player_now_playing`, `player_pause` + 8 key `ads_player_*` có trong app và
+> `remoteconfig/ads-iap.params.json` (chưa publish). Chưa làm: menu "Gỡ quảng cáo / Báo cáo quảng cáo"
+> (owner hoãn), rewarded trong Player, `PaywallSource` mới, key `iap_upsell_*`. Banner
+> `player_episode_list` đã gỡ khỏi `SlideArea` (placement giữ nguyên, tắt). Chưa đổi Remote Config, App
+> Store Connect hay Play Console.
+>
+> Code: Android `ads/.../PlayerAdRules.kt`, `AdPolicy.canShowPlayerInline`, `NativeSlots.kt`
+> (`interleaveUpNextSlots`), `app/.../ads/PlayerAds.kt`, `player/widgets/PlayerAdState.kt`; shared
+> `shared/.../ads/AdPolicy.kt` (bản port, cùng test `PlayerAdsTest`); iOS `Ads/AdsController.swift`
+> (`allowsPlayer`, `upNextSlots`), `Player/PlayerView.swift`, `Player/UpNextPanel.swift`.
 
 > Yêu cầu owner (2026-11-14): "Thêm cả phần ads vào màn player và list podcast trong player luôn, tham
 > khảo cách cho vào của các app nhạc để tham khảo, planning cho các gói chuẩn bị bán."

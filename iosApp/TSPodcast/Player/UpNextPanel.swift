@@ -1,5 +1,6 @@
 import SwiftUI
 import os
+@preconcurrency import Shared
 
 /// "Tiếp theo" at the bottom of the Player (Android `SlideArea`, without its ad; M5 §3.1), as a
 /// system sheet that `PlayerView` keeps presented over itself, with two detents:
@@ -19,6 +20,9 @@ struct UpNextSheet: View {
     @Binding var panel: UpNextPanelState
     /// Indices of the peek rows (`UpNextPeek.rows`); never empty, `PlayerView` hides the sheet then.
     let peekRows: [Int]
+    /// `player_up_next` rows of the open list: item index → slot key (`AdsController.upNextSlots`),
+    /// empty unless open (never in the peek).
+    var adSlots: [Int: String] = [:]
     /// Screen y where the sheet top sits at the peek (the space under the controls) and open
     /// (just below the close row), from `PlayerView`.
     let peekTop: CGFloat
@@ -49,7 +53,8 @@ struct UpNextSheet: View {
                 engine: engine,
                 bottomInset: bottomInset,
                 isShown: panel.isExpanded || progress > 0,
-                isAccessible: panel.isExpanded
+                isAccessible: panel.isExpanded,
+                adSlots: panel.isExpanded ? adSlots : [:]
             ) { index in
                 engine.select(index: index)
                 withAnimation(animation) { panel.didSelectItem() }
@@ -194,6 +199,9 @@ struct UpNextList: View {
     let isShown: Bool
     /// In the accessibility tree (and so `upNext.root` / `upNext.item.<i>` exist) only while open.
     let isAccessible: Bool
+    /// Native ad rows after these item indices (open list only; never the first row, which holds
+    /// Previous / Next, nor the first item).
+    var adSlots: [Int: String] = [:]
     let select: (Int) -> Void
 
     var body: some View {
@@ -234,6 +242,12 @@ struct UpNextList: View {
                 .accessibilityAddTraits(isCurrent ? .isSelected : [])
                 .accessibilityIdentifier(isAccessible ? "upNext.item.\(index)" : "")
                 .accessibilityHidden(!isAccessible)
+                if isAccessible, let slotKey = adSlots[index] {
+                    AdNativeSlot(placement: .playerupnext, slotKey: slotKey)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets())
+                }
             }
         }
         .listStyle(.plain)

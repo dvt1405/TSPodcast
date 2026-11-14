@@ -12,6 +12,13 @@ import SwiftUI
 /// is (the Player behind it stays usable), so the Player's own sheets and alerts are presented
 /// from the sheet then (`PlayerPresentations`). The close row's `…` (`player.more`) only holds "Báo cáo nội
 /// dung" and shows only when a report address is configured (M6 §3.5).
+///
+/// Ads (player-ads-and-premium.md §3, all off by default): the artwork area keeps its square, so
+/// nothing under it moves; it shows the artwork, the artwork shrunk above the `player_now_playing`
+/// strip (decided only when the Player opens or the episode changes, with an ad already loaded),
+/// or the `player_pause` card after a manual pause. Up next rows (`player_up_next`) only while
+/// the sheet is open. None in a compact height, at an accessibility text size or with VoiceOver,
+/// on a playback error, for Premium, or without consent.
 /// Coordinate space of the Player column, where the close row and the peek space are measured.
 private let playerCoordinateSpace = "player"
 
@@ -22,6 +29,8 @@ struct PlayerView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
+    @Environment(\.scenePhase) private var scenePhase
 
     /// New on every `fullScreenCover`, so reopening the Player always starts at the peek.
     @State private var panel = UpNextPanelState()
@@ -45,6 +54,17 @@ struct PlayerView: View {
     @State private var isSleepTimerSheetPresented = false
     /// Address shown when no app could open the report mail.
     @State private var reportFallbackEmail: String?
+    /// Height of the window (column + safe areas), for `ads_player_min_height_dp`.
+    @State private var windowHeight: CGFloat = 0
+    /// The `player_now_playing` strip is in the artwork area (`PlayerAdRules.stripVisible`).
+    @State private var stripVisible = false
+    @State private var stripOpened = false
+    /// `player_pause`: the card is up for this pause, and counted towards the cap.
+    @State private var pauseCardActive = false
+    @State private var pauseCardCounted = false
+    /// The pause is counted from the later of the pause and the Player opening.
+    @State private var shownSince = Date()
+    @State private var pauseCheck = Date()
 
     @Environment(\.openURL) private var openURL
 
@@ -58,6 +78,17 @@ struct PlayerView: View {
                 isCompactHeight: verticalSizeClass == .compact
             )
         )
+        let ads = environment.ads
+        let stripAllowed = ads.allowsPlayer(.playernowplaying, adContext(state))
+        let stripHasAd = ads.slot(.playernowplaying).nativeAd != nil
+        let pauseMs = manualPauseMs
+        let pauseAllowed = scenePhase == .active && engine.manualPauseAt != nil && !panel.isExpanded
+            && ads.allowsPlayer(.playerpause, adContext(state, manualPauseMs: pauseMs, pauseCardShowing: pauseCardActive))
+        let showsPauseCard = pauseCardActive && pauseAllowed && ads.slot(.playerpause).nativeAd != nil
+        let showsStrip = stripVisible && stripAllowed && stripHasAd && !showsPauseCard
+        let upNextAdSlots = panel.isExpanded && scenePhase == .active
+            ? ads.upNextSlots(count: state.queue.count, context: adContext(state, upNextExpanded: true))
+            : [:]
         ZStack {
             PlayerBackground(item: state.current)
             VStack(spacing: 0) {
@@ -89,16 +120,26 @@ struct PlayerView: View {
 
                 Spacer(minLength: 8)
 
-                // The flexible part: it shrinks first so controls + peek always fit (§3.5).
-                ArtworkImage(
-                    url: state.current?.artworkURL,
-                    referer: state.current?.referer,
-                    cornerRadius: 12,
-                    accessibilityLabel: state.current?.title
-                )
-                .aspectRatio(1, contentMode: .fit)
-                .padding(.horizontal, 30)
-                .accessibilityIdentifier("player.artwork")
+                // The flexible part: it shrinks first so controls + peek always fit (§3.5). Its
+                // square stays the same with an ad in it, so the controls never move (ads §3.1).
+                Color.clear
+                    .aspectRatio(1, contentMode: .fit)
+                    .overlay {
+                        if showsPauseCard {
+                            AdNativeSlot(placement: .playerpause, style: .fill)
+                        } else if showsStrip {
+                            // Ends ≥ 48 pt above the slider (20 pt + two title lines + the show).
+                            VStack(spacing: 8) {
+                                artwork(state)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                AdNativeSlot(placement: .playernowplaying, style: .strip)
+                                    .frame(height: 80)
+                            }
+                        } else {
+                            artwork(state)
+                        }
+                    }
+                    .padding(.horizontal, 30)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: state.current?.title ?? "")
@@ -172,16 +213,49 @@ struct PlayerView: View {
             .onGeometryChange(for: CGFloat.self, of: \.safeAreaInsets.bottom) { inset in
                 bottomInset = inset
             }
+            .onGeometryChange(for: CGFloat.self, of: { $0.size.height + $0.safeAreaInsets.top + $0.safeAreaInsets.bottom }) { height in
+                windowHeight = height
+                // The Player has opened once its size is known.
+                if !stripOpened, height > 0 {
+                    stripOpened = true
+                    updateStrip(.opened)
+                }
+            }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("player.root")
-        .onAppear { hasAppeared = true }
+        .onAppear {
+            hasAppeared = true
+            shownSince = Date()
+        }
+        .onChange(of: state.current?.id) { _, _ in
+            if stripOpened { updateStrip(.episodechanged) }
+        }
+        .onChange(of: stripAllowed && stripHasAd) { _, _ in
+            if stripOpened { updateStrip(.updated) }
+        }
+        // Refreshed in place only while the strip is really seen.
+        .task(id: stripVisible && scenePhase == .active && !panel.isExpanded) {
+            guard stripVisible, scenePhase == .active, !panel.isExpanded else { return }
+            await refreshStrip()
+        }
+        .task(id: engine.manualPauseAt) { await followPause() }
+        .onChange(of: pauseAllowed, initial: true) { _, allowed in
+            if allowed { pauseCardActive = true }
+        }
+        .onChange(of: showsPauseCard) { _, shown in
+            if shown, !pauseCardCounted {
+                pauseCardCounted = true
+                ads.recordPauseShown()
+            }
+        }
         .sheet(isPresented: isUpNextPresented(hasQueue: !peekRows.isEmpty)) {
             let detents = upNextDetents
             UpNextSheet(
                 engine: engine,
                 panel: $panel,
                 peekRows: peekRows,
+                adSlots: upNextAdSlots,
                 peekTop: peekTarget,
                 openTop: openTarget,
                 bottomInset: bottomInset,
@@ -205,6 +279,7 @@ struct PlayerView: View {
                 )
             )
             .presentationDragIndicator(.visible)
+            .environment(environment)
             // The Player (close, controls, speed, timer) stays usable at both detents, undimmed.
             .presentationBackgroundInteraction(.enabled)
             // Never dismissed by a drag, except the full sheet of a compact height (it collapses).
@@ -225,6 +300,112 @@ struct PlayerView: View {
             }
         }
         #endif
+    }
+
+    private func artwork(_ state: PlaybackState) -> some View {
+        ArtworkImage(
+            url: state.current?.artworkURL,
+            referer: state.current?.referer,
+            cornerRadius: 12,
+            accessibilityLabel: state.current?.title
+        )
+        .aspectRatio(1, contentMode: .fit)
+        .accessibilityIdentifier("player.artwork")
+    }
+
+    // MARK: - Ads (player-ads-and-premium.md §3)
+
+    /// The facts shared `AdPolicy.canShowPlayerInline` needs about this Player.
+    private func adContext(
+        _ state: PlaybackState,
+        manualPauseMs: Int64? = nil,
+        pauseCardShowing: Bool = false,
+        upNextExpanded: Bool = false
+    ) -> PlayerAdContext {
+        AdsController.playerContext(
+            windowHeight: windowHeight,
+            isCompactHeight: isCompactHeight,
+            isAccessibilityMode: dynamicTypeSize.isAccessibilitySize || voiceOverEnabled,
+            hasPlaybackError: state.error != nil,
+            upNextExpanded: upNextExpanded,
+            isLive: state.isLive,
+            manualPauseMs: manualPauseMs,
+            pauseCardShowing: pauseCardShowing
+        )
+    }
+
+    /// How long the user's own pause has lasted while the Player was shown.
+    private var manualPauseMs: Int64? {
+        PlayerAdRules.shared.manualPauseMs(
+            pausedAt: engine.manualPauseAt.map { KotlinLong(value: Self.ms($0)) },
+            playerShownAt: Self.ms(shownSince),
+            now: Self.ms(pauseCheck)
+        )?.int64Value
+    }
+
+    private static func ms(_ date: Date) -> Int64 {
+        Int64(date.timeIntervalSince1970 * 1000)
+    }
+
+    /// The strip appears only at `.opened` / `.episodechanged` with an ad already loaded, and goes
+    /// as soon as it is not allowed. A missing or old ad is (re)loaded for the next time.
+    private func updateStrip(_ moment: PlayerStripMoment) {
+        let ads = environment.ads
+        let slot = ads.slot(.playernowplaying)
+        let allowed = ads.allowsPlayer(.playernowplaying, adContext(engine.state))
+        if allowed, moment != .updated {
+            let age = ads.nativeAgeMs(slot).map { KotlinLong(value: $0) }
+            if moment == .episodechanged, PlayerAdRules.shared.refreshOnEpisodeChange(ageMs: age, settings: ads.config.ads()) {
+                ads.reloadNative(into: slot)
+            } else {
+                ads.loadNative(into: slot)
+            }
+        }
+        stripVisible = PlayerAdRules.shared.stripVisible(moment: moment, wasVisible: stripVisible, allowed: allowed, hasAd: slot.nativeAd != nil)
+    }
+
+    /// Every `ads_player_native_refresh_sec` (≥ 30 s; 0 = only with the episode) while seen.
+    private func refreshStrip() async {
+        let ads = environment.ads
+        let slot = ads.slot(.playernowplaying)
+        while !Task.isCancelled {
+            let settings = ads.config.ads()
+            let age = ads.nativeAgeMs(slot).map { KotlinLong(value: $0) }
+            guard let wait = PlayerAdRules.shared.refreshDelayMs(ageMs: age, settings: settings)?.int64Value else { return }
+            if wait > 0 {
+                try? await Task.sleep(for: .milliseconds(wait))
+                continue
+            }
+            ads.reloadNative(into: slot)
+            // The new ad arrives after the request: look again one period later.
+            guard let interval = PlayerAdRules.shared.refreshIntervalMs(settings: settings)?.int64Value else { return }
+            try? await Task.sleep(for: .milliseconds(interval))
+        }
+    }
+
+    /// A manual pause: preload the card's ad, then look again when `ads_player_pause_delay_sec`
+    /// is reached. Played again (any way): the card goes now and the next pause gets a new ad.
+    private func followPause() async {
+        let ads = environment.ads
+        let slot = ads.slot(.playerpause)
+        pauseCheck = Date()
+        guard engine.manualPauseAt != nil else {
+            if pauseCardCounted { ads.discardNative(slot) }
+            pauseCardActive = false
+            pauseCardCounted = false
+            return
+        }
+        let settings = ads.config.ads()
+        if ads.allowsPlayer(.playerpause, adContext(engine.state, manualPauseMs: settings.playerPauseDelaySec * 1000)) {
+            ads.loadNative(into: slot)
+        }
+        guard let due = PlayerAdRules.shared.pauseCardDueInMs(
+            manualPauseMs: manualPauseMs.map { KotlinLong(value: $0) },
+            settings: settings
+        )?.int64Value else { return }
+        try? await Task.sleep(for: .milliseconds(due))
+        guard !Task.isCancelled else { return }
+        pauseCheck = Date()
     }
 
     /// `…` of the close row (M6 §3.5): "Báo cáo nội dung" for the current episode. Shown only

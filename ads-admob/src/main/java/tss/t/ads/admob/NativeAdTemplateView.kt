@@ -35,8 +35,10 @@ internal data class NativeAdColors(
  * AdChoices to the SDK, which overlays it in a corner when no AdChoicesView is
  * assigned.
  *
- * - Small: icon, headline, body/advertiser, call to action in one row.
- * - Medium: the same header plus a [MediaView] (image or muted video).
+ * - Small: icon, headline, body/advertiser, call to action in one row. [compact] keeps the body
+ *   to one line (the Player strip, player-ads-and-premium.md §3.2).
+ * - Medium: the same header plus a [MediaView] (image or muted video). [fillHeight] makes the
+ *   media take the height left in a fixed box (the Player pause card, in place of the artwork).
  *
  * Main thread only.
  */
@@ -44,6 +46,8 @@ internal data class NativeAdColors(
 internal class NativeAdTemplateView(
     context: Context,
     private val template: NativeTemplate,
+    compact: Boolean = false,
+    private val fillHeight: Boolean = false,
 ) : FrameLayout(context) {
 
     private val adView = NativeAdView(context)
@@ -77,7 +81,7 @@ internal class NativeAdTemplateView(
         }
         body.apply {
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-            maxLines = 2
+            maxLines = if (compact) 1 else 2
             ellipsize = TextUtils.TruncateAt.END
         }
         cta.apply {
@@ -112,17 +116,19 @@ internal class NativeAdTemplateView(
             media.imageScaleType = ImageView.ScaleType.CENTER_CROP
             root.addView(
                 media,
-                LinearLayout.LayoutParams(MATCH, dp(180)).apply { topMargin = dp(10) }
+                (if (fillHeight) LinearLayout.LayoutParams(MATCH, 0, 1f) else LinearLayout.LayoutParams(MATCH, dp(180)))
+                    .apply { topMargin = dp(10) }
             )
             root.addView(cta, LinearLayout.LayoutParams(MATCH, WRAP).apply { topMargin = dp(8) })
         }
 
-        adView.addView(root, LayoutParams(MATCH, WRAP))
+        val height = if (fillHeight) MATCH else WRAP
+        adView.addView(root, LayoutParams(MATCH, height))
         adView.headlineView = headline
         adView.bodyView = body
         adView.iconView = icon
         adView.callToActionView = cta
-        addView(adView, LayoutParams(MATCH, WRAP))
+        addView(adView, LayoutParams(MATCH, height))
     }
 
     fun bind(ad: NativeAd, colors: NativeAdColors) {

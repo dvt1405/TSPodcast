@@ -39,9 +39,24 @@ class AdSlotCache @Inject constructor(
     private val analytics: AdsAnalytics,
 ) {
     class Slot<T : Ad> internal constructor(val key: String) {
-        internal val state = MutableStateFlow<T?>(null)
+        private val state = MutableStateFlow<T?>(null)
         val ad: StateFlow<T?> = state.asStateFlow()
+        private val present = MutableStateFlow(false)
+
+        /** An ad is loaded (Player slots decide on this before they show). */
+        val hasAd: StateFlow<Boolean> = present.asStateFlow()
         internal val loading = AtomicBoolean(false)
+
+        internal val current: T? get() = state.value
+
+        /** Swaps the ad (any thread) and returns the previous one. */
+        internal fun set(ad: T?): T? {
+            val previous = state.value
+            state.value = ad
+            present.value = ad != null
+            if (ad == null) loadedAt = 0L
+            return previous
+        }
 
         @Volatile
         internal var loadedAt = 0L
@@ -61,7 +76,7 @@ class AdSlotCache @Inject constructor(
 
     /** Loads once per slot. Banner refresh is configured on the AdMob ad unit. */
     fun loadBanner(slot: Slot<BannerAd>, placement: AdPlacement, request: () -> BannerAdRequest) {
-        if (slot.state.value != null || !canRetry(slot)) return
+        if (slot.current != null || !canRetry(slot)) return
         if (!slot.loading.compareAndSet(false, true)) return
         analytics.request(placement)
         val startedAt = System.currentTimeMillis()
@@ -74,7 +89,7 @@ class AdSlotCache @Inject constructor(
                     override fun onAdPaid(value: AdValue) = paid(placement, value, ad)
                 }
                 slot.loadedAt = System.currentTimeMillis()
-                slot.state.value = ad
+                slot.set(ad)
                 slot.loading.set(false)
             }
 
@@ -92,12 +107,19 @@ class AdSlotCache @Inject constructor(
     /**
      * Loads when the slot is empty, or replaces an ad older than
      * [NATIVE_MAX_AGE_MS] (Google: native ads should be shown within an hour).
+     * [force]: replace the current ad whatever its age (Player strip refresh); it stays on
+     * screen until the new one arrives.
      */
-    fun loadNative(slot: Slot<NativeAd>, placement: AdPlacement, request: () -> NativeAdRequest) {
-        val current = slot.state.value
+    fun loadNative(
+        slot: Slot<NativeAd>,
+        placement: AdPlacement,
+        force: Boolean = false,
+        request: () -> NativeAdRequest,
+    ) {
+        val current = slot.current
         val stale = current != null &&
                 System.currentTimeMillis() - slot.loadedAt > NATIVE_MAX_AGE_MS
-        if ((current != null && !stale) || !canRetry(slot)) return
+        if ((current != null && !stale && !force) || !canRetry(slot)) return
         if (!slot.loading.compareAndSet(false, true)) return
         analytics.request(placement)
         val startedAt = System.currentTimeMillis()
@@ -110,8 +132,7 @@ class AdSlotCache @Inject constructor(
                     override fun onAdPaid(value: AdValue) = paid(placement, value, nativeAd)
                 }
                 slot.loadedAt = System.currentTimeMillis()
-                val previous = slot.state.value
-                slot.state.value = nativeAd
+                val previous = slot.set(nativeAd)
                 slot.loading.set(false)
                 // The old ad is rebound away from by the view on the next
                 // composition; destroying it here is safe because only the
@@ -138,15 +159,23 @@ class AdSlotCache @Inject constructor(
     fun clearBanners() {
         val all = banners.values.toList()
         banners.clear()
-        all.forEach { slot -> slot.state.value?.destroy(); slot.state.value = null }
+        all.forEach { slot -> slot.set(null)?.destroy() }
+    }
+
+    /** Milliseconds since the slot's ad arrived, or null when it is empty. */
+    fun ageMs(slot: Slot<*>): Long? =
+        if (slot.current == null) null else System.currentTimeMillis() - slot.loadedAt
+
+    /** Drops the slot's native ad (a used pause card): the next show loads a new one. */
+    fun discardNative(slot: Slot<NativeAd>) {
+        slot.set(null)?.destroy()
     }
 
     /** Destroys every loaded banner and native (the user became Premium). */
     fun clearAll() {
         clearBanners()
-        val all = natives.values.toList()
-        natives.clear()
-        all.forEach { slot -> slot.state.value?.destroy(); slot.state.value = null }
+        // Native slots stay registered (Player handles keep observing them), only emptied.
+        natives.values.forEach { slot -> slot.set(null)?.destroy() }
     }
 
     private fun canRetry(slot: Slot<*>): Boolean =

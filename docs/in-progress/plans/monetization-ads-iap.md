@@ -102,13 +102,26 @@ release; debug dùng test app id `ca-app-pub-3940256099942544~1458002511`).
 | Interstitial | `ca-app-pub-8696388065064767/4518696367` | interstitial_nav |
 | Rewarded interstitial | `ca-app-pub-8696388065064767/2729817023` | (chưa có placement) |
 | Rewarded | `ca-app-pub-8696388065064767/8512626743` | rewarded_ad_free |
-| Native | `ca-app-pub-8696388065064767/2538245333` | discover_inline, podcast_detail_episodes |
+| Native | `ca-app-pub-8696388065064767/2538245333` | discover_inline, podcast_detail_episodes, player_now_playing, player_up_next, player_pause |
 | App Open | `ca-app-pub-8696388065064767/9264415720` | app_open_warm, app_open_cold |
 
 Consent: UMP trước, rồi ATT (`NSUserTrackingUsageDescription`), chỉ request ad khi UMP
 `canRequestAds`. `SKAdNetworkItems` theo danh sách của Google. Chính sách tần suất và placement bật
 mặc định giống Android (`AdsSettings.defaults`, `AdPolicy`): không quảng cáo đè audio đang phát,
 không trên màn Player, grace 24 h, bỏ qua 2 phiên đầu.
+
+## 4b. Quảng cáo trong Player (2 nền tảng, mặc định tắt)
+
+Chi tiết: [`player-ads-and-premium.md`](player-ads-and-premium.md) §3. Ba placement native:
+`player_up_next` (hàng trong Up next khi mở hẳn, sau mục 3, cách 8, tối đa 2), `player_now_playing`
+(dải 80 dp/pt dưới ảnh bìa, ảnh bìa co lại trong cùng ô vuông nên cụm điều khiển không xê dịch; chỉ
+chèn lúc mở Player / đổi tập, refresh tại chỗ ≥ `ads_player_native_refresh_sec`), `player_pause` (thẻ
+medium thế ảnh bìa sau khi người dùng tự dừng ≥ `ads_player_pause_delay_sec`, biến mất ngay khi phát
+lại, tối đa `ads_player_pause_session_cap` / phiên, cách nhau ≥ 5 phút). Cổng chung:
+`AdPolicy.canShowPlayerInline` (Android `ads/`, iOS `shared/`): Premium, kill switch, placement,
+consent, `ad_free`, grace + phiên đầu (`ads_player_respect_grace`), chiều cao
+(`ads_player_min_height_dp`), iPhone ngang, cỡ chữ trợ năng / TalkBack / VoiceOver, lỗi phát. Event
+`ads_*` như các placement khác, `placement` = key mới.
 
 ## 5. Việc owner phải làm
 
