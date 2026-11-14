@@ -20,10 +20,10 @@ Tiến độ chi tiết: [progress.md](progress.md). Kế hoạch và biên bả
 |---|---|---|---|
 | 1 | **Paid Apps Agreement + thuế** trên App Store Connect (Business) | Thông tin pháp lý/ngân hàng của owner | Chưa bán IAP được trên iOS; owner chọn bật IAP cùng lúc 2 nền tảng nên Android cũng chờ |
 | 2 | **Xác minh trader (DSA)** ở App Store Connect → Business → Compliance | Khai thông tin pháp lý | 27 nước EU chưa bán app |
-| 3 | **Mở khoá iPhone "Tun"** khi agent chạy test (Auto-Lock = Không bao giờ trong lúc làm việc) | Thiết bị vật lý | PR #74 (ads trong Player) chờ chạy unit test iOS |
+| 3 | **Mở khoá iPhone "Tun"** khi agent chạy test (Auto-Lock = Không bao giờ trong lúc làm việc); **đăng nhập lại tài khoản Apple trong Xcode** (đang "No Accounts": build Debug dùng API key được, nhưng upload TestFlight cần tài khoản) | Thiết bị / tài khoản | Test máy thật, upload TestFlight |
 | 4 | **Quyền Owner Firebase `podcast-25c93`**: hiện chỉ `chintk111999@gmail.com` là Owner người dùng; tài khoản của owner không có trong IAM | Thay đổi quyền truy cập | Rủi ro mất quyền quản trị; agent chỉ thao tác qua service account |
 | 5 | **Email nhận báo cáo nội dung** `CONTENT_REPORT_EMAIL` (`iosApp/Config/Shared.xcconfig`, đang rỗng → các lối "Báo cáo" bị ẩn). Gợi ý: `admin@tuandv.me` (đã công khai trên trang privacy) | Chọn hộp thư theo dõi được | Guideline 5.2 (takedown) và 2.5.18 (báo cáo quảng cáo) |
-| 6 | **Quyết định link chia sẻ / App Links** (Android vẫn trỏ `tspodcast.vercel.app` đã chết) | Quyết định sản phẩm | Xem next-phase §4.1 |
+| 6 | ~~Link chia sẻ / App Links~~ — xong (PR #76) | — | — |
 | 7 | Đổi **Website trên Play Console** sang `tspodcast.web.app` | Owner chọn thời điểm | app-ads.txt có ở cả 2 domain nên AdMob không bị ảnh hưởng |
 | 8 | Văn bản consent chính thức, `confirmedAt` cho nguồn "Thời sự & Bản tin", key PodcastIndex riêng cho iOS, APNs key cho push | Như ở mục lưu trữ dưới | Hub tin ẩn trong Release; push iOS chưa chạy |
 

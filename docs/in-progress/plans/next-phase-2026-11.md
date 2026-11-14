@@ -10,7 +10,7 @@
 | Android | v3.5.10020 (ads qua RC, Premium ẩn) **production 20%**, Internal và Firebase App Distribution đủ. |
 | Remote Config (`podcast-25c93`) | v6: ads bật, `iap_enabled=false`, iOS ad unit dưới condition `platform_ios`, `ts_podcast_black_list` 68 từ khoá cờ bạc. |
 | IAP | 3 sản phẩm trên App Store Connect: `premium.monthly` 29.000₫, `premium.yearly` 249.000₫ (thử 7 ngày), `remove_ads.lifetime` 499.000₫; thiếu ảnh review, chờ Paid Apps Agreement. Chưa tạo trên Play Console. Owner chọn **bật cùng lúc** 2 nền tảng. |
-| Quảng cáo trong Player | Code xong cả 2 nền tảng, **PR #74 chưa merge** (chờ chạy unit test iOS trên iPhone). Placement `player_up_next`, `player_now_playing`, `player_pause` mặc định tắt. Kế hoạch: [player-ads-and-premium.md](player-ads-and-premium.md). |
+| Quảng cáo trong Player | **Đã merge (PR #74)**, test Android + iOS (iPhone) pass. Placement `player_up_next`, `player_now_playing`, `player_pause` mặc định tắt. Kế hoạch: [player-ads-and-premium.md](player-ads-and-premium.md). |
 | Web | Web nghe trực tuyến (`web/`, Next.js) **đã bỏ** (owner 14/11). `tspodcast.web.app` và `podcast-25c93.web.app` cùng phục vụ landing `site/` (privacy, terms, delete-data, app-ads.txt, nút Google Play + App Store). Canonical: `tspodcast.web.app`. |
 | Parity iOS ↔ Android | Pha 1 (vị trí podcast) xong trong 1.1. Còn pha 2–3 (§2). Radio vẫn ẩn trên iOS. |
 
@@ -18,7 +18,7 @@
 
 | # | Việc | Ai | Cỡ | Xong khi |
 |---|---|---|---|---|
-| 1.1 | PR #74 (ads trong Player): chạy `TSPodcastTests` trên iPhone "Tun", cài + mở thử, merge | Agent (cần iPhone mở khoá, cắm cáp) | S | Test iOS pass, app chạy ổn, PR merged |
+| 1.1 | ~~PR #74 (ads trong Player)~~ — xong 14/11 | Agent | S | Merged |
 | 1.2 | Thêm "Báo cáo quảng cáo" trên iOS (App Store 2.5.18) trước khi bật bất kỳ placement Player nào trên iOS | Agent | S | Mục trong menu `…` của Player gửi mail/route báo cáo; test |
 | 1.3 | Rollout placement Player: `player_up_next` → `player_now_playing` → `player_pause` (A/B), mỗi bước 10% → 50% → 100% | Owner bật RC, agent theo dõi | S | Thời lượng nghe/DAU giảm < 3%, CTR Player không bất thường (§3.8 kế hoạch ads) |
 | 1.4 | Android 10020: theo dõi Crashlytics/ANR, nâng production 20% → 50% → 100% | Agent (Play API) | S | Crash-free ≥ bản 10019, rollout 100% |
@@ -38,7 +38,7 @@ Bảng chênh lệch đầy đủ: báo cáo rà soát ngày 14/11 (tóm tắt d
 | 2.6 | Chọn ngôn ngữ trong app + tuỳ chọn "Theo khu vực" | `core/.../LanguagePrefs.kt` | S–M |
 | 2.7 | Cài đặt: "Góp ý và báo lỗi" (mail), Điều khoản, "Xoá dữ liệu của bạn" (`tspodcast.web.app/terms`, `/delete-data`) | `SettingsScreen.kt` | S |
 | 2.8 | "Báo cáo" trong menu nhấn giữ ở Home/Tìm kiếm | `common/ShowActions.kt` | S |
-| 2.9 | Chia sẻ podcast/tập + mở link chia sẻ trong app — **chờ quyết định §4.1** | `PodcastDetailActions.kt`, `common/WebLinks.kt` | S + M |
+| 2.9 | ~~Chia sẻ podcast/tập + mở link chia sẻ trong app~~ — xong 14/11 (PR #76): link `tspodcast.web.app`, App Links Android, Universal Links + nút Chia sẻ iOS. Android có hiệu lực từ bản phát hành sau | `PodcastDetailActions.kt`, `common/WebLinks.kt` | — |
 | 2.10 | CarPlay (cần entitlement Apple) | `MediaLibraryCatalog.kt` | L, để sau |
 
 Thứ tự đề xuất: 2.7, 2.3, 2.8 (nhanh, cùng một bản 1.2) → 2.1 + 2.2 (bản 1.3) → 2.4–2.6 → 2.9 khi có quyết định link.
@@ -55,7 +55,7 @@ Thứ tự đề xuất: 2.7, 2.3, 2.8 (nhanh, cùng một bản 1.2) → 2.1 + 
 
 ## 4. Cần owner quyết định
 
-1. **Link chia sẻ / App Links.** Android đang chia sẻ `https://tspodcast.vercel.app/podcast/<id>-<slug>` (web đã chết) và khai App Link cho host đó. Web nghe trực tuyến đã bỏ. Đề xuất: link `https://tspodcast.web.app/podcast/<id>-<slug>`, Hosting rewrite `/podcast/**`, `/episode/**` về một trang tĩnh "Mở trong app" (nút Play/App Store), thêm `/.well-known/assetlinks.json` + `apple-app-site-association` vào `site/`, Android đổi `WEB_HOST`, iOS điền `APP_LINK_HOST` + Associated Domains. Hoặc: bỏ chia sẻ link, chỉ chia sẻ text + link store.
+1. ~~**Link chia sẻ / App Links.**~~ Đã làm theo đề xuất (PR #76). Android đang chia sẻ `https://tspodcast.vercel.app/podcast/<id>-<slug>` (web đã chết) và khai App Link cho host đó. Web nghe trực tuyến đã bỏ. Đề xuất: link `https://tspodcast.web.app/podcast/<id>-<slug>`, Hosting rewrite `/podcast/**`, `/episode/**` về một trang tĩnh "Mở trong app" (nút Play/App Store), thêm `/.well-known/assetlinks.json` + `apple-app-site-association` vào `site/`, Android đổi `WEB_HOST`, iOS điền `APP_LINK_HOST` + Associated Domains. Hoặc: bỏ chia sẻ link, chỉ chia sẻ text + link store.
 2. **Website trên Play Console** đổi từ `podcast-25c93.web.app` sang `tspodcast.web.app` (app-ads.txt có ở cả hai; landing giống nhau).
 3. Giữ hay xoá nhóm TestFlight Public Beta sau khi 1.1 phát hành.
 4. Khi nào bật IAP (§3.1) — phụ thuộc Paid Apps Agreement.
