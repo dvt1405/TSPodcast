@@ -1,7 +1,8 @@
 # Kế hoạch tổng: các việc đã research nhưng chưa làm
 
 > **Trạng thái: Đang làm** (2026-11-01) — đã làm: id AdMob thật + build guard (PR #45), bỏ `device_id`, màn Settings, lọc explicit, consent NĐ 13 (PR #38, #39), tốc độ, hẹn giờ ngủ, tua ±, nhớ vị trí (PR #36), ASO (PR #35, #48), app iOS (PR #30).
-> Còn lại: `network_security_config` và `PlayerSessionService` (Sprint 0), tên miền, dashboard, AI, tải offline, Android Auto, widget, backend.
+> Còn lại: `network_security_config` và `PlayerSessionService` (Sprint 0), dashboard, AI, tải offline, Android Auto, widget, backend.
+> **Cập nhật 2026-11-17:** từ 01/11 đã xong thêm: app iOS lên App Store (1.0, 1.1), ads + IAP qua Remote Config (PR #67), ads trong Player (PR #74), link chia sẻ `tspodcast.web.app` + App Links/Universal Links (PR #76; thay cho phụ thuộc B2 tên miền). Mới: §3.8 tăng trưởng "Thịnh hành" + tab "Lướt" ([ranking-va-shorts.md](../../planned/plans/ranking-va-shorts.md)).
 
 > Ticket: TSP-17 · Ngày lập: 2026-10-29 · Mốc code: `main` @ `ac05152` (sau PR #24)
 > Gom từ: `docs/in-progress/research/feature-roadmap-ai-growth.md`, `docs/done/research/competitor-analysis.md`, `docs/in-progress/policy/store-policy-review.md`, `docs/in-progress/plans/admob-migration.md`, `docs/in-progress/plans/seo-web-dashboard.md`, `docs/done/ios/*`, `docs/in-progress/ios/*`, `docs/done/plans/KMP_MIGRATION_PLAN.md`, `docs/done/crashlytics/2026-10-crash-triage.md`.
@@ -202,7 +203,7 @@ Cột **Pha**: S0 = Sprint 0, P1/P2/P3 = Phase 1/2/3 của roadmap. **Phụ thu�
 | Nhớ vị trí nghe + hàng "Tiếp tục nghe" | P1 | — | Comp Q4 |
 | Tìm kiếm tiếng Việt không dấu | P1 | — | Roadmap A5 bước 1 |
 | UI transcript + chapters từ creator (model đã có field) | P1 | — | Roadmap A1, Comp Q8 |
-| App Links `autoVerify` + share tập có `?t=` | P1 | B2 | Roadmap G1, SEO A.10 |
+| ~~App Links `autoVerify` + share tập có `?t=`~~ — App Links/Universal Links xong (PR #76, host `tspodcast.web.app`); còn `?t=` | P1 | — | Roadmap G1, SEO A.10 |
 | Play Install Referrer + deferred deeplink sau onboarding | P1 | App Links | SEO A.10, B.3 |
 | Event `podcast_play_30s`, `listen_progress`, `subscribe_podcast`, `onboarding_complete`, `share` | P1 | — | SEO B.2 |
 | Xin `POST_NOTIFICATIONS` đúng ngữ cảnh thay vì lúc mở app | P1 | — | Roadmap G11, Policy #2 |
@@ -226,9 +227,9 @@ Web đã có `/api/ai/{summary,chat,search}`. Android chưa có gì. Mọi tính
 | Backend AI (Cloud Run + App Check), cân nhắc Haiku + Batch như tài liệu tính chi phí | P2 | — | Roadmap §0 |
 | Tóm tắt AI + chapters AI, "Hỏi tập này" trên Android | P2 | Backend, màn hình đồng ý (Apple 5.1.2) | Roadmap A2, A3 |
 | Speech-to-text on-demand (có hạn mức free hoặc Premium) | P2 | Backend | Roadmap A1 |
-| Lưu và chia sẻ clip thủ công (≤60s) | P2 | — | Roadmap A4 |
+| Lưu và chia sẻ clip thủ công (≤60s) → gộp vào §3.8 (S2: "Đoạn đã lưu", xuất video) | P2 | — | Roadmap A4 |
 | Gợi ý cá nhân hoá on-device (giai đoạn 1) | P2 | Event nghe | Roadmap A6 |
-| Tìm kiếm ngữ nghĩa, dịch, bản tin AI hằng ngày, clip AI gợi ý | P3 | Backend | Roadmap A5, A7, A8 |
+| Tìm kiếm ngữ nghĩa, dịch, bản tin AI hằng ngày (clip AI gợi ý → §3.8 S1, trần $45/tháng) | P3 | Backend | Roadmap A5, A7, A8 |
 | PhoWhisper on-device, lồng tiếng (chỉ creator đồng ý) | P3 | — | Roadmap A1, A7 |
 
 ### 3.7 KMP, iOS, kiếm tiền, tài khoản
@@ -243,6 +244,19 @@ Web đã có `/api/ai/{summary,chat,search}`. Android chưa có gì. Mọi tính
 | Đăng nhập tuỳ chọn + sync, kèm xoá tài khoản trong app và trên web | P3 | — | Comp M7, Policy #20 |
 | Reaction/bình luận theo timestamp (OTP + kiểm duyệt theo NĐ 147) | P3 | Đăng nhập | Roadmap G8 |
 | Wear OS độc lập | P3 | — | Roadmap G6 |
+
+### 3.8 Tăng trưởng: "Thịnh hành" + tab "Lướt" (thêm 2026-11-17)
+
+Chi tiết, nguồn và quyết định owner (16/11/2026): [ranking-va-shorts.md](../../planned/plans/ranking-va-shorts.md). Chỉ dùng tên "Thịnh hành"; không crawl TikTok/YouTube/Spotify; không có chương trình creator; AI ≤ $45/tháng; có quảng cáo trong Lướt; gỡ trong 24 h.
+
+| Việc | Pha | Phụ thuộc | Dev-day |
+|---|---|---|---|
+| R0: màn "Thịnh hành" (số hạng, lọc ngôn ngữ/chủ đề, PodcastIndex trending live), Android + iOS | P1 | — | 6–8 |
+| S0: tab "Lướt" bản thử (pool PodcastIndex live, thẻ audio ảnh + nền blur, thẻ video, preload 1 thẻ, cờ RC 10%) | P1 | — | 14–18 |
+| Backend lite thêm parse `soundbite/chapters/alternateEnclosure/person` | P2 | BE-M0–M3 | +2 |
+| S1: kho `shorts` (T1–T3 + AI chọn đoạn + phụ đề đoạn), `/v1/shorts/pool`, trang gỡ 24 h | P2 | BE-M2 | 10–12 + 4 |
+| R1: "Thịnh hành" theo người nghe thật (play ping), ▲▼, lịch sử, trang web `/thinh-hanh`, thẻ chia sẻ thứ hạng | P2 | BE-M4b, ≥ 4 tuần dữ liệu | 6–8 + 6 + 2 |
+| S2: xuất short thành video dọc + thẻ ảnh/link, hộp thoại trách nhiệm + điều khoản, "Đoạn đã lưu" | P2 | S1 | 8–12 |
 
 ---
 
