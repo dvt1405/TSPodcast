@@ -1,6 +1,6 @@
 # Kế hoạch phase tiếp theo (sau iOS 1.1, từ 14/11/2026)
 
-> **Trạng thái: Kế hoạch** (2026-11-14). Gom mọi việc còn lại sau đợt phát hành 13–14/11/2026: iOS 1.0 lên App Store, iOS 1.1 chờ duyệt, Android 10020 đang rollout, ads + IAP qua Remote Config, landing `tspodcast.web.app`. Việc owner cần làm ở [../ios/handoff.md](../ios/handoff.md); nhật ký ở [../ios/progress.md](../ios/progress.md).
+> **Trạng thái: Đang làm** (2026-11-17; lập 14/11). Xong: ads Player (PR #74), link chia sẻ (PR #76), dọn repo (PR #78), kế hoạch tăng trưởng Thịnh hành + Lướt (§3b). Gom mọi việc còn lại sau đợt phát hành 13–14/11/2026: iOS 1.0 lên App Store, iOS 1.1 chờ duyệt, Android 10020 đang rollout, ads + IAP qua Remote Config, landing `tspodcast.web.app`. Việc owner cần làm ở [../ios/handoff.md](../ios/handoff.md); nhật ký ở [../ios/progress.md](../ios/progress.md).
 
 ## 0. Hiện trạng (14/11/2026)
 
@@ -52,6 +52,17 @@ Thứ tự đề xuất: 2.7, 2.3, 2.8 (nhanh, cùng một bản 1.2) → 2.1 + 
 | 3.3 | Ad unit riêng cho từng placement Player (báo cáo, price floor) — tuỳ chọn | Owner tạo trên AdMob, agent điền RC | S |
 | 3.4 | Đưa bộ lọc cờ bạc theo thương hiệu + host (đang có ở web cũ, đã bỏ) vào `shared/BlacklistFilters` và Android, vì RC chỉ so khớp `contains` từ khoá | Agent | S |
 | 3.5 | Tăng giá cho người đăng ký mới khi có quyền lợi mới (tải offline, AI, đồng bộ) — theo kế hoạch ads §5.2 | Owner quyết | — |
+
+## 3b. P1 — tăng trưởng: "Thịnh hành" + tab "Lướt" (thêm 17/11/2026)
+
+Kế hoạch đầy đủ: [../../planned/plans/ranking-va-shorts.md](../../planned/plans/ranking-va-shorts.md). Owner đã chốt 16/11/2026 (§8–§9 của kế hoạch): chỉ tên "Thịnh hành", tab "Lướt" riêng, không crawl nền tảng khác, không có chương trình creator, AI ≤ $45/tháng, có quảng cáo trong Lướt, AI chọn đoạn + phụ đề, người dùng chịu trách nhiệm khi chia sẻ video, gỡ trong 24 h.
+
+| # | Việc | Ai | Cỡ | Xong khi |
+|---|---|---|---|---|
+| 3b.1 | **R0** màn "Thịnh hành": số hạng, tab Việt/Toàn cầu, lọc chủ đề, top 3 thẻ lớn, ghi nguồn PodcastIndex, event `chart_*` (Android + iOS, logic trong `shared/`) | Agent | M (6–8 dev-day) | Có trên cả 2 app, test pass |
+| 3b.2 | **S0** tab "Lướt" bản thử, không backend: pool PodcastIndex live, thẻ audio (ảnh + nền blur) và thẻ video, preload 1 thẻ, "Nghe cả tập từ đây", quảng cáo native mỗi 8 thẻ (`shorts_ad_interval`), event `short_*`, cờ `shorts_enabled` | Agent | L (14–18 dev-day) | Rollout 10%, đo 3–4 tuần theo §6 kế hoạch |
+| 3b.3 | Bật cờ RC `shorts_enabled` 10% → 50% → 100% theo chỉ số | Owner bật RC, agent theo dõi | S | follow ≥ 1/100 thẻ, nghe cả tập ≥ 3%, thời lượng nghe/DAU không giảm > 3% |
+| 3b.4 | Sau backend lite: S1 (kho shorts + AI), R1 (theo người nghe thật), S2 (xuất video) | Agent | L | Theo §5 kế hoạch |
 
 ## 4. Cần owner quyết định
 

@@ -1,6 +1,6 @@
 # Tài liệu TSPodcast theo trạng thái
 
-Cập nhật 2026-11-14 (sau PR #73). Mọi tài liệu kế hoạch, spec và hướng dẫn được xếp vào ba thư mục theo việc đã làm tới đâu trên `main`, không theo lời ghi trong tài liệu:
+Cập nhật 2026-11-17 (sau PR #78 + kế hoạch Thịnh hành/Lướt). Mọi tài liệu kế hoạch, spec và hướng dẫn được xếp vào ba thư mục theo việc đã làm tới đâu trên `main`, không theo lời ghi trong tài liệu:
 
 - [`done/`](done/): đã làm xong, hoặc hướng dẫn còn dùng được. Hướng dẫn mô tả cách làm cũ được ghi "đã cũ" ở đầu file.
 - [`in-progress/`](in-progress/): một phần đã vào `main`, phần còn lại ghi ở đầu file.
@@ -50,9 +50,9 @@ Không nằm ở đây: `README.md` gốc, [`brand/BRAND.md`](../brand/BRAND.md)
 | [plans/seo-web-dashboard.md](in-progress/plans/seo-web-dashboard.md) | Web chuẩn SEO, dashboard tăng trưởng, chiến dịch | Web Next.js đã bỏ 14/11/2026 (PR #72); landing `site/` chạy ở `tspodcast.web.app`. Còn ASO, Search Console, chiến dịch |
 | [plans/web-vps-deploy.md](in-progress/plans/web-vps-deploy.md) | Đưa web lên VPS | Dừng: web nghe trực tuyến đã bỏ 14/11/2026 |
 | [plans/monetization-ads-iap.md](in-progress/plans/monetization-ads-iap.md) | Contract ads + IAP qua Remote Config (Android + iOS), khoá RC, sản phẩm IAP | Đã vào app (PR #67), RC v6 đã publish; IAP ẩn chờ Paid Apps Agreement |
-| [plans/next-phase-2026-11.md](in-progress/plans/next-phase-2026-11.md) | Kế hoạch phase tiếp theo sau iOS 1.1: hoàn tất ads Player, parity pha 2–3, bật IAP, link chia sẻ | Kế hoạch (14/11/2026) |
-| [plans/player-ads-and-premium.md](in-progress/plans/player-ads-and-premium.md) | Quảng cáo trong Player và Up next (tham khảo app nhạc), rủi ro chính sách, gói Premium và giá | Owner đã chốt (PR #73): 3 placement, giá 29k/249k/499k, IAP bật cùng lúc. Code ở PR #74 (chưa merge), mặc định tắt |
-| [plans/roadmap-backlog.md](in-progress/plans/roadmap-backlog.md) | Backlog tổng các việc đã research | Nhiều mục P1 đã làm (PR #30, #35, #36, #38, #39, #45, #48). Còn `network_security_config`, `PlayerSessionService`, tên miền, dashboard, AI, offline, Android Auto, backend |
+| [plans/next-phase-2026-11.md](in-progress/plans/next-phase-2026-11.md) | Kế hoạch phase tiếp theo sau iOS 1.1: hoàn tất ads Player, parity pha 2–3, bật IAP, link chia sẻ, tăng trưởng (Thịnh hành + Lướt) | Xong: ads Player (PR #74), link chia sẻ (PR #76). Còn: rollout ads Player, parity pha 2–3, IAP, R0 + S0 (§3b) |
+| [plans/player-ads-and-premium.md](in-progress/plans/player-ads-and-premium.md) | Quảng cáo trong Player và Up next (tham khảo app nhạc), rủi ro chính sách, gói Premium và giá | Owner đã chốt (PR #73): 3 placement, giá 29k/249k/499k, IAP bật cùng lúc. Code đã merge (PR #74), mặc định tắt; còn rollout theo RC |
+| [plans/roadmap-backlog.md](in-progress/plans/roadmap-backlog.md) | Backlog tổng các việc đã research | Nhiều mục P1 đã làm (PR #30, #35, #36, #38, #39, #45, #48). Còn `network_security_config`, `PlayerSessionService`, dashboard, AI, offline, Android Auto, backend. Thêm §3.8 (17/11/2026): Thịnh hành + tab Lướt |
 | [policy/store-policy-review.md](in-progress/policy/store-policy-review.md) | Rà soát chính sách Play và App Store, checklist §11 | Đã xử lý #4, #6–#11, #13, #19 (PR #56). Còn #17, #18, #25 và khai báo Play Console |
 | [research/de-xuat-tinh-nang-dot-pha.md](in-progress/research/de-xuat-tinh-nang-dot-pha.md) | Đề xuất tính năng N1–N26 | Đã làm N1 lite, N2, N4, N5, N11 lite, App Shortcuts (PR #30, #36, #38, #39). Còn các mục cần backend hoặc tên miền |
 | [research/feature-roadmap-ai-growth.md](in-progress/research/feature-roadmap-ai-growth.md) | Lộ trình AI và tăng trưởng | Đã làm G4, G12, G13, player cơ bản, iOS, AI trên web. Còn AI trong app, offline, widget, Android Auto, Premium |
@@ -67,4 +67,5 @@ Không nằm ở đây: `README.md` gốc, [`brand/BRAND.md`](../brand/BRAND.md)
 |---|---|---|
 | [Kế hoạch thông báo kéo người dùng quay lại](https://claude.ai/artifact/5HDLbL9DPfgoQ4uCUi4VvA) (Claude Docs) | 9 loại thông báo (nghe tiếp, tập mới, trending, bản tin), xin quyền đúng lúc, lịch theo vòng đời, Android + iOS | Toàn bộ 4 giai đoạn; chờ owner chốt nơi chạy server push |
 | [plans/android-auto.md](planned/plans/android-auto.md) | TSPodcast trên ô tô: Android Auto trước, Android Automotive OS sau. Cây duyệt, khai báo, Play Console, thử bằng DHU, các mốc | Đã có nền móng M0 (`MediaLibraryService`, cây duyệt, giọng nói, khai báo; PR #56). Còn thử DHU/xe thật, ảnh bìa, radio, opt-in Play Console, AAOS |
+| [plans/ranking-va-shorts.md](planned/plans/ranking-va-shorts.md) | Bảng xếp hạng podcast (R0 "Thịnh hành" → R1 BXH theo người nghe thật) và Shorts lướt nghe/xem (kho con trỏ đoạn từ RSS, thẻ video hoặc ảnh tác giả + nền blur, chia sẻ thành video) để kéo người dùng mới | Toàn bộ; owner đã chốt §8 và tự trả lời 6 câu pháp lý §9 (16/11/2026). R0 + S0 làm được ngay; S1–S2 chờ backend lite |
 | [plans/ke-hoach-backend-quickwin-cuoc-lon.md](planned/plans/ke-hoach-backend-quickwin-cuoc-lon.md) | Backend podcast riêng, quick wins, cược lớn | Backend (Postgres + crawler), chỉ mục Việt, N23, tầng AI, "Nhà của podcast Việt". Riêng quick win §3 đã làm trong iOS M6 và Android |
