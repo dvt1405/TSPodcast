@@ -59,7 +59,7 @@ android {
             base.archivesName.set("TSPodcast.${defaultConfig.versionName}_D")
         }
         release {
-            defaultConfig.versionCode = 10020
+            defaultConfig.versionCode = 10021
             defaultConfig.versionName = "v3.5.${defaultConfig.versionCode}"
             isMinifyEnabled = true
             isShrinkResources = true
